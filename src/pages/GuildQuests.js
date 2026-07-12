@@ -83,6 +83,8 @@ export default function GuildQuests() {
             <QuestObjectives objectives={q.objectives} />
             {q.accepted ? (
               <p className="hint hint-ok">Ya aceptada</p>
+            ) : q.meets_level === false ? (
+              <p className="auth-error">Requiere nivel {q.min_level}</p>
             ) : (
               <>
                 {q.times_completed > 0 && (
