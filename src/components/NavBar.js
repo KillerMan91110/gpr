@@ -21,6 +21,7 @@ const CATEGORIES = [
       { to: '/inventory', label: 'Inventario' },
       { to: '/skills', label: 'Habilidades' },
       { to: '/formation', label: 'Formación' },
+      { to: '/pets', label: 'Mascotas' },
       { to: '/achievements', label: 'Logros' },
       { to: '/ranks', label: 'Rangos' },
     ],

@@ -439,6 +439,11 @@ export default function Inventory() {
                       {activeNpc ? `Equipar a ${activeNpc.name}` : 'Equipar'}
                     </button>
                   )}
+                  {item.code?.startsWith('HUEVO_') && (
+                    <Link to="/pets" className="rpg-button equipment-action">
+                      🐾 Incubar
+                    </Link>
+                  )}
                   {item.item_type === 'CONSUMABLE' && (
                     <button
                       className="rpg-button equipment-action"

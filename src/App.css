@@ -1264,6 +1264,34 @@ h1, h2, h3 {
   margin-bottom: 28px;
 }
 
+.pets-section {
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+
+.pets-section h2 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: var(--gold);
+}
+
+.pet-bonus-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.pet-bonus-tag {
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid var(--gold-dim);
+  color: var(--gold-bright);
+  background: rgba(212, 175, 55, 0.08);
+  white-space: nowrap;
+}
+
 .item-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -2575,6 +2603,27 @@ h1, h2, h3 {
   max-width: calc(100vw - 40px);
   padding: 14px 16px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+
+/* Alerta persistente de huevo listo (IncubatorAlert) — top-left para no chocar con el
+   stack de CoopBar/craft-result-popup que ya ocupan las esquinas derechas. */
+.incubator-alert {
+  position: fixed;
+  top: 90px;
+  left: 20px;
+  z-index: 58;
+  width: 260px;
+  max-width: calc(100vw - 40px);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  border-color: var(--gold);
+}
+
+.incubator-alert-text {
+  font-size: 0.9rem;
 }
 
 .craft-result-close {

@@ -11,6 +11,7 @@ import GuildMasters from './pages/GuildMasters';
 import GuildMasterDetail from './pages/GuildMasterDetail';
 import GuildAdventurers from './pages/GuildAdventurers';
 import Formation from './pages/Formation';
+import Pets from './pages/Pets';
 import Infirmary from './pages/Infirmary';
 import Inventory from './pages/Inventory';
 import GuildQuests from './pages/GuildQuests';
@@ -28,6 +29,7 @@ import Skills from './pages/Skills';
 import Achievements from './pages/Achievements';
 import Friends from './pages/Friends';
 import CoopBar from './components/CoopBar';
+import IncubatorAlert from './components/IncubatorAlert';
 import NavBar from './components/NavBar';
 import './App.css';
 
@@ -69,9 +71,11 @@ function App() {
           <Route path="/skills" element={<ProtectedRoute><Skills /></ProtectedRoute>} />
           <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
           <Route path="/formation" element={<ProtectedRoute><Formation /></ProtectedRoute>} />
+          <Route path="/pets" element={<ProtectedRoute><Pets /></ProtectedRoute>} />
           <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
         </Routes>
         <CoopBar />
+        <IncubatorAlert />
       </BrowserRouter>
     </AuthProvider>
   );

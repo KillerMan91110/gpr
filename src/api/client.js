@@ -69,6 +69,19 @@ export const api = {
     request(`/api/player/${playerId}/use-item`, { method: 'POST', body: { itemId }, token }),
   useRecipeScroll: (playerId, itemId, token) =>
     request(`/api/player/${playerId}/inventory/use/${itemId}`, { method: 'POST', token }),
+  // Mascotas
+  getPets: (playerId, token) => request(`/api/player/${playerId}/pets`, { token }),
+  activatePet: (playerId, playerPetId, token) =>
+    request(`/api/player/${playerId}/pets/${playerPetId}/activate`, { method: 'POST', token }),
+  deactivatePet: (playerId, playerPetId, token) =>
+    request(`/api/player/${playerId}/pets/${playerPetId}/deactivate`, { method: 'POST', token }),
+  feedPet: (playerId, playerPetId, itemId, quantity, token) =>
+    request(`/api/player/${playerId}/pets/${playerPetId}/feed`, { method: 'POST', body: { itemId, quantity }, token }),
+  getIncubator: (playerId, token) => request(`/api/player/${playerId}/pets/incubator`, { token }),
+  startIncubation: (playerId, itemId, token) =>
+    request(`/api/player/${playerId}/pets/incubator`, { method: 'POST', body: { itemId }, token }),
+  claimIncubator: (playerId, token) =>
+    request(`/api/player/${playerId}/pets/incubator/claim`, { method: 'POST', token }),
   equipItem: (playerId, itemId, enchantLevel = 0, qualityTier = 0, token) =>
     request(`/api/player/${playerId}/equip`, { method: 'POST', body: { itemId, enchantLevel, qualityTier }, token }),
   unequipItem: (playerId, slot, token) =>
