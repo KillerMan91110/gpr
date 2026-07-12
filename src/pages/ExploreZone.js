@@ -759,7 +759,7 @@ function CombatView({
             <CombatantCard
               key={p.id}
               participant={p}
-              level={p.player_id ? playerLevel : (npcLevelMap?.[p.npc_id] ?? null)}
+              level={p.player_id ? (p.level ?? playerLevel) : (npcLevelMap?.[p.npc_id] ?? null)}
               isActive={p.id === nextActorId}
               allyTargetable={isPlayerTurn && selectingAlly && p.hp > 0}
               onTarget={() => handleAllyTarget(p.id)}
