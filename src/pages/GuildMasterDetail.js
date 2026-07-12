@@ -16,6 +16,24 @@ function rarityClass(rarity) {
   return `rarity-${(rarity || 'comun').toLowerCase()}`;
 }
 
+// Mismas etiquetas/colores que ya usa Skills.js para las skills del propio jugador — se
+// reusan acá para que una skill se vea igual sin importar si la mirás desde tu lista o
+// desde el maestro que la enseña.
+const TYPE_LABELS = {
+  PASIVA: 'Pasiva', ATAQUE: 'Ataque', CURACION: 'Curación',
+  BUFF: 'Buff', DEBUFF: 'Debuff', ESPECIAL: 'Especial', ESTADO_ALTERADO: 'Estado',
+};
+const TYPE_CSS = {
+  PASIVA: 'skill-type--passive', ATAQUE: 'skill-type--attack', CURACION: 'skill-type--heal',
+  BUFF: 'skill-type--buff', DEBUFF: 'skill-type--debuff', ESPECIAL: 'skill-type--special',
+  ESTADO_ALTERADO: 'skill-type--status',
+};
+const TARGET_LABELS = {
+  SELF: 'Uno mismo', SINGLE_ENEMY: 'Un enemigo', ALL_ENEMIES: 'Todos los enemigos',
+  SINGLE_ALLY: 'Un aliado', ALL_ALLIES: 'Todos los aliados',
+};
+const SCHOOL_LABELS = { PHYSICAL: 'Físico', MAGICAL: 'Mágico' };
+
 export default function GuildMasterDetail() {
   const { classId } = useParams();
   const { player, token } = useAuth();
@@ -152,18 +170,43 @@ export default function GuildMasterDetail() {
       </div>
 
       {tab === 'skills' && (
-        <div className="zone-list">
+        <div className="skill-list">
           {data.skills.map((s) => {
             const disabled = !data.isOwnClass || s.learned || s.locked || s.affordable === false || busyId === s.id;
+            const isPassive = s.skillType === 'PASIVA';
             return (
-              <div key={s.id} className="rpg-panel explore-panel">
-                <h3>{s.name}</h3>
-                <p className="zone-description">{s.description}</p>
-                <p className="hint">
-                  {s.learnMethod === 'GOLD' ? `Costo: ${s.goldCost} de oro` : s.requirementText || 'Requiere misión'}
-                </p>
+              <div key={s.id} className={`rpg-panel skill-card${s.learned ? '' : ' skill-card--unlearned'}`}>
+                <div className="skill-card-header">
+                  <span className="skill-name">{s.name}</span>
+                  {s.skillType && (
+                    <span className={`skill-type-badge ${TYPE_CSS[s.skillType] || ''}`}>
+                      {TYPE_LABELS[s.skillType] || s.skillType}
+                    </span>
+                  )}
+                </div>
+
+                <div className="skill-meta">
+                  <span className="skill-unlock-hint">
+                    {s.learnMethod === 'GOLD' ? `Costo: ${s.goldCost} de oro` : s.requirementText || 'Requiere misión'}
+                  </span>
+                  {!isPassive && s.manaCost > 0 && (
+                    <span className="skill-stat-chip">{s.manaCost} maná</span>
+                  )}
+                  {!isPassive && s.targetType && (
+                    <span className="skill-stat-chip">{TARGET_LABELS[s.targetType] || s.targetType}</span>
+                  )}
+                  {!isPassive && s.damageSchool && (
+                    <span className="skill-stat-chip">{SCHOOL_LABELS[s.damageSchool] || s.damageSchool}</span>
+                  )}
+                  {!isPassive && s.hits > 1 && (
+                    <span className="skill-stat-chip">{s.hits} golpes</span>
+                  )}
+                </div>
+
+                {s.description && <p className="skill-description">{s.description}</p>}
+
                 {s.learned ? (
-                  <p className="hint hint-ok">Ya aprendida</p>
+                  <p className="hint hint-ok">✓ Ya aprendida</p>
                 ) : !data.isOwnClass ? (
                   <p className="auth-error">No es tu clase</p>
                 ) : s.locked ? (

@@ -206,9 +206,9 @@ export default function Crafting() {
                 {r.description && <p className="hint">{r.description}</p>}
                 <p className="hint">Éxito: {r.successRate}% · Resultado: x{r.resultQuantity}</p>
                 <div className="craft-ingredients">
-                  {r.ingredients.map((ing) => (
+                  {r.ingredients.map((ing, i) => (
                     <span
-                      key={ing.itemId}
+                      key={`${r.id}-${ing.itemId}-${i}`}
                       className={`craft-ingredient${ing.have >= ing.need ? '' : ' craft-ingredient--missing'}`}
                     >
                       {ing.itemName} {ing.have}/{ing.need}

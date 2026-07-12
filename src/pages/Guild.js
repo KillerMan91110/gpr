@@ -5,7 +5,7 @@ import { api } from '../api/client';
 
 const ROLE_LABEL = { LEADER: 'Líder', OFFICER: 'Oficial', MEMBER: 'Miembro' };
 
-const BASE_SECTIONS = [
+const SERVICE_SECTIONS = [
   {
     to: '/guild/adventurers',
     icon: '⚔',
@@ -36,6 +36,9 @@ const BASE_SECTIONS = [
     title: 'Encantador',
     description: 'Mejorá el nivel de encantamiento de tu equipo equipado con piedras mágicas.',
   },
+];
+
+const COMMERCE_SECTIONS = [
   {
     to: '/artisan-shop',
     icon: '🏪',
@@ -92,8 +95,6 @@ export default function Guild() {
         },
       ];
 
-  const sections = [...BASE_SECTIONS, ...guildSections];
-
   return (
     <div className="dashboard">
       <header className="dashboard-header">
@@ -107,7 +108,39 @@ export default function Guild() {
       </header>
 
       <div className="zone-list">
-        {sections.map((section) => (
+        {guildSections.map((section) => (
+          <Link
+            key={section.to}
+            to={section.to}
+            className={`zone-card rpg-panel guild-section-link${myGuild ? ' guild-section-link--mine' : ''}`}
+          >
+            <div className="zone-card-header">
+              <h3>
+                {section.icon} {section.title}
+              </h3>
+            </div>
+            <p className="zone-description">{section.description}</p>
+          </Link>
+        ))}
+      </div>
+
+      <h2 className="guild-category-title">Servicios del Gremio</h2>
+      <div className="zone-list">
+        {SERVICE_SECTIONS.map((section) => (
+          <Link key={section.to} to={section.to} className="zone-card rpg-panel guild-section-link">
+            <div className="zone-card-header">
+              <h3>
+                {section.icon} {section.title}
+              </h3>
+            </div>
+            <p className="zone-description">{section.description}</p>
+          </Link>
+        ))}
+      </div>
+
+      <h2 className="guild-category-title">Comercio</h2>
+      <div className="zone-list">
+        {COMMERCE_SECTIONS.map((section) => (
           <Link key={section.to} to={section.to} className="zone-card rpg-panel guild-section-link">
             <div className="zone-card-header">
               <h3>

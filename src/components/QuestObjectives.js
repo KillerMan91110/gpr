@@ -8,6 +8,8 @@ function objectiveLabel(o) {
       return 'Matar enemigos comunes de la zona';
     case 'COLLECT_ITEM':
       return `Recolectar ${o.item_name || 'item'}`;
+    case 'USE_ACTION':
+      return 'Cumplir el requisito de combate';
     default:
       return 'Objetivo';
   }
