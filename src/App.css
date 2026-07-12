@@ -1,0 +1,3336 @@
+:root {
+  --bg-deep: #0d0b14;
+  --panel-1: #221b2c;
+  --panel-2: #17121d;
+  --gold: #d4af37;
+  --gold-bright: #f0d878;
+  --gold-dim: #7a5e22;
+  --cream: #ece3cf;
+  --text-soft: #c9c1d6;
+  --hp-a: #7a1020;
+  --hp-b: #e0394f;
+  --mana-a: #143a66;
+  --mana-b: #4fa0e0;
+  --rarity-comun: #b9b3c4;
+  --rarity-poco_comun: #5fd97e;
+  --rarity-raro: #4fa0e0;
+  --rarity-epico: #b572e0;
+  --rarity-legendario: #f0a93a;
+}
+
+.App {
+  min-height: 100vh;
+  color: var(--cream);
+  background:
+    radial-gradient(circle at 50% -10%, rgba(212, 175, 55, 0.1), transparent 55%),
+    radial-gradient(circle at 5% 100%, rgba(122, 16, 32, 0.18), transparent 50%),
+    radial-gradient(circle at 95% 100%, rgba(20, 58, 102, 0.18), transparent 50%),
+    var(--bg-deep);
+}
+
+h1, h2, h3 {
+  font-family: 'Cinzel', Georgia, serif;
+  letter-spacing: 0.04em;
+}
+
+/* ===== Navbar global ===== */
+
+.app-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 24px;
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border-bottom: 1px solid var(--gold-dim);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.app-navbar-brand {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--gold-bright);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.app-navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.app-navbar-dropdown {
+  position: relative;
+}
+
+.app-navbar-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: var(--text-soft);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.app-navbar-link:hover {
+  color: var(--gold-bright);
+  border-color: var(--gold-dim);
+}
+
+.app-navbar-link--active {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.1);
+}
+
+.app-navbar-caret {
+  font-size: 0.55rem;
+  opacity: 0.7;
+}
+
+.app-navbar-dropdown .app-navbar-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 170px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 71;
+}
+
+.app-navbar-menu-item {
+  font-size: 0.8rem;
+  color: var(--cream);
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 3px;
+}
+
+.app-navbar-menu-item:hover {
+  background: rgba(212, 175, 55, 0.12);
+  color: var(--gold-bright);
+}
+
+.app-navbar-logout {
+  padding: 8px 14px;
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 760px) {
+  .app-navbar { flex-wrap: wrap; padding: 8px 14px; }
+  .app-navbar-links { gap: 2px; }
+}
+
+/* ===== Panel base (pergamino oscuro con marco dorado) ===== */
+
+.rpg-panel {
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.18),
+    0 18px 40px rgba(0, 0, 0, 0.65),
+    inset 0 0 50px rgba(0, 0, 0, 0.45);
+  position: relative;
+}
+
+.rpg-panel::before,
+.rpg-panel::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--gold);
+  opacity: 0.7;
+}
+
+.rpg-panel::before {
+  top: -1px;
+  left: -1px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.rpg-panel::after {
+  bottom: -1px;
+  right: -1px;
+  border-left: none;
+  border-top: none;
+}
+
+/* ===== Auth (Login / Register) ===== */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-kicker {
+  display: block;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.auth-card {
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.auth-card h1 {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+  text-align: center;
+  color: var(--gold-bright);
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.35);
+}
+
+.auth-divider {
+  border: none;
+  border-top: 1px solid var(--gold-dim);
+  margin: -6px 0 4px;
+  opacity: 0.6;
+}
+
+.auth-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.auth-card input,
+.auth-card select {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  padding: 10px 12px;
+  color: var(--cream);
+  font-family: 'EB Garamond', serif;
+  font-size: 1.05rem;
+}
+
+.auth-card input:focus,
+.auth-card select:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+}
+
+.rpg-button {
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.9rem;
+  background: linear-gradient(180deg, #f0d878, #b8862f);
+  border: 1px solid #6e4f17;
+  border-radius: 4px;
+  padding: 12px;
+  color: #2a1d0a;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: filter 0.15s ease, transform 0.05s ease;
+}
+
+.rpg-button:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.rpg-button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.rpg-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}
+
+.auth-error {
+  background: rgba(122, 16, 32, 0.25);
+  border: 1px solid var(--hp-b);
+  color: #ff9aa6;
+  padding: 8px 12px;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  margin: 0;
+  text-align: center;
+}
+
+.auth-switch {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+.auth-switch a {
+  color: var(--gold-bright);
+  text-decoration: none;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+.hint {
+  font-size: 0.7rem;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.hint-ok {
+  color: #7fe09a;
+}
+
+.hint-error {
+  color: #ff9aa6;
+}
+
+/* ===== Dashboard ===== */
+
+.dashboard {
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 88px 24px 40px;
+}
+
+.dashboard-topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+/* -- Hero card -- */
+
+.hero-card {
+  display: flex;
+  gap: 22px;
+  align-items: flex-start;
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+.hero-portrait {
+  width: 96px;
+  height: 128px;
+  object-fit: cover;
+  border: 2px solid var(--gold-dim);
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.hero-portrait-fallback {
+  width: 96px;
+  height: 128px;
+  border: 2px solid var(--gold-dim);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  flex-shrink: 0;
+}
+
+.hero-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.hero-info h1 {
+  margin: 0;
+  font-size: 1.7rem;
+  color: var(--gold-bright);
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
+  line-height: 1.1;
+}
+
+.hero-class-tag {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.hero-class-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.hero-class-role {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+.hero-class-level {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.hero-class-desc {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+/* -- Panels genéricos -- */
+
+.dash-panel {
+  padding: 18px 22px;
+  margin-bottom: 18px;
+}
+
+.panel-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+/* -- Layout dos columnas -- */
+
+.dash-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+/* -- Filas de stat (label · · · value) -- */
+
+.stat-row-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.combat-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-row-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.stat-row-value {
+  color: var(--cream);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* -- Elementales -- */
+
+.elemental-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.elemental-group-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin: 0 0 10px;
+}
+
+.elemental-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.elemental-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  background: rgba(0, 0, 0, 0.3);
+  min-width: 64px;
+}
+
+.elemental-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.elemental-value {
+  font-size: 0.95rem;
+}
+
+.elem-fire      { color: #e06030; }
+.elem-ice       { color: #7fcce0; }
+.elem-lightning { color: #f0d040; }
+.elem-wind      { color: #90d060; }
+.elem-earth     { color: #c09050; }
+.elem-water     { color: #4090d8; }
+.elem-light     { color: #f0f0a0; }
+.elem-dark      { color: #b070e8; }
+.elem-cosmic    { color: #e070d8; }
+
+/* -- Stats XP bar -- */
+
+.stat-bar-fill.xp {
+  background: linear-gradient(90deg, #e4de26, #fff81a);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+}
+
+/* -- Compatibilidad legada (usada en otras páginas) -- */
+
+.stats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 18px 22px;
+}
+
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-card span {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.stat-card strong {
+  font-size: 1.25rem;
+  color: var(--cream);
+}
+
+.dashboard-subtitle {
+  margin: 6px 0 0;
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+}
+
+.logout-btn {
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  border-radius: 3px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.stats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 28px;
+  padding: 18px 20px;
+}
+
+.stat-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin-bottom: 5px;
+}
+
+.stat-bar-track {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--gold-dim);
+  border-radius: 5px;
+  height: 12px;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.stat-bar-fill.hp {
+  background: linear-gradient(90deg, var(--hp-a), var(--hp-b));
+  box-shadow: 0 0 8px rgba(224, 57, 79, 0.6);
+}
+
+.stat-bar-fill.mana {
+  background: linear-gradient(90deg, var(--mana-a), var(--mana-b));
+  box-shadow: 0 0 8px rgba(79, 160, 224, 0.6);
+}
+
+.stat-bar-fill.quest {
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+}
+
+.stat-bar-fill.quest.done {
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+}
+
+.rank-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.rank-label {
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.rank-bar-track {
+  width: 120px;
+  height: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--gold-dim);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.rank-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2f9e52, var(--rarity-poco_comun));
+  box-shadow: 0 0 8px rgba(95, 217, 126, 0.6);
+  transition: width 0.4s ease;
+}
+
+.rank-bar-text {
+  color: var(--text-soft);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.quest-objectives {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-card span {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.stat-card strong {
+  font-size: 1.25rem;
+  color: var(--cream);
+}
+
+.nav-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--hp-a, #7a1020);
+  border: 1px solid #ff9aa6;
+  color: #ff9aa6;
+  font-size: 0.68rem;
+  line-height: 16px;
+  text-align: center;
+}
+
+/* ===== Zones (Combate) ===== */
+
+.zone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.zone-card {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.zone-card.zone-locked {
+  opacity: 0.55;
+  filter: grayscale(0.4);
+}
+
+.guild-section-link {
+  text-decoration: none;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.guild-section-link:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.25);
+}
+
+.zone-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.zone-card-header h3 {
+  margin: 0;
+  color: var(--gold-bright);
+  font-size: 1.1rem;
+}
+
+.zone-level-range {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.zone-description {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
+.zone-boss-status {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: #ff9aa6;
+}
+
+.zone-boss-status.boss-down {
+  color: #7fe09a;
+}
+
+.zone-lock-reason {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+.zone-enter {
+  align-self: flex-start;
+  text-decoration: none;
+  margin-top: 4px;
+}
+
+/* ===== Explorar / Batalla ===== */
+
+.explore-panel {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.infirmary-panel {
+  align-items: stretch;
+  max-width: 420px;
+}
+
+.infirmary-bar {
+  width: 100%;
+}
+
+.infirmary-message {
+  text-transform: none;
+}
+
+.explore-panel p {
+  color: var(--text-soft);
+  margin: 0;
+}
+
+.combat-view {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.combat-result {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 760px) {
+  .combat-view {
+    grid-template-columns: 1fr;
+  }
+}
+
+.combat-left,
+.combat-right {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.vs-divider {
+  text-align: center;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.7rem;
+  color: var(--gold-dim);
+  letter-spacing: 0.3em;
+}
+
+.combat-side h3 {
+  font-size: 0.85rem;
+  color: var(--gold);
+  margin: 0 0 8px;
+}
+
+.combat-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.combat-side.enemy-side {
+  border-color: rgba(224, 57, 79, 0.35);
+}
+
+.combat-side.party-side {
+  border-color: rgba(79, 160, 224, 0.3);
+}
+
+.combatant-card {
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.combatant-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.combatant-name {
+  font-size: 0.9rem;
+  color: var(--cream);
+}
+
+.combatant-level {
+  font-size: 0.72rem;
+  color: var(--gold);
+  font-family: 'Cinzel', serif;
+}
+
+.combatant-defending {
+  font-size: 0.8rem;
+}
+
+.combatant-class {
+  font-size: 0.68rem;
+  color: var(--text-soft);
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.02em;
+  margin-top: -2px;
+  margin-bottom: 2px;
+}
+
+.combatant-mana-track {
+  height: 6px;
+}
+
+
+.combatant-card.combatant-dead {
+  opacity: 0.4;
+}
+
+@keyframes combatant-pulse {
+  0%, 100% { box-shadow: 0 0 6px 1px rgba(212, 175, 55, 0.5); }
+  50%       { box-shadow: 0 0 16px 4px rgba(212, 175, 55, 0.9); }
+}
+
+.combatant-card.combatant-active {
+  border-color: var(--gold-bright);
+  animation: combatant-pulse 1.1s ease-in-out infinite;
+}
+
+.combatant-card.combatant-targetable {
+  cursor: pointer;
+  border-color: var(--hp-b);
+}
+
+.combatant-card.combatant-targetable:hover {
+  box-shadow: 0 0 10px rgba(224, 57, 79, 0.5);
+}
+
+.combatant-card.combatant-ally-targetable {
+  cursor: pointer;
+  border-color: #5bb85b;
+}
+
+.combatant-card.combatant-ally-targetable:hover {
+  box-shadow: 0 0 10px rgba(91, 184, 91, 0.55);
+}
+
+.stat-bar-fill {
+  transition: width 0.35s ease;
+}
+
+.combat-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+.combat-hint--waiting {
+  color: var(--gold-dim);
+}
+
+.combatant-partner-tag {
+  font-size: 0.7rem;
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+.combatant-ai-tag {
+  font-size: 0.7rem;
+  color: var(--gold-dim);
+  font-style: italic;
+}
+
+.combatant-partner {
+  border-left: 2px solid var(--gold-dim);
+  padding-left: 6px;
+}
+
+.coop-ready-panel { text-align: center; }
+
+.combat-log-shell {
+  position: relative;
+}
+
+.combat-log {
+  padding: 14px 18px;
+  height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+.combat-log::-webkit-scrollbar { width: 8px; }
+.combat-log::-webkit-scrollbar-track { background: transparent; }
+.combat-log::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
+
+.combat-log p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.scroll-fade-top {
+  position: absolute;
+  top: 0; left: 0; right: 8px;
+  height: 22px;
+  background: linear-gradient(180deg, var(--panel-1), transparent);
+  pointer-events: none;
+  border-radius: 4px 4px 0 0;
+  z-index: 1;
+}
+
+.log-jump-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 14px;
+  font-size: 0.7rem;
+  font-family: 'Cinzel', Georgia, serif;
+  color: var(--gold-bright);
+  background: rgba(13, 11, 20, 0.85);
+  border: 1px solid var(--gold-dim);
+  border-radius: 10px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.log-jump-btn:hover {
+  border-color: var(--gold);
+}
+
+.combat-round-label {
+  text-align: center;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.78rem;
+  color: var(--gold-dim);
+  letter-spacing: 0.08em;
+  margin-bottom: 2px !important;
+}
+
+.combat-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+}
+
+.rpg-button-danger {
+  background: linear-gradient(180deg, #e08a8a, #9a3030);
+  border-color: #5e1a1a;
+  color: #2a0a0a;
+}
+
+.item-list {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item-row {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  padding: 8px 12px;
+  color: var(--cream);
+  font-family: 'EB Garamond', serif;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.item-row:hover:not(:disabled) {
+  border-color: var(--gold);
+}
+
+.item-row:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.item-qty {
+  color: var(--gold);
+}
+
+.combat-result {
+  padding: 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.combat-result h2 {
+  margin: 0;
+  color: var(--gold-bright);
+}
+
+.dashboard-loading,
+.dashboard-error {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--text-soft);
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.05em;
+}
+
+/* ===== Placeholder ===== */
+
+.placeholder-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.placeholder-page h1 {
+  color: var(--gold-bright);
+}
+
+.placeholder-page p {
+  color: var(--text-soft);
+}
+
+.placeholder-page a {
+  color: var(--gold-bright);
+  text-decoration: none;
+  border: 1px solid var(--gold-dim);
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.placeholder-page a:hover {
+  border-color: var(--gold);
+}
+
+/* ===== Inventario ===== */
+
+.equipment-panel {
+  padding: 20px;
+  margin-bottom: 28px;
+}
+
+.equipment-panel h2,
+.inventory-group h2 {
+  font-size: 1rem;
+  color: var(--gold);
+  margin: 0 0 14px;
+}
+
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.equipment-slot {
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.equipment-slot-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.equipment-item-name {
+  font-size: 0.92rem;
+}
+
+.equipment-empty {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+.equipment-action {
+  padding: 6px 12px;
+  font-size: 0.7rem;
+}
+
+.inventory-group {
+  margin-bottom: 28px;
+}
+
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.inventory-item {
+  position: relative;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 3px solid var(--gold-dim);
+}
+
+.inventory-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.inventory-item-name {
+  font-size: 0.95rem;
+  color: var(--cream);
+}
+
+.inventory-item-qty {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  color: var(--gold);
+}
+
+.inventory-item-rarity {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.inventory-item-level {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+
+.rarity-comun { border-left-color: var(--rarity-comun); }
+.rarity-comun .inventory-item-rarity, .rarity-comun.equipment-item-name { color: var(--rarity-comun); }
+
+.rarity-poco_comun { border-left-color: var(--rarity-poco_comun); }
+.rarity-poco_comun .inventory-item-rarity, .rarity-poco_comun.equipment-item-name { color: var(--rarity-poco_comun); }
+
+.rarity-raro { border-left-color: var(--rarity-raro); }
+.rarity-raro .inventory-item-rarity, .rarity-raro.equipment-item-name { color: var(--rarity-raro); }
+
+.rarity-epico { border-left-color: var(--rarity-epico); }
+.rarity-epico .inventory-item-rarity, .rarity-epico.equipment-item-name { color: var(--rarity-epico); }
+
+.rarity-legendario { border-left-color: var(--rarity-legendario); }
+.rarity-legendario .inventory-item-rarity, .rarity-legendario.equipment-item-name { color: var(--rarity-legendario); }
+
+/* ===== Mercado ===== */
+.market-gold-tag {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  color: var(--gold-bright);
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid var(--gold-dim);
+  border-radius: 6px;
+  padding: 5px 10px;
+}
+
+.market-price {
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
+.market-seller {
+  font-size: 0.75rem;
+}
+
+
+/* ===== Rangos ===== */
+
+.back-link {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-decoration: none;
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  padding: 8px 16px;
+}
+
+.back-link:hover {
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.ranks-section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 12px;
+}
+
+/* -- Hero rango actual -- */
+
+.ranks-hero {
+  display: flex;
+  gap: 22px;
+  align-items: flex-start;
+}
+
+.rank-badge-large {
+  width: 88px;
+  height: 88px;
+  border: 2px solid currentColor;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.5);
+}
+
+.rank-badge-letter {
+  font-family: 'Cinzel', serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.rank-badge-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.ranks-hero-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ranks-hero-desc {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.ranks-max-label {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--gold-bright);
+}
+
+.ranks-progress-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ranks-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.ranks-next-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+
+.ranks-next-hint strong {
+  color: var(--cream);
+}
+
+/* -- Beneficios actuales -- */
+
+.ranks-benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.rank-benefit-card {
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.rank-benefit-icon {
+  font-size: 1.4rem;
+}
+
+.rank-benefit-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.rank-benefit-value {
+  font-size: 1.2rem;
+  color: var(--gold-bright);
+}
+
+/* -- Tabla de rangos -- */
+
+.ranks-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+}
+
+.rank-table-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+  transition: background 0.15s ease;
+}
+
+.rank-table-row:last-child {
+  border-bottom: none;
+}
+
+.rank-table-current {
+  background: rgba(212, 175, 55, 0.06);
+  border-radius: 3px;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin: 0 -10px;
+  border-left: 2px solid var(--rank-color);
+}
+
+.rank-table-past {
+  opacity: 0.55;
+}
+
+.rank-table-future {
+  opacity: 0.4;
+}
+
+.rank-table-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  width: 36px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.rank-table-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.rank-table-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rank-table-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.88rem;
+  color: var(--cream);
+  letter-spacing: 0.03em;
+}
+
+.rank-table-req {
+  font-size: 0.72rem;
+  color: var(--text-soft);
+}
+
+.rank-table-perks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rank-perk {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  padding: 2px 7px;
+  color: var(--gold);
+}
+
+.rank-perk-none {
+  color: var(--text-soft);
+  background: transparent;
+  border-color: transparent;
+}
+
+.rank-table-status {
+  flex-shrink: 0;
+  width: 52px;
+  text-align: right;
+}
+
+.rank-status-done {
+  font-size: 1rem;
+  color: #5fd97e;
+}
+
+.rank-status-current {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  padding: 3px 6px;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  margin: 18px 0;
+  border-bottom: 1px solid var(--gold-dim);
+}
+
+.tab-button {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-soft);
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.tab-button:hover {
+  color: var(--cream);
+}
+
+.tab-button.active {
+  color: var(--gold-bright);
+  border-bottom-color: var(--gold-bright);
+}
+
+/* ===== Hero Section + Switcher de formación ===== */
+
+.hero-section {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  margin-bottom: 18px;
+}
+
+.hero-section .hero-card {
+  flex: 1;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.hero-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 84px;
+  flex-shrink: 0;
+}
+
+.switcher-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border: 1px solid var(--gold-dim);
+  color: var(--text-soft);
+  border-radius: 3px;
+  padding: 6px 4px;
+  cursor: pointer;
+  flex: 1;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.switcher-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.switcher-btn--active {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+  background: rgba(212, 175, 55, 0.12);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.2);
+}
+
+.switcher-btn:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
+/* ===== Dashboard Header (usado en Guild, GuildAdventurers, Formation, etc.) ===== */
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  color: var(--gold-bright);
+  font-size: 1.5rem;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
+}
+
+/* ===== NPC Pool (GuildAdventurers) ===== */
+
+.npc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.npc-toolbar-gold {
+  font-family: 'Cinzel', serif;
+  font-size: 0.92rem;
+  color: var(--gold-bright);
+}
+
+.npc-msg {
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+.npc-msg--ok  { color: #7fe09a; border-color: #2f9e52; }
+.npc-msg--error { color: #ff9aa6; border-color: var(--hp-b); }
+
+.npc-empty-msg {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
+.npc-pool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 16px;
+}
+
+.npc-card {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.npc-card-header {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.npc-class-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.npc-header-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.npc-name {
+  margin: 0;
+  color: var(--gold-bright);
+  font-size: 1rem;
+}
+
+.npc-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.npc-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(212, 175, 55, 0.1);
+  border-radius: 3px;
+  padding: 5px 4px;
+}
+
+.npc-stat-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.npc-stat-value {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--cream);
+}
+
+.npc-hire-btn {
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 0.76rem;
+  background: linear-gradient(180deg, #f0d878, #b8862f);
+  border: 1px solid #6e4f17;
+  border-radius: 4px;
+  padding: 10px;
+  color: #2a1d0a;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.npc-hire-btn:hover:not(:disabled) { filter: brightness(1.1); }
+.npc-hire-btn:disabled { opacity: 0.55; cursor: not-allowed; filter: grayscale(0.3); }
+
+.npc-hire-btn--unaffordable {
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border-color: var(--gold-dim);
+  color: var(--text-soft);
+}
+
+/* ===== Formation (party + bench) ===== */
+
+.formation-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.formation-panel-header .panel-title {
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.formation-swap-all {
+  font-size: 0.68rem;
+  padding: 6px 12px;
+}
+
+.formation-hint {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.88rem;
+  color: var(--gold);
+  border-color: var(--gold-dim);
+}
+
+.formation-party {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formation-member {
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formation-member--hero {
+  border-color: rgba(212, 175, 55, 0.5);
+  background: rgba(212, 175, 55, 0.05);
+}
+
+.formation-member--empty {
+  align-items: center;
+  justify-content: center;
+  min-height: 88px;
+  gap: 8px;
+  opacity: 0.6;
+  border-style: dashed;
+}
+
+.formation-slot-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.formation-empty-label {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  font-style: italic;
+}
+
+.formation-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.formation-action-btn {
+  font-size: 0.68rem;
+  padding: 6px 12px;
+}
+
+.formation-action-btn--highlight {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+  background: rgba(212, 175, 55, 0.12);
+}
+
+.formation-fire-btn {
+  font-size: 0.68rem;
+  padding: 6px 12px;
+  color: #ff9aa6;
+  border-color: rgba(224, 57, 79, 0.35);
+}
+
+.formation-fire-btn:hover {
+  border-color: var(--hp-b);
+  background: rgba(122, 16, 32, 0.18);
+}
+
+.bench-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formation-bench-member {
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(212, 175, 55, 0.12);
+  border-radius: 4px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.formation-bench-member--target {
+  border-color: var(--gold-dim);
+  background: rgba(212, 175, 55, 0.04);
+}
+
+/* ── Infirmary: party member bars ── */
+.infirmary-member {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+  margin-bottom: 4px;
+}
+
+.infirmary-member-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+
+/* ── Guild Adventurers: toolbar + timer ── */
+.npc-toolbar-refresh {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.npc-free-timer {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  color: var(--text-soft);
+}
+
+.npc-free-timer--ready {
+  color: var(--gold-bright);
+}
+
+/* ── Inventory: NPC equipment section ── */
+.npc-equip-section {
+  border-top: 1px solid rgba(212, 175, 55, 0.12);
+  padding-top: 14px;
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.npc-equip-section:first-child {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.npc-equip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.npc-equip-badge {
+  margin-left: auto;
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  color: var(--gold);
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+
+.npc-equip-badge--bench {
+  color: var(--text-soft);
+  border-color: rgba(212, 175, 55, 0.18);
+}
+
+/* ── Inventory: equip target chooser ── */
+.equip-target-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.equip-target-panel .rpg-button {
+  width: 100%;
+  font-size: 0.78rem;
+  padding: 5px 8px;
+}
+
+.equip-target-panel .logout-btn {
+  font-size: 0.72rem;
+  text-align: center;
+  padding: 4px 8px;
+}
+
+/* ── Dashboard columns layout ── */
+.dashboard-columns {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.dashboard-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── Leaderboard panel ── */
+.leaderboard-panel {
+  width: 230px;
+  flex-shrink: 0;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+.leaderboard-panel::-webkit-scrollbar { width: 8px; }
+.leaderboard-panel::-webkit-scrollbar-track { background: transparent; }
+.leaderboard-panel::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
+
+.leaderboard-title {
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.leaderboard-tabs {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.leaderboard-empty {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  text-align: center;
+  margin: 8px 0;
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  transition: background 0.15s;
+}
+
+.leaderboard-row:hover {
+  background: rgba(212, 175, 55, 0.05);
+}
+
+.leaderboard-row--self {
+  background: rgba(212, 175, 55, 0.08);
+  border-color: var(--gold-dim);
+}
+
+.lb-pos {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  color: var(--gold-dim);
+  width: 16px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.leaderboard-row:nth-child(-n+4) .lb-pos {
+  color: var(--gold-bright);
+  font-weight: 700;
+}
+
+.lb-icon {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+}
+
+.lb-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.lb-name {
+  font-size: 0.78rem;
+  color: var(--cream);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leaderboard-row--self .lb-name {
+  color: var(--gold-bright);
+}
+
+.lb-sub {
+  font-size: 0.6rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.lb-rank {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  color: var(--gold);
+  flex-shrink: 0;
+  border: 1px solid var(--gold-dim);
+  border-radius: 2px;
+  padding: 1px 4px;
+}
+
+/* ── Infirmary: new individual heal layout ── */
+.infirmary-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 520px;
+}
+
+.infirmary-member-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.infirmary-bar {
+  margin-bottom: 2px;
+}
+
+.infirmary-heal-btn {
+  font-size: 0.7rem;
+  padding: 3px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.infirmary-heal-btn--cant {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.infirmary-full-badge {
+  font-size: 0.68rem;
+  color: var(--hp-b);
+  font-family: 'Cinzel', serif;
+  flex-shrink: 0;
+}
+
+.infirmary-footer {
+  padding-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.infirmary-message {
+  margin: 8px 0;
+  padding: 8px 14px;
+  border-radius: 4px;
+  background: rgba(212, 175, 55, 0.08);
+}
+
+/* ── Combat: bar rows with inline numbers ── */
+.combatant-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.combatant-bar-row .combatant-hp-track,
+.combatant-bar-row .combatant-mana-track {
+  flex: 1;
+}
+
+.combatant-bar-text {
+  font-size: 0.6rem;
+  color: var(--hp-b);
+  font-family: 'Cinzel', serif;
+  white-space: nowrap;
+  min-width: 38px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.combatant-bar-text--mana {
+  color: var(--mana-b);
+}
+
+/* ── Dashboard: habilidad innata ── */
+.unique-skill-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  color: var(--gold-bright);
+  margin-bottom: 4px;
+}
+
+.unique-skill-desc {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+/* ── Combat: passive skills section ── */
+.skill-passive-header {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin: 8px 0 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.item-row--passive {
+  opacity: 0.6;
+  cursor: default;
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* ── Guild: shared input ── */
+.rpg-input {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  padding: 10px 12px;
+  color: var(--cream);
+  font-family: 'EB Garamond', serif;
+  font-size: 1.05rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+.rpg-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+}
+.rpg-input--textarea {
+  resize: vertical;
+}
+
+/* ── Guild Create ── */
+.guild-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.guild-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.guild-form-label {
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+.guild-type-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.guild-type-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.guild-type-option input[type='radio'] {
+  accent-color: var(--gold);
+  width: 16px;
+  height: 16px;
+}
+.guild-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+/* ── Guild Join ── */
+.guild-search-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.guild-search-row .rpg-input {
+  flex: 1;
+}
+.guild-mine-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.guild-mine-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.guild-mine-header h3 {
+  margin: 0 0 4px;
+}
+
+/* ── Guild My ── */
+.guild-xp-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.guild-xp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.guild-xp-label {
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+.guild-info-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.guild-type-desc {
+  font-size: 0.88rem;
+}
+.guild-description {
+  margin-top: 4px;
+}
+.guild-members-title {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+}
+.guild-members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.guild-member-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.2);
+  gap: 12px;
+}
+.guild-member-row:nth-child(odd) {
+  background: rgba(0, 0, 0, 0.3);
+}
+.guild-member-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.guild-member-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--cream);
+}
+.guild-member-sub {
+  font-size: 0.78rem;
+}
+.guild-member-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  white-space: nowrap;
+}
+.guild-member-status {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+.guild-member-status--online {
+  color: #5bb85b;
+}
+.guild-member-role {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Guild: join requests ── */
+.guild-requests-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold);
+  color: #1a1207;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 999px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.guild-request-row {
+  align-items: center;
+}
+.guild-request-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.rpg-button--small {
+  font-size: 0.78rem;
+  padding: 4px 10px;
+}
+
+/* Quest tabs */
+.quest-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.quest-tab--active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.quest-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.quest-card--completed { opacity: 0.85; }
+.quest-completed-badge { color: var(--gold); font-weight: bold; }
+.quest-completed-date { font-size: 0.78rem; margin-top: 4px; }
+
+/* Enchant badge (inventory / equipment) */
+.enchant-badge {
+  display: inline-block;
+  margin-left: 5px;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: rgba(212,175,55,0.15);
+  border: 1px solid var(--gold-dim);
+  color: var(--gold-bright);
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.luck-badge {
+  display: inline-block;
+  margin-left: 5px;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: rgba(240,169,58,0.15);
+  border: 1px solid var(--rarity-legendario);
+  color: var(--rarity-legendario);
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+/* Popup flotante de resultado de crafteo (varias unidades a la vez) */
+.craft-result-popup {
+  position: fixed;
+  top: 90px;
+  right: 20px;
+  z-index: 60;
+  width: 260px;
+  max-width: calc(100vw - 40px);
+  padding: 14px 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+
+.craft-result-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--text-soft);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.craft-result-title {
+  margin: 0 20px 8px 0;
+  font-size: 0.98rem;
+}
+
+.craft-result-line {
+  margin: 4px 0;
+  font-size: 0.88rem;
+}
+
+.craft-result-fail {
+  color: #ff9aa6;
+  opacity: 0.9;
+}
+
+/* "Equipado" tag en el panel de equipo */
+.equipped-tag {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--rarity-poco_comun);
+}
+
+/* Tooltip de stats al pasar el mouse por un item (mochila o equipo puesto) */
+.item-tooltip {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 6px;
+  z-index: 70;
+  min-width: 130px;
+  max-width: 220px;
+  padding: 8px 10px;
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  white-space: nowrap;
+}
+
+.inventory-item:hover .item-tooltip,
+.equipment-slot:hover .item-tooltip,
+.item-row:hover .item-tooltip {
+  display: block;
+}
+
+.item-tooltip-line {
+  font-size: 0.8rem;
+  color: var(--cream);
+  padding: 1px 0;
+}
+
+.stat-diff-up { color: var(--rarity-poco_comun); }
+.stat-diff-down { color: #ff9aa6; }
+
+.inventory-item-icon {
+  margin-right: 4px;
+}
+
+.inventory-item-equipped-note {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--rarity-poco_comun);
+  text-align: right;
+}
+
+/* Enchant */
+.enchant-level {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 1.1rem;
+  color: var(--gold-bright);
+}
+.enchant-bar-row { display: flex; gap: 4px; margin: 8px 0; }
+.enchant-pip {
+  width: 18px; height: 8px; border-radius: 2px;
+  background: var(--panel-1); border: 1px solid var(--gold-dim);
+}
+.enchant-pip--filled { background: var(--gold); border-color: var(--gold-bright); }
+
+/* Crafting */
+.craft-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.craft-ingredients { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.craft-ingredient {
+  font-size: 0.8rem; padding: 2px 8px; border-radius: 4px;
+  background: rgba(212,175,55,0.1); border: 1px solid var(--gold-dim);
+}
+.craft-ingredient--missing {
+  background: rgba(224,57,79,0.12); border-color: var(--hp-b); color: var(--hp-b);
+}
+.craft-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.craft-card--missing { opacity: 0.75; }
+
+/* Amigos / mensajes */
+.friend-online-dot {
+  color: var(--rarity-poco_comun);
+  font-size: 0.7rem;
+  margin-left: 6px;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.modal-panel {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 20px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+.modal-panel::-webkit-scrollbar { width: 8px; }
+.modal-panel::-webkit-scrollbar-track { background: transparent; }
+.modal-panel::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
+
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  max-width: 460px;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  margin-right: 24px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.chat-avatar {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--gold-bright);
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border: 1px solid var(--gold-dim);
+}
+
+.chat-header-info { display: flex; flex-direction: column; gap: 1px; }
+.chat-header-info h3 { margin: 0; }
+
+.chat-status {
+  font-size: 0.72rem;
+  color: var(--text-soft);
+}
+
+.chat-status--online { color: var(--rarity-poco_comun); }
+
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 10px 6px;
+  margin: 10px 0;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 6px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+.chat-thread::-webkit-scrollbar { width: 8px; }
+.chat-thread::-webkit-scrollbar-track { background: transparent; }
+.chat-thread::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
+
+.chat-bubble {
+  max-width: 78%;
+  padding: 9px 13px;
+  border-radius: 14px;
+  font-size: 0.86rem;
+  line-height: 1.35;
+  color: var(--cream);
+  border: 1px solid var(--gold-dim);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.chat-bubble:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.4);
+}
+
+.chat-bubble--theirs {
+  align-self: flex-start;
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border-bottom-left-radius: 3px;
+}
+
+.chat-bubble--mine {
+  align-self: flex-end;
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.22), rgba(212, 175, 55, 0.1));
+  border-bottom-right-radius: 3px;
+}
+
+.chat-bubble-meta {
+  font-size: 0.68rem;
+  color: var(--text-soft);
+}
+
+.chat-bubble--typing {
+  cursor: default;
+  padding: 10px 14px;
+}
+
+.typing-dots { display: inline-flex; gap: 4px; align-items: center; }
+.typing-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-soft);
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Barra global de grupo co-op (visible en cualquier pantalla) */
+.coop-bar {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 55;
+  width: 240px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.coop-bar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.coop-bar-label {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.coop-bar-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  border-top: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.coop-bar-member:first-of-type {
+  border-top: none;
+}
+
+.coop-bar-kick-btn {
+  flex-shrink: 0;
+  background: rgba(224, 57, 79, 0.12);
+  border: 1px solid var(--hp-b);
+  border-radius: 4px;
+  padding: 3px 7px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.coop-bar-partner {
+  font-size: 1rem;
+  color: var(--gold-bright);
+  font-weight: 600;
+}
+
+.coop-bar-status-dot {
+  font-size: 0.6rem;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.coop-bar-status-dot--online { color: var(--rarity-poco_comun); }
+.coop-bar-status-dot--offline { color: var(--rarity-comun); }
+
+.coop-bar-class {
+  font-size: 0.72rem;
+  color: var(--text-soft);
+}
+
+.coop-bar-hp {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+
+.coop-bar-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Chat de grupo co-op: siempre visible mientras estás agrupado, abajo a la izquierda
+   (la barra de grupo/invitaciones/ready-check vive abajo a la derecha). */
+.party-chat {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 55;
+  width: 260px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.party-chat-log {
+  max-height: 140px;
+  overflow-y: auto;
+  margin: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+.party-chat-log::-webkit-scrollbar { width: 6px; }
+.party-chat-log::-webkit-scrollbar-track { background: transparent; }
+.party-chat-log::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+
+.party-chat-line {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--cream);
+  line-height: 1.35;
+}
+
+.party-chat-line strong {
+  color: var(--text-soft);
+}
+
+.party-chat-line--mine strong {
+  color: var(--gold-bright);
+}
+
+.party-chat-input-row {
+  display: flex;
+  gap: 6px;
+}
+
+.party-chat-input-row .rpg-input {
+  flex: 1;
+  padding: 4px 8px;
+  font-size: 0.82rem;
+}
+
+.coop-invite-popup {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 56;
+  width: 280px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  border-color: var(--gold);
+}
+
+.coop-ready-bar {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  z-index: 57;
+  width: 240px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  border-color: var(--gold);
+}
+
+.coop-ready-text {
+  font-size: 0.85rem;
+  color: var(--cream);
+}
+
+.coop-ready-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.coop-check-btn, .coop-x-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coop-check-btn {
+  background: rgba(70, 200, 120, 0.18);
+  border: 1px solid #46c878;
+  color: #46c878;
+}
+
+.coop-x-btn {
+  background: rgba(224, 57, 79, 0.15);
+  border: 1px solid var(--hp-b);
+  color: #ff9aa6;
+}
+
+.chat-compose {
+  border-top: 1px solid rgba(212, 175, 55, 0.15);
+  padding-top: 10px;
+}
+
+/* Skills page */
+.skill-list { display: flex; flex-direction: column; gap: 10px; }
+
+.skill-card { padding: 14px 16px; }
+.skill-card--unlearned { opacity: 0.5; }
+
+.skill-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.skill-name {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 1rem;
+  color: var(--cream);
+}
+.skill-type-badge {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.skill-type--passive  { background: rgba(212,175,55,0.15); border-color: var(--gold-dim); color: var(--gold-bright); }
+.skill-type--attack   { background: rgba(224,57,79,0.15);  border-color: #7a1020;         color: #e0394f; }
+.skill-type--heal     { background: rgba(95,217,126,0.15); border-color: #2a7a44;         color: #5fd97e; }
+.skill-type--buff     { background: rgba(79,160,224,0.15); border-color: #143a66;         color: #4fa0e0; }
+.skill-type--debuff   { background: rgba(181,114,224,0.15);border-color: #5a2a80;         color: #b572e0; }
+.skill-type--special  { background: rgba(240,169,58,0.15); border-color: #7a4a10;         color: #f0a93a; }
+.skill-type--status   { background: rgba(180,180,100,0.15);border-color: #606030;         color: #c8c860; }
+
+.skill-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+  align-items: center;
+}
+.skill-learned-mark  { font-size: 0.78rem; color: #5fd97e; font-weight: 700; }
+.skill-unlock-hint   { font-size: 0.78rem; color: var(--text-soft); font-style: italic; }
+.skill-stat-chip {
+  font-size: 0.75rem;
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-soft);
+}
+.skill-description { font-size: 0.85rem; color: var(--text-soft); margin: 4px 0 0; }
+
+.skill-effects { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.skill-effect {
+  font-size: 0.78rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(212,175,55,0.12);
+  border: 1px solid var(--gold-dim);
+  color: var(--gold-bright);
+}
+
+.skill-learned-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  cursor: pointer;
+  user-select: none;
+}
+.skill-learned-toggle input { accent-color: var(--gold); cursor: pointer; }
+
+/* Evolutions */
+.evo-path {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.evo-path-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.evo-path-node--active {
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.1);
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
+}
+
+.evo-path-node-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  color: var(--cream);
+}
+
+.evo-path-node--active .evo-path-node-name {
+  color: var(--gold-bright);
+}
+
+.evo-path-node-tag {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  border: 1px solid var(--gold-dim);
+  border-radius: 8px;
+  padding: 1px 7px;
+}
+
+.evo-path-arrow {
+  color: var(--gold-dim);
+  font-size: 1.1rem;
+}
+
+.evo-path-level {
+  margin-left: auto;
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.evo-section-title {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  color: var(--gold-bright);
+}
+
+.evo-branch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.evo-node-card {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.evo-node-card--ready {
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.35),
+    0 0 18px rgba(212, 175, 55, 0.25),
+    0 18px 40px rgba(0, 0, 0, 0.65);
+}
+
+.evo-node-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.evo-node-card-header h3 {
+  margin: 0;
+  color: var(--gold-bright);
+  font-size: 1.05rem;
+}
+
+.evo-node-role {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.evo-node-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.evo-requirements { margin: 4px 0 0; display: flex; flex-direction: column; gap: 4px; list-style: none; padding: 0; }
+.evo-req { font-size: 0.8rem; }
+.evo-req--met { color: #5fd97e; }
+.evo-req--unmet { color: var(--hp-b); }
+.evo-req--untracked { color: var(--text-soft); font-style: italic; }
+
+.evo-node-status {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+/* Achievements */
+.ach-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+
+.ach-card { padding: 14px 16px; opacity: 0.6; }
+.ach-card--unlocked { opacity: 1; }
+
+.ach-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.ach-name {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.95rem;
+  color: var(--cream);
+}
+.ach-badge-unlocked {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #5fd97e;
+  white-space: nowrap;
+}
+.ach-progress-text {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+.ach-description { font-size: 0.83rem; color: var(--text-soft); margin: 3px 0 6px; }
+.ach-bonus {
+  display: inline-block;
+  font-size: 0.78rem;
+  padding: 2px 9px;
+  border-radius: 4px;
+  background: rgba(212,175,55,0.12);
+  border: 1px solid var(--gold-dim);
+  color: var(--gold-bright);
+  margin-bottom: 5px;
+}
+.ach-date { font-size: 0.75rem; color: var(--text-soft); margin-top: 4px; }
+
+.ach-bar-track {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--panel-1);
+  margin-top: 8px;
+  overflow: hidden;
+}
+.ach-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--gold-dim);
+  transition: width 0.3s;
+}
+
+/* Guild member row with actions */
+.guild-member-row--with-actions {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.guild-member-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  padding-top: 4px;
+  border-top: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.guild-member-self {
+  font-size: 0.78rem;
+  color: var(--gold-dim);
+}
+
+.guild-edit-btn {
+  margin-top: 10px;
+}
+
+/* Dissolve confirmation */
+.guild-dissolve-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.guild-dissolve-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}

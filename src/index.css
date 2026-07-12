@@ -1,0 +1,19 @@
+body {
+  margin: 0;
+  font-family: 'EB Garamond', Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #0d0b14;
+  background-image:
+    linear-gradient(180deg, rgba(13, 11, 20, 0.82), rgba(13, 11, 20, 0.92)),
+    url('./components/WallPaper.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
