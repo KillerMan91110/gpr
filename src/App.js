@@ -28,6 +28,8 @@ import Evolutions from './pages/Evolutions';
 import Skills from './pages/Skills';
 import Achievements from './pages/Achievements';
 import Friends from './pages/Friends';
+import Tower from './pages/Tower';
+import TowerVendor from './pages/TowerVendor';
 import CoopBar from './components/CoopBar';
 import IncubatorAlert from './components/IncubatorAlert';
 import NavBar from './components/NavBar';
@@ -73,6 +75,8 @@ function App() {
           <Route path="/formation" element={<ProtectedRoute><Formation /></ProtectedRoute>} />
           <Route path="/pets" element={<ProtectedRoute><Pets /></ProtectedRoute>} />
           <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
+          <Route path="/tower" element={<ProtectedRoute><Tower /></ProtectedRoute>} />
+          <Route path="/tower/vendor" element={<ProtectedRoute><TowerVendor /></ProtectedRoute>} />
         </Routes>
         <CoopBar />
         <IncubatorAlert />

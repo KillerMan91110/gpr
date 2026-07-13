@@ -23,6 +23,8 @@ export default function CoopBar() {
   const [pendingInvite, setPendingInvite] = useState(null);
   const [readyStatus, setReadyStatus] = useState(null);
   const [dismissedZoneId, setDismissedZoneId] = useState(null);
+  const [towerReadyStatus, setTowerReadyStatus] = useState(null);
+  const [dismissedTowerReady, setDismissedTowerReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [chatMessages, setChatMessages] = useState([]);
@@ -32,6 +34,7 @@ export default function CoopBar() {
   const partyPollRef = useRef(null);
   const invitePollRef = useRef(null);
   const readyPollRef = useRef(null);
+  const towerReadyPollRef = useRef(null);
   const chatPollRef = useRef(null);
   const lastMessageIdRef = useRef(0);
   const chatLogRef = useRef(null);
@@ -93,6 +96,33 @@ export default function CoopBar() {
     readyPollRef.current = setInterval(pollReady, 3000);
     return () => clearInterval(readyPollRef.current);
   }, [isAuthenticated, player, token, party]);
+
+  // Mismo mecanismo, pero para el ready-check de la Torre Infinita (tabla propia
+  // player_tower_ready, no comparte nada con el ready-check de zonas de arriba).
+  useEffect(() => {
+    if (!isAuthenticated || !player || !party) {
+      clearInterval(towerReadyPollRef.current);
+      setTowerReadyStatus(null);
+      return undefined;
+    }
+    async function pollTowerReady() {
+      try {
+        setTowerReadyStatus(await api.getTowerReadyStatus(player.id, token));
+      } catch {
+        // silencioso
+      }
+    }
+    pollTowerReady();
+    towerReadyPollRef.current = setInterval(pollTowerReady, 3000);
+    return () => clearInterval(towerReadyPollRef.current);
+  }, [isAuthenticated, player, token, party]);
+
+  // dismissedTowerReady es un booleano simple (no hay "zoneId" para comparar como en el de
+  // arriba) — lo reseteo apenas nadie está listo, para que la próxima vez que alguien
+  // confirme el cartel vuelva a aparecer en vez de quedar rechazado para siempre.
+  useEffect(() => {
+    if (!towerReadyStatus?.members?.some((m) => m.ready)) setDismissedTowerReady(false);
+  }, [towerReadyStatus]);
 
   // Chat de grupo: siempre visible mientras estás agrupado, no un popup que hay que abrir.
   // afterId evita traer toda la conversación de vuelta en cada poll, solo lo nuevo.
@@ -167,6 +197,28 @@ export default function CoopBar() {
 
   function handleDeclineReady() {
     setDismissedZoneId(otherReady.zoneId);
+  }
+
+  const otherTowerReady = towerReadyStatus?.members?.find((m) => m.ready) ?? null;
+  const showTowerReadyPrompt = !!(
+    party && !inCombat && otherTowerReady && !towerReadyStatus?.myReady && !dismissedTowerReady
+  );
+
+  async function handleAcceptTowerReady() {
+    setBusy(true);
+    setError('');
+    try {
+      const res = await api.setTowerReady(player.id, token);
+      navigate('/tower', { state: res.allReady ? { autoStart: true, coopPartnerIds: res.coopPartnerIds } : {} });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function handleDeclineTowerReady() {
+    setDismissedTowerReady(true);
   }
 
   async function handleAccept() {
@@ -282,6 +334,20 @@ export default function CoopBar() {
               ✓
             </button>
             <button className="coop-x-btn" disabled={busy} onClick={handleDeclineReady} aria-label="Rechazar">
+              ✗
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showTowerReadyPrompt && (
+        <div className="coop-ready-bar rpg-panel">
+          <span className="coop-ready-text">🗼 ¿Listo para la Torre?</span>
+          <div className="coop-ready-actions">
+            <button className="coop-check-btn" disabled={busy} onClick={handleAcceptTowerReady} aria-label="Aceptar">
+              ✓
+            </button>
+            <button className="coop-x-btn" disabled={busy} onClick={handleDeclineTowerReady} aria-label="Rechazar">
               ✗
             </button>
           </div>

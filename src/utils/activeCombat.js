@@ -9,8 +9,8 @@ export function getActiveCombat() {
   }
 }
 
-export function setActiveCombat(zoneId, session, enemyLevels) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ zoneId, session, enemyLevels }));
+export function setActiveCombat(path, session, enemyLevels) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ path, session, enemyLevels }));
 }
 
 export function clearActiveCombat() {

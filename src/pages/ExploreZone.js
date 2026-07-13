@@ -13,7 +13,7 @@ function sleep(ms) {
 
 function readStoredCombat(zoneId) {
   const stored = getActiveCombat();
-  if (!stored || String(stored.zoneId) !== String(zoneId)) return null;
+  if (!stored || stored.path !== `/combat/${zoneId}`) return null;
   return stored.session?.session?.status === 'IN_PROGRESS' ? stored : null;
 }
 
@@ -281,7 +281,7 @@ export default function ExploreZone() {
   useEffect(() => {
     if (!session) return;
     if (session.session.status === 'IN_PROGRESS') {
-      setActiveCombat(zoneId, session, enemyLevels);
+      setActiveCombat(`/combat/${zoneId}`, session, enemyLevels);
     } else {
       clearActiveCombat();
     }
@@ -826,7 +826,7 @@ function CombatView({
   );
 }
 
-function CombatantCard({ participant, level, isActive, targetable, allyTargetable, onTarget, partnerOwned }) {
+export function CombatantCard({ participant, level, isActive, targetable, allyTargetable, onTarget, partnerOwned }) {
   const hpPercent = participant.max_hp ? Math.max(0, (participant.hp / participant.max_hp) * 100) : 0;
   const manaPercent = participant.max_mana ? Math.max(0, (participant.mana / participant.max_mana) * 100) : 0;
   const dead = participant.hp <= 0;

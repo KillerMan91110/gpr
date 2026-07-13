@@ -222,4 +222,16 @@ export const api = {
     request(`/api/guilds/${guildId}/requests/${requestId}/accept`, { method: 'PUT', token }),
   rejectGuildRequest: (token, guildId, requestId) =>
     request(`/api/guilds/${guildId}/requests/${requestId}/reject`, { method: 'PUT', token }),
+  // Torre infinita
+  startTower: (playerId, difficulty, coopPartnerIds, token) =>
+    request(`/api/player/${playerId}/tower/start`, { method: 'POST', body: { difficulty, coopPartnerIds }, token }),
+  getTowerRun: (playerId, token) => request(`/api/player/${playerId}/tower/run`, { token }),
+  advanceTower: (playerId, token) => request(`/api/player/${playerId}/tower/advance`, { method: 'POST', token }),
+  extractTower: (playerId, token) => request(`/api/player/${playerId}/tower/extract`, { method: 'POST', token }),
+  getTowerVendor: (playerId, token) => request(`/api/player/${playerId}/tower/vendor`, { token }),
+  buyTowerVendorItem: (playerId, itemId, quantity, token) =>
+    request(`/api/player/${playerId}/tower/vendor/buy`, { method: 'POST', body: { itemId, quantity }, token }),
+  setTowerReady: (playerId, token) => request(`/api/player/${playerId}/tower/ready`, { method: 'POST', token }),
+  cancelTowerReady: (playerId, token) => request(`/api/player/${playerId}/tower/ready`, { method: 'DELETE', token }),
+  getTowerReadyStatus: (playerId, token) => request(`/api/player/${playerId}/tower/ready-status`, { token }),
 };

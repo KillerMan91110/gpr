@@ -10,9 +10,8 @@ export default function ProtectedRoute({ children }) {
 
   const activeCombat = getActiveCombat();
   if (isCombatInProgress(activeCombat)) {
-    const combatPath = `/combat/${activeCombat.zoneId}`;
-    if (location.pathname !== combatPath) {
-      return <Navigate to={combatPath} replace />;
+    if (location.pathname !== activeCombat.path) {
+      return <Navigate to={activeCombat.path} replace />;
     }
   }
 
