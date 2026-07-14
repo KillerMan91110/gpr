@@ -234,4 +234,5 @@ export const api = {
   setTowerReady: (playerId, token) => request(`/api/player/${playerId}/tower/ready`, { method: 'POST', token }),
   cancelTowerReady: (playerId, token) => request(`/api/player/${playerId}/tower/ready`, { method: 'DELETE', token }),
   getTowerReadyStatus: (playerId, token) => request(`/api/player/${playerId}/tower/ready-status`, { token }),
+  getTowerLeaderboard: () => request('/api/leaderboard/tower'),
 };

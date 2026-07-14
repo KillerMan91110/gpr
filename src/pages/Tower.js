@@ -31,6 +31,7 @@ export default function Tower() {
   const navigate = useNavigate();
 
   const [playerLevel, setPlayerLevel] = useState(null);
+  const [playerHp, setPlayerHp] = useState(null);
   const [party, setParty] = useState(null);
   const [coopParty, setCoopParty] = useState(null);
   const [difficulty, setDifficulty] = useState(1);
@@ -47,15 +48,19 @@ export default function Tower() {
   const [readyStatus, setReadyStatus] = useState(null);
   const [waitingReady, setWaitingReady] = useState(false);
   const [wipedExitIn, setWipedExitIn] = useState(null);
+  const [towerLeaderboard, setTowerLeaderboard] = useState(null);
+  const [leaderboardTab, setLeaderboardTab] = useState('solo');
+  const [canControl, setCanControl] = useState(false);
 
   const sessionRef = useRef(session);
   useEffect(() => { sessionRef.current = session; }, [session]);
 
   useEffect(() => {
     if (!player) return;
-    api.getPlayerStats(player.id, token).then((s) => setPlayerLevel(s.level)).catch(() => setPlayerLevel(null));
+    api.getPlayerStats(player.id, token).then((s) => { setPlayerLevel(s.level); setPlayerHp({ hp: s.hp, maxHp: s.maxHp }); }).catch(() => setPlayerLevel(null));
     api.getCoopParty(player.id, token).then(setCoopParty).catch(() => setCoopParty(null));
     api.getParty(player.id, token).then(setParty).catch(() => setParty(null));
+    api.getTowerLeaderboard().then(setTowerLeaderboard).catch(() => setTowerLeaderboard(null));
   }, [player, token]);
 
   const npcLevelMap = Object.fromEntries(
@@ -70,13 +75,30 @@ export default function Tower() {
     ...(coopParty?.members || []).filter((m) => m.level < MIN_LEVEL),
   ];
 
+  // Solo un recordatorio visual, no bloquea la entrada — la Torre no cura entre pisos, así
+  // que arrancar golpeado es tirar la corrida, pero es decisión del jugador si igual entra.
+  const notFullHpMembers = [
+    ...(playerHp && playerHp.hp < playerHp.maxHp ? [player?.nickname] : []),
+    ...(coopParty?.members || []).filter((m) => m.hp < m.max_hp).map((m) => m.nickname),
+  ];
+
   async function refreshRun() {
     const data = await api.getTowerRun(player.id, token);
     setRun(data.run);
     setFloor(data.floor || null);
     setSession(data.session || null);
+    setCanControl(!!data.canControl);
     return data;
   }
+
+  // Piso completado, esperando la decisión de Seguir/Extraer: sondeo para enterarme apenas
+  // quien tiene el control (líder, o alguien vivo si el líder murió) decide algo.
+  useEffect(() => {
+    if (run?.status !== 'IN_PROGRESS' || session) return undefined;
+    const iv = setInterval(() => { refreshRun().catch(() => {}); }, 2500);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [run?.status, session]);
 
   // Al perder la corrida, un cartel breve con el resumen y a los 3s vuelve solo a la
   // entrada (mismo patrón que el auto-restart de ExploreZone al terminar un combate).
@@ -422,8 +444,16 @@ export default function Tower() {
       {floorMsg && !run && <p className="hint hint-ok">{floorMsg}</p>}
 
       {!run && (
+      <div className="dashboard-columns">
+        <div className="dashboard-main">
         <div className="rpg-panel explore-panel">
           <p>Subí piso a piso enfrentando monstruos cada vez más fuertes. Cada piso completo te da una moneda de mazmorra, pero si tu grupo cae antes de extraer, perdés todas las de esta corrida.</p>
+
+          {notFullHpMembers.length > 0 && (
+            <p className="hint">
+              ⚠️ Recordá que todos deben estar con la vida al máximo antes de entrar ({notFullHpMembers.join(', ')} no está{notFullHpMembers.length > 1 ? 'n' : ''} al máximo). La Torre no cura entre pisos.
+            </p>
+          )}
 
           {(!coopParty || belowLevelMembers.length === 0) && (
             <>
@@ -492,21 +522,71 @@ export default function Tower() {
             );
           })()}
         </div>
+        </div>
+
+        <aside className="rpg-panel leaderboard-panel">
+          <p className="panel-title leaderboard-title">🏆 Ranking de la Torre</p>
+          <div className="leaderboard-tabs">
+            <button
+              className={`rpg-button rpg-button--small${leaderboardTab === 'solo' ? ' quest-tab--active' : ''}`}
+              onClick={() => setLeaderboardTab('solo')}
+            >
+              Solo
+            </button>
+            <button
+              className={`rpg-button rpg-button--small${leaderboardTab === 'duo' ? ' quest-tab--active' : ''}`}
+              onClick={() => setLeaderboardTab('duo')}
+            >
+              Dúo
+            </button>
+            <button
+              className={`rpg-button rpg-button--small${leaderboardTab === 'trio' ? ' quest-tab--active' : ''}`}
+              onClick={() => setLeaderboardTab('trio')}
+            >
+              Trío
+            </button>
+          </div>
+
+          {!towerLeaderboard && <p className="leaderboard-empty">Cargando...</p>}
+          {towerLeaderboard && towerLeaderboard[leaderboardTab].length === 0 && (
+            <p className="leaderboard-empty">Todavía nadie extrajo una corrida en este modo.</p>
+          )}
+          {towerLeaderboard && towerLeaderboard[leaderboardTab].map((entry) => {
+            const isSelf = entry.members.includes(player?.nickname);
+            return (
+              <div key={entry.position} className={`leaderboard-row${isSelf ? ' leaderboard-row--self' : ''}`}>
+                <span className="lb-pos">{entry.position}</span>
+                <span className="lb-icon">🗼</span>
+                <div className="lb-info">
+                  <span className="lb-name">{entry.members.join(' & ')}</span>
+                  <span className="lb-sub">Piso {entry.floor} · {DIFFICULTIES.find((d) => d.value === entry.difficulty)?.label || entry.difficulty}</span>
+                </div>
+              </div>
+            );
+          })}
+        </aside>
+      </div>
       )}
 
       {run && run.status === 'IN_PROGRESS' && !session && (
         <div className="rpg-panel explore-panel">
           <h2>Piso {run.current_floor} completado</h2>
           <p>Monedas acumuladas en esta corrida: <strong>{run.coins_earned}</strong></p>
-          <p className="hint">Si seguís y tu grupo cae en el próximo piso, perdés todas estas monedas. Si extraés ahora, las banca.</p>
-          <div className="craft-row" style={{ justifyContent: 'center' }}>
-            <button className="rpg-button" onClick={handleAdvance} disabled={loading}>
-              {loading ? '...' : `Seguir al piso ${run.current_floor + 1}`}
-            </button>
-            <button className="rpg-button rpg-button-danger" onClick={handleExtract} disabled={loading}>
-              {loading ? '...' : 'Extraer'}
-            </button>
-          </div>
+          {canControl ? (
+            <>
+              <p className="hint">Si seguís y tu grupo cae en el próximo piso, perdés todas estas monedas. Si extraés ahora, las banca.</p>
+              <div className="craft-row" style={{ justifyContent: 'center' }}>
+                <button className="rpg-button" onClick={handleAdvance} disabled={loading}>
+                  {loading ? '...' : `Seguir al piso ${run.current_floor + 1}`}
+                </button>
+                <button className="rpg-button rpg-button-danger" onClick={handleExtract} disabled={loading}>
+                  {loading ? '...' : 'Extraer'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className="hint">Esperando a que el líder de la corrida (o alguien vivo, si murió) decida seguir o extraer...</p>
+          )}
         </div>
       )}
 
