@@ -31,6 +31,7 @@ import Friends from './pages/Friends';
 import Tower from './pages/Tower';
 import TowerVendor from './pages/TowerVendor';
 import CoopBar from './components/CoopBar';
+import ChatBox from './components/ChatBox';
 import IncubatorAlert from './components/IncubatorAlert';
 import NavBar from './components/NavBar';
 import './App.css';
@@ -79,6 +80,7 @@ function App() {
           <Route path="/tower/vendor" element={<ProtectedRoute><TowerVendor /></ProtectedRoute>} />
         </Routes>
         <CoopBar />
+        <ChatBox />
         <IncubatorAlert />
       </BrowserRouter>
     </AuthProvider>

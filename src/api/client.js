@@ -199,6 +199,11 @@ export const api = {
     request(`/api/player/${playerId}/coop/messages${afterId ? `?afterId=${afterId}` : ''}`, { token }),
   sendCoopMessage: (playerId, body, token) =>
     request(`/api/player/${playerId}/coop/messages`, { method: 'POST', body: { body }, token }),
+  // Chat global (General / Comercio / Gremio; el de Grupo usa los endpoints de coop de arriba)
+  getChatMessages: (playerId, channel, afterId, token) =>
+    request(`/api/player/${playerId}/chat/${channel}${afterId ? `?afterId=${afterId}` : ''}`, { token }),
+  sendChatMessage: (playerId, channel, body, token) =>
+    request(`/api/player/${playerId}/chat/${channel}`, { method: 'POST', body: { body }, token }),
   // Guilds
   getGuilds: (token, search) =>
     request(`/api/guilds${search ? `?search=${encodeURIComponent(search)}` : ''}`, { token }),

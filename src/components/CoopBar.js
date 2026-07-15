@@ -13,8 +13,8 @@ function isOnline(lastSeenAt) {
 
 // Barra flotante global de grupo co-op: visible en cualquier pantalla mientras estás
 // logueado. Se encarga de avisar invitaciones entrantes, mostrar con quién estás
-// agrupado, un atajo al chat de ese amigo, y el botón para salir del grupo.
-// Todo es a base de polling (el back no tiene websockets para esto).
+// agrupado, y el botón para salir del grupo (el chat de grupo vive en el ChatBox,
+// tab "Grupo"). Todo es a base de polling (el back no tiene websockets para esto).
 export default function CoopBar() {
   const { player, token, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -27,17 +27,11 @@ export default function CoopBar() {
   const [dismissedTowerReady, setDismissedTowerReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [chatMessages, setChatMessages] = useState([]);
-  const [chatInput, setChatInput] = useState('');
-  const [chatSending, setChatSending] = useState(false);
   const [penaltyPopup, setPenaltyPopup] = useState(null);
   const partyPollRef = useRef(null);
   const invitePollRef = useRef(null);
   const readyPollRef = useRef(null);
   const towerReadyPollRef = useRef(null);
-  const chatPollRef = useRef(null);
-  const lastMessageIdRef = useRef(0);
-  const chatLogRef = useRef(null);
   const penaltyPopupTimer = useRef(null);
 
   useEffect(() => () => clearTimeout(penaltyPopupTimer.current), []);
@@ -123,53 +117,6 @@ export default function CoopBar() {
   useEffect(() => {
     if (!towerReadyStatus?.members?.some((m) => m.ready)) setDismissedTowerReady(false);
   }, [towerReadyStatus]);
-
-  // Chat de grupo: siempre visible mientras estás agrupado, no un popup que hay que abrir.
-  // afterId evita traer toda la conversación de vuelta en cada poll, solo lo nuevo.
-  useEffect(() => {
-    if (!isAuthenticated || !player || !party) {
-      clearInterval(chatPollRef.current);
-      setChatMessages([]);
-      lastMessageIdRef.current = 0;
-      return undefined;
-    }
-    let cancelled = false;
-    async function pollMessages() {
-      try {
-        const res = await api.getCoopMessages(player.id, lastMessageIdRef.current, token);
-        if (cancelled || !res.messages.length) return;
-        lastMessageIdRef.current = res.messages[res.messages.length - 1].id;
-        setChatMessages((prev) => [...prev, ...res.messages].slice(-50));
-      } catch {
-        // silencioso
-      }
-    }
-    pollMessages();
-    chatPollRef.current = setInterval(pollMessages, 3000);
-    return () => { cancelled = true; clearInterval(chatPollRef.current); };
-    // party.groupId (no el objeto party entero) para no reiniciar el poll en cada refresh de la barra.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, player, token, party?.groupId]);
-
-  useEffect(() => {
-    if (chatLogRef.current) chatLogRef.current.scrollTop = chatLogRef.current.scrollHeight;
-  }, [chatMessages]);
-
-  async function handleSendPartyChat() {
-    if (!chatInput.trim()) return;
-    setChatSending(true);
-    setError('');
-    try {
-      const msg = await api.sendCoopMessage(player.id, chatInput.trim(), token);
-      lastMessageIdRef.current = msg.id;
-      setChatMessages((prev) => [...prev, { ...msg, sender_nickname: msg.senderNickname }].slice(-50));
-      setChatInput('');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setChatSending(false);
-    }
-  }
 
   const inCombat = isCombatInProgress(getActiveCombat());
   // Con hasta 2 companeros, alcanza con que UNO ya haya marcado listo para mostrar el cartel
@@ -389,37 +336,6 @@ export default function CoopBar() {
           <div className="coop-bar-actions">
             <button className="rpg-button rpg-button--small" disabled={busy} onClick={handleLeave}>
               Salir del grupo
-            </button>
-          </div>
-        </div>
-      )}
-
-      {party && (
-        <div className="party-chat rpg-panel">
-          <span className="coop-bar-label">💬 Chat de grupo</span>
-          <div className="party-chat-log" ref={chatLogRef}>
-            {chatMessages.length === 0 && <p className="hint">Sin mensajes todavía.</p>}
-            {chatMessages.map((m) => (
-              <p
-                key={m.id}
-                className={`party-chat-line${m.sender_id === player.id ? ' party-chat-line--mine' : ''}`}
-              >
-                <strong>{m.sender_id === player.id ? 'Vos' : m.sender_nickname}:</strong> {m.body}
-              </p>
-            ))}
-          </div>
-          <div className="party-chat-input-row">
-            <input
-              type="text"
-              className="rpg-input"
-              placeholder="Escribí al grupo..."
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleSendPartyChat(); }}
-              maxLength={500}
-            />
-            <button className="rpg-button rpg-button--small" disabled={chatSending} onClick={handleSendPartyChat}>
-              ➤
             </button>
           </div>
         </div>
