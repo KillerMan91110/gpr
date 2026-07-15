@@ -231,7 +231,6 @@ export default function Dashboard() {
             <div className="rpg-panel dash-panel">
               <p className="panel-title">Progreso</p>
               <div className="stat-row-list">
-                <StatRow label="Oro" value={stats.gold.toLocaleString()} />
                 <StatRow label="Reputación" value={stats.reputation.toLocaleString()} />
                 <StatRow label="Rango" value={stats.rank} />
               </div>

@@ -42,13 +42,33 @@ h1, h2, h3 {
   right: 0;
   z-index: 70;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  flex-direction: column;
+  gap: 8px;
   padding: 10px 24px;
   background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
   border-bottom: 1px solid var(--gold-dim);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.app-navbar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.app-navbar-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.app-navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .app-navbar-brand {
@@ -58,8 +78,34 @@ h1, h2, h3 {
   color: var(--gold-bright);
   text-decoration: none;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   padding: 6px 10px;
   border-radius: 4px;
+}
+
+.app-navbar-gold {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  color: var(--gold-bright);
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.app-navbar-toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  color: var(--gold-bright);
+  font-size: 1rem;
+  padding: 6px 10px;
+  cursor: pointer;
+  margin-left: auto;
 }
 
 .app-navbar-links {
@@ -139,8 +185,31 @@ h1, h2, h3 {
 }
 
 @media (max-width: 760px) {
-  .app-navbar { flex-wrap: wrap; padding: 8px 14px; }
-  .app-navbar-links { gap: 2px; }
+  .app-navbar { padding: 8px 14px; }
+
+  .app-navbar-toggle { display: block; }
+
+  .app-navbar-links {
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+  }
+
+  .app-navbar-links--open {
+    display: flex;
+  }
+
+  .app-navbar-dropdown .app-navbar-menu {
+    position: static;
+    margin: 2px 0 6px 12px;
+  }
+
+  .app-navbar-brand { max-width: 45vw; }
+
+  .dashboard { padding: 80px 16px 32px; }
+
+  .dashboard-header { flex-wrap: wrap; }
 }
 
 /* ===== Panel base (pergamino oscuro con marco dorado) ===== */
@@ -385,7 +454,7 @@ h1, h2, h3 {
 .dashboard {
   max-width: 850px;
   margin: 0 auto;
-  padding: 88px 24px 40px;
+  padding: 118px 24px 40px;
 }
 
 .dashboard-topbar {
@@ -2207,6 +2276,11 @@ h1, h2, h3 {
 .leaderboard-panel::-webkit-scrollbar-track { background: transparent; }
 .leaderboard-panel::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
 
+@media (max-width: 760px) {
+  .dashboard-columns { flex-direction: column; }
+  .leaderboard-panel { width: 100%; position: static; max-height: none; }
+}
+
 .leaderboard-title {
   margin-bottom: 8px;
   text-align: center;
@@ -3228,6 +3302,31 @@ h1, h2, h3 {
 .chat-compose {
   border-top: 1px solid rgba(212, 175, 55, 0.15);
   padding-top: 10px;
+}
+
+/* En mobile, ChatBox (izquierda) y CoopBar/popups (derecha) se dividen el ancho de
+   pantalla en dos mitades con un margen chico entre ellas, para que nunca se pisen
+   entre sí sin importar el tamaño del celular. */
+@media (max-width: 760px) {
+  .chat-box {
+    left: 10px;
+    bottom: 10px;
+    width: min(280px, calc(50vw - 15px));
+  }
+
+  .chat-box-restore {
+    left: 10px;
+    bottom: 10px;
+  }
+
+  .coop-bar,
+  .coop-invite-popup,
+  .coop-ready-bar {
+    right: 10px;
+    width: min(240px, calc(50vw - 15px));
+  }
+
+  .coop-bar { bottom: 10px; }
 }
 
 /* Skills page */

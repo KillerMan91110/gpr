@@ -39,14 +39,28 @@ const CATEGORIES = [
   },
 ];
 
-// Navbar global fijo, visible en cualquier pantalla autenticada (mismo criterio que
-// CoopBar): agrupa los ~11 destinos del juego en categorías temáticas en vez de una
-// lista plana de links, y centraliza acá el único botón de logout de toda la app.
+const GOLD_POLL_MS = 10000;
+
+function formatGold(value) {
+  if (value >= 1_000_000) {
+    const v = value / 1_000_000;
+    return `${Number.isInteger(v) ? v : v.toFixed(1)}M`;
+  }
+  if (value >= 1_000) {
+    const v = value / 1_000;
+    return `${Number.isInteger(v) ? v : v.toFixed(1)}k`;
+  }
+  return value.toLocaleString();
+}
+
 export default function NavBar() {
   const { player, token, isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const [openMenu, setOpenMenu] = useState(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [socialCounts, setSocialCounts] = useState(null);
+  const [gold, setGold] = useState(null);
+  const [showExactGold, setShowExactGold] = useState(false);
   const rootRef = useRef(null);
 
   useEffect(() => {
@@ -54,13 +68,32 @@ export default function NavBar() {
     api.getUnreadCount(player.id, token).then(setSocialCounts).catch(() => setSocialCounts(null));
   }, [isAuthenticated, player, token, location.pathname]);
 
+  // Oro siempre visible en el navbar: se refresca al cambiar de pantalla (por si compraste/
+  // vendiste algo) y con un poll de fondo para cuando te quedás en la misma pantalla gastando.
+  useEffect(() => {
+    if (!isAuthenticated || !player) return undefined;
+    let cancelled = false;
+    function pollGold() {
+      api.getPlayerStats(player.id, token)
+        .then((stats) => { if (!cancelled) setGold(stats.gold); })
+        .catch(() => {});
+    }
+    pollGold();
+    const interval = setInterval(pollGold, GOLD_POLL_MS);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [isAuthenticated, player, token, location.pathname]);
+
   useEffect(() => {
     setOpenMenu(null);
+    setMobileOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (rootRef.current && !rootRef.current.contains(e.target)) setOpenMenu(null);
+      if (rootRef.current && !rootRef.current.contains(e.target)) {
+        setOpenMenu(null);
+        setMobileOpen(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -77,11 +110,45 @@ export default function NavBar() {
 
   return (
     <nav className="app-navbar" ref={rootRef}>
-      <Link to="/" className={`app-navbar-brand${location.pathname === '/' ? ' app-navbar-link--active' : ''}`}>
-        🏠 {player.nickname}
-      </Link>
+      <div className="app-navbar-top">
+        <div className="app-navbar-identity">
+          <Link to="/" className={`app-navbar-brand${location.pathname === '/' ? ' app-navbar-link--active' : ''}`}>
+            🏠 {player.nickname}
+          </Link>
 
-      <div className="app-navbar-links">
+          {gold !== null && (
+            <button
+              type="button"
+              className="app-navbar-gold"
+              title={gold.toLocaleString()}
+              onClick={() => setShowExactGold((v) => !v)}
+            >
+              🪙 {showExactGold ? gold.toLocaleString() : formatGold(gold)}
+            </button>
+          )}
+        </div>
+
+        <div className="app-navbar-actions">
+          <button
+            type="button"
+            className="app-navbar-toggle"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Menú"
+          >
+            ☰
+          </button>
+
+          <button
+            type="button"
+            className="rpg-button rpg-button--small app-navbar-logout"
+            onClick={() => { api.logout(token).catch(() => {}); logout(); }}
+          >
+            Salir
+          </button>
+        </div>
+      </div>
+
+      <div className={`app-navbar-links${mobileOpen ? ' app-navbar-links--open' : ''}`}>
         {CATEGORIES.map((cat) => (
           <div key={cat.key} className="app-navbar-dropdown">
             <button
@@ -112,14 +179,6 @@ export default function NavBar() {
           {socialBadge > 0 && <span className="nav-badge">{socialBadge}</span>}
         </Link>
       </div>
-
-      <button
-        type="button"
-        className="rpg-button rpg-button--small app-navbar-logout"
-        onClick={() => { api.logout(token).catch(() => {}); logout(); }}
-      >
-        Salir
-      </button>
     </nav>
   );
 }
