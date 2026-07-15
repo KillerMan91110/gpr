@@ -145,8 +145,8 @@ export default function GuildMasterDetail() {
           <h1>🎓 Maestro {classInfo.name}</h1>
           <p className="dashboard-subtitle">
             {data.isOwnClass
-              ? `Tu maestro de clase. Tenés ${data.gold} de oro.`
-              : `Tienda de ${classInfo.name}. Podés comprar para tus contratados. Tenés ${data.gold} de oro.`}
+              ? `Tu maestro de clase. Tienes ${data.gold} de oro.`
+              : `Tienda de ${classInfo.name}. Puedes comprar para tus contratados. Tienes ${data.gold} de oro.`}
           </p>
         </div>
         <Link className="logout-btn" to="/guild/masters">
@@ -226,7 +226,7 @@ export default function GuildMasterDetail() {
         <div className="zone-list">
           {exclusiveQuests.length === 0 && (
             <p className="dashboard-subtitle">
-              Este maestro no tiene misiones para vos por ahora. Aparecen solo bajo ciertas condiciones de nivel y rango.
+              Este maestro no tiene misiones para ti por ahora. Aparecen solo bajo ciertas condiciones de nivel y rango.
             </p>
           )}
           {exclusiveQuests.map((q) => (
@@ -281,7 +281,7 @@ export default function GuildMasterDetail() {
                     className="rpg-button equipment-action"
                     disabled={busyId === `buy-${i.id}` || !i.affordable}
                     onClick={() => handleBuy(i.id)}
-                    title={i.affordable ? undefined : 'No tenés suficiente oro'}
+                    title={i.affordable ? undefined : 'No tienes suficiente oro'}
                   >
                     {busyId === `buy-${i.id}` ? 'Comprando...' : 'Comprar'}
                   </button>
@@ -292,7 +292,7 @@ export default function GuildMasterDetail() {
 
           <section className="inventory-group">
             <h2>Vender equipo sin usar</h2>
-            {sellableItems.length === 0 && <p className="dashboard-subtitle">No tenés equipo sin usar para vender.</p>}
+            {sellableItems.length === 0 && <p className="dashboard-subtitle">No tienes equipo sin usar para vender.</p>}
             <div className="item-grid">
               {sellableItems.map((i) => {
                 const enchantLevel = i.enchant_level ?? 0;

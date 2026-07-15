@@ -105,7 +105,7 @@ export default function Market() {
     const quantity = Math.max(1, Math.min(item.quantity, Number(form.quantity) || 1));
     const pricePerUnit = Number(form.price) || 0;
     if (pricePerUnit <= 0) {
-      setError('Ingresá un precio válido para publicar.');
+      setError('Ingresa un precio válido para publicar.');
       return;
     }
     setError('');
@@ -148,7 +148,7 @@ export default function Market() {
         <div>
           <h1>💰 Mercado de Jugadores</h1>
           <p className="dashboard-subtitle">
-            Comprá y vendé ítems directamente con otros jugadores.
+            Compra y vende ítems directamente con otros jugadores.
             {' '}<span className="hint">El mercado cobra un 5% de comisión en cada venta.</span>
           </p>
         </div>
@@ -225,7 +225,7 @@ export default function Market() {
                   <span className="inventory-item-qty">x{l.quantity}</span>
                 </div>
                 <span className="inventory-item-rarity">{RARITY_LABELS[l.rarity] || l.rarity}</span>
-                <span className="hint market-seller">Vende: {l.is_mine ? 'Vos' : l.seller_nickname}</span>
+                <span className="hint market-seller">Vende: {l.is_mine ? 'Tú' : l.seller_nickname}</span>
                 <span className="market-price">
                   🪙 {Number(l.total_price).toLocaleString()} Oro
                   {l.quantity > 1 && <span className="hint"> ({Number(l.price_per_unit).toLocaleString()} c/u)</span>}
@@ -245,7 +245,7 @@ export default function Market() {
 
       {tab === 'sell' && (
         <>
-          {sellableItems.length === 0 && <p className="hint">No tenés ítems para vender.</p>}
+          {sellableItems.length === 0 && <p className="hint">No tienes ítems para vender.</p>}
           <div className="item-grid">
             {sellableItems.map((item) => {
               const cardKey = `${item.item_id}-${item.enchant_level}-${item.quality_tier}`;

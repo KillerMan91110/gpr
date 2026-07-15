@@ -184,7 +184,7 @@ export default function Pets() {
               value={selectedEggId}
               onChange={(e) => setSelectedEggId(e.target.value)}
             >
-              <option value="">Elegí un huevo...</option>
+              <option value="">Elige un huevo...</option>
               {eggItems.map((egg) => (
                 <option key={egg.item_id} value={egg.item_id}>
                   {egg.name} (x{egg.quantity})
@@ -211,7 +211,7 @@ export default function Pets() {
           </div>
         )}
         {incubator === null && eggItems.length === 0 && (
-          <p className="hint">No tenés huevos en el inventario todavía.</p>
+          <p className="hint">No tienes huevos en el inventario todavía.</p>
         )}
       </section>
 
@@ -222,13 +222,13 @@ export default function Pets() {
             {activePet.name} · Nv. {activePet.level} ({RARITY_LABEL[activePet.rarity]})
           </p>
         ) : (
-          <p className="hint">No tenés ninguna mascota activa.</p>
+          <p className="hint">No tienes ninguna mascota activa.</p>
         )}
       </section>
 
       <section className="inventory-group">
         <h2>Colección</h2>
-        {pets.length === 0 && <p className="hint">Todavía no tenés mascotas. ¡Incubá un huevo!</p>}
+        {pets.length === 0 && <p className="hint">Todavía no tienes mascotas. ¡Incuba un huevo!</p>}
         <div className="item-grid">
           {pets.map((pet) => (
             <div key={pet.id} className={`rpg-panel inventory-item ${rarityClass(pet.rarity)}`}>
@@ -270,7 +270,7 @@ export default function Pets() {
                     value={feedTarget.itemId}
                     onChange={(e) => setFeedTarget({ ...feedTarget, itemId: e.target.value })}
                   >
-                    <option value="">Elegí un material...</option>
+                    <option value="">Elige un material...</option>
                     {materialItems.map((m) => (
                       <option key={m.item_id} value={m.item_id}>{m.name} (x{m.quantity})</option>
                     ))}

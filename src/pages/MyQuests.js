@@ -113,7 +113,7 @@ export default function MyQuests() {
         <>
           {sorted.length === 0 && (
             <p>
-              No tenés misiones aceptadas. Visitá el <Link to="/guild/quests">tablón del gremio</Link> para tomar una.
+              No tienes misiones aceptadas. Visita el <Link to="/guild/quests">tablón del gremio</Link> para tomar una.
             </p>
           )}
           <div className="zone-list">

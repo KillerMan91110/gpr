@@ -80,7 +80,7 @@ export default function ArtisanShop() {
       <header className="dashboard-header">
         <div>
           <h1>🏪 Tienda de Artesanos</h1>
-          <p className="dashboard-subtitle">Comprá materiales especiales o vendé ítems.</p>
+          <p className="dashboard-subtitle">Compra materiales especiales o vende ítems.</p>
         </div>
         <Link className="logout-btn" to="/guild">Volver</Link>
       </header>
@@ -139,7 +139,7 @@ export default function ArtisanShop() {
                       </span>
                       <span className="hint guild-member-sub">
                         {item.rarity} · {item.price.toLocaleString()} Oro
-                        {item.playerOwns > 0 ? ` · Tenés: ${item.playerOwns}` : ''}
+                        {item.playerOwns > 0 ? ` · Tienes: ${item.playerOwns}` : ''}
                       </span>
                       {item.description && <span className="hint guild-member-sub">{item.description}</span>}
                     </div>
@@ -162,7 +162,7 @@ export default function ArtisanShop() {
       {tab === 'sell' && (
         <div className="rpg-panel">
           {sellableItems.length === 0 && (
-            <p className="hint">No tenés ítems para vender.</p>
+            <p className="hint">No tienes ítems para vender.</p>
           )}
           <div className="guild-members-list">
             {sellableItems.map((item) => {

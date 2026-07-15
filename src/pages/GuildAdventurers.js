@@ -161,7 +161,7 @@ export default function GuildAdventurers() {
       <header className="dashboard-header">
         <div>
           <h1>⚔ Contratar Aventureros</h1>
-          <p className="dashboard-subtitle">Reclutá compañeros para tu expedición</p>
+          <p className="dashboard-subtitle">Recluta compañeros para tu expedición</p>
         </div>
         <Link className="logout-btn" to="/guild">Volver</Link>
       </header>
@@ -196,8 +196,8 @@ export default function GuildAdventurers() {
           <p className="npc-empty-msg">
             No hay aventureros disponibles.{' '}
             {canRefresh
-              ? 'Refrescá el pool para ver nuevos candidatos.'
-              : `Necesitás ${refreshCost} oro para buscar candidatos.`}
+              ? 'Refresca el pool para ver nuevos candidatos.'
+              : `Necesitas ${refreshCost} oro para buscar candidatos.`}
           </p>
         </div>
       ) : (

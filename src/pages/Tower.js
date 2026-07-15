@@ -405,7 +405,7 @@ export default function Tower() {
     return (
       <div className="placeholder-page">
         <h1>🗼 Torre Infinita</h1>
-        <p>Necesitás nivel {MIN_LEVEL} para entrar. Todavía estás en nivel {playerLevel}.</p>
+        <p>Necesitas nivel {MIN_LEVEL} para entrar. Todavía estás en nivel {playerLevel}.</p>
         <Link to="/combat">Volver a zonas</Link>
       </div>
     );
@@ -447,11 +447,11 @@ export default function Tower() {
       <div className="dashboard-columns">
         <div className="dashboard-main">
         <div className="rpg-panel explore-panel">
-          <p>Subí piso a piso enfrentando monstruos cada vez más fuertes. Cada piso completo te da una moneda de mazmorra, pero si tu grupo cae antes de extraer, perdés todas las de esta corrida.</p>
+          <p>Sube piso a piso enfrentando monstruos cada vez más fuertes. Cada piso completo te da una moneda de mazmorra, pero si tu grupo cae antes de extraer, pierdes todas las de esta corrida.</p>
 
           {notFullHpMembers.length > 0 && (
             <p className="hint">
-              ⚠️ Recordá que todos deben estar con la vida al máximo antes de entrar ({notFullHpMembers.join(', ')} no está{notFullHpMembers.length > 1 ? 'n' : ''} al máximo). La Torre no cura entre pisos.
+              ⚠️ Recuerda que todos deben estar con la vida al máximo antes de entrar ({notFullHpMembers.join(', ')} no está{notFullHpMembers.length > 1 ? 'n' : ''} al máximo). La Torre no cura entre pisos.
             </p>
           )}
 
@@ -497,7 +497,7 @@ export default function Tower() {
               <div className="coop-ready-panel">
                 {readyHereNames.length > 0 && !waitingReady ? (
                   <>
-                    <p>¿Listo para entrar? <strong>{readyHereNames.join(', ')}</strong> ya {readyHereNames.length > 1 ? 'están' : 'está'} esperando acá.</p>
+                    <p>¿Listo para entrar? <strong>{readyHereNames.join(', ')}</strong> ya {readyHereNames.length > 1 ? 'están' : 'está'} esperando aquí.</p>
                     <div className="craft-row" style={{ justifyContent: 'center' }}>
                       <button className="rpg-button" onClick={handleReadyClick} disabled={loading}>
                         ✓ Listo para entrar
@@ -512,7 +512,7 @@ export default function Tower() {
                   </>
                 ) : (
                   <>
-                    <p>Vas a entrar en grupo con <strong>{groupNames}</strong>. Confirmá cuando estés listo.</p>
+                    <p>Vas a entrar en grupo con <strong>{groupNames}</strong>. Confirma cuando estés listo.</p>
                     <button className="rpg-button" onClick={handleReadyClick} disabled={loading}>
                       Listo para entrar
                     </button>
@@ -574,7 +574,7 @@ export default function Tower() {
           <p>Monedas acumuladas en esta corrida: <strong>{run.coins_earned}</strong></p>
           {canControl ? (
             <>
-              <p className="hint">Si seguís y tu grupo cae en el próximo piso, perdés todas estas monedas. Si extraés ahora, las banca.</p>
+              <p className="hint">Si sigues y tu grupo cae en el próximo piso, pierdes todas estas monedas. Si extraes ahora, las banca.</p>
               <div className="craft-row" style={{ justifyContent: 'center' }}>
                 <button className="rpg-button" onClick={handleAdvance} disabled={loading}>
                   {loading ? '...' : `Seguir al piso ${run.current_floor + 1}`}
@@ -715,12 +715,12 @@ function TowerCombatView({
         {isPlayerTurn && (
           <p className="combat-hint">
             {pendingItem
-              ? `Elegí a quién darle ${pendingItem.name}.`
+              ? `Elige a quién darle ${pendingItem.name}.`
               : selectingAlly
-              ? `Elegí un aliado para usar ${pendingSkill.name}.`
+              ? `Elige un aliado para usar ${pendingSkill.name}.`
               : pendingSkill
-              ? `Elegí un enemigo para usar ${pendingSkill.name}.`
-              : `Turno de ${actor?.name}. Hacé click en un enemigo para atacar.`}
+              ? `Elige un enemigo para usar ${pendingSkill.name}.`
+              : `Turno de ${actor?.name}. Haz click en un enemigo para atacar.`}
           </p>
         )}
         {hasActiveTurn && !isPlayerTurn && (
@@ -769,7 +769,7 @@ function TowerCombatView({
         {isPlayerTurn && showItems && (
           <div className="rpg-panel item-list">
             {inventory === null && <p>Cargando items...</p>}
-            {inventory && inventory.length === 0 && <p>No tenés objetos de combate.</p>}
+            {inventory && inventory.length === 0 && <p>No tienes objetos de combate.</p>}
             {inventory && inventory.map((item) => {
               const effects = itemEffects?.[item.item_id];
               return (

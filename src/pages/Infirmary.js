@@ -143,7 +143,7 @@ export default function Infirmary() {
       <header className="dashboard-header">
         <div>
           <h1>✚ Enfermería</h1>
-          <p className="dashboard-subtitle">{GOLD_PER_POINT} de oro por cada punto de HP o maná · Tenés {stats.gold.toLocaleString()} 🪙</p>
+          <p className="dashboard-subtitle">{GOLD_PER_POINT} de oro por cada punto de HP o maná · Tienes {stats.gold.toLocaleString()} 🪙</p>
         </div>
         <Link className="logout-btn" to="/guild">Volver</Link>
       </header>

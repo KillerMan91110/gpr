@@ -43,7 +43,7 @@ export default function Login() {
           {loading ? 'Entrando...' : 'Entrar al reino'}
         </button>
         <p className="auth-switch">
-          ¿No tenés cuenta? <Link to="/register">Crear Cuenta</Link>
+          ¿No tienes cuenta? <Link to="/register">Crear Cuenta</Link>
         </p>
       </form>
     </div>

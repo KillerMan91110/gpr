@@ -356,7 +356,7 @@ export default function ExploreZone() {
     return (
       <div className="placeholder-page">
         <h1>🔒 Zona bloqueada</h1>
-        <p>Todavía no podés entrar a esta zona.</p>
+        <p>Todavía no puedes entrar a esta zona.</p>
         <Link to="/combat">Volver a zonas</Link>
       </div>
     );
@@ -380,7 +380,7 @@ export default function ExploreZone() {
 
       {!session && !coopParty && (
         <div className="rpg-panel explore-panel">
-          <p>Explorá la zona para encontrar enemigos, recuerda mantener tu grupo equilibrado.</p>
+          <p>Explora la zona para encontrar enemigos, recuerda mantener tu grupo equilibrado.</p>
           <button className="rpg-button" onClick={handleExplore} disabled={loading}>
             {loading ? 'Explorando...' : 'Explorar'}
           </button>
@@ -399,7 +399,7 @@ export default function ExploreZone() {
           <div className="rpg-panel explore-panel coop-ready-panel">
             {readyHereNames.length > 0 && !waitingReady ? (
               <>
-                <p>¿Listo para explorar? <strong>{readyHereNames.join(', ')}</strong> ya {readyHereNames.length > 1 ? 'están' : 'está'} esperando acá.</p>
+                <p>¿Listo para explorar? <strong>{readyHereNames.join(', ')}</strong> ya {readyHereNames.length > 1 ? 'están' : 'está'} esperando aquí.</p>
                 <div className="craft-row" style={{ justifyContent: 'center' }}>
                   <button className="rpg-button" onClick={handleReadyClick} disabled={loading}>
                     ✓ Listo para explorar
@@ -418,7 +418,7 @@ export default function ExploreZone() {
               </>
             ) : (
               <>
-                <p>Explorás en grupo con <strong>{groupNames}</strong>. Confirmá cuando estés listo.</p>
+                <p>Exploras en grupo con <strong>{groupNames}</strong>. Confirma cuando estés listo.</p>
                 <button className="rpg-button" onClick={handleReadyClick} disabled={loading}>
                   Listo para explorar
                 </button>
@@ -617,12 +617,12 @@ function CombatView({
         {isPlayerTurn && (
           <p className="combat-hint">
             {pendingItem
-              ? `Elegí a quién darle ${pendingItem.name}.`
+              ? `Elige a quién darle ${pendingItem.name}.`
               : selectingAlly
-              ? `Elegí un aliado para usar ${pendingSkill.name}.`
+              ? `Elige un aliado para usar ${pendingSkill.name}.`
               : pendingSkill
-              ? `Elegí un enemigo para usar ${pendingSkill.name}.`
-              : `Turno de ${actor?.name}. Hacé click en un enemigo para atacar.`}
+              ? `Elige un enemigo para usar ${pendingSkill.name}.`
+              : `Turno de ${actor?.name}. Haz click en un enemigo para atacar.`}
           </p>
         )}
 
@@ -693,7 +693,7 @@ function CombatView({
         {isPlayerTurn && showItems && (
           <div className="rpg-panel item-list">
             {inventory === null && <p>Cargando items...</p>}
-            {inventory && inventory.length === 0 && <p>No tenés objetos de combate.</p>}
+            {inventory && inventory.length === 0 && <p>No tienes objetos de combate.</p>}
             {inventory &&
               inventory.map((item) => {
                 const effects = itemEffects?.[item.item_id];

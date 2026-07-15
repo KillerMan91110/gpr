@@ -76,7 +76,7 @@ export default function GuildJoin() {
       <header className="dashboard-header">
         <div>
           <h1>🤝 Unirse a un Gremio</h1>
-          <p className="dashboard-subtitle">Buscá un gremio existente para unirte</p>
+          <p className="dashboard-subtitle">Busca un gremio existente para unirte</p>
         </div>
         <Link className="logout-btn" to="/guild">
           Volver

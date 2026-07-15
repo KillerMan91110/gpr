@@ -387,7 +387,7 @@ export default function Inventory() {
         </div>
       </div>
 
-      {grouped.length === 0 && <p className="dashboard-subtitle">No tenés items todavía.</p>}
+      {grouped.length === 0 && <p className="dashboard-subtitle">No tienes items todavía.</p>}
 
       {grouped.map(({ type, items: groupItems }) => (
         <section key={type} className="inventory-group">

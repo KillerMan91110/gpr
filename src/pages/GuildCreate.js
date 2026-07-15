@@ -55,7 +55,7 @@ export default function GuildCreate() {
         <div>
           <h1>🏗 Crear Gremio</h1>
           <p className="dashboard-subtitle">
-            Fundá tu propio gremio · Costo: {CREATE_COST.toLocaleString()} 🪙
+            Funda tu propio gremio · Costo: {CREATE_COST.toLocaleString()} 🪙
           </p>
         </div>
         <Link className="logout-btn" to="/guild">
@@ -66,9 +66,9 @@ export default function GuildCreate() {
       {myGuild && (
         <div className="rpg-panel">
           <p>
-            Ya pertenecés al gremio <strong>{myGuild.name}</strong>.
+            Ya perteneces al gremio <strong>{myGuild.name}</strong>.
           </p>
-          <p className="hint">Tenés que salir de tu gremio actual para poder crear uno nuevo.</p>
+          <p className="hint">Tienes que salir de tu gremio actual para poder crear uno nuevo.</p>
         </div>
       )}
 
@@ -96,7 +96,7 @@ export default function GuildCreate() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              placeholder="Contá de qué se trata tu gremio..."
+              placeholder="Cuenta de qué se trata tu gremio..."
             />
           </div>
 

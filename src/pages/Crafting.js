@@ -112,7 +112,7 @@ export default function Crafting() {
       <header className="dashboard-header">
         <div>
           <h1>⚒ Crafteo</h1>
-          <p className="dashboard-subtitle">Fabricá ítems con materiales o desmantelá equipos.</p>
+          <p className="dashboard-subtitle">Fabrica ítems con materiales o desmantela equipos.</p>
         </div>
         <Link className="logout-btn" to="/guild">Volver</Link>
       </header>
@@ -192,7 +192,7 @@ export default function Crafting() {
 
           {filteredRecipes.length === 0 && (
             <div className="rpg-panel">
-              <p className="hint">No hay recetas disponibles. Desbloqueá zonas derrota jefes para acceder a nuevas recetas.</p>
+              <p className="hint">No hay recetas disponibles. Desbloquea zonas derrota jefes para acceder a nuevas recetas.</p>
             </div>
           )}
           <div className="zone-list">

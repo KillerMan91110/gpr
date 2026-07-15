@@ -118,7 +118,7 @@ export default function Friends() {
     e.preventDefault();
     setError('');
     if (searchQuery.trim().length < 2) {
-      setError('Ingresá al menos 2 caracteres');
+      setError('Ingresa al menos 2 caracteres');
       return;
     }
     setSearching(true);
@@ -392,7 +392,7 @@ export default function Friends() {
       <header className="dashboard-header">
         <div>
           <h1>🤝 Amigos</h1>
-          <p className="dashboard-subtitle">Agregá jugadores, chateá y mandá regalos.</p>
+          <p className="dashboard-subtitle">Agrega jugadores, chatea y manda regalos.</p>
         </div>
         <Link className="logout-btn" to="/">Volver</Link>
       </header>
@@ -445,7 +445,7 @@ export default function Friends() {
               + Agregar amigo
             </button>
           </div>
-          {friends.length === 0 && <p className="hint">Todavía no tenés amigos. Usá "+ Agregar amigo" para buscarlos.</p>}
+          {friends.length === 0 && <p className="hint">Todavía no tienes amigos. Usa "+ Agregar amigo" para buscarlos.</p>}
           <div className="guild-members-list">
             {friends.map((f) => (
               <div key={f.id} className="guild-member-row guild-member-row--with-actions">
@@ -491,7 +491,7 @@ export default function Friends() {
       {tab === 'requests' && (
         <div className="rpg-panel">
           <h3>Solicitudes recibidas</h3>
-          {requests.length === 0 && <p className="hint">No tenés solicitudes pendientes.</p>}
+          {requests.length === 0 && <p className="hint">No tienes solicitudes pendientes.</p>}
           <div className="guild-members-list">
             {requests.map((r) => (
               <div key={r.id} className="guild-member-row guild-member-row--with-actions">
@@ -719,7 +719,7 @@ export default function Friends() {
             <div className="chat-thread" ref={chatThreadRef}>
               {chatThread === null && <p className="hint">Cargando...</p>}
               {chatThread !== null && chatThread.length === 0 && (
-                <p className="hint">Todavía no se mandaron mensajes. ¡Escribí el primero!</p>
+                <p className="hint">Todavía no se mandaron mensajes. ¡Escribe el primero!</p>
               )}
               {chatThread?.map((m) => (
                 <div
@@ -750,7 +750,7 @@ export default function Friends() {
                 <input
                   type="text"
                   className="rpg-input"
-                  placeholder="Escribí un mensaje..."
+                  placeholder="Escribe un mensaje..."
                   value={composeBody}
                   onChange={(e) => handleComposeBodyChange(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') handleSendChatMessage(); }}

@@ -169,7 +169,7 @@ export default function Formation() {
       <header className="dashboard-header">
         <div>
           <h1>⚔ Formación — Mi Grupo</h1>
-          <p className="dashboard-subtitle">Gestioná tu equipo de aventureros</p>
+          <p className="dashboard-subtitle">Gestiona tu equipo de aventureros</p>
         </div>
         <Link className="logout-btn" to="/">Volver</Link>
       </header>
@@ -183,7 +183,7 @@ export default function Formation() {
       {isSelectingSwap && (
         <div className="rpg-panel dash-panel formation-hint">
           <span>
-            Intercambiando <strong>{swapSource.name}</strong> (Slot {swapSource.slot}) — elegí un miembro del banco
+            Intercambiando <strong>{swapSource.name}</strong> (Slot {swapSource.slot}) — elige un miembro del banco
           </span>
           <button className="logout-btn" onClick={() => setSwapSource(null)}>Cancelar</button>
         </div>
@@ -226,7 +226,7 @@ export default function Formation() {
 
         {benchMembers.length === 0 ? (
           <p className="formation-empty-label">
-            No tenés aventureros en reserva.{' '}
+            No tienes aventureros en reserva.{' '}
             <Link to="/guild/adventurers" style={{ color: 'var(--gold-bright)' }}>Contratar más</Link>
           </p>
         ) : (

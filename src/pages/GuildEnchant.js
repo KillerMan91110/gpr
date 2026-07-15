@@ -72,7 +72,7 @@ export default function GuildEnchant() {
       <header className="dashboard-header">
         <div>
           <h1>✦ Encantador</h1>
-          <p className="dashboard-subtitle">Mejorá el equipo equipado con piedras de encantamiento.</p>
+          <p className="dashboard-subtitle">Mejora el equipo equipado con piedras de encantamiento.</p>
         </div>
         <Link className="logout-btn" to="/guild">Volver</Link>
       </header>
@@ -110,7 +110,7 @@ export default function GuildEnchant() {
           <p className="hint">
             {activeNpc
               ? `${activeNpc.name} no tiene ningún equipo puesto.`
-              : <><Link to="/inventory">Equipá items desde el inventario</Link> para poder encantar.</>
+              : <><Link to="/inventory">Equipa items desde el inventario</Link> para poder encantar.</>
             }
           </p>
         </div>

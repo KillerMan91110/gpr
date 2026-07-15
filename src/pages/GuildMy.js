@@ -337,7 +337,7 @@ export default function GuildMy() {
                 <div className="guild-member-info">
                   <span className="guild-member-name">
                     {m.nickname}
-                    {isSelf && <span className="guild-member-self"> (vos)</span>}
+                    {isSelf && <span className="guild-member-self"> (tú)</span>}
                   </span>
                   <span className="hint guild-member-sub">
                     {hasClassData && <>{m.class_name ?? '—'} · </>}
@@ -410,7 +410,7 @@ export default function GuildMy() {
         {isLeader ? (
           <>
             <p className="hint">
-              Sos el líder. Transferí el liderazgo para poder salir, o disolví el gremio.
+              Eres el líder. Transfiere el liderazgo para poder salir, o disuelve el gremio.
             </p>
             {!confirmDissolve ? (
               <button className="rpg-button rpg-button-danger" onClick={() => setConfirmDissolve(true)}>

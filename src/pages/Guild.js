@@ -10,31 +10,31 @@ const SERVICE_SECTIONS = [
     to: '/guild/adventurers',
     icon: '⚔',
     title: 'Contratar Aventureros',
-    description: 'Reclutá NPCs para tu equipo. Refrescá el pool para ver nuevos candidatos.',
+    description: 'Recluta NPCs para tu equipo. Refresca el pool para ver nuevos candidatos.',
   },
   {
     to: '/guild/masters',
     icon: '🎓',
     title: 'Maestros de Gremio',
-    description: 'Las 5 clases base tienen su propio maestro. Aprendé skills si tu clase coincide.',
+    description: 'Las 5 clases base tienen su propio maestro. Aprende skills si tu clase coincide.',
   },
   {
     to: '/guild/infirmary',
     icon: '✚',
     title: 'Enfermería',
-    description: 'Restaurá tu HP y Maná al máximo antes de salir a explorar.',
+    description: 'Restaura tu HP y Maná al máximo antes de salir a explorar.',
   },
   {
     to: '/guild/quests',
     icon: '📜',
     title: 'Quests del Gremio',
-    description: 'Misiones exclusivas para miembros, con recompensas para vos y el tesoro del gremio.',
+    description: 'Misiones exclusivas para miembros, con recompensas para ti y el tesoro del gremio.',
   },
   {
     to: '/guild/enchant',
     icon: '✦',
     title: 'Encantador',
-    description: 'Mejorá el nivel de encantamiento de tu equipo equipado con piedras mágicas.',
+    description: 'Mejora el nivel de encantamiento de tu equipo equipado con piedras mágicas.',
   },
 ];
 
@@ -43,19 +43,19 @@ const COMMERCE_SECTIONS = [
     to: '/artisan-shop',
     icon: '🏪',
     title: 'Tienda de Artesanos',
-    description: 'Comprá materiales raros o vendé ítems a los artesanos del gremio.',
+    description: 'Compra materiales raros o vende ítems a los artesanos del gremio.',
   },
   {
     to: '/market',
     icon: '💰',
     title: 'Mercado de Jugadores',
-    description: 'Publicá ítems de tu inventario a la venta o comprále a otros jugadores.',
+    description: 'Publica ítems de tu inventario a la venta o cómprale a otros jugadores.',
   },
   {
     to: '/crafting',
     icon: '⚒',
     title: 'Taller de Crafteo',
-    description: 'Fabricá ítems con materiales o desmantelá equipos para recuperar componentes.',
+    description: 'Fabrica ítems con materiales o desmantela equipos para recuperar componentes.',
   },
 ];
 
@@ -85,13 +85,13 @@ export default function Guild() {
           to: '/guild/create',
           icon: '🏗',
           title: 'Crear Gremio',
-          description: 'Fundá tu propio gremio y convertite en su líder.',
+          description: 'Funda tu propio gremio y conviértete en su líder.',
         },
         {
           to: '/guild/join',
           icon: '🤝',
           title: 'Unirse a un Gremio',
-          description: 'Buscá un gremio existente y pedí formar parte de él.',
+          description: 'Busca un gremio existente y pide formar parte de él.',
         },
       ];
 

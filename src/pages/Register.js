@@ -49,7 +49,7 @@ export default function Register() {
     e.preventDefault();
     setError('');
     if (!classId) {
-      setError('Elegí una clase');
+      setError('Elige una clase');
       return;
     }
     setLoading(true);
@@ -116,7 +116,7 @@ export default function Register() {
           {loading ? 'Creando...' : 'Crear personaje'}
         </button>
         <p className="auth-switch">
-          ¿Ya tenés cuenta? <Link to="/login">Iniciar sesión</Link>
+          ¿Ya tienes cuenta? <Link to="/login">Iniciar sesión</Link>
         </p>
       </form>
     </div>
