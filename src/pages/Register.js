@@ -4,6 +4,15 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 
 const BASE_CLASS_IDS = [1, 2, 3, 4, 5];
+// Los archivos en public/portraits/ están en Title Case (Guerrero.png), no en mayúsculas
+// como el code de la clase (GUERRERO).
+const CLASS_PORTRAIT_FILES = {
+  GUERRERO: 'Guerrero',
+  MAGO: 'Mago',
+  ARQUERO: 'Arquero',
+  PICARO: 'Picaro',
+  SACERDOTE: 'Sacerdote',
+};
 
 export default function Register() {
   const { register } = useAuth();
@@ -39,6 +48,10 @@ export default function Register() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    if (!classId) {
+      setError('Elegí una clase');
+      return;
+    }
     setLoading(true);
     try {
       await register({ email, password, nickname, classId: Number(classId) });
@@ -79,16 +92,25 @@ export default function Register() {
         </label>
         <label>
           Clase
-          <select value={classId} onChange={(e) => setClassId(e.target.value)} required>
-            <option value="" disabled>
-              Elegí una clase
-            </option>
-            {classes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} 
-              </option>
-            ))}
-          </select>
+          <div className="class-picker">
+            {classes.map((c) => {
+              const fileName = CLASS_PORTRAIT_FILES[c.code];
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`class-card${Number(classId) === c.id ? ' class-card--selected' : ''}`}
+                  onClick={() => setClassId(c.id)}
+                >
+                  {fileName && (
+                    <img className="class-card-portrait" src={`/portraits/${fileName}.png`} alt={c.name} />
+                  )}
+                  <span className="class-card-name">{c.name}</span>
+                  {c.role && <span className="class-card-role">{c.role}</span>}
+                </button>
+              );
+            })}
+          </div>
         </label>
         <button type="submit" className="rpg-button" disabled={loading || nicknameStatus === false}>
           {loading ? 'Creando...' : 'Crear personaje'}

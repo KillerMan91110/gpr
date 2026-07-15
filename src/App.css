@@ -253,6 +253,61 @@ h1, h2, h3 {
   box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
 }
 
+.class-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+}
+
+.class-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--gold-dim);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.class-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+.class-card--selected {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3), 0 0 18px rgba(212, 175, 55, 0.35);
+  background: rgba(212, 175, 55, 0.14);
+}
+
+.class-card-portrait {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 4px;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.class-card-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  color: var(--gold-bright);
+  text-transform: none;
+  letter-spacing: normal;
+  margin-top: 2px;
+}
+
+.class-card-role {
+  font-size: 0.68rem;
+  color: var(--text-soft);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 .rpg-button {
   font-family: 'Cinzel', serif;
   text-transform: uppercase;
