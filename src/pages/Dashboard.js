@@ -57,10 +57,23 @@ const CLASS_ICONS = {
   SACERDOTE: '✙',
 };
 
+// Los archivos en public/portraits/ están en Title Case (Guerrero.png), no en mayúsculas
+// como el code de la clase (GUERRERO) — hay que mapearlos. En Windows local el filesystem
+// no distingue mayúsculas y por eso pasaba desapercibido, pero en Vercel (Linux) sí, y
+// GUERRERO.png tira 404.
+const CLASS_PORTRAIT_FILES = {
+  GUERRERO: 'Guerrero',
+  MAGO: 'Mago',
+  ARQUERO: 'Arquero',
+  PICARO: 'Picaro',
+  SACERDOTE: 'Sacerdote',
+};
+
 function ClassPortrait({ code, name }) {
   const [imgError, setImgError] = useState(false);
+  const fileName = CLASS_PORTRAIT_FILES[code];
 
-  if (imgError) {
+  if (imgError || !fileName) {
     return (
       <div className="hero-portrait-fallback">
         <span>{CLASS_ICONS[code] || '?'}</span>
@@ -71,7 +84,7 @@ function ClassPortrait({ code, name }) {
   return (
     <img
       className="hero-portrait"
-      src={`/portraits/${code}.png`}
+      src={`/portraits/${fileName}.png`}
       alt={name}
       onError={() => setImgError(true)}
     />
