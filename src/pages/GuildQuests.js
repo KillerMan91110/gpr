@@ -10,6 +10,7 @@ export default function GuildQuests() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [acceptingId, setAcceptingId] = useState(null);
+  const [levelSortAsc, setLevelSortAsc] = useState(true);
 
   function load() {
     return api.getAvailableQuests(player.id, token).then(setQuests);
@@ -39,11 +40,10 @@ export default function GuildQuests() {
   if (error && !quests) return <div className="dashboard-error">Error: {error}</div>;
   if (!quests) return <div className="dashboard-loading">Cargando...</div>;
 
-  const RANK_ORDER = ['F', 'E', 'D', 'C', 'B', 'A', 'S'];
   const sorted = [...quests].sort((a, b) => {
-    const ra = RANK_ORDER.indexOf(a.min_rank_code || 'F');
-    const rb = RANK_ORDER.indexOf(b.min_rank_code || 'F');
-    return rb - ra;
+    const la = a.min_level || 1;
+    const lb = b.min_level || 1;
+    return levelSortAsc ? la - lb : lb - la;
   });
 
   return (
@@ -60,6 +60,12 @@ export default function GuildQuests() {
 
       {error && <p className="auth-error">{error}</p>}
       {message && <p className="hint hint-ok infirmary-message">{message}</p>}
+
+      <div className="craft-filter-bar">
+        <button className="rpg-button rpg-button--small" onClick={() => setLevelSortAsc((v) => !v)}>
+          Nivel {levelSortAsc ? '↑ Ascendente' : '↓ Descendente'}
+        </button>
+      </div>
 
       {sorted.length === 0 && <p>No hay misiones disponibles para tu nivel y rango todavía.</p>}
 
