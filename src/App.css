@@ -42,19 +42,14 @@ h1, h2, h3 {
   right: 0;
   z-index: 70;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
   padding: 10px 24px;
   background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
   border-bottom: 1px solid var(--gold-dim);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-}
-
-.app-navbar-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
 }
 
 .app-navbar-identity {
@@ -189,8 +184,12 @@ h1, h2, h3 {
 
   .app-navbar-toggle { display: block; }
 
+  .app-navbar-actions { order: 2; }
+
   .app-navbar-links {
     display: none;
+    flex-basis: 100%;
+    order: 3;
     flex-direction: column;
     align-items: stretch;
     gap: 2px;
@@ -454,7 +453,7 @@ h1, h2, h3 {
 .dashboard {
   max-width: 850px;
   margin: 0 auto;
-  padding: 118px 24px 40px;
+  padding: 96px 24px 40px;
 }
 
 .dashboard-topbar {

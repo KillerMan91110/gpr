@@ -226,30 +226,20 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* ── Progreso + Combate ── */}
-          <div className="dash-two-col">
-            <div className="rpg-panel dash-panel">
-              <p className="panel-title">Progreso</p>
-              <div className="stat-row-list">
-                <StatRow label="Reputación" value={stats.reputation.toLocaleString()} />
-                <StatRow label="Rango" value={stats.rank} />
-              </div>
-            </div>
-
-            <div className="rpg-panel dash-panel">
-              <p className="panel-title">
-                {activeNpc ? `Combate — ${activeNpc.name} — ${activeNpc.className}` : 'Combate'}
-              </p>
-              <div className="combat-stat-grid">
-                <StatRow label="ATK" value={combatStats.atk} />
-                <StatRow label="DEF" value={combatStats.def} />
-                <StatRow label="INT" value={combatStats.int} />
-                <StatRow label="DEF MAG" value={combatStats.magicDef} />
-                <StatRow label="SPD" value={combatStats.spd} />
-                <StatRow label="CRIT Chance" value={`${formatPercent(combatStats.crit)}%`}/>
-                <StatRow label="CRIT DMG" value={`${combatStats.critDamage ?? 0}%`} />
-                <StatRow label="Evasión" value={`${combatStats.evasion ?? 0}%`} />
-              </div>
+          {/* ── Combate ── */}
+          <div className="rpg-panel dash-panel">
+            <p className="panel-title">
+              {activeNpc ? `Combate — ${activeNpc.name} — ${activeNpc.className}` : 'Combate'}
+            </p>
+            <div className="combat-stat-grid">
+              <StatRow label="ATK" value={combatStats.atk} />
+              <StatRow label="DEF" value={combatStats.def} />
+              <StatRow label="INT" value={combatStats.int} />
+              <StatRow label="DEF MAG" value={combatStats.magicDef} />
+              <StatRow label="SPD" value={combatStats.spd} />
+              <StatRow label="CRIT Chance" value={`${formatPercent(combatStats.crit)}%`}/>
+              <StatRow label="CRIT DMG" value={`${combatStats.critDamage ?? 0}%`} />
+              <StatRow label="Evasión" value={`${combatStats.evasion ?? 0}%`} />
             </div>
           </div>
 

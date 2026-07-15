@@ -110,42 +110,21 @@ export default function NavBar() {
 
   return (
     <nav className="app-navbar" ref={rootRef}>
-      <div className="app-navbar-top">
-        <div className="app-navbar-identity">
-          <Link to="/" className={`app-navbar-brand${location.pathname === '/' ? ' app-navbar-link--active' : ''}`}>
-            🏠 {player.nickname}
-          </Link>
+      <div className="app-navbar-identity">
+        <Link to="/" className={`app-navbar-brand${location.pathname === '/' ? ' app-navbar-link--active' : ''}`}>
+          🏠 {player.nickname}
+        </Link>
 
-          {gold !== null && (
-            <button
-              type="button"
-              className="app-navbar-gold"
-              title={gold.toLocaleString()}
-              onClick={() => setShowExactGold((v) => !v)}
-            >
-              🪙 {showExactGold ? gold.toLocaleString() : formatGold(gold)}
-            </button>
-          )}
-        </div>
-
-        <div className="app-navbar-actions">
+        {gold !== null && (
           <button
             type="button"
-            className="app-navbar-toggle"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Menú"
+            className="app-navbar-gold"
+            title={gold.toLocaleString()}
+            onClick={() => setShowExactGold((v) => !v)}
           >
-            ☰
+            🪙 {showExactGold ? gold.toLocaleString() : formatGold(gold)}
           </button>
-
-          <button
-            type="button"
-            className="rpg-button rpg-button--small app-navbar-logout"
-            onClick={() => { api.logout(token).catch(() => {}); logout(); }}
-          >
-            Salir
-          </button>
-        </div>
+        )}
       </div>
 
       <div className={`app-navbar-links${mobileOpen ? ' app-navbar-links--open' : ''}`}>
@@ -178,6 +157,25 @@ export default function NavBar() {
           🤝 Social
           {socialBadge > 0 && <span className="nav-badge">{socialBadge}</span>}
         </Link>
+      </div>
+
+      <div className="app-navbar-actions">
+        <button
+          type="button"
+          className="app-navbar-toggle"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-label="Menú"
+        >
+          ☰
+        </button>
+
+        <button
+          type="button"
+          className="rpg-button rpg-button--small app-navbar-logout"
+          onClick={() => { api.logout(token).catch(() => {}); logout(); }}
+        >
+          Salir
+        </button>
       </div>
     </nav>
   );
