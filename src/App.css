@@ -996,6 +996,45 @@ h1, h2, h3 {
   font-size: 0.92rem;
 }
 
+.zone-enemies {
+  margin-top: 2px;
+}
+
+.zone-enemies-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin: 0 0 4px;
+}
+
+.zone-enemies-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.zone-enemy-tag {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid currentColor;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.zone-enemy-tag.monster-rarity-common { color: var(--rarity-comun); }
+.zone-enemy-tag.monster-rarity-rare { color: var(--rarity-raro); }
+.zone-enemy-tag.monster-rarity-miniboss { color: var(--rarity-epico); }
+.zone-enemy-tag.monster-rarity-legendary { color: var(--rarity-legendario); }
+
+.zone-boss-name {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: var(--rarity-legendario);
+}
+
 .zone-boss-status {
   font-family: 'Cinzel', serif;
   font-size: 0.75rem;
