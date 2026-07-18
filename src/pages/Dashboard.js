@@ -8,7 +8,7 @@ function StatBar({ label, value, max, variant }) {
     <div className="stat-bar">
       <div className="stat-bar-label">
         <span>{label}</span>
-        <span>{value} / {max}</span>
+        <span>{value} / {max} <span className="stat-bar-percent">({Math.round(percent)}%)</span></span>
       </div>
       <div className="stat-bar-track">
         <div className={`stat-bar-fill ${variant}`} style={{ width: `${percent}%` }} />

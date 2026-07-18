@@ -132,7 +132,7 @@ export default function NavBar() {
           <div key={cat.key} className="app-navbar-dropdown">
             <button
               type="button"
-              className={`app-navbar-link${cat.items.some((i) => isActive(i.to)) ? ' app-navbar-link--active' : ''}`}
+              className={`app-navbar-link${cat.key === 'aventura' ? ' app-navbar-link--primary' : ''}${cat.items.some((i) => isActive(i.to)) ? ' app-navbar-link--active' : ''}`}
               onClick={() => setOpenMenu(openMenu === cat.key ? null : cat.key)}
             >
               {cat.icon} {cat.label} <span className="app-navbar-caret">▾</span>

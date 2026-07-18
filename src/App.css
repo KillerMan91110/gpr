@@ -143,6 +143,24 @@ h1, h2, h3 {
   background: rgba(212, 175, 55, 0.1);
 }
 
+.app-navbar-link--primary {
+  color: var(--bg-deep);
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  border-color: var(--gold-bright);
+  font-weight: 700;
+}
+
+.app-navbar-link--primary:hover {
+  color: var(--bg-deep);
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold-bright));
+  box-shadow: 0 0 10px rgba(240, 216, 120, 0.5);
+}
+
+.app-navbar-link--primary.app-navbar-link--active {
+  color: var(--bg-deep);
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+}
+
 .app-navbar-caret {
   font-size: 0.55rem;
   opacity: 0.7;
@@ -761,6 +779,11 @@ h1, h2, h3 {
   margin-bottom: 5px;
 }
 
+.stat-bar-percent {
+  color: var(--gold-dim);
+  font-size: 0.9em;
+}
+
 .stat-bar-track {
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid var(--gold-dim);
@@ -900,6 +923,22 @@ h1, h2, h3 {
 .zone-card.zone-locked {
   opacity: 0.55;
   filter: grayscale(0.4);
+}
+
+.zone-card.zone-recommended {
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 16px rgba(240, 216, 120, 0.3);
+}
+
+.zone-recommended-badge {
+  align-self: flex-start;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--bg-deep);
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  border-radius: 3px;
+  padding: 3px 8px;
 }
 
 .guild-section-link {
