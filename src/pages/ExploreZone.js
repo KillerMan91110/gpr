@@ -176,6 +176,35 @@ export default function ExploreZone() {
     return () => { cancelled = true; clearInterval(iv); };
   }, [coopParty, session, token]);
 
+  // El back rechaza el explore con 400 si vos (o tu compañero) ya tienen una sesión
+  // IN_PROGRESS sin terminar (ver player_active_combat_session). En vez de dejarte
+  // plantado con el cartel de error, buscamos esa sesión existente y te metemos ahí.
+  async function tryRecoverActiveSession() {
+    try {
+      const active = await api.getActiveCombatSession(token);
+      if (active) {
+        setSession(active);
+        return true;
+      }
+    } catch {
+      // no había sesión activa después de todo — se muestra el error normal
+    }
+    return false;
+  }
+
+  async function exploreOrRecover(explore) {
+    try {
+      const result = await explore();
+      setEnemyLevels((result.monsters || []).map((m) => m.level));
+      setSession(result);
+    } catch (err) {
+      const isActiveCombatConflict = err.message.includes('combate sin terminar');
+      if (!isActiveCombatConflict || !(await tryRecoverActiveSession())) {
+        setError(err.message);
+      }
+    }
+  }
+
   async function startCoopExplore() {
     setError('');
     setLoading(true);
@@ -187,9 +216,7 @@ export default function ExploreZone() {
       const freshParty = await api.getCoopParty(player.id, token);
       if (!freshParty) throw new Error('Ya no estás en un grupo co-op');
       setCoopParty(freshParty);
-      const result = await api.exploreZone(zoneId, token, freshParty.members.map((m) => m.id));
-      setEnemyLevels((result.monsters || []).map((m) => m.level));
-      setSession(result);
+      await exploreOrRecover(() => api.exploreZone(zoneId, token, freshParty.members.map((m) => m.id)));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -246,11 +273,7 @@ export default function ExploreZone() {
     setError('');
     setLoading(true);
     try {
-      const result = await api.exploreZone(zoneId, token);
-      setEnemyLevels((result.monsters || []).map((m) => m.level));
-      setSession(result);
-    } catch (err) {
-      setError(err.message);
+      await exploreOrRecover(() => api.exploreZone(zoneId, token));
     } finally {
       setLoading(false);
     }
