@@ -14,7 +14,11 @@ export default function GuildQuests() {
   const [zoneFilter, setZoneFilter] = useState('ALL');
 
   function load() {
-    return api.getAvailableQuests(player.id, token).then(setQuests);
+    // Las quests con required_class_id son exclusivas de esa clase (desbloquean una skill
+    // puntual) y ya se muestran para aceptar en la pestaña de misiones del propio Maestro
+    // de Gremio (GuildMasterDetail.js) — acá solo van las quests generales de zona/items.
+    return api.getAvailableQuests(player.id, token)
+      .then((all) => setQuests(all.filter((q) => !q.required_class_id)));
   }
 
   useEffect(() => {
