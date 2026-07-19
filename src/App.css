@@ -3259,6 +3259,22 @@ h1, h2, h3 {
   color: var(--gold-bright);
 }
 
+.chat-tab-badge {
+  display: inline-block;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  margin-left: 4px;
+  border-radius: 8px;
+  background: var(--hp-a, #7a1020);
+  border: 1px solid #ff9aa6;
+  color: #ff9aa6;
+  font-size: 0.62rem;
+  line-height: 13px;
+  text-align: center;
+  vertical-align: middle;
+}
+
 .chat-min {
   background: transparent;
   border: none;

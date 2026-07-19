@@ -61,6 +61,7 @@ export default function ChatBox() {
   const [party, setParty] = useState(null);
   const [guild, setGuild] = useState(null);
   const [messages, setMessages] = useState({ GENERAL: [], TRADE: [], PARTY: [], GUILD: [] });
+  const [unread, setUnread] = useState({ GENERAL: 0, TRADE: 0, PARTY: 0, GUILD: 0 });
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
@@ -69,6 +70,13 @@ export default function ChatBox() {
   const logRef = useRef(null);
   const partyPollRef = useRef(null);
   const guildPollRef = useRef(null);
+
+  // Para saber, desde dentro del listener de socket (que no se re-crea en cada render),
+  // si el mensaje que llega hay que marcarlo como no-leído o no.
+  const activeTabRef = useRef(activeTab);
+  useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
+  const minimizedRef = useRef(minimized);
+  useEffect(() => { minimizedRef.current = minimized; }, [minimized]);
 
   function appendMessage(channel, msg) {
     setMessages((prev) => (
@@ -136,7 +144,13 @@ export default function ChatBox() {
     function handleMessage(raw) {
       const channel = raw.channel;
       if (!(channel in loadedRef.current)) return;
-      appendMessage(channel, normalizeMessage(channel, raw, player.nickname, player.id));
+      const normalized = normalizeMessage(channel, raw, player.nickname, player.id);
+      appendMessage(channel, normalized);
+      // Si el mensaje es mío ya lo vi (lo mandé yo); si no, cuenta como no-leído salvo
+      // que ya esté parado justo en esa pestaña con el chat abierto.
+      if (!normalized.mine && (minimizedRef.current || channel !== activeTabRef.current)) {
+        setUnread((prev) => ({ ...prev, [channel]: prev[channel] + 1 }));
+      }
     }
     socket.on('chat:message', handleMessage);
     return () => socket.off('chat:message', handleMessage);
@@ -173,6 +187,13 @@ export default function ChatBox() {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [messages, activeTab]);
 
+  // La pestaña activa se considera "leída" mientras el chat esté abierto — tanto al
+  // cambiar de pestaña como al desminimizar (ahí vuelve a correr con minimized en false).
+  useEffect(() => {
+    if (minimized) return;
+    setUnread((prev) => (prev[activeTab] ? { ...prev, [activeTab]: 0 } : prev));
+  }, [activeTab, minimized]);
+
   async function handleSend() {
     if (!input.trim()) return;
     setSending(true);
@@ -200,11 +221,13 @@ export default function ChatBox() {
 
   const tabs = ['GENERAL', 'TRADE', ...(party ? ['PARTY'] : []), ...(guild ? ['GUILD'] : [])];
   const activeMessages = messages[activeTab] || [];
+  const totalUnread = tabs.reduce((sum, t) => sum + unread[t], 0);
 
   if (minimized) {
     return (
       <button className="chat-box-restore rpg-button rpg-button--small" type="button" onClick={() => setMinimized(false)}>
         💬 Chat
+        {totalUnread > 0 && <span className="chat-tab-badge">{totalUnread}</span>}
       </button>
     );
   }
@@ -221,6 +244,7 @@ export default function ChatBox() {
               onClick={() => setActiveTab(t)}
             >
               {CHANNEL_LABELS[t]}
+              {unread[t] > 0 && <span className="chat-tab-badge">{unread[t]}</span>}
             </button>
           ))}
         </div>

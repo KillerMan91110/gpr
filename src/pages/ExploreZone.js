@@ -1,7 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useSocket } from '../context/SocketContext';
 import { api } from '../api/client';
 import { getActiveCombat, setActiveCombat, clearActiveCombat } from '../utils/activeCombat';
 
@@ -23,7 +22,6 @@ export default function ExploreZone() {
   const location = useLocation();
   const navigate = useNavigate();
   const { player, token } = useAuth();
-  const { socket, connected: socketConnected } = useSocket();
 
   const [zone, setZone] = useState(location.state?.zone || null);
   const [playerLevel, setPlayerLevel] = useState(null);
@@ -325,49 +323,34 @@ export default function ExploreZone() {
   // Sincroniza el combate co-op: hasta ahora, la única forma de enterarse de que el
   // compañero actuó era mi propia acción devolviendo el estado nuevo. Si el turno era
   // suyo, mi pantalla quedaba congelada esperando algo que nunca iba a llegar sola.
-  // Antes esto era polling cada 2.5s; ahora el back emite 'combat:update' a la room
-  // `combat:${sessionId}` cada vez que alguien actúa, y acá lo revelamos con el mismo
-  // mecanismo (revealSession) que ya usaba mis propias acciones.
+  // Mientras el combate está en curso hago polling de la sesión y reviso las novedades
+  // con revealSession (mismo mecanismo que uso para mis propias acciones).
   const revealingRef = useRef(false);
-  // Si llega un update mientras ya estoy revelando otro (ej. mi propia acción todavía
-  // animando), lo guardo y lo proceso apenas termine, en vez de perderlo (a diferencia
-  // del poll viejo, un evento de socket no vuelve a llegar solo si lo descarto).
-  const pendingCombatUpdateRef = useRef(null);
-
-  async function processCombatUpdate(state) {
-    if (revealingRef.current) {
-      pendingCombatUpdateRef.current = state;
-      return;
-    }
-    revealingRef.current = true;
-    try {
-      await revealSession(state);
-    } finally {
-      revealingRef.current = false;
-      if (pendingCombatUpdateRef.current) {
-        const next = pendingCombatUpdateRef.current;
-        pendingCombatUpdateRef.current = null;
-        processCombatUpdate(next);
+  // Cuenta jugadores humanos distintos entre los participantes en vez de mirar guest_player_id
+  // (esa columna solo cubre hasta 2; con grupos de 3 hay guest_player_id_2 tambien).
+  const isCoopSession = new Set(
+    (session?.participants || []).filter((p) => p.player_id != null).map((p) => p.player_id)
+  ).size > 1;
+  useEffect(() => {
+    if (!inCombat || !isCoopSession) return undefined;
+    let cancelled = false;
+    async function pollCombat() {
+      if (revealingRef.current) return;
+      try {
+        const state = await api.getCombatSession(sessionRef.current.session.id, token);
+        if (cancelled) return;
+        revealingRef.current = true;
+        await revealSession(state);
+      } catch {
+        // silencioso: reintenta en la proxima vuelta
+      } finally {
+        revealingRef.current = false;
       }
     }
-  }
-
-  useEffect(() => {
-    if (!socket || !inCombat) return undefined;
-    const sessionId = session.session.id;
-    // socketConnected como dep: si el back se durmió (Render free) y el socket reconecta,
-    // el server le asigna una conexión nueva y hay que volver a unirse a la room, la
-    // membresía no sobrevive sola a la reconexión.
-    socket.emit('combat:join', sessionId);
-
-    function handleUpdate(state) {
-      if (String(state?.session?.id) !== String(sessionId)) return;
-      processCombatUpdate(state);
-    }
-    socket.on('combat:update', handleUpdate);
-    return () => socket.off('combat:update', handleUpdate);
+    const iv = setInterval(pollCombat, 2500);
+    return () => { cancelled = true; clearInterval(iv); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, inCombat, session?.session?.id, socketConnected]);
+  }, [inCombat, isCoopSession, token]);
 
   async function handleAction(action, options = {}) {
     if (!session) return;
@@ -473,7 +456,6 @@ export default function ExploreZone() {
           session={session}
           player={player}
           playerLevel={playerLevel}
-          socketConnected={socketConnected}
           npcLevelMap={Object.fromEntries(
             (party?.members || []).filter((m) => !m.isHero && m.npcId).map((m) => [m.npcId, m.level])
           )}
@@ -513,7 +495,6 @@ function CombatView({
   session,
   player,
   playerLevel,
-  socketConnected,
   npcLevelMap,
   enemyLevels,
   loading,
@@ -671,12 +652,6 @@ function CombatView({
         {hasActiveTurn && !isPlayerTurn && (
           <p className="combat-hint combat-hint--waiting">
             ⏳ Esperando el turno de tu compañero ({actor?.name})...
-          </p>
-        )}
-
-        {isCoop && !finished && !socketConnected && (
-          <p className="combat-hint combat-hint--waiting">
-            🔌 Reconectando con el servidor...
           </p>
         )}
 
