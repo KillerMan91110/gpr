@@ -1293,6 +1293,44 @@ h1, h2, h3 {
   color: var(--text-soft);
 }
 
+.combat-log-entry {
+  border-left: 2px solid transparent;
+  padding-left: 8px;
+}
+
+.combat-log-entry--damage {
+  color: #ff8a95;
+  border-left-color: var(--hp-b);
+}
+
+.combat-log-entry--crit {
+  color: var(--gold-bright);
+  border-left-color: var(--gold);
+  font-weight: 600;
+}
+
+.combat-log-entry--heal {
+  color: #8be8a0;
+  border-left-color: var(--rarity-poco_comun);
+}
+
+.combat-log-entry--buff {
+  color: #7fc4f0;
+  border-left-color: var(--mana-b);
+}
+
+.combat-log-entry--escape {
+  color: var(--rarity-legendario);
+  border-left-color: var(--rarity-legendario);
+}
+
+.combat-log-entry--evaded,
+.combat-log-entry--fail {
+  color: var(--text-soft);
+  opacity: 0.65;
+  font-style: italic;
+}
+
 .scroll-fade-top {
   position: absolute;
   top: 0; left: 0; right: 8px;

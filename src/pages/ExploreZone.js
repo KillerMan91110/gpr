@@ -484,6 +484,20 @@ export default function ExploreZone() {
   );
 }
 
+// Clasifica cada línea del registro de combate para pintarla distinto según qué pasó
+// (daño, curación, crítico, habilidad, esquive/fallo, escape), usando los flags que ya
+// manda el back (damage/heal/crit/evaded/success/action) — sin tocar el texto narrado.
+function classifyLogEntry(entry) {
+  if (entry.evaded) return 'evaded';
+  if (entry.success === false) return 'fail';
+  if (entry.heal > 0) return 'heal';
+  if (entry.crit && entry.damage > 0) return 'crit';
+  if (entry.damage > 0) return 'damage';
+  if (entry.action === 'ESCAPE') return 'escape';
+  if (entry.action === 'DEFEND' || entry.action === 'SKILL') return 'buff';
+  return 'neutral';
+}
+
 function actorBelongsToPlayer(actor, playerId) {
   if (!actor) return false;
   if (actor.player_id != null) return actor.player_id === playerId;
@@ -666,7 +680,9 @@ function CombatView({
                 {(i === 0 || entry.round !== log[i - 1].round) && (
                   <p className="combat-round-label">— Ronda {entry.round} —</p>
                 )}
-                <p>{entry.description}</p>
+                <p className={`combat-log-entry combat-log-entry--${classifyLogEntry(entry)}`}>
+                  {entry.description}
+                </p>
               </Fragment>
             ))}
           </div>
