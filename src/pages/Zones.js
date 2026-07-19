@@ -9,11 +9,13 @@ function lockReason(zone, index, zones) {
   return `Requiere derrotar al jefe de "${previous.name}" o llegar a nivel ${zone.minLevel}.`;
 }
 
-// La zona recomendada es la primera desbloqueada cuyo jefe todavía no cayó:
-// es el frente de avance natural del jugador, sin necesitar datos nuevos del backend.
+// La zona recomendada es la ÚLTIMA desbloqueada cuyo jefe todavía no cayó (no la primera):
+// el back desbloquea zonas tanto por jefe derrotado como por nivel, así que si vas subiendo
+// de nivel sin pararte a matar jefes, puede haber varias zonas "desbloqueadas y sin jefe" a
+// la vez — la más avanzada de esas es la que le corresponde a tu nivel actual, no la vieja.
 function recommendedZoneId(zones) {
-  const zone = zones.find((z) => z.unlocked && !z.bossDefeated);
-  return zone?.id ?? null;
+  const candidates = zones.filter((z) => z.unlocked && !z.bossDefeated);
+  return candidates.length ? candidates[candidates.length - 1].id : null;
 }
 
 function ZoneProgress({ monsters, discovered }) {

@@ -11,6 +11,7 @@ export default function GuildQuests() {
   const [message, setMessage] = useState('');
   const [acceptingId, setAcceptingId] = useState(null);
   const [levelSortAsc, setLevelSortAsc] = useState(true);
+  const [zoneFilter, setZoneFilter] = useState('ALL');
 
   function load() {
     return api.getAvailableQuests(player.id, token).then(setQuests);
@@ -40,7 +41,10 @@ export default function GuildQuests() {
   if (error && !quests) return <div className="dashboard-error">Error: {error}</div>;
   if (!quests) return <div className="dashboard-loading">Cargando...</div>;
 
-  const sorted = [...quests].sort((a, b) => {
+  const zoneNames = [...new Set(quests.map((q) => q.zone_name).filter(Boolean))].sort();
+
+  const filtered = zoneFilter === 'ALL' ? quests : quests.filter((q) => q.zone_name === zoneFilter);
+  const sorted = [...filtered].sort((a, b) => {
     const la = a.min_level || 1;
     const lb = b.min_level || 1;
     return levelSortAsc ? la - lb : lb - la;
@@ -65,9 +69,18 @@ export default function GuildQuests() {
         <button className="rpg-button rpg-button--small" onClick={() => setLevelSortAsc((v) => !v)}>
           Nivel {levelSortAsc ? '↑ Ascendente' : '↓ Descendente'}
         </button>
+        <select className="rpg-input" value={zoneFilter} onChange={(e) => setZoneFilter(e.target.value)} style={{ maxWidth: 220 }}>
+          <option value="ALL">Todas las zonas</option>
+          {zoneNames.map((name) => (
+            <option key={name} value={name}>{name}</option>
+          ))}
+        </select>
       </div>
 
-      {sorted.length === 0 && <p>No hay misiones disponibles para tu nivel y rango todavía.</p>}
+      {quests.length > 0 && sorted.length === 0 && (
+        <p>No hay misiones en esa zona para tu nivel y rango todavía.</p>
+      )}
+      {quests.length === 0 && <p>No hay misiones disponibles para tu nivel y rango todavía.</p>}
 
       <div className="zone-list">
         {sorted.map((q) => (
