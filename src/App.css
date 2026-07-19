@@ -1035,6 +1035,12 @@ h1, h2, h3 {
   color: var(--rarity-legendario);
 }
 
+.zone-rewards {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: var(--gold-dim);
+}
+
 .zone-boss-status {
   font-family: 'Cinzel', serif;
   font-size: 0.75rem;

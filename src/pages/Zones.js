@@ -42,6 +42,26 @@ function ZoneEnemies({ monsters, discovered }) {
   );
 }
 
+function ZoneRewards({ monsters }) {
+  if (!monsters || !monsters.length) return null;
+
+  const xpValues = monsters.map((m) => m.xp_reward).filter((v) => v != null);
+  const goldValues = monsters.map((m) => m.gold_reward).filter((v) => v != null);
+  if (!xpValues.length && !goldValues.length) return null;
+
+  const range = (values) => {
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    return min === max ? `${min}` : `${min}-${max}`;
+  };
+
+  return (
+    <p className="zone-rewards">
+      Recompensas por enemigo: ⭐ {range(xpValues)} XP · 🪙 {range(goldValues)} Oro
+    </p>
+  );
+}
+
 export default function Zones() {
   const { player, token } = useAuth();
   const [zones, setZones] = useState(null);
@@ -101,6 +121,7 @@ export default function Zones() {
             {zone.unlocked ? (
               <>
                 <ZoneEnemies monsters={zoneMonsters[zone.id]} discovered={discovered} />
+                <ZoneRewards monsters={zoneMonsters[zone.id]} />
                 <span className={`zone-boss-status ${zone.bossDefeated ? 'boss-down' : ''}`}>
                   {zone.bossDefeated ? '✓ Jefe derrotado' : '⚔ Jefe sin derrotar'}
                 </span>
