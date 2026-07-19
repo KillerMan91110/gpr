@@ -29,12 +29,11 @@ function ZoneEnemies({ monsters, discovered }) {
     <div className="zone-enemies">
       <p className="zone-enemies-label">Enemigos</p>
       <div className="zone-enemies-tags">
-        {common.slice(0, 5).map((m) => (
+        {common.map((m) => (
           <span key={m.id} className={`zone-enemy-tag monster-rarity-${m.rarity.toLowerCase()}`}>
             {nameFor(m)}
           </span>
         ))}
-        {common.length > 5 && <span className="hint">+{common.length - 5} más</span>}
       </div>
       {boss && (
         <p className="zone-boss-name">⚠ Jefe de zona: <strong>{nameFor(boss)}</strong></p>
