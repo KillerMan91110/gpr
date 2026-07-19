@@ -30,6 +30,7 @@ export const api = {
   getRanks: () => request('/api/ranks'),
   getPlayerStats: (playerId, token) => request(`/api/player/${playerId}/stats`, { token }),
   getPlayerZones: (playerId, token) => request(`/api/player/${playerId}/zones`, { token }),
+  getBestiary: (playerId, token) => request(`/api/player/${playerId}/bestiary`, { token }),
   getPlayerInventory: (playerId, token) => request(`/api/player/${playerId}/inventory`, { token }),
   getPlayerEquipment: (playerId, token) => request(`/api/player/${playerId}/equipment`, { token }),
   getPlayerSkills: (playerId, token) => request(`/api/player/${playerId}/skills`, { token }),

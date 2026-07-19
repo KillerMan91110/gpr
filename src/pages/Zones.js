@@ -16,9 +16,11 @@ function recommendedZoneId(zones) {
   return zone?.id ?? null;
 }
 
-function ZoneEnemies({ monsters }) {
+function ZoneEnemies({ monsters, discovered }) {
   if (!monsters) return <p className="hint">Cargando enemigos...</p>;
   if (!monsters.length) return null;
+
+  const nameFor = (m) => (discovered.has(m.id) ? m.name : '???');
 
   const boss = monsters.find((m) => m.rarity === 'LEGENDARY');
   const common = monsters.filter((m) => m.rarity !== 'LEGENDARY');
@@ -29,13 +31,13 @@ function ZoneEnemies({ monsters }) {
       <div className="zone-enemies-tags">
         {common.slice(0, 5).map((m) => (
           <span key={m.id} className={`zone-enemy-tag monster-rarity-${m.rarity.toLowerCase()}`}>
-            {m.name}
+            {nameFor(m)}
           </span>
         ))}
         {common.length > 5 && <span className="hint">+{common.length - 5} más</span>}
       </div>
       {boss && (
-        <p className="zone-boss-name">⚠ Jefe de zona: <strong>{boss.name}</strong></p>
+        <p className="zone-boss-name">⚠ Jefe de zona: <strong>{nameFor(boss)}</strong></p>
       )}
     </div>
   );
@@ -45,6 +47,7 @@ export default function Zones() {
   const { player, token } = useAuth();
   const [zones, setZones] = useState(null);
   const [zoneMonsters, setZoneMonsters] = useState({});
+  const [discovered, setDiscovered] = useState(new Set());
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -52,6 +55,9 @@ export default function Zones() {
     api.getPlayerZones(player.id, token)
       .then(setZones)
       .catch((err) => setError(err.message));
+    api.getBestiary(player.id, token)
+      .then((ids) => setDiscovered(new Set(ids)))
+      .catch(() => setDiscovered(new Set()));
   }, [player, token]);
 
   // Enemigos por zona: se piden aparte porque es un endpoint público (no depende del jugador)
@@ -95,7 +101,7 @@ export default function Zones() {
 
             {zone.unlocked ? (
               <>
-                <ZoneEnemies monsters={zoneMonsters[zone.id]} />
+                <ZoneEnemies monsters={zoneMonsters[zone.id]} discovered={discovered} />
                 <span className={`zone-boss-status ${zone.bossDefeated ? 'boss-down' : ''}`}>
                   {zone.bossDefeated ? '✓ Jefe derrotado' : '⚔ Jefe sin derrotar'}
                 </span>
