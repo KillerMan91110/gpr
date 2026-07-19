@@ -1156,6 +1156,7 @@ h1, h2, h3 {
 }
 
 .combatant-card {
+  position: relative;
   background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
   border: 1px solid var(--gold-dim);
   border-radius: 4px;
@@ -1163,6 +1164,43 @@ h1, h2, h3 {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+@keyframes combat-float-up {
+  0% { transform: translate(-50%, 0); opacity: 1; }
+  100% { transform: translate(-50%, -36px); opacity: 0; }
+}
+
+.combat-floater {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: combat-float-up 1.1s ease-out forwards;
+  z-index: 5;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.combat-floater--damage { color: #ff5064; }
+.combat-floater--heal { color: #6ee897; }
+.combat-floater--miss { color: var(--text-soft); font-size: 0.72rem; font-weight: 600; }
+.combat-floater--crit { color: var(--gold-bright); font-size: 1.3rem; }
+
+@keyframes combat-card-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.combatant-shake {
+  animation: combat-card-shake 0.4s ease-in-out;
 }
 
 .combatant-info {

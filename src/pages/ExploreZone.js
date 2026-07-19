@@ -505,6 +505,24 @@ function actorBelongsToPlayer(actor, playerId) {
   return true; // NPC propio en partida solo (sin owner_player_id, no hay compañero)
 }
 
+const FLOATER_LIFETIME_MS = 1100;
+const SHAKE_LIFETIME_MS = 450;
+
+// Traduce una línea del log a un número flotante: a quién le aparece (el objetivo del
+// golpe/cura, o el actor si esquivó algo que no tenía objetivo claro) y qué mostrar.
+function floatingEffectFromEntry(entry) {
+  if (entry.evaded) {
+    return { participantId: entry.target_participant_id, kind: 'miss', value: null, crit: false };
+  }
+  if (entry.heal > 0) {
+    return { participantId: entry.target_participant_id ?? entry.actor_participant_id, kind: 'heal', value: entry.heal, crit: !!entry.crit };
+  }
+  if (entry.damage > 0) {
+    return { participantId: entry.target_participant_id, kind: 'damage', value: entry.damage, crit: !!entry.crit };
+  }
+  return null;
+}
+
 function CombatView({
   session,
   player,
@@ -536,9 +554,51 @@ function CombatView({
   const [pendingItem, setPendingItem] = useState(null);
   const [logAtBottom, setLogAtBottom] = useState(true);
   const logRef = useRef(null);
+  const [floaters, setFloaters] = useState([]);
+  const [shakeIds, setShakeIds] = useState(new Set());
+  const prevLogLenRef = useRef(log.length);
 
   const selectingAlly = pendingSkill?.targetType === 'ALLY' || !!pendingItem;
   const selectingEnemy = !pendingItem && (!pendingSkill || pendingSkill.targetType === 'ENEMY');
+
+  // Por cada línea nueva que revealSession va agregando al log (de a una, con su propio
+  // delay), dispara el número flotante y el shake sobre la tarjeta del participante que
+  // corresponda. Comparar contra prevLogLenRef evita repetir el efecto en cada render y
+  // evita disparar todo junto para el historial ya existente al montar el componente.
+  useEffect(() => {
+    const prevLen = prevLogLenRef.current;
+    prevLogLenRef.current = log.length;
+    if (log.length <= prevLen) return;
+
+    const newFloaters = log.slice(prevLen)
+      .map((entry) => {
+        const fx = floatingEffectFromEntry(entry);
+        return fx && fx.participantId != null ? { key: `${entry.id}`, ...fx } : null;
+      })
+      .filter(Boolean);
+    if (!newFloaters.length) return;
+
+    setFloaters((prev) => [...prev, ...newFloaters]);
+    newFloaters.forEach((f) => {
+      setTimeout(() => {
+        setFloaters((prev) => prev.filter((x) => x.key !== f.key));
+      }, FLOATER_LIFETIME_MS);
+    });
+
+    const shakeTargets = newFloaters.filter((f) => f.crit).map((f) => f.participantId);
+    if (shakeTargets.length) {
+      setShakeIds((prev) => new Set([...prev, ...shakeTargets]));
+      shakeTargets.forEach((id) => {
+        setTimeout(() => {
+          setShakeIds((prev) => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+          });
+        }, SHAKE_LIFETIME_MS);
+      });
+    }
+  }, [log]);
 
   // Sigue el combate como un chat: si el jugador estaba al fondo del log,
   // lo mantenemos ahí al llegar acciones nuevas; si scrolleó para revisar
@@ -803,6 +863,8 @@ function CombatView({
               allyTargetable={isPlayerTurn && selectingAlly && p.hp > 0}
               onTarget={() => handleAllyTarget(p.id)}
               partnerOwned={isCoop && !actorBelongsToPlayer(p, player?.id)}
+              floaters={floaters.filter((f) => f.participantId === p.id)}
+              shaking={shakeIds.has(p.id)}
             />
           ))}
         </div>
@@ -819,6 +881,8 @@ function CombatView({
               isActive={p.id === nextActorId}
               targetable={isPlayerTurn && selectingEnemy}
               onTarget={() => handleEnemyTarget(p.id)}
+              floaters={floaters.filter((f) => f.participantId === p.id)}
+              shaking={shakeIds.has(p.id)}
             />
           ))}
         </div>
@@ -865,7 +929,7 @@ function CombatView({
   );
 }
 
-export function CombatantCard({ participant, level, isActive, targetable, allyTargetable, onTarget, partnerOwned }) {
+export function CombatantCard({ participant, level, isActive, targetable, allyTargetable, onTarget, partnerOwned, floaters = [], shaking = false }) {
   const hpPercent = participant.max_hp ? Math.max(0, (participant.hp / participant.max_hp) * 100) : 0;
   const manaPercent = participant.max_mana ? Math.max(0, (participant.mana / participant.max_mana) * 100) : 0;
   const dead = participant.hp <= 0;
@@ -878,10 +942,18 @@ export function CombatantCard({ participant, level, isActive, targetable, allyTa
     targetable && !dead ? 'combatant-targetable' : '',
     allyTargetable && !dead ? 'combatant-ally-targetable' : '',
     partnerOwned ? 'combatant-partner' : '',
+    shaking ? 'combatant-shake' : '',
   ].filter(Boolean).join(' ');
 
   return (
     <div className={classes} onClick={clickable ? onTarget : undefined}>
+      {floaters.map((f) => (
+        <span key={f.key} className={`combat-floater combat-floater--${f.kind}${f.crit ? ' combat-floater--crit' : ''}`}>
+          {f.kind === 'damage' && `-${f.value}`}
+          {f.kind === 'heal' && `+${f.value}`}
+          {f.kind === 'miss' && '¡Esquivó!'}
+        </span>
+      ))}
       <div className="combatant-info">
         <div className="combatant-name">
           {participant.name}
