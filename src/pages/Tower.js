@@ -48,8 +48,6 @@ export default function Tower() {
   const [readyStatus, setReadyStatus] = useState(null);
   const [waitingReady, setWaitingReady] = useState(false);
   const [wipedExitIn, setWipedExitIn] = useState(null);
-  const [towerLeaderboard, setTowerLeaderboard] = useState(null);
-  const [leaderboardTab, setLeaderboardTab] = useState('solo');
   const [canControl, setCanControl] = useState(false);
 
   const sessionRef = useRef(session);
@@ -60,7 +58,6 @@ export default function Tower() {
     api.getPlayerStats(player.id, token).then((s) => { setPlayerLevel(s.level); setPlayerHp({ hp: s.hp, maxHp: s.maxHp }); }).catch(() => setPlayerLevel(null));
     api.getCoopParty(player.id, token).then(setCoopParty).catch(() => setCoopParty(null));
     api.getParty(player.id, token).then(setParty).catch(() => setParty(null));
-    api.getTowerLeaderboard().then(setTowerLeaderboard).catch(() => setTowerLeaderboard(null));
   }, [player, token]);
 
   const npcLevelMap = Object.fromEntries(
@@ -523,48 +520,6 @@ export default function Tower() {
           })()}
         </div>
         </div>
-
-        <aside className="rpg-panel leaderboard-panel">
-          <p className="panel-title leaderboard-title">🏆 Ranking de la Torre</p>
-          <div className="leaderboard-tabs">
-            <button
-              className={`rpg-button rpg-button--small${leaderboardTab === 'solo' ? ' quest-tab--active' : ''}`}
-              onClick={() => setLeaderboardTab('solo')}
-            >
-              Solo
-            </button>
-            <button
-              className={`rpg-button rpg-button--small${leaderboardTab === 'duo' ? ' quest-tab--active' : ''}`}
-              onClick={() => setLeaderboardTab('duo')}
-            >
-              Dúo
-            </button>
-            <button
-              className={`rpg-button rpg-button--small${leaderboardTab === 'trio' ? ' quest-tab--active' : ''}`}
-              onClick={() => setLeaderboardTab('trio')}
-            >
-              Trío
-            </button>
-          </div>
-
-          {!towerLeaderboard && <p className="leaderboard-empty">Cargando...</p>}
-          {towerLeaderboard && towerLeaderboard[leaderboardTab].length === 0 && (
-            <p className="leaderboard-empty">Todavía nadie extrajo una corrida en este modo.</p>
-          )}
-          {towerLeaderboard && towerLeaderboard[leaderboardTab].map((entry) => {
-            const isSelf = entry.members.includes(player?.nickname);
-            return (
-              <div key={entry.position} className={`leaderboard-row${isSelf ? ' leaderboard-row--self' : ''}`}>
-                <span className="lb-pos">{entry.position}</span>
-                <span className="lb-icon">🗼</span>
-                <div className="lb-info">
-                  <span className="lb-name">{entry.members.join(' & ')}</span>
-                  <span className="lb-sub">Piso {entry.floor} · {DIFFICULTIES.find((d) => d.value === entry.difficulty)?.label || entry.difficulty}</span>
-                </div>
-              </div>
-            );
-          })}
-        </aside>
       </div>
       )}
 

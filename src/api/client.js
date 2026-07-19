@@ -27,6 +27,7 @@ export const api = {
   getClassElementals: (classId) => request(`/api/classes/${classId}/elementals`),
   getLeaderboard: () => request('/api/leaderboard'),
   getGuildLeaderboard: () => request('/api/leaderboard/guilds'),
+  getWealthLeaderboard: () => request('/api/leaderboard/wealth'),
   getRanks: () => request('/api/ranks'),
   getPlayerStats: (playerId, token) => request(`/api/player/${playerId}/stats`, { token }),
   getPlayerZones: (playerId, token) => request(`/api/player/${playerId}/zones`, { token }),

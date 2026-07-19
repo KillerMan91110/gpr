@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Zones from './pages/Zones';
+import Ranking from './pages/Ranking';
 import ExploreZone from './pages/ExploreZone';
 import Guild from './pages/Guild';
 import GuildMasters from './pages/GuildMasters';
@@ -59,6 +60,7 @@ function App() {
             <Route path="/combat" element={<ProtectedRoute><Zones /></ProtectedRoute>} />
             <Route path="/combat/:zoneId" element={<ProtectedRoute><ExploreZone /></ProtectedRoute>} />
             <Route path="/ranks" element={<ProtectedRoute><Ranks /></ProtectedRoute>} />
+            <Route path="/ranking" element={<ProtectedRoute><Ranking /></ProtectedRoute>} />
             <Route path="/guild" element={<ProtectedRoute><Guild /></ProtectedRoute>} />
             <Route path="/guild/masters" element={<ProtectedRoute><GuildMasters /></ProtectedRoute>} />
             <Route path="/guild/masters/:classId" element={<ProtectedRoute><GuildMasterDetail /></ProtectedRoute>} />

@@ -153,6 +153,10 @@ export default function NavBar() {
           🏛️ Gremio
         </Link>
 
+        <Link to="/ranking" className={`app-navbar-link${isActive('/ranking') ? ' app-navbar-link--active' : ''}`}>
+          🏆 Ranking
+        </Link>
+
         <Link to="/friends" className={`app-navbar-link${isActive('/friends') ? ' app-navbar-link--active' : ''}`}>
           🤝 Social
           {socialBadge > 0 && <span className="nav-badge">{socialBadge}</span>}

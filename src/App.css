@@ -2423,35 +2423,114 @@ h1, h2, h3 {
   gap: 18px;
 }
 
-/* ── Leaderboard panel ── */
-.leaderboard-panel {
-  width: 230px;
-  flex-shrink: 0;
-  padding: 14px 12px;
+/* ── Ranking (pantalla dedicada) ── */
+.ranking-tabs, .ranking-subtabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.ranking-subtabs {
+  margin-top: -6px;
+}
+
+.ranking-podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+  margin: 12px 0 20px;
+}
+
+.ranking-podium-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 150px;
+  padding: 16px 10px 12px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border: 1px solid var(--gold-dim);
+}
+
+.ranking-podium-card--1 {
+  order: 2;
+  width: 170px;
+  padding-top: 22px;
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 18px rgba(240, 216, 120, 0.35);
+}
+
+.ranking-podium-card--2 { order: 1; }
+.ranking-podium-card--3 { order: 3; }
+
+.ranking-podium-trophy {
+  font-size: 1.6rem;
+}
+
+.ranking-podium-card--1 .ranking-podium-trophy {
+  font-size: 2rem;
+}
+
+.ranking-podium-icon {
+  font-size: 1.1rem;
+}
+
+.ranking-podium-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  color: var(--cream);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.ranking-podium-name--self {
+  color: var(--gold-bright);
+}
+
+.ranking-podium-value {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  color: var(--gold-bright);
+  font-size: 0.9rem;
+}
+
+.ranking-podium-sub {
+  font-size: 0.7rem;
+  color: var(--text-soft);
+  text-align: center;
+}
+
+.ranking-list {
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  position: sticky;
-  top: 16px;
-  max-height: calc(100vh - 80px);
-  overflow-y: auto;
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: var(--gold-dim) transparent;
 }
 
-.leaderboard-panel::-webkit-scrollbar { width: 8px; }
-.leaderboard-panel::-webkit-scrollbar-track { background: transparent; }
-.leaderboard-panel::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
+.lb-value {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  color: var(--gold-bright);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 
+@media (max-width: 560px) {
+  .ranking-podium { flex-wrap: wrap; }
+  .ranking-podium-card--1 { order: 1; }
+  .ranking-podium-card--2 { order: 2; }
+  .ranking-podium-card--3 { order: 3; }
+}
+
+/* ── Leaderboard (filas reusadas por Ranking.js) ── */
 @media (max-width: 760px) {
   .dashboard-columns { flex-direction: column; }
-  .leaderboard-panel { width: 100%; position: static; max-height: none; }
-}
-
-.leaderboard-title {
-  margin-bottom: 8px;
-  text-align: center;
 }
 
 .leaderboard-tabs {

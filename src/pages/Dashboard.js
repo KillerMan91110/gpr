@@ -96,9 +96,6 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [ranks, setRanks] = useState(null);
   const [party, setParty] = useState(null);
-  const [leaderboard, setLeaderboard] = useState(null);
-  const [guildLeaderboard, setGuildLeaderboard] = useState(null);
-  const [leaderboardTab, setLeaderboardTab] = useState('players');
   const [activeMember, setActiveMember] = useState(0);
   const [error, setError] = useState('');
 
@@ -113,12 +110,6 @@ export default function Dashboard() {
     api.getParty(player.id, token)
       .then(setParty)
       .catch(() => setParty(null));
-    api.getLeaderboard()
-      .then(setLeaderboard)
-      .catch(() => setLeaderboard(null));
-    api.getGuildLeaderboard()
-      .then(setGuildLeaderboard)
-      .catch(() => setGuildLeaderboard([]));
   }, [player, token]);
 
   if (error) return <div className="dashboard-error">Error: {error}</div>;
@@ -140,8 +131,6 @@ export default function Dashboard() {
     : { resistances: stats.resistances ?? [], elementalBonuses: stats.elementalBonuses ?? [] };
   const hasCurrentElemental =
     currentElementals.resistances?.length > 0 || currentElementals.elementalBonuses?.length > 0;
-
-  const CLASS_ICONS_LB = { GUERRERO: '⚔', MAGO: '✦', ARQUERO: '🏹', PICARO: '🗡', SACERDOTE: '✙' };
 
   return (
     <div className="dashboard">
@@ -283,70 +272,6 @@ export default function Dashboard() {
           )}
 
         </div>
-
-        {/* ── Leaderboard ── */}
-        <aside className="rpg-panel leaderboard-panel">
-          <p className="panel-title leaderboard-title">🏆 Ranking</p>
-
-          {guildLeaderboard && guildLeaderboard.length > 0 && (
-            <div className="leaderboard-tabs">
-              <button
-                className={`rpg-button rpg-button--small${leaderboardTab === 'players' ? ' quest-tab--active' : ''}`}
-                onClick={() => setLeaderboardTab('players')}
-              >
-                Jugadores
-              </button>
-              <button
-                className={`rpg-button rpg-button--small${leaderboardTab === 'guilds' ? ' quest-tab--active' : ''}`}
-                onClick={() => setLeaderboardTab('guilds')}
-              >
-                Gremios
-              </button>
-            </div>
-          )}
-
-          {leaderboardTab === 'players' && (
-            <>
-              {!leaderboard && <p className="leaderboard-empty">Cargando...</p>}
-              {leaderboard && leaderboard.length === 0 && (
-                <p className="leaderboard-empty">Sin datos aún.</p>
-              )}
-              {leaderboard && leaderboard.map((entry) => {
-                const isSelf = entry.nickname === stats.nickname;
-                return (
-                  <div key={entry.position} className={`leaderboard-row${isSelf ? ' leaderboard-row--self' : ''}`}>
-                    <span className="lb-pos">{entry.position}</span>
-                    <span className="lb-icon">{CLASS_ICONS_LB[entry.className?.toUpperCase()] || '◆'}</span>
-                    <div className="lb-info">
-                      <span className="lb-name">{entry.nickname}</span>
-                      <span className="lb-sub">{entry.className} · Nv.{entry.level}</span>
-                    </div>
-                    <span className="lb-rank">{entry.rank}</span>
-                  </div>
-                );
-              })}
-            </>
-          )}
-
-          {leaderboardTab === 'guilds' && (
-            <>
-              {!guildLeaderboard && <p className="leaderboard-empty">Cargando...</p>}
-              {guildLeaderboard && guildLeaderboard.length === 0 && (
-                <p className="leaderboard-empty">Sin gremios aún.</p>
-              )}
-              {guildLeaderboard && guildLeaderboard.map((guild) => (
-                <div key={guild.position} className="leaderboard-row">
-                  <span className="lb-pos">{guild.position}</span>
-                  <span className="lb-icon">🏛</span>
-                  <div className="lb-info">
-                    <span className="lb-name">{guild.name}</span>
-                    <span className="lb-sub">Nv.{guild.level} · {guild.memberCount} miembro{guild.memberCount === 1 ? '' : 's'}</span>
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
-        </aside>
 
       </div>
     </div>
