@@ -996,6 +996,15 @@ h1, h2, h3 {
   font-size: 0.92rem;
 }
 
+.zone-progress {
+  margin-top: 2px;
+}
+
+.stat-bar-fill.zone-progress-fill {
+  background: linear-gradient(90deg, var(--rarity-comun), var(--rarity-poco_comun));
+  box-shadow: 0 0 8px rgba(95, 217, 126, 0.5);
+}
+
 .zone-enemies {
   margin-top: 2px;
 }

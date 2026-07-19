@@ -16,6 +16,26 @@ function recommendedZoneId(zones) {
   return zone?.id ?? null;
 }
 
+function ZoneProgress({ monsters, discovered }) {
+  if (!monsters || !monsters.length) return null;
+
+  const total = monsters.length;
+  const found = monsters.filter((m) => discovered.has(m.id)).length;
+  const percent = Math.round((found / total) * 100);
+
+  return (
+    <div className="zone-progress">
+      <div className="stat-bar-label">
+        <span>Especies descubiertas</span>
+        <span>{found} / {total} <span className="stat-bar-percent">({percent}%)</span></span>
+      </div>
+      <div className="stat-bar-track">
+        <div className="stat-bar-fill zone-progress-fill" style={{ width: `${percent}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function ZoneEnemies({ monsters, discovered }) {
   if (!monsters) return <p className="hint">Cargando enemigos...</p>;
   if (!monsters.length) return null;
@@ -120,6 +140,7 @@ export default function Zones() {
 
             {zone.unlocked ? (
               <>
+                <ZoneProgress monsters={zoneMonsters[zone.id]} discovered={discovered} />
                 <ZoneEnemies monsters={zoneMonsters[zone.id]} discovered={discovered} />
                 <ZoneRewards monsters={zoneMonsters[zone.id]} />
                 <span className={`zone-boss-status ${zone.bossDefeated ? 'boss-down' : ''}`}>
