@@ -1,42 +1,59 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 import { api } from '../api/client';
 
 const CHANNEL_LABELS = { GENERAL: 'General', TRADE: 'Comercio', PARTY: 'Grupo', GUILD: 'Gremio' };
-const MSG_POLL_MS = 3000;
 const PARTY_POLL_MS = 6000;
 const GUILD_POLL_MS = 15000;
 const MAX_MESSAGES = 80;
 
 // Party (coop.js) y General/Comercio/Gremio (chat.js) devuelven formas distintas:
-// coop -> { id, sender_id, sender_nickname, body }, chat -> { id, nickname, level, body }
-// (sin sender_id). Se normalizan acá a una forma común para no bifurcar el render.
-function normalizeGetMessages(channel, rawMessages, myNickname, myId) {
+// coop -> { id, sender_id/senderId, sender_nickname/senderNickname, body }
+// chat -> { id, nickname, level, body } (sin sender_id). Se normalizan acá a una forma
+// común para no bifurcar el render. sender_nickname/senderNickname difiere según si el
+// mensaje vino del GET (snake_case) o del evento de socket (camelCase).
+function normalizeMessage(channel, raw, myNickname, myId) {
   if (channel === 'PARTY') {
-    return rawMessages.map((m) => ({
-      id: m.id,
-      nickname: m.sender_nickname,
+    return {
+      id: raw.id,
+      nickname: raw.sender_nickname ?? raw.senderNickname,
       level: null,
-      body: m.body,
-      mine: m.sender_id === myId,
-    }));
+      body: raw.body,
+      mine: (raw.sender_id ?? raw.senderId) === myId,
+    };
   }
-  return rawMessages.map((m) => ({
-    id: m.id,
-    nickname: m.nickname,
-    level: m.level,
-    body: m.body,
-    mine: m.nickname === myNickname,
-  }));
+  return {
+    id: raw.id,
+    nickname: raw.nickname,
+    level: raw.level,
+    body: raw.body,
+    mine: raw.nickname === myNickname,
+  };
+}
+
+function mergeMessages(existing, incoming) {
+  const seen = new Set();
+  const merged = [];
+  for (const m of [...existing, ...incoming]) {
+    if (seen.has(m.id)) continue;
+    seen.add(m.id);
+    merged.push(m);
+  }
+  merged.sort((a, b) => a.id - b.id);
+  return merged.slice(-MAX_MESSAGES);
 }
 
 // Chatbox global (visible en cualquier pantalla mientras estás logueado). Tabs fijos
-// General/Comercio siempre visibles; Grupo y Gremio aparecen solo si pertenecés a uno,
-// y cada tab solo te comunica con los jugadores de ese canal. Todo a base de polling
-// (mismo patrón que CoopBar: el back no tiene websockets).
+// General/Comercio siempre visibles; Grupo y Gremio aparecen solo si pertenecés a uno.
+// Los mensajes en vivo llegan por WebSocket (rooms chat:GENERAL/TRADE/GUILD:<id>/COOP:<id>);
+// el historial de cada canal se trae una sola vez por REST la primera vez que se abre esa
+// pestaña. Party/Gremio (quién sos, no los mensajes) siguen en polling: no hay evento de
+// socket para eso todavía.
 export default function ChatBox() {
   const { player, token, isAuthenticated } = useAuth();
+  const { socket, connected: socketConnected } = useSocket();
   const location = useLocation();
 
   const [activeTab, setActiveTab] = useState('GENERAL');
@@ -48,11 +65,16 @@ export default function ChatBox() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
 
-  const lastIdRef = useRef({ GENERAL: 0, TRADE: 0, PARTY: 0, GUILD: 0 });
+  const loadedRef = useRef({ GENERAL: false, TRADE: false, PARTY: false, GUILD: false });
   const logRef = useRef(null);
   const partyPollRef = useRef(null);
   const guildPollRef = useRef(null);
-  const msgPollRef = useRef(null);
+
+  function appendMessage(channel, msg) {
+    setMessages((prev) => (
+      prev[channel].some((m) => m.id === msg.id) ? prev : { ...prev, [channel]: mergeMessages(prev[channel], [msg]) }
+    ));
+  }
 
   useEffect(() => {
     if (!isAuthenticated || !player) {
@@ -96,36 +118,56 @@ export default function ChatBox() {
     if (activeTab === 'GUILD' && !guild) setActiveTab('GENERAL');
   }, [guild, activeTab]);
 
-  // Poll de mensajes: solo del canal activo, para no pegarle al back por 4 canales a la vez.
+  // Unirse a las rooms de chat. Se repite cada vez que socketConnected vuelve a true
+  // (reconexión, ej. tras un cold-start del back): las rooms no sobreviven, hay que
+  // re-unirse con la conexión nueva.
   useEffect(() => {
-    if (!isAuthenticated || !player || minimized) return undefined;
-    if (activeTab === 'PARTY' && !party) return undefined;
-    if (activeTab === 'GUILD' && !guild) return undefined;
+    if (!socket || !socketConnected) return;
+    socket.emit('chat:join', 'GENERAL');
+    socket.emit('chat:join', 'TRADE');
+    if (guild?.id) socket.emit('chat:join', `GUILD:${guild.id}`);
+    if (party?.groupId) socket.emit('chat:join', `COOP:${party.groupId}`);
+  }, [socket, socketConnected, guild?.id, party?.groupId]);
 
-    let cancelled = false;
-    async function poll() {
+  // Mensajes en vivo: un solo listener para las 4 rooms (el payload trae `channel`),
+  // sin importar cuál pestaña esté activa.
+  useEffect(() => {
+    if (!socket || !player) return undefined;
+    function handleMessage(raw) {
+      const channel = raw.channel;
+      if (!(channel in loadedRef.current)) return;
+      appendMessage(channel, normalizeMessage(channel, raw, player.nickname, player.id));
+    }
+    socket.on('chat:message', handleMessage);
+    return () => socket.off('chat:message', handleMessage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, player?.id, player?.nickname]);
+
+  // Historial: se trae una sola vez por canal, la primera vez que esa pestaña se vuelve
+  // relevante (se abre, o aparece la party/gremio). De ahí en más, los mensajes nuevos
+  // llegan solos por socket.
+  useEffect(() => {
+    if (!isAuthenticated || !player) return;
+    if (activeTab === 'PARTY' && !party) return;
+    if (activeTab === 'GUILD' && !guild) return;
+    if (loadedRef.current[activeTab]) return;
+    loadedRef.current[activeTab] = true;
+
+    (async () => {
       try {
-        const afterId = lastIdRef.current[activeTab];
         const res = activeTab === 'PARTY'
-          ? await api.getCoopMessages(player.id, afterId, token)
-          : await api.getChatMessages(player.id, activeTab, afterId, token);
-        if (cancelled || !res.messages.length) return;
-        lastIdRef.current[activeTab] = res.messages[res.messages.length - 1].id;
-        const normalized = normalizeGetMessages(activeTab, res.messages, player.nickname, player.id);
-        setMessages((prev) => ({
-          ...prev,
-          [activeTab]: [...prev[activeTab], ...normalized].slice(-MAX_MESSAGES),
-        }));
+          ? await api.getCoopMessages(player.id, 0, token)
+          : await api.getChatMessages(player.id, activeTab, 0, token);
+        if (!res.messages.length) return;
+        const normalized = res.messages.map((m) => normalizeMessage(activeTab, m, player.nickname, player.id));
+        setMessages((prev) => ({ ...prev, [activeTab]: mergeMessages(prev[activeTab], normalized) }));
       } catch {
         // silencioso
       }
-    }
-    poll();
-    msgPollRef.current = setInterval(poll, MSG_POLL_MS);
-    return () => { cancelled = true; clearInterval(msgPollRef.current); };
-    // party?.groupId / guild?.id (no los objetos enteros) para no reiniciar el poll en cada refresh.
+    })();
+    // party?.groupId / guild?.id (no los objetos enteros) para no reiniciar el efecto en cada refresh.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, player, token, activeTab, party?.groupId, guild?.id, minimized]);
+  }, [isAuthenticated, player, token, activeTab, party?.groupId, guild?.id]);
 
   useEffect(() => {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
@@ -144,11 +186,7 @@ export default function ChatBox() {
         const res = await api.sendChatMessage(player.id, activeTab, input.trim(), token);
         sent = { id: res.message.id, nickname: res.message.nickname, level: res.message.level, body: res.message.body, mine: true };
       }
-      lastIdRef.current[activeTab] = sent.id;
-      setMessages((prev) => ({
-        ...prev,
-        [activeTab]: [...prev[activeTab], sent].slice(-MAX_MESSAGES),
-      }));
+      appendMessage(activeTab, sent);
       setInput('');
     } catch (err) {
       setError(err.message);
