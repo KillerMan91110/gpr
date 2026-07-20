@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 
-const GOLD_PER_POINT = 2;
+const GOLD_PER_POINT = 1;
 
 const CLASS_ICON = {
   GUERRERO: '⚔', MAGO: '✦', ARQUERO: '🏹', PICARO: '🗡', SACERDOTE: '✙',
