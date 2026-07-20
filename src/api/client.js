@@ -151,6 +151,8 @@ export const api = {
     request(`/api/player/${playerId}/party/swap-bench`, { method: 'POST', body: { partyRowId, benchRowId }, token }),
   addBenchToParty: (playerId, benchRowId, token) =>
     request(`/api/player/${playerId}/party/add-from-bench`, { method: 'POST', body: { benchRowId }, token }),
+  sendPartyToBench: (playerId, partyRowId, token) =>
+    request(`/api/player/${playerId}/party/bench`, { method: 'POST', body: { partyRowId }, token }),
   fireBenchNpc: (playerId, benchRowId, token) =>
     request(`/api/player/${playerId}/bench/${benchRowId}`, { method: 'DELETE', token }),
   firePartyNpc: (playerId, partyRowId, token) =>

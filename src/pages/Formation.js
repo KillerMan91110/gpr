@@ -97,6 +97,10 @@ export default function Formation() {
     act(() => api.addBenchToParty(player.id, benchRowId, token));
   }
 
+  function handleSendToBench(partyRowId) {
+    act(() => api.sendPartyToBench(player.id, partyRowId, token));
+  }
+
   function handleFireBench(benchRowId, name) {
     if (!window.confirm(`¿Despedir a ${name}? Esta acción es permanente.`)) return;
     act(() => api.fireBenchNpc(player.id, benchRowId, token));
@@ -141,6 +145,14 @@ export default function Formation() {
                 🔄 Intercambiar
               </button>
             )}
+            <button
+              className="logout-btn formation-action-btn"
+              onClick={() => handleSendToBench(member.partyRowId)}
+              disabled={busy || benchMembers.length >= (bench?.cap || 10)}
+              title={benchMembers.length >= (bench?.cap || 10) ? 'El banco está lleno' : undefined}
+            >
+              ⬇ Mandar al banco
+            </button>
             <button
               className="logout-btn formation-fire-btn"
               onClick={() => handleFireParty(member.partyRowId, member.name)}
