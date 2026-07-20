@@ -1108,6 +1108,58 @@ h1, h2, h3 {
   align-items: start;
 }
 
+.turn-order-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--gold-dim);
+}
+
+.turn-order-chip {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  padding: 4px 9px;
+  border-radius: 3px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  color: var(--text-soft);
+  background: rgba(255, 255, 255, 0.04);
+  position: relative;
+}
+
+.turn-order-chip:not(:last-child)::after {
+  content: '→';
+  position: absolute;
+  right: -13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gold-dim);
+  font-size: 0.65rem;
+}
+
+.turn-order-chip--player {
+  border-color: var(--mana-b);
+  color: #a8d4f5;
+}
+
+.turn-order-chip--enemy {
+  border-color: var(--hp-b);
+  color: #f5a8ae;
+}
+
+.turn-order-chip--active {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  color: var(--bg-deep);
+  border-color: var(--gold-bright);
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(240, 216, 120, 0.5);
+}
+
 .combat-result {
   grid-column: 1 / -1;
 }

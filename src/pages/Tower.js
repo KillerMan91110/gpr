@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
-import { CombatantCard } from './ExploreZone';
+import { CombatantCard, TurnOrderBar } from './ExploreZone';
 import { setActiveCombat, clearActiveCombat } from '../utils/activeCombat';
 
 const MIN_LEVEL = 30;
@@ -664,6 +664,7 @@ function TowerCombatView({
 
   return (
     <div className="combat-view">
+      <TurnOrderBar participants={participants} nextActorId={nextActorId} />
       <div className="combat-left">
         <p className="combat-hint">Piso {runFloor} · Sala {runRoom}</p>
 

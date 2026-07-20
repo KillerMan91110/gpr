@@ -505,6 +505,56 @@ function actorBelongsToPlayer(actor, playerId) {
   return true; // NPC propio en partida solo (sin owner_player_id, no hay compañero)
 }
 
+// Predice el resto del orden de turnos de ESTA ronda (estilo Shin Megami Tensei: fila de
+// quién actúa a continuación). Replica en el front la misma regla que ya usa el back
+// (lib/combat.js determineActingSide/nextActor): dentro de una ronda los lados se alternan
+// turno a turno, y en cada turno actúa el vivo de mayor SPD de ese lado que no haya actuado
+// todavía — salvo que al otro lado ya no le quede nadie pendiente, en ese caso sigue actuando
+// el mismo lado. No hace falta pedirle nada al back: participants ya trae hp/spd/
+// has_acted_this_round de cada uno, y nextActorId ya nos dice quién abre la fila.
+export function computeTurnOrder(participants, nextActorId) {
+  const alive = participants.filter((p) => p.hp > 0);
+  const actor = alive.find((p) => p.id === nextActorId);
+  if (!actor) return [];
+
+  const bySpeed = (a, b) => b.spd - a.spd || a.id - b.id;
+  const pools = {
+    PLAYER: alive.filter((p) => p.side === 'PLAYER' && !p.has_acted_this_round).sort(bySpeed),
+    ENEMY: alive.filter((p) => p.side === 'ENEMY' && !p.has_acted_this_round).sort(bySpeed),
+  };
+
+  const order = [];
+  let side = actor.side;
+  while (pools.PLAYER.length || pools.ENEMY.length) {
+    if (!pools[side].length) {
+      side = side === 'PLAYER' ? 'ENEMY' : 'PLAYER';
+      if (!pools[side].length) break;
+    }
+    order.push(pools[side].shift());
+    const otherSide = side === 'PLAYER' ? 'ENEMY' : 'PLAYER';
+    side = pools[otherSide].length ? otherSide : side;
+  }
+  return order;
+}
+
+export function TurnOrderBar({ participants, nextActorId }) {
+  const order = computeTurnOrder(participants, nextActorId);
+  if (order.length < 2) return null;
+  return (
+    <div className="turn-order-bar">
+      {order.map((p, i) => (
+        <div
+          key={p.id}
+          className={`turn-order-chip turn-order-chip--${p.side.toLowerCase()}${i === 0 ? ' turn-order-chip--active' : ''}`}
+          title={`${p.name} · SPD ${p.spd}`}
+        >
+          {p.name}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const FLOATER_LIFETIME_MS = 1100;
 const SHAKE_LIFETIME_MS = 450;
 
@@ -710,6 +760,7 @@ function CombatView({
 
   return (
     <div className="combat-view">
+      <TurnOrderBar participants={participants} nextActorId={nextActorId} />
       <div className="combat-left">
         {isPlayerTurn && (
           <p className="combat-hint">
