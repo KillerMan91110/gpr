@@ -487,7 +487,7 @@ export default function ExploreZone() {
 // Clasifica cada línea del registro de combate para pintarla distinto según qué pasó
 // (daño, curación, crítico, habilidad, esquive/fallo, escape), usando los flags que ya
 // manda el back (damage/heal/crit/evaded/success/action) — sin tocar el texto narrado.
-function classifyLogEntry(entry) {
+export function classifyLogEntry(entry) {
   if (entry.evaded) return 'evaded';
   if (entry.success === false) return 'fail';
   if (entry.heal > 0) return 'heal';
@@ -573,48 +573,14 @@ function floatingEffectFromEntry(entry) {
   return null;
 }
 
-function CombatView({
-  session,
-  player,
-  playerLevel,
-  npcLevelMap,
-  enemyLevels,
-  loading,
-  inventory,
-  itemEffects,
-  skills,
-  npcSkillsCache,
-  onLoadInventory,
-  onLoadSkills,
-  onLoadNpcSkills,
-  onAction,
-  onRestart,
-}) {
-  const { session: combatSession, participants, log, nextActorId, rewards, round } = session;
-  const players = participants.filter((p) => p.side === 'PLAYER');
-  const enemies = participants.filter((p) => p.side === 'ENEMY');
-  const finished = combatSession.status !== 'IN_PROGRESS';
-  const isCoop = new Set(participants.filter((p) => p.player_id != null).map((p) => p.player_id)).size > 1;
-  const actor = participants.find((p) => p.id === nextActorId);
-  const hasActiveTurn = !finished && !!nextActorId;
-  const isPlayerTurn = hasActiveTurn && actorBelongsToPlayer(actor, player?.id);
-  const [showItems, setShowItems] = useState(false);
-  const [showSkills, setShowSkills] = useState(false);
-  const [pendingSkill, setPendingSkill] = useState(null);
-  const [pendingItem, setPendingItem] = useState(null);
-  const [logAtBottom, setLogAtBottom] = useState(true);
-  const logRef = useRef(null);
+// Números flotantes (-X daño, +X curación, "Esquivó") + shake en crítico, disparados por
+// cada línea nueva que aparece en el log de combate. Hook compartido para que ExploreZone
+// y Tower usen exactamente el mismo comportamiento sin duplicar la lógica.
+export function useCombatFloaters(log) {
   const [floaters, setFloaters] = useState([]);
   const [shakeIds, setShakeIds] = useState(new Set());
   const prevLogLenRef = useRef(log.length);
 
-  const selectingAlly = pendingSkill?.targetType === 'ALLY' || !!pendingItem;
-  const selectingEnemy = !pendingItem && (!pendingSkill || pendingSkill.targetType === 'ENEMY');
-
-  // Por cada línea nueva que revealSession va agregando al log (de a una, con su propio
-  // delay), dispara el número flotante y el shake sobre la tarjeta del participante que
-  // corresponda. Comparar contra prevLogLenRef evita repetir el efecto en cada render y
-  // evita disparar todo junto para el historial ya existente al montar el componente.
   useEffect(() => {
     const prevLen = prevLogLenRef.current;
     prevLogLenRef.current = log.length;
@@ -649,6 +615,45 @@ function CombatView({
       });
     }
   }, [log]);
+
+  return { floaters, shakeIds };
+}
+
+function CombatView({
+  session,
+  player,
+  playerLevel,
+  npcLevelMap,
+  enemyLevels,
+  loading,
+  inventory,
+  itemEffects,
+  skills,
+  npcSkillsCache,
+  onLoadInventory,
+  onLoadSkills,
+  onLoadNpcSkills,
+  onAction,
+  onRestart,
+}) {
+  const { session: combatSession, participants, log, nextActorId, rewards, round } = session;
+  const players = participants.filter((p) => p.side === 'PLAYER');
+  const enemies = participants.filter((p) => p.side === 'ENEMY');
+  const finished = combatSession.status !== 'IN_PROGRESS';
+  const isCoop = new Set(participants.filter((p) => p.player_id != null).map((p) => p.player_id)).size > 1;
+  const actor = participants.find((p) => p.id === nextActorId);
+  const hasActiveTurn = !finished && !!nextActorId;
+  const isPlayerTurn = hasActiveTurn && actorBelongsToPlayer(actor, player?.id);
+  const [showItems, setShowItems] = useState(false);
+  const [showSkills, setShowSkills] = useState(false);
+  const [pendingSkill, setPendingSkill] = useState(null);
+  const [pendingItem, setPendingItem] = useState(null);
+  const [logAtBottom, setLogAtBottom] = useState(true);
+  const logRef = useRef(null);
+  const { floaters, shakeIds } = useCombatFloaters(log);
+
+  const selectingAlly = pendingSkill?.targetType === 'ALLY' || !!pendingItem;
+  const selectingEnemy = !pendingItem && (!pendingSkill || pendingSkill.targetType === 'ENEMY');
 
   // Sigue el combate como un chat: si el jugador estaba al fondo del log,
   // lo mantenemos ahí al llegar acciones nuevas; si scrolleó para revisar

@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
-import { CombatantCard, TurnOrderBar } from './ExploreZone';
+import { CombatantCard, TurnOrderBar, useCombatFloaters, classifyLogEntry } from './ExploreZone';
 import { setActiveCombat, clearActiveCombat } from '../utils/activeCombat';
 
 const MIN_LEVEL = 30;
@@ -592,6 +592,7 @@ function TowerCombatView({
   const [pendingItem, setPendingItem] = useState(null);
   const [logAtBottom, setLogAtBottom] = useState(true);
   const logRef = useRef(null);
+  const { floaters, shakeIds } = useCombatFloaters(log);
 
   const selectingAlly = pendingSkill?.targetType === 'ALLY' || !!pendingItem;
   const selectingEnemy = !pendingItem && (!pendingSkill || pendingSkill.targetType === 'ENEMY');
@@ -694,7 +695,9 @@ function TowerCombatView({
                 {(i === 0 || entry.round !== log[i - 1].round) && (
                   <p className="combat-round-label">— Ronda {entry.round} —</p>
                 )}
-                <p>{entry.description}</p>
+                <p className={`combat-log-entry combat-log-entry--${classifyLogEntry(entry)}`}>
+                  {entry.description}
+                </p>
               </Fragment>
             ))}
           </div>
@@ -780,6 +783,8 @@ function TowerCombatView({
               allyTargetable={isPlayerTurn && selectingAlly && p.hp > 0}
               onTarget={() => handleAllyTarget(p.id)}
               partnerOwned={isCoop && !actorBelongsToPlayer(p, player?.id)}
+              floaters={floaters.filter((f) => f.participantId === p.id)}
+              shaking={shakeIds.has(p.id)}
             />
           ))}
         </div>
@@ -796,6 +801,8 @@ function TowerCombatView({
               isActive={p.id === nextActorId}
               targetable={isPlayerTurn && selectingEnemy}
               onTarget={() => handleEnemyTarget(p.id)}
+              floaters={floaters.filter((f) => f.participantId === p.id)}
+              shaking={shakeIds.has(p.id)}
             />
           ))}
         </div>
