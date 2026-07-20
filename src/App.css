@@ -1505,6 +1505,21 @@ h1, h2, h3 {
   color: var(--gold);
 }
 
+.skill-row-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.skill-row-badges {
+  display: flex;
+  gap: 4px;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
 .combat-result {
   padding: 24px;
   text-align: center;

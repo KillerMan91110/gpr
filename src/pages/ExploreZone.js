@@ -7,6 +7,44 @@ import { getActiveCombat, setActiveCombat, clearActiveCombat } from '../utils/ac
 const AUTO_RESTART_DELAY_MS = 5000;
 const LOG_REVEAL_DELAY_MS = 650;
 
+// Categoría física/mágica de la skill (como el ícono de tipo en Pokémon) y a quién afecta —
+// el back ya manda damageSchool/targetType/effects, solo faltaba mostrarlo antes de elegir.
+// Exportados para que Tower.js use exactamente los mismos íconos/textos.
+export const SCHOOL_ICONS = { FISICO: '⚔', MAGICO: '✦', HIBRIDO: '⚡' };
+export const SCHOOL_LABELS = { FISICO: 'Físico', MAGICO: 'Mágico', HIBRIDO: 'Híbrido' };
+export const TARGET_ICONS = { SELF: '◎', ALLY: '🤝', ALL_ALLIES: '🤝🤝', ENEMY: '🎯', ALL_ENEMIES: '💥' };
+export const TARGET_LABELS = {
+  SELF: 'Uno mismo', ALLY: 'Un aliado', ALL_ALLIES: 'Todos los aliados',
+  ENEMY: 'Un enemigo', ALL_ENEMIES: 'Todos los enemigos',
+};
+const STAT_LABELS = {
+  ATK: 'ATK', DEF: 'DEF', MAG: 'INT', MAGIC_DEF: 'DEF MAG', SPD: 'SPD',
+  CRIT_CHANCE: 'CRIT', CRIT_DAMAGE: 'CRIT DMG', EVASION: 'Evasión', HP: 'HP', LUCK: 'Suerte',
+};
+
+// Traduce un skill_effect crudo (STAT_MOD/DOT/HOT/...) a una línea legible para el tooltip.
+export function describeSkillEffect(e) {
+  const statLabel = STAT_LABELS[e.statCode] || e.statCode;
+  const turns = e.durationTurns ? ` (${e.durationTurns}t)` : '';
+  switch (e.effectType) {
+    case 'STAT_MOD': {
+      const amount = e.percentAmount != null
+        ? `${e.percentAmount > 0 ? '+' : ''}${e.percentAmount}%`
+        : `${e.flatAmount > 0 ? '+' : ''}${e.flatAmount}`;
+      return `${amount} ${statLabel}${turns}`;
+    }
+    case 'DOT': return `Daño por turno${turns}`;
+    case 'HOT': return `Curación por turno${turns}`;
+    case 'REVIVE': return 'Revive a un aliado caído';
+    case 'CLEANSE': return 'Limpia estados negativos';
+    case 'NO_DAMAGE_WINDOW': return 'Evade el próximo golpe';
+    case 'GUARANTEED_CRIT': return 'Crítico garantizado';
+    case 'CONDITIONAL_DAMAGE': return 'Daño condicional';
+    case 'SUMMON': return 'Invoca un aliado';
+    default: return e.effectType;
+  }
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -885,21 +923,34 @@ function CombatView({
               activeSkills.filter((s) => !s.isPassive && s.skillType !== 'PASIVA').map((skill) => {
                 const insufficientMana = actor && actor.mana < skill.manaCost;
                 const disabled = loading || insufficientMana;
-                const title = insufficientMana ? 'No te alcanza el maná' : (skill.description || '');
                 const icon = {
                   ATAQUE: '⚔', CURACION: '✚', BUFF: '🛡', DEBUFF: '💀',
                   ESTADO_ALTERADO: '☠', ESPECIAL: '✦',
                 }[skill.skillType] || '⚔';
+                const schoolIcon = SCHOOL_ICONS[skill.damageSchool];
+                const targetIcon = TARGET_ICONS[skill.targetType];
                 return (
                   <button
                     key={skill.id}
                     className="item-row"
                     disabled={disabled}
-                    title={title}
                     onClick={() => handleSkillClick(skill)}
                   >
-                    <span>{icon} {skill.name}</span>
+                    <span className="skill-row-main">
+                      <span>{icon} {skill.name}</span>
+                      <span className="skill-row-badges">
+                        {schoolIcon && <span title={SCHOOL_LABELS[skill.damageSchool]}>{schoolIcon}</span>}
+                        {targetIcon && <span title={TARGET_LABELS[skill.targetType]}>{targetIcon}</span>}
+                      </span>
+                    </span>
                     <span className="item-qty">{skill.manaCost > 0 ? `${skill.manaCost} maná` : 'gratis'}</span>
+                    <div className="item-tooltip">
+                      {insufficientMana && <div className="item-tooltip-line">No te alcanza el maná</div>}
+                      {skill.description && <div className="item-tooltip-line">{skill.description}</div>}
+                      {skill.effects?.map((e, i) => (
+                        <div key={i} className="item-tooltip-line">{describeSkillEffect(e)}</div>
+                      ))}
+                    </div>
                   </button>
                 );
               })}

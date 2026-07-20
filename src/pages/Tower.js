@@ -2,7 +2,10 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
-import { CombatantCard, TurnOrderBar, useCombatFloaters, classifyLogEntry } from './ExploreZone';
+import {
+  CombatantCard, TurnOrderBar, useCombatFloaters, classifyLogEntry,
+  SCHOOL_ICONS, SCHOOL_LABELS, TARGET_ICONS, TARGET_LABELS, describeSkillEffect,
+} from './ExploreZone';
 import { setActiveCombat, clearActiveCombat } from '../utils/activeCombat';
 
 const MIN_LEVEL = 30;
@@ -758,12 +761,26 @@ function TowerCombatView({
             {activeSkills && activeSkills.filter((s) => !s.isPassive && s.skillType !== 'PASIVA').map((skill) => {
               const insufficientMana = actor && actor.mana < skill.manaCost;
               const disabled = loading || insufficientMana;
-              const title = insufficientMana ? 'No te alcanza el maná' : (skill.description || '');
               const icon = { ATAQUE: '⚔', CURACION: '✚', BUFF: '🛡', DEBUFF: '💀', ESTADO_ALTERADO: '☠', ESPECIAL: '✦' }[skill.skillType] || '⚔';
+              const schoolIcon = SCHOOL_ICONS[skill.damageSchool];
+              const targetIcon = TARGET_ICONS[skill.targetType];
               return (
-                <button key={skill.id} className="item-row" disabled={disabled} title={title} onClick={() => handleSkillClick(skill)}>
-                  <span>{icon} {skill.name}</span>
+                <button key={skill.id} className="item-row" disabled={disabled} onClick={() => handleSkillClick(skill)}>
+                  <span className="skill-row-main">
+                    <span>{icon} {skill.name}</span>
+                    <span className="skill-row-badges">
+                      {schoolIcon && <span title={SCHOOL_LABELS[skill.damageSchool]}>{schoolIcon}</span>}
+                      {targetIcon && <span title={TARGET_LABELS[skill.targetType]}>{targetIcon}</span>}
+                    </span>
+                  </span>
                   <span className="item-qty">{skill.manaCost > 0 ? `${skill.manaCost} maná` : 'gratis'}</span>
+                  <div className="item-tooltip">
+                    {insufficientMana && <div className="item-tooltip-line">No te alcanza el maná</div>}
+                    {skill.description && <div className="item-tooltip-line">{skill.description}</div>}
+                    {skill.effects?.map((e, i) => (
+                      <div key={i} className="item-tooltip-line">{describeSkillEffect(e)}</div>
+                    ))}
+                  </div>
                 </button>
               );
             })}
