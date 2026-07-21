@@ -2819,12 +2819,6 @@ h1, h2, h3 {
   border-color: var(--gold);
   box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
 }
-/* El popup de <select> usa colores del sistema (fondo claro) salvo que se fuerce
-   un color oscuro en <option>; si no, el texto claro heredado queda ilegible. */
-select.rpg-input option {
-  background: var(--panel-2);
-  color: var(--cream);
-}
 .rpg-input--textarea {
   resize: vertical;
 }
