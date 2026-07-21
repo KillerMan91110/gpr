@@ -231,14 +231,6 @@ export const api = {
     request(`/api/guilds/${guildId}/requests/${requestId}/accept`, { method: 'PUT', token }),
   rejectGuildRequest: (token, guildId, requestId) =>
     request(`/api/guilds/${guildId}/requests/${requestId}/reject`, { method: 'PUT', token }),
-  getGuildActivity: (token, guildId, limit) =>
-    request(`/api/guilds/${guildId}/activity${limit ? `?limit=${limit}` : ''}`, { token }),
-  getGuildBank: (token, guildId) => request(`/api/guilds/${guildId}/bank`, { token }),
-  depositGuildBank: (token, guildId, amount) =>
-    request(`/api/guilds/${guildId}/bank/deposit`, { method: 'POST', body: { amount }, token }),
-  getGuildBankShop: (token, guildId) => request(`/api/guilds/${guildId}/shop`, { token }),
-  buyGuildBankShopItem: (token, guildId, itemId, quantity, recipientPlayerId) =>
-    request(`/api/guilds/${guildId}/shop/buy`, { method: 'POST', body: { itemId, quantity, recipientPlayerId }, token }),
   // Torre infinita
   startTower: (playerId, difficulty, coopPartnerIds, token) =>
     request(`/api/player/${playerId}/tower/start`, { method: 'POST', body: { difficulty, coopPartnerIds }, token }),
