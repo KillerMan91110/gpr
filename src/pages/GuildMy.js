@@ -11,6 +11,21 @@ const DEPOSIT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 const GUILD_EMBLEMS = ['🐉', '🦁', '⚔️', '🛡️', '🔥', '❄️', '👑', '🦅', '🐺', '☠️', '⭐', '🌙'];
 const GUILD_COLORS = ['#d4af37', '#e0394f', '#4fa0e0', '#5fd97e', '#b572e0', '#f0a93a', '#7a1020', '#143a66', '#ece3cf', '#b9b3c4'];
 
+// Debe coincidir con combatBonusMultipliers de lib/guilds.js en el back.
+function combatBonusPercents(level) {
+  if (!level) return { gold: 0, xp: 0 };
+  const lvl = Math.min(level, 20);
+  return { gold: lvl * 1, xp: lvl * 0.5 };
+}
+
+const LEVEL_BENEFITS = [
+  { level: 1, label: 'Cupo de hasta 10 miembros' },
+  { level: 2, label: 'Banco de gremio (donaciones + tienda exclusiva)' },
+  { level: 3, label: 'Emblema y color personalizados' },
+  { level: 4, label: 'Cupo de hasta 20 miembros' },
+  { level: 5, label: 'Cupo de hasta 30 miembros' },
+];
+
 function formatDaysAgo(dateStr) {
   if (!dateStr) return null;
   const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
@@ -377,6 +392,10 @@ export default function GuildMy() {
             <span>{guild.level}</span>
           </div>
           <div className="guild-stat-row">
+            <span className="hint">Bonus de combate</span>
+            <span>+{combatBonusPercents(guild.level).gold}% oro / +{combatBonusPercents(guild.level).xp}% XP</span>
+          </div>
+          <div className="guild-stat-row">
             <span className="hint">Tipo</span>
             <span>{guild.type === 'OPEN' ? '🔓 Abierto' : '🔒 Cerrado'}</span>
           </div>
@@ -587,6 +606,32 @@ export default function GuildMy() {
           <p className="hint">Tu líder u oficiales pueden comprar items con el oro donado y enviártelos por correo.</p>
         )}
       </div>
+      </div>
+
+      {/* Beneficios del gremio por nivel */}
+      <div className="rpg-panel">
+        <h3 className="guild-members-title">Beneficios del gremio</h3>
+        <div className="guild-benefits-list">
+          {LEVEL_BENEFITS.map((b) => {
+            const unlocked = guild.level >= b.level;
+            return (
+              <div key={b.level} className={`guild-benefit-row${unlocked ? ' guild-benefit-row--unlocked' : ''}`}>
+                <span className="guild-benefit-level">Nivel {b.level}</span>
+                <span className="guild-benefit-label">{b.label}</span>
+                <span className="guild-benefit-status">{unlocked ? '✅ Desbloqueado' : '🔒 Bloqueado'}</span>
+              </div>
+            );
+          })}
+          <div className="guild-benefit-row guild-benefit-row--unlocked">
+            <span className="guild-benefit-level">Nivel 1-20</span>
+            <span className="guild-benefit-label">
+              Bonus de combate creciente: +1% oro y +0.5% XP por nivel de gremio (tope +20%/+10% en Nivel 20)
+            </span>
+            <span className="guild-benefit-status">
+              Actual: +{combatBonusPercents(guild.level).gold}% / +{combatBonusPercents(guild.level).xp}%
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Solicitudes de ingreso (LEADER y OFFICER, gremio cerrado) */}

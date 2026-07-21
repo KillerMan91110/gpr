@@ -3185,6 +3185,47 @@ h1, h2, h3 {
   border-bottom: none;
 }
 
+/* ── Guild: beneficios por nivel ── */
+.guild-benefits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.guild-benefit-row {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.2);
+  opacity: 0.55;
+}
+.guild-benefit-row--unlocked {
+  opacity: 1;
+  background: rgba(212, 175, 55, 0.08);
+}
+.guild-benefit-level {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  color: var(--gold);
+  white-space: nowrap;
+}
+.guild-benefit-label {
+  font-size: 0.88rem;
+}
+.guild-benefit-status {
+  font-size: 0.78rem;
+  white-space: nowrap;
+  color: var(--text-soft);
+}
+@media (max-width: 640px) {
+  .guild-benefit-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
 /* ── Guild: join requests ── */
 .guild-requests-badge {
   display: inline-flex;
