@@ -378,262 +378,6 @@ export default function GuildMy() {
         </span>
       </div>
 
-      <div className="guild-grid-2col">
-      {/* Estadísticas rápidas */}
-      <div className="rpg-panel guild-stats-panel">
-        <h3 className="guild-members-title">Estadísticas</h3>
-        <div className="guild-stats-list">
-          <div className="guild-stat-row">
-            <span className="hint">Miembros</span>
-            <span>{guild.members.length} / {guild.memberCap}</span>
-          </div>
-          <div className="guild-stat-row">
-            <span className="hint">Nivel</span>
-            <span>{guild.level}</span>
-          </div>
-          <div className="guild-stat-row">
-            <span className="hint">Bonus de combate</span>
-            <span>+{combatBonusPercents(guild.level).gold}% oro / +{combatBonusPercents(guild.level).xp}% XP</span>
-          </div>
-          <div className="guild-stat-row">
-            <span className="hint">Tipo</span>
-            <span>{guild.type === 'OPEN' ? '🔓 Abierto' : '🔒 Cerrado'}</span>
-          </div>
-          <div className="guild-stat-row">
-            <span className="hint">Tu rol</span>
-            <span>{ROLE_LABEL[guild.myRole] ?? guild.myRole}</span>
-          </div>
-          <div className="guild-stat-row">
-            <span className="hint">Ranking</span>
-            <span>{rankPosition ? `#${rankPosition}` : 'Fuera del Top 30'}</span>
-          </div>
-          <div className="guild-stat-row">
-            <span className="hint">Victorias</span>
-            <span>{guild.combatStats?.wins ?? 0}</span>
-          </div>
-          <div className="guild-stat-row">
-            <span className="hint">Derrotas</span>
-            <span>{guild.combatStats?.losses ?? 0}</span>
-          </div>
-          <div className="guild-stat-row">
-            <span className="hint">Jefes abatidos</span>
-            <span>{guild.combatStats?.bossKills ?? 0}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Info del gremio / mensaje del líder */}
-      <div className="rpg-panel guild-info-panel">
-        {!editing ? (
-          <>
-            <p className="hint guild-type-desc">
-              {guild.type === 'OPEN'
-                ? '🔓 Gremio abierto — cualquier aventurero puede unirse libremente.'
-                : '🔒 Gremio cerrado — el acceso es solo mediante solicitud que el líder acepta o rechaza.'}
-            </p>
-            <h3 className="guild-members-title guild-message-title">📜 Mensaje del líder</h3>
-            {guild.description ? (
-              <p className="zone-description guild-description guild-message-parchment">{guild.description}</p>
-            ) : (
-              <p className="hint">El líder aún no dejó un mensaje.</p>
-            )}
-            {isLeader && (
-              <button className="rpg-button rpg-button--small guild-edit-btn" onClick={startEdit}>
-                Editar gremio
-              </button>
-            )}
-          </>
-        ) : (
-          <form className="guild-form" onSubmit={handleEditSubmit}>
-            <div className="guild-form-group">
-              <label className="guild-form-label">Nombre</label>
-              <input
-                className="rpg-input"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                maxLength={50}
-                required
-              />
-            </div>
-            <div className="guild-form-group">
-              <label className="guild-form-label">Descripción</label>
-              <textarea
-                className="rpg-input rpg-input--textarea"
-                value={editDesc}
-                onChange={(e) => setEditDesc(e.target.value)}
-                rows={2}
-              />
-            </div>
-            <div className="guild-form-group">
-              <label className="guild-form-label">Tipo</label>
-              <div className="guild-type-options">
-                <label className="guild-type-option">
-                  <input type="radio" value="OPEN" checked={editType === 'OPEN'} onChange={() => setEditType('OPEN')} />
-                  <span><strong>Abierto</strong> — cualquiera puede unirse</span>
-                </label>
-                <label className="guild-type-option">
-                  <input type="radio" value="CLOSED" checked={editType === 'CLOSED'} onChange={() => setEditType('CLOSED')} />
-                  <span><strong>Cerrado</strong> — solo por solicitud</span>
-                </label>
-              </div>
-            </div>
-            {guild.level >= 3 ? (
-              <div className="guild-form-group">
-                <label className="guild-form-label">Emblema</label>
-                <div className="guild-emblem-options">
-                  {GUILD_EMBLEMS.map((e) => (
-                    <button
-                      key={e}
-                      type="button"
-                      className={`guild-emblem-option${editEmblem === e ? ' guild-emblem-option--selected' : ''}`}
-                      onClick={() => setEditEmblem(e)}
-                    >
-                      {e}
-                    </button>
-                  ))}
-                </div>
-                <label className="guild-form-label">Color</label>
-                <div className="guild-color-options">
-                  {GUILD_COLORS.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      title={c}
-                      className={`guild-color-option${editColor === c ? ' guild-color-option--selected' : ''}`}
-                      style={{ background: c }}
-                      onClick={() => setEditColor(c)}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="hint">🔒 El emblema y color personalizados se desbloquean en Nivel 3.</p>
-            )}
-            <div className="guild-form-footer">
-              <button type="button" className="rpg-button rpg-button--small" onClick={() => setEditing(false)}>
-                Cancelar
-              </button>
-              <button type="submit" className="rpg-button rpg-button--small" disabled={editLoading}>
-                {editLoading ? 'Guardando...' : 'Guardar cambios'}
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-      </div>
-
-      <div className="guild-grid-2col">
-      {/* Banco de gremio */}
-      <div className="rpg-panel guild-bank-panel">
-        <h3 className="guild-members-title">🏦 Banco de gremio</h3>
-        {guild.level < 2 ? (
-          <p className="hint">🔒 Se desbloquea en Nivel 2.</p>
-        ) : (
-          <>
-            <p className="guild-bank-gold">{(bank?.bankGold ?? guild.bankGold ?? 0).toLocaleString()} de oro</p>
-            <p className="hint">Contribución semanal del gremio: {(bank?.weeklyContribution ?? 0).toLocaleString()} oro</p>
-            <form className="guild-donate-form" onSubmit={handleDonate}>
-              <input
-                className="rpg-input"
-                type="number"
-                min="1"
-                placeholder="Monto a donar"
-                value={donateAmount}
-                onChange={(e) => setDonateAmount(e.target.value)}
-                disabled={donateLoading || (bank?.myLastDonationAt && Date.now() - new Date(bank.myLastDonationAt).getTime() < DEPOSIT_COOLDOWN_MS)}
-              />
-              <button
-                type="submit"
-                className="rpg-button rpg-button--small"
-                disabled={donateLoading || (bank?.myLastDonationAt && Date.now() - new Date(bank.myLastDonationAt).getTime() < DEPOSIT_COOLDOWN_MS)}
-              >
-                {donateLoading ? 'Donando...' : 'Donar'}
-              </button>
-            </form>
-            {bank?.myLastDonationAt && Date.now() - new Date(bank.myLastDonationAt).getTime() < DEPOSIT_COOLDOWN_MS && (
-              <p className="hint">Ya donaste hoy. Podés volver a donar en {Math.ceil((DEPOSIT_COOLDOWN_MS - (Date.now() - new Date(bank.myLastDonationAt).getTime())) / 3600000)}h.</p>
-            )}
-            {bank?.topContributors?.length > 0 && (
-              <>
-                <h4 className="guild-bank-subtitle">Top contribuyentes</h4>
-                <div className="guild-bank-contributors">
-                  {bank.topContributors.map((c, i) => (
-                    <div key={c.playerId} className="guild-bank-contributor-row">
-                      <span>{['🥇', '🥈', '🥉'][i] ?? `${i + 1}.`} {c.nickname}</span>
-                      <span className="hint">{c.totalDonated.toLocaleString()} oro</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Tienda de gremio */}
-      <div className="rpg-panel guild-shop-panel">
-        <h3 className="guild-members-title">🛒 Tienda de gremio</h3>
-        {guild.level < 2 ? (
-          <p className="hint">🔒 Se desbloquea en Nivel 2.</p>
-        ) : !shop?.length ? (
-          <p className="hint">{shop === null ? 'Cargando...' : 'No hay items disponibles.'}</p>
-        ) : (isLeader || isOfficer) ? (
-          <form className="guild-buy-form" onSubmit={handleBuy}>
-            <select className="rpg-input" value={buyItemId} onChange={(e) => setBuyItemId(e.target.value)} required>
-              <option value="">Elegí un item...</option>
-              {shop.map((it) => (
-                <option key={it.id} value={it.id}>{it.name} — {Number(it.buy_price).toLocaleString()} oro</option>
-              ))}
-            </select>
-            <input
-              className="rpg-input"
-              type="number"
-              min="1"
-              value={buyQuantity}
-              onChange={(e) => setBuyQuantity(e.target.value)}
-            />
-            <select className="rpg-input" value={buyRecipient} onChange={(e) => setBuyRecipient(e.target.value)} required>
-              <option value="">Enviar a...</option>
-              {guild.members.map((m) => (
-                <option key={m.id} value={m.id}>{m.nickname}</option>
-              ))}
-            </select>
-            <button type="submit" className="rpg-button rpg-button--small" disabled={buyLoading}>
-              {buyLoading ? 'Comprando...' : 'Comprar y enviar'}
-            </button>
-          </form>
-        ) : (
-          <p className="hint">Tu líder u oficiales pueden comprar items con el oro donado y enviártelos por correo.</p>
-        )}
-      </div>
-      </div>
-
-      {/* Beneficios del gremio por nivel */}
-      <div className="rpg-panel">
-        <h3 className="guild-members-title">Beneficios del gremio</h3>
-        <div className="guild-benefits-list">
-          {LEVEL_BENEFITS.map((b) => {
-            const unlocked = guild.level >= b.level;
-            return (
-              <div key={b.level} className={`guild-benefit-row${unlocked ? ' guild-benefit-row--unlocked' : ''}`}>
-                <span className="guild-benefit-level">Nivel {b.level}</span>
-                <span className="guild-benefit-label">{b.label}</span>
-                <span className="guild-benefit-status">{unlocked ? '✅ Desbloqueado' : '🔒 Bloqueado'}</span>
-              </div>
-            );
-          })}
-          <div className="guild-benefit-row guild-benefit-row--unlocked">
-            <span className="guild-benefit-level">Nivel 1-20</span>
-            <span className="guild-benefit-label">
-              Bonus de combate creciente: +1% oro y +0.5% XP por nivel de gremio (tope +20%/+10% en Nivel 20)
-            </span>
-            <span className="guild-benefit-status">
-              Actual: +{combatBonusPercents(guild.level).gold}% / +{combatBonusPercents(guild.level).xp}%
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* Solicitudes de ingreso (LEADER y OFFICER, gremio cerrado) */}
       {(isLeader || isOfficer) && guild.type === 'CLOSED' && (
         <div className="rpg-panel">
@@ -766,6 +510,233 @@ export default function GuildMy() {
             );
           })}
         </div>
+      </div>
+
+      {/* Info del gremio / mensaje del líder */}
+      <div className="rpg-panel guild-info-panel">
+        {!editing ? (
+          <>
+            <p className="hint guild-type-desc">
+              {guild.type === 'OPEN'
+                ? '🔓 Gremio abierto — cualquier aventurero puede unirse libremente.'
+                : '🔒 Gremio cerrado — el acceso es solo mediante solicitud que el líder acepta o rechaza.'}
+            </p>
+            <h3 className="guild-members-title guild-message-title">📜 Mensaje del líder</h3>
+            {guild.description ? (
+              <p className="zone-description guild-description guild-message-parchment">{guild.description}</p>
+            ) : (
+              <p className="hint">El líder aún no dejó un mensaje.</p>
+            )}
+            {isLeader && (
+              <button className="rpg-button rpg-button--small guild-edit-btn" onClick={startEdit}>
+                Editar gremio
+              </button>
+            )}
+          </>
+        ) : (
+          <form className="guild-form" onSubmit={handleEditSubmit}>
+            <div className="guild-form-group">
+              <label className="guild-form-label">Nombre</label>
+              <input
+                className="rpg-input"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                maxLength={50}
+                required
+              />
+            </div>
+            <div className="guild-form-group">
+              <label className="guild-form-label">Descripción</label>
+              <textarea
+                className="rpg-input rpg-input--textarea"
+                value={editDesc}
+                onChange={(e) => setEditDesc(e.target.value)}
+                rows={2}
+              />
+            </div>
+            <div className="guild-form-group">
+              <label className="guild-form-label">Tipo</label>
+              <div className="guild-type-options">
+                <label className="guild-type-option">
+                  <input type="radio" value="OPEN" checked={editType === 'OPEN'} onChange={() => setEditType('OPEN')} />
+                  <span><strong>Abierto</strong> — cualquiera puede unirse</span>
+                </label>
+                <label className="guild-type-option">
+                  <input type="radio" value="CLOSED" checked={editType === 'CLOSED'} onChange={() => setEditType('CLOSED')} />
+                  <span><strong>Cerrado</strong> — solo por solicitud</span>
+                </label>
+              </div>
+            </div>
+            {guild.level >= 3 ? (
+              <div className="guild-form-group">
+                <label className="guild-form-label">Emblema</label>
+                <div className="guild-emblem-options">
+                  {GUILD_EMBLEMS.map((e) => (
+                    <button
+                      key={e}
+                      type="button"
+                      className={`guild-emblem-option${editEmblem === e ? ' guild-emblem-option--selected' : ''}`}
+                      onClick={() => setEditEmblem(e)}
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
+                <label className="guild-form-label">Color</label>
+                <div className="guild-color-options">
+                  {GUILD_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      title={c}
+                      className={`guild-color-option${editColor === c ? ' guild-color-option--selected' : ''}`}
+                      style={{ background: c }}
+                      onClick={() => setEditColor(c)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="hint">🔒 El emblema y color personalizados se desbloquean en Nivel 3.</p>
+            )}
+            <div className="guild-form-footer">
+              <button type="button" className="rpg-button rpg-button--small" onClick={() => setEditing(false)}>
+                Cancelar
+              </button>
+              <button type="submit" className="rpg-button rpg-button--small" disabled={editLoading}>
+                {editLoading ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+
+      <div className="guild-grid-2col">
+      {/* Estadísticas de combate */}
+      <div className="rpg-panel guild-stats-panel">
+        <h3 className="guild-members-title">Estadísticas de combate</h3>
+        <div className="guild-stats-list">
+          <div className="guild-stat-row">
+            <span className="hint">Bonus de combate</span>
+            <span>+{combatBonusPercents(guild.level).gold}% oro / +{combatBonusPercents(guild.level).xp}% XP</span>
+          </div>
+          <div className="guild-stat-row">
+            <span className="hint">Victorias</span>
+            <span>{guild.combatStats?.wins ?? 0}</span>
+          </div>
+          <div className="guild-stat-row">
+            <span className="hint">Derrotas</span>
+            <span>{guild.combatStats?.losses ?? 0}</span>
+          </div>
+          <div className="guild-stat-row">
+            <span className="hint">Jefes abatidos</span>
+            <span>{guild.combatStats?.bossKills ?? 0}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Beneficios del gremio por nivel */}
+      <div className="rpg-panel">
+        <h3 className="guild-members-title">Beneficios del gremio</h3>
+        <div className="guild-benefits-list">
+          {LEVEL_BENEFITS.map((b) => {
+            const unlocked = guild.level >= b.level;
+            return (
+              <div key={b.level} className={`guild-benefit-row${unlocked ? ' guild-benefit-row--unlocked' : ''}`}>
+                <span className="guild-benefit-level">Nivel {b.level}</span>
+                <span className="guild-benefit-label">{b.label}</span>
+                <span className="guild-benefit-status">{unlocked ? '✅ Desbloqueado' : '🔒 Bloqueado'}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      </div>
+
+      <div className="guild-grid-2col">
+      {/* Banco de gremio */}
+      <div className="rpg-panel guild-bank-panel">
+        <h3 className="guild-members-title">🏦 Banco de gremio</h3>
+        {guild.level < 2 ? (
+          <p className="hint">🔒 Se desbloquea en Nivel 2.</p>
+        ) : (
+          <>
+            <p className="guild-bank-gold">{(bank?.bankGold ?? guild.bankGold ?? 0).toLocaleString()} de oro</p>
+            <p className="hint">Contribución semanal del gremio: {(bank?.weeklyContribution ?? 0).toLocaleString()} oro</p>
+            <form className="guild-donate-form" onSubmit={handleDonate}>
+              <input
+                className="rpg-input"
+                type="number"
+                min="1"
+                placeholder="Monto a donar"
+                value={donateAmount}
+                onChange={(e) => setDonateAmount(e.target.value)}
+                disabled={donateLoading || (bank?.myLastDonationAt && Date.now() - new Date(bank.myLastDonationAt).getTime() < DEPOSIT_COOLDOWN_MS)}
+              />
+              <button
+                type="submit"
+                className="rpg-button rpg-button--small"
+                disabled={donateLoading || (bank?.myLastDonationAt && Date.now() - new Date(bank.myLastDonationAt).getTime() < DEPOSIT_COOLDOWN_MS)}
+              >
+                {donateLoading ? 'Donando...' : 'Donar'}
+              </button>
+            </form>
+            {bank?.myLastDonationAt && Date.now() - new Date(bank.myLastDonationAt).getTime() < DEPOSIT_COOLDOWN_MS && (
+              <p className="hint">Ya donaste hoy. Podés volver a donar en {Math.ceil((DEPOSIT_COOLDOWN_MS - (Date.now() - new Date(bank.myLastDonationAt).getTime())) / 3600000)}h.</p>
+            )}
+            {bank?.topContributors?.length > 0 && (
+              <>
+                <h4 className="guild-bank-subtitle">Top contribuyentes</h4>
+                <div className="guild-bank-contributors">
+                  {bank.topContributors.map((c, i) => (
+                    <div key={c.playerId} className="guild-bank-contributor-row">
+                      <span>{['🥇', '🥈', '🥉'][i] ?? `${i + 1}.`} {c.nickname}</span>
+                      <span className="hint">{c.totalDonated.toLocaleString()} oro</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Tienda de gremio */}
+      <div className="rpg-panel guild-shop-panel">
+        <h3 className="guild-members-title">🛒 Tienda de gremio</h3>
+        {guild.level < 2 ? (
+          <p className="hint">🔒 Se desbloquea en Nivel 2.</p>
+        ) : !shop?.length ? (
+          <p className="hint">{shop === null ? 'Cargando...' : 'No hay items disponibles.'}</p>
+        ) : (isLeader || isOfficer) ? (
+          <form className="guild-buy-form" onSubmit={handleBuy}>
+            <select className="rpg-input" value={buyItemId} onChange={(e) => setBuyItemId(e.target.value)} required>
+              <option value="">Elegí un item...</option>
+              {shop.map((it) => (
+                <option key={it.id} value={it.id}>{it.name} — {Number(it.buy_price).toLocaleString()} oro</option>
+              ))}
+            </select>
+            <input
+              className="rpg-input"
+              type="number"
+              min="1"
+              value={buyQuantity}
+              onChange={(e) => setBuyQuantity(e.target.value)}
+            />
+            <select className="rpg-input" value={buyRecipient} onChange={(e) => setBuyRecipient(e.target.value)} required>
+              <option value="">Enviar a...</option>
+              {guild.members.map((m) => (
+                <option key={m.id} value={m.id}>{m.nickname}</option>
+              ))}
+            </select>
+            <button type="submit" className="rpg-button rpg-button--small" disabled={buyLoading}>
+              {buyLoading ? 'Comprando...' : 'Comprar y enviar'}
+            </button>
+          </form>
+        ) : (
+          <p className="hint">Tu líder u oficiales pueden comprar items con el oro donado y enviártelos por correo.</p>
+        )}
+      </div>
       </div>
 
       {/* Actividad reciente */}
