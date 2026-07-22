@@ -415,15 +415,20 @@ Si tiene éxito: `is_preparing_trap = false`, `trap_rounds_remaining = 0` en el 
 
 ### 8.5 Predicción / Visión Futura (Sanador Divino → Vidente, `PREDICCIONES_USADAS`) — necesita cooldown, feature de motor nueva
 
-Hoy **no existe ningún sistema de cooldown** en el juego (busqué explícitamente, no hay nada parecido en `combat.js`). Como es la única skill que lo necesita por ahora, no hace falta un sistema genérico — alcanza con un campo dedicado:
+Hoy **no existe ningún sistema de cooldown** en el juego (busqué explícitamente, no hay nada parecido en `combat.js`). En vez de un campo dedicado solo a esta skill, mejor hacerlo **genérico** desde ya, para que cualquier skill futura con cooldown reutilice el mismo mecanismo sin tocar schema de nuevo:
 
 ```sql
-ALTER TABLE combat_participants ADD COLUMN last_prediction_round INT;
+ALTER TABLE skills ADD COLUMN cooldown_rounds INT; -- NULL = sin cooldown, es la mayoria de las skills
+ALTER TABLE combat_participants
+  ADD COLUMN cd_skill_id INT REFERENCES skills(id),
+  ADD COLUMN cd_round INT;
 ```
 
-Nueva skill "Predicción" (`SANADOR_DIVINO_PREDICCION`, `BUFF`, target `SELF`, duración 1 turno). `skill_effects`: `STAT_MOD`, `stat_code='EVASION'`, `percent_amount=100`, `duration_turns=1` (esquiva garantizada ese turno — el mismo sistema de `STAT_MOD` que ya existe, nada nuevo ahí).
+Validación genérica al intentar usar CUALQUIER skill (no solo Predicción): si `skill.cooldown_rounds IS NOT NULL` y `participant.cd_skill_id = skill.id` y `current_round - participant.cd_round < skill.cooldown_rounds` → todavía no disponible. Si se puede usar: `cd_skill_id = skill.id`, `cd_round = current_round`.
 
-Validación al intentar usarla: si `last_prediction_round IS NOT NULL` y `current_round - last_prediction_round < 2` → la skill no está disponible todavía (cooldown). Si pasa: `last_prediction_round = current_round`, `incrementCounter(playerId, 'PREDICCIONES_USADAS', 1)`.
+Nueva skill "Predicción" (`SANADOR_DIVINO_PREDICCION`, `BUFF`, target `SELF`, duración 1 turno, `cooldown_rounds = 2`). `skill_effects`: `STAT_MOD`, `stat_code='EVASION'`, `percent_amount=100`, `duration_turns=1` (esquiva garantizada ese turno — el mismo sistema de `STAT_MOD` que ya existe, nada nuevo ahí). Al usarla con éxito, además de actualizar `cd_skill_id`/`cd_round`: `incrementCounter(playerId, 'PREDICCIONES_USADAS', 1)`.
+
+**Limitación conocida y aceptada por ahora**: como `cd_skill_id`/`cd_round` es un solo par por participante (no una tabla de cooldowns por skill), si un mismo personaje llegara a tener DOS skills con cooldown activas a la vez, usar la segunda pisaría el cooldown registrado de la primera. Hoy no pasa (Predicción es la única skill con cooldown en todo el juego), así que no hace falta resolverlo todavía — si en el futuro se necesitan cooldowns simultáneos independientes, ahí sí conviene pasar a una tabla `combat_participant_cooldowns (participant_id, skill_id, cd_round)`.
 
 ### 8.6 Meditación (Sanador Legendario → Asceta, `MEDITACIONES_USADAS`)
 
@@ -449,5 +454,5 @@ Aplicar un `HOT` de 4 turnos con ese % (mismo mecanismo que ya usan Druida/Sacer
 3. Skill "Robar" + lógica de `monster_drops` — sección 8.2.
 4. Columnas `is_preparing_trap`/`trap_rounds_remaining` en `combat_participants` + motor de 2 turnos — sección 8.3.
 5. Skill "Desactivar Trampas" — sección 8.4.
-6. Columna `last_prediction_round` + skill "Predicción" con cooldown de 2 rondas — sección 8.5.
+6. Cooldown genérico (`skills.cooldown_rounds` + `cd_skill_id`/`cd_round` en `combat_participants`) + skill "Predicción" con cooldown de 2 rondas — sección 8.5.
 7. Skill "Meditación" con curación escalada por contador — sección 8.6.
