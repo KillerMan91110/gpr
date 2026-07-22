@@ -190,11 +190,11 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* ── Habilidad innata ── */}
+          {/* ── Pasiva aprendida (nivel 1 de la clase) ── */}
           {currentUniqueSkill && (
             <div className="rpg-panel dash-panel">
               <p className="panel-title">
-                 {activeNpc ? `✦ Habilidad Innata — ${activeNpc.name}` : '✦ Habilidad Innata'}
+                 {activeNpc ? `✦ Pasiva Aprendida — ${activeNpc.name}` : '✦ Pasiva Aprendida'}
                 </p>
               <p className="unique-skill-name">{currentUniqueSkill.name}</p>
               <p className="unique-skill-desc">{currentUniqueSkill.description}</p>
