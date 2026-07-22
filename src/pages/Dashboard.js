@@ -118,6 +118,7 @@ export default function Dashboard() {
   const displayClass = stats.evolution?.name
     ? `${stats.class.name} → ${stats.evolution.name}`
     : stats.class.name;
+  const displayClassDesc = stats.evolution?.lore || stats.class.description;
 
   const partyNpcs = party?.members?.filter((m) => !m.isHero) || [];
   const slot2Npc = partyNpcs.find((n) => n.slot === 2) || null;
@@ -150,8 +151,8 @@ export default function Dashboard() {
                   <span className="hero-class-name">{displayClass}</span>
                   
                 </div>
-                {stats.class.description && (
-                  <p className="hero-class-desc">{stats.class.description}</p>
+                {displayClassDesc && (
+                  <p className="hero-class-desc">{displayClassDesc}</p>
                 )}
                 <p className="hero-class-level">Nivel {stats.level}</p>
                 {ranks && (
