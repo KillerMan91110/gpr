@@ -16,6 +16,16 @@
   --rarity-raro: #4fa0e0;
   --rarity-epico: #b572e0;
   --rarity-legendario: #f0a93a;
+  --rarity-unico: #e84fd8;
+  --element-fire: #e8622c;
+  --element-ice: #7fd8e8;
+  --element-lightning: #e8d84a;
+  --element-water: #4fa0e0;
+  --element-earth: #8a6a3a;
+  --element-wind: #8fdb8f;
+  --element-light: #f0d878;
+  --element-dark: #6a5a8a;
+  --element-cosmic: #b572e0;
 }
 
 .App {
@@ -4101,6 +4111,18 @@ h1, h2, h3 {
 .evo-req--met { color: #5fd97e; }
 .evo-req--unmet { color: var(--hp-b); }
 .evo-req--untracked { color: var(--text-soft); font-style: italic; }
+.evo-req-progress { color: var(--text-soft); font-size: 0.75rem; }
+
+.evo-req[class*="evo-element-"] { border-left: 2px solid transparent; padding-left: 6px; }
+.evo-element-fire { border-left-color: var(--element-fire); }
+.evo-element-ice { border-left-color: var(--element-ice); }
+.evo-element-lightning { border-left-color: var(--element-lightning); }
+.evo-element-water { border-left-color: var(--element-water); }
+.evo-element-earth { border-left-color: var(--element-earth); }
+.evo-element-wind { border-left-color: var(--element-wind); }
+.evo-element-light { border-left-color: var(--element-light); }
+.evo-element-dark { border-left-color: var(--element-dark); }
+.evo-element-cosmic { border-left-color: var(--element-cosmic); }
 
 .evo-node-status {
   margin: 4px 0 0;

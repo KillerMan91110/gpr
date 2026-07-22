@@ -15,6 +15,11 @@ function requirementClass(req) {
   return 'evo-req--unmet';
 }
 
+function requirementProgress(req) {
+  if (req.target == null || req.current == null) return null;
+  return `${Math.min(req.current, req.target)}/${req.target}`;
+}
+
 export default function Evolutions() {
   const { player, token } = useAuth();
   const [stats, setStats] = useState(null);
@@ -113,11 +118,16 @@ export default function Evolutions() {
               <li className={`evo-req ${evo.levelMet ? 'evo-req--met' : 'evo-req--unmet'}`}>
                 {evo.levelMet ? '✓' : '✗'} Nivel {evo.requiredLevel}
               </li>
-              {evo.requirements.map((req, i) => (
-                <li key={i} className={`evo-req ${requirementClass(req)}`}>
-                  {requirementMark(req)} {req.description}
-                </li>
-              ))}
+              {evo.requirements.map((req, i) => {
+                const progress = requirementProgress(req);
+                const elementClass = req.elementCode ? ` evo-element-${req.elementCode.toLowerCase()}` : '';
+                return (
+                  <li key={i} className={`evo-req ${requirementClass(req)}${elementClass}`}>
+                    {requirementMark(req)} {req.description}
+                    {progress && <span className="evo-req-progress"> ({progress})</span>}
+                  </li>
+                );
+              })}
             </ul>
 
             {evo.canEvolve ? (
