@@ -201,6 +201,15 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/* ── Rasgo de evolución (innata de la clase evolucionada) ── */}
+          {!activeNpc && stats.innate && (
+            <div className="rpg-panel dash-panel">
+              <p className="panel-title">⚡ Rasgo de Evolución</p>
+              <p className="unique-skill-name">{stats.innate.name}</p>
+              <p className="unique-skill-desc">{stats.innate.description}</p>
+            </div>
+          )}
+
           {/* ── Vitalidad ── */}
           <div className="rpg-panel dash-panel">
             <p className="panel-title">
