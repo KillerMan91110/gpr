@@ -395,3 +395,56 @@ Con esto, **las 94 innatas quedan cubiertas** (90 en el framework de Nivel 2 + 4
 4. Enganchar `applyInnateTrigger` en los puntos de la sección 3 (la mayoría ya existen).
 5. Cargar las 94 filas de las secciones 6 y 7.
 6. Codear los ~40 `extra_json.effect` puntuales en cada punto de enganche correspondiente (esto es lo más largo, pero cada uno es autocontenido y chico).
+
+---
+
+## 8. Addendum: exponer la innata al front + hidratar stats de `PASSIVE_STAT`
+
+Confirmado con el dueño del proyecto: si la innata es un disparador de combate (`ON_CRIT`, `ON_KILL`, etc.), solo se aplica en combate — eso ya funciona y no hay que tocar nada más. Pero si es `PASSIVE_STAT` (bono de stat plano, sin condición), el jugador espera que ese bono **aparezca en su ficha de personaje** (`/api/player/:playerId/stats`), no solo que pese puertas adentro de una pelea.
+
+**El hueco encontrado**: `lib/passives.js` (`getClassPassiveBonuses`) es el sistema que arma esos números — lee `skills`/`skill_effects` (el viejo "Don de X") y devuelve `{ atk, def, mag, spd, crit_chance, evasion, ..., uniqueSkill }`. Server.js usa esos porcentajes directo en la fórmula final (`atk: Math.round(player.atk * (1 + passives.atk / 100)) + ...`, línea ~223). **Nunca se conectó con `class_innate_abilities`** — por eso una innata `PASSIVE_STAT` pesa en combate pero no en la ficha.
+
+### 8.1 Cambio en `lib/passives.js`
+
+Después de armar `bonuses` desde `skills`/`skill_effects`, sumarle el bono de la innata SI es `PASSIVE_STAT` (sin condición — `PASSIVE_CONDITIONAL`/`TEAM_AURA` quedan afuera a propósito: dependen del estado de otros participantes en combate, no tiene sentido "hornear" un número fijo para la ficha fuera de pelea):
+
+```js
+const db = require('../db/db');
+
+async function getClassPassiveBonuses(classId, level) {
+  // ... (todo el bloque actual queda igual hasta construir `bonuses`) ...
+
+  const innateRes = await db.query(
+    `SELECT name, description, stat_code, percent_amount
+     FROM class_innate_abilities
+     WHERE class_id = $1 AND trigger_type = 'PASSIVE_STAT'`,
+    [classId]
+  );
+  if (innateRes.rows.length) {
+    const innate = innateRes.rows[0];
+    bonuses.innate = { name: innate.name, description: innate.description };
+    const pct = Number(innate.percent_amount || 0);
+    // Mismo mapeo stat_code -> campo que ya usa el bloque de skills de arriba.
+    if (innate.stat_code === 'ATK') bonuses.atk += pct;
+    else if (innate.stat_code === 'MAG') bonuses.mag += pct;
+    else if (innate.stat_code === 'SPD') bonuses.spd += pct;
+    else if (innate.stat_code === 'DEF') bonuses.def += pct;
+    else if (innate.stat_code === 'CRIT_CHANCE') bonuses.crit_chance += pct;
+    else if (innate.stat_code === 'EVASION') bonuses.evasion += pct;
+    else if (innate.stat_code === 'MAGIC_DEF') bonuses.magic_def += pct;
+    // (agregar más mapeos acá si algún PASSIVE_STAT usa otro stat_code)
+  }
+
+  return bonuses;
+}
+```
+
+**Si la clase tiene una innata pero NO es `PASSIVE_STAT`** (es `ON_CRIT`, `TEAM_AURA`, etc.), igual conviene exponer `name`/`description` para que el front la muestre (aunque no sume nada a los números) — agregar el mismo `bonuses.innate = {name, description}` sin sumar nada al stat, para ese caso.
+
+### 8.2 Cambio en `server.js`
+
+Agregar `innate: passives.innate ?? null` a la respuesta de `/api/player/:playerId/stats`, al lado de `uniqueSkill: passives.uniqueSkill` (línea ~232) — mismo objeto `{name, description}`, mismo lugar.
+
+### 8.3 Front (lo hago yo)
+
+En `Dashboard.js`, mostrar `stats.innate` con el mismo patrón que ya existe para `currentUniqueSkill` (`unique-skill-desc`) — un bloque más, mismo estilo. Si `stats.innate` es `null` (clase base, sin evolucionar, o clase evolucionada sin innata cargada todavía), simplemente no se muestra nada — cero riesgo de romper algo mientras las 94 filas se van completando.
