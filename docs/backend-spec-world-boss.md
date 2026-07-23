@@ -112,6 +112,30 @@ for (const target of allAlivePlayerSideParticipants) { // TODOS, jugador + sus N
 
 (La curva `def / 3000` es un placeholder razonable dado que niveles altos rondan ~600-1200 DEF con equipo — da mitigaciones de ~20-40% en ese rango, tocando el tope 45% recién con builds muy defensivas. Ajustable con la primera prueba real.) Esto se loguea igual que cualquier golpe en área (`insertLog` con descripción tipo "¡El Devorador de Estrellas golpea a todo el equipo!"), y es el punto donde el front dispara el shake (ver sección 8).
 
+### 5.1 El boss debe ser inmune a daño de % de HP máximo (venenos y el sangrado de Trampa)
+
+**Confirmado con el dueño del proyecto**: el veneno (y el sangrado de la Trampa del Especialista en Trampas) calculan su daño como `% del HP MÁXIMO del objetivo` (`dotDmg = round(max_hp * applied_flat / 100)`, ver fase 2 de evoluciones). Contra un objetivo de 40 000 HP, ese mismo % se traduce en una cifra absoluta muchísimo mayor que cualquier golpe por fórmula ATK/DEF — el Envenenador (y cualquiera con acceso a Trampa) pasaría a ser objetivamente la mejor opción posible contra el World Boss, rompiendo el balance entre builds.
+
+**Fix**: el World Boss debe ser inmune a CUALQUIER intento de aplicarle un efecto `DOT` (venenos, sangrado de trampa). En el punto donde ya se resuelve `effect_type === 'DOT'` contra un objetivo (mismo bloque de `routes/combat.js` que inserta la fila en `combat_participant_buffs`), agregar al principio:
+
+```js
+if (target.monster_code === 'WORLD_BOSS_DEVORADOR_ESTRELLAS') {
+  // Inmune a daño por % de HP máximo — mismo criterio en toda skill/innata que use DOT.
+  // Log opcional: `${target.name} es inmune a los efectos de veneno/sangrado.`
+} else {
+  // ... lógica actual de aplicar el DOT ...
+}
+```
+
+Recomiendo hacerlo genérico desde ya (un campo `immune_to_percent_dot BOOLEAN` en `monsters`, no un `if` hardcodeado al `monster_code`) para no tener que tocar este código de nuevo si en el futuro agregan un segundo World Boss u otro jefe de este calibre:
+
+```sql
+ALTER TABLE monsters ADD COLUMN IF NOT EXISTS immune_to_percent_dot BOOLEAN NOT NULL DEFAULT FALSE;
+UPDATE monsters SET immune_to_percent_dot = TRUE WHERE code = 'WORLD_BOSS_DEVORADOR_ESTRELLAS';
+```
+
+Y el chequeo en combat.js queda `if (target.immune_to_percent_dot) { ... } else { ... }`. Todo lo demás (golpes normales, skills de daño directo, debuffs de stats sin componente de %HP como -10% DEF, críticos, etc.) sigue funcionando normal contra el boss — la inmunidad es específica a "daño por % de HP máximo por turno", no a venenos como concepto completo (el debuff de DEF que acompaña a Veneno Debilitante, por ejemplo, sí debería seguir aplicando).
+
 ## 6. Cierre por tiempo (si nadie lo mata en 3hs)
 
 Chequeo perezoso (mismo estilo que ya usa el resto del combate: se resuelve la primera vez que algo toca el evento después de vencido, no hace falta un cron dedicado): en el endpoint de estado del evento (sección 7) y en `POST /worldboss/enter`, si `status = 'ACTIVE'` y `now() >= ends_at`: `UPDATE world_boss_events SET status = 'EXPIRED', closed_at = now()`. La moneda ya se fue acreditando sesión por sesión durante las 3hs (sección 4, paso 3) — no hace falta un reparto especial al expirar, solo cerrar el estado. No hay bono de golpe final si expira (nadie lo mató), pero el top 3 de daño **si** puede tener su bono igual — a definir si querés que el top 3 aplique también cuando expira sin morir, o solo cuando lo matan. *(Punto que dejé abierto: asumí que el top 3 aplica siempre, se mate o no el boss, porque "quien hizo más daño" no depende de si terminó en kill. Avisame si no es así.)*
@@ -144,7 +168,8 @@ Ya está aprobado el layout (mockup: banner de HP global + timer + top 3, formac
 3. Endpoint `POST /worldboss/enter` reusando `hydrateMonsters`/`hydratePlayers`/coop existente, pisando el HP del clon con el HP global — sección 3.
 4. Hook en `finalizeSession` para restar del HP global, repartir daño/moneda, y detectar el kill — sección 4.
 5. Rama especial en la IA del boss para el golpe en área por % de HP máximo con mitigación por DEF — sección 5.
-6. Chequeo perezoso de expiración por tiempo — sección 6.
-7. Los 4 endpoints de la sección 7.
-8. Script simple para spawnear el evento manualmente — sección 8.
-9. Cargar en `world_boss_shop` los ítems `UNICO` que se van a vender ahí.
+6. Columna `monsters.immune_to_percent_dot` + chequeo antes de aplicar cualquier DOT — sección 5.1.
+7. Chequeo perezoso de expiración por tiempo — sección 6.
+8. Los 4 endpoints de la sección 7.
+9. Script simple para spawnear el evento manualmente — sección 8.
+10. Cargar en `world_boss_shop` los ítems `UNICO` que se van a vender ahí.
