@@ -817,6 +817,11 @@ h1, h2, h3 {
   box-shadow: 0 0 8px rgba(79, 160, 224, 0.6);
 }
 
+.stat-bar-fill.boss {
+  background: linear-gradient(90deg, #3a1653, var(--rarity-epico));
+  box-shadow: 0 0 8px rgba(181, 114, 224, 0.6);
+}
+
 .stat-bar-fill.quest {
   background: linear-gradient(90deg, var(--gold-dim), var(--gold));
   box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
@@ -2498,6 +2503,57 @@ h1, h2, h3 {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+.dashboard-side {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+@media (max-width: 720px) {
+  .dashboard-side { width: 100%; }
+}
+
+/* ── World Boss ── */
+.boss-banner {
+  border-color: var(--rarity-epico);
+  box-shadow:
+    0 0 0 1px rgba(181, 114, 224, 0.35),
+    0 0 24px rgba(181, 114, 224, 0.16),
+    0 18px 40px rgba(0, 0, 0, 0.65),
+    inset 0 0 50px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.boss-banner-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.boss-name {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 1.1rem;
+  color: var(--rarity-epico);
+  text-shadow: 0 0 12px rgba(181, 114, 224, 0.4);
+}
+.event-timer {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.85rem;
+  color: var(--gold-bright);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--gold-dim);
+  border-radius: 999px;
+  padding: 3px 12px;
+}
+.boss-hp-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
 }
 
 /* ── Ranking (pantalla dedicada) ── */

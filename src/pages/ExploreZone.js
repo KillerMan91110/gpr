@@ -614,7 +614,11 @@ function floatingEffectFromEntry(entry) {
 // Números flotantes (-X daño, +X curación, "Esquivó") + shake en crítico, disparados por
 // cada línea nueva que aparece en el log de combate. Hook compartido para que ExploreZone
 // y Tower usen exactamente el mismo comportamiento sin duplicar la lógica.
-export function useCombatFloaters(log) {
+//
+// `participants` es opcional (solo lo pasa WorldBoss.js): si el actor de la línea es un World
+// Boss (monster_code que arranca con WORLD_BOSS_), el golpe siempre hace shake aunque no sea
+// crítico — un boss que golpea a todo el equipo debe sentirse distinto a un intercambio normal.
+export function useCombatFloaters(log, participants = []) {
   const [floaters, setFloaters] = useState([]);
   const [shakeIds, setShakeIds] = useState(new Set());
   const prevLogLenRef = useRef(log.length);
@@ -624,7 +628,8 @@ export function useCombatFloaters(log) {
     prevLogLenRef.current = log.length;
     if (log.length <= prevLen) return;
 
-    const newFloaters = log.slice(prevLen)
+    const newEntries = log.slice(prevLen);
+    const newFloaters = newEntries
       .map((entry) => {
         const fx = floatingEffectFromEntry(entry);
         return fx && fx.participantId != null ? { key: `${entry.id}`, ...fx } : null;
@@ -639,7 +644,15 @@ export function useCombatFloaters(log) {
       }, FLOATER_LIFETIME_MS);
     });
 
-    const shakeTargets = newFloaters.filter((f) => f.crit).map((f) => f.participantId);
+    const worldBossActorIds = new Set(
+      participants.filter((p) => p.monster_code?.startsWith('WORLD_BOSS_')).map((p) => p.id)
+    );
+    const shakeTargets = newFloaters
+      .filter((f) => {
+        const entry = newEntries.find((e) => `${e.id}` === f.key);
+        return f.crit || worldBossActorIds.has(entry?.actor_participant_id);
+      })
+      .map((f) => f.participantId);
     if (shakeTargets.length) {
       setShakeIds((prev) => new Set([...prev, ...shakeTargets]));
       shakeTargets.forEach((id) => {
@@ -652,7 +665,7 @@ export function useCombatFloaters(log) {
         }, SHAKE_LIFETIME_MS);
       });
     }
-  }, [log]);
+  }, [log, participants]);
 
   return { floaters, shakeIds };
 }

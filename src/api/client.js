@@ -252,4 +252,12 @@ export const api = {
   cancelTowerReady: (playerId, token) => request(`/api/player/${playerId}/tower/ready`, { method: 'DELETE', token }),
   getTowerReadyStatus: (playerId, token) => request(`/api/player/${playerId}/tower/ready-status`, { token }),
   getTowerLeaderboard: () => request('/api/leaderboard/tower'),
+  // World Boss
+  getWorldBossStatus: (token) => request('/api/worldboss/status', { token }),
+  getWorldBossLeaderboard: (token) => request('/api/worldboss/leaderboard', { token }),
+  enterWorldBoss: (playerId, coopPartnerIds, token) =>
+    request(`/api/player/${playerId}/worldboss/enter`, { method: 'POST', body: { coopPartnerIds }, token }),
+  getWorldBossShop: (playerId, token) => request(`/api/player/${playerId}/worldboss/shop`, { token }),
+  buyWorldBossItem: (playerId, itemId, quantity, token) =>
+    request(`/api/player/${playerId}/worldboss/shop/buy`, { method: 'POST', body: { itemId, quantity }, token }),
 };

@@ -11,6 +11,7 @@ const CATEGORIES = [
     items: [
       { to: '/combat', label: 'Combate' },
       { to: '/tower', label: 'Torre Infinita' },
+      { to: '/worldboss', label: '🌌 World Boss' },
       { to: '/quests', label: 'Misiones' },
     ],
   },

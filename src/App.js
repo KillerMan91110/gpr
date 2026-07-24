@@ -32,6 +32,8 @@ import Achievements from './pages/Achievements';
 import Friends from './pages/Friends';
 import Tower from './pages/Tower';
 import TowerVendor from './pages/TowerVendor';
+import WorldBoss from './pages/WorldBoss';
+import WorldBossShop from './pages/WorldBossShop';
 import CoopBar from './components/CoopBar';
 import ChatBox from './components/ChatBox';
 import IncubatorAlert from './components/IncubatorAlert';
@@ -82,6 +84,8 @@ function App() {
             <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
             <Route path="/tower" element={<ProtectedRoute><Tower /></ProtectedRoute>} />
             <Route path="/tower/vendor" element={<ProtectedRoute><TowerVendor /></ProtectedRoute>} />
+            <Route path="/worldboss" element={<ProtectedRoute><WorldBoss /></ProtectedRoute>} />
+            <Route path="/worldboss/shop" element={<ProtectedRoute><WorldBossShop /></ProtectedRoute>} />
           </Routes>
           <CoopBar />
           <ChatBox />
