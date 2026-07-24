@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import {
@@ -33,6 +33,8 @@ function formatCountdown(endsAt) {
 
 export default function WorldBoss() {
   const { player, token } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [playerLevel, setPlayerLevel] = useState(null);
   const [coopParty, setCoopParty] = useState(null);
@@ -53,6 +55,17 @@ export default function WorldBoss() {
     api.getPlayerStats(player.id, token).then((s) => setPlayerLevel(s.level)).catch(() => setPlayerLevel(null));
     api.getCoopParty(player.id, token).then(setCoopParty).catch(() => setCoopParty(null));
   }, [player, token]);
+
+  // Al llegar desde el ✓ del cartel global de CoopBar (ya confirmaste "listo" ahí mismo, sin
+  // pasar por esta página), arranca directo sin mostrar de nuevo el ready-check acá.
+  const autoStartedRef = useRef(false);
+  useEffect(() => {
+    if (!location.state?.autoStart || session || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    navigate(location.pathname, { replace: true, state: {} });
+    handleEnter(location.state.coopPartnerIds || []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state, session]);
 
   async function refreshStatus() {
     const data = await api.getWorldBossStatus(token);

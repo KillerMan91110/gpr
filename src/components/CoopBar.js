@@ -25,6 +25,8 @@ export default function CoopBar() {
   const [dismissedZoneId, setDismissedZoneId] = useState(null);
   const [towerReadyStatus, setTowerReadyStatus] = useState(null);
   const [dismissedTowerReady, setDismissedTowerReady] = useState(false);
+  const [worldBossReadyStatus, setWorldBossReadyStatus] = useState(null);
+  const [dismissedWorldBossReady, setDismissedWorldBossReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [penaltyPopup, setPenaltyPopup] = useState(null);
@@ -32,6 +34,7 @@ export default function CoopBar() {
   const invitePollRef = useRef(null);
   const readyPollRef = useRef(null);
   const towerReadyPollRef = useRef(null);
+  const worldBossReadyPollRef = useRef(null);
   const penaltyPopupTimer = useRef(null);
 
   useEffect(() => () => clearTimeout(penaltyPopupTimer.current), []);
@@ -118,6 +121,30 @@ export default function CoopBar() {
     if (!towerReadyStatus?.members?.some((m) => m.ready)) setDismissedTowerReady(false);
   }, [towerReadyStatus]);
 
+  // Mismo mecanismo que el de la Torre, pero para el World Boss (tabla propia
+  // player_worldboss_ready).
+  useEffect(() => {
+    if (!isAuthenticated || !player || !party) {
+      clearInterval(worldBossReadyPollRef.current);
+      setWorldBossReadyStatus(null);
+      return undefined;
+    }
+    async function pollWorldBossReady() {
+      try {
+        setWorldBossReadyStatus(await api.getWorldBossReadyStatus(player.id, token));
+      } catch {
+        // silencioso
+      }
+    }
+    pollWorldBossReady();
+    worldBossReadyPollRef.current = setInterval(pollWorldBossReady, 3000);
+    return () => clearInterval(worldBossReadyPollRef.current);
+  }, [isAuthenticated, player, token, party]);
+
+  useEffect(() => {
+    if (!worldBossReadyStatus?.members?.some((m) => m.ready)) setDismissedWorldBossReady(false);
+  }, [worldBossReadyStatus]);
+
   const inCombat = isCombatInProgress(getActiveCombat());
   // Con hasta 2 companeros, alcanza con que UNO ya haya marcado listo para mostrar el cartel
   // (si despues falta el tercero, el back simplemente va a seguir esperando ese ready).
@@ -166,6 +193,28 @@ export default function CoopBar() {
 
   function handleDeclineTowerReady() {
     setDismissedTowerReady(true);
+  }
+
+  const otherWorldBossReady = worldBossReadyStatus?.members?.find((m) => m.ready) ?? null;
+  const showWorldBossReadyPrompt = !!(
+    party && !inCombat && otherWorldBossReady && !worldBossReadyStatus?.myReady && !dismissedWorldBossReady
+  );
+
+  async function handleAcceptWorldBossReady() {
+    setBusy(true);
+    setError('');
+    try {
+      const res = await api.setWorldBossReady(player.id, token);
+      navigate('/worldboss', { state: res.allReady ? { autoStart: true, coopPartnerIds: res.coopPartnerIds } : {} });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function handleDeclineWorldBossReady() {
+    setDismissedWorldBossReady(true);
   }
 
   async function handleAccept() {
@@ -295,6 +344,20 @@ export default function CoopBar() {
               ✓
             </button>
             <button className="coop-x-btn" disabled={busy} onClick={handleDeclineTowerReady} aria-label="Rechazar">
+              ✗
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showWorldBossReadyPrompt && (
+        <div className="coop-ready-bar rpg-panel">
+          <span className="coop-ready-text">🌌 ¿Listo para el World Boss?</span>
+          <div className="coop-ready-actions">
+            <button className="coop-check-btn" disabled={busy} onClick={handleAcceptWorldBossReady} aria-label="Aceptar">
+              ✓
+            </button>
+            <button className="coop-x-btn" disabled={busy} onClick={handleDeclineWorldBossReady} aria-label="Rechazar">
               ✗
             </button>
           </div>
