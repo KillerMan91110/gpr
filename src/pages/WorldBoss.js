@@ -394,7 +394,7 @@ export default function WorldBoss() {
           <div className="dashboard-columns">
             <div className="dashboard-main">
               <div className="rpg-panel explore-panel">
-                <p>Pelea con tu formación completa contra un clon del jefe escalado a tu nivel. El daño que le hagas se resta de la vida global compartida — no importa si mueres, lo ya hecho queda contado, y podés reintentar. El daño y los fragmentos cósmicos se acreditan por jugador según lo que cada uno haga, aunque entren juntos.</p>
+                <p>Pelea contra este Jefe Mundial ya sea con tus compañeros de grupo o amigos. El daño que le hagas se resta de la vida global compartida — no importa si mueres, lo ya hecho queda contado, y podés reintentar. El daño y los fragmentos cósmicos se acreditan por jugador según lo que cada uno haga, aunque entren juntos.</p>
 
                 {!coopParty && (
                   <button className="rpg-button" onClick={() => handleEnter()} disabled={loading}>
@@ -587,7 +587,7 @@ function WorldBossCombatView({
             <CombatantCard
               key={p.id}
               participant={p}
-              level={null}
+              level={"???"}
               isActive={p.id === nextActorId}
               targetable={isPlayerTurn && selectingEnemy}
               onTarget={() => handleEnemyTarget(p.id)}
