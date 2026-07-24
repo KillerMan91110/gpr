@@ -587,7 +587,7 @@ function WorldBossCombatView({
             <CombatantCard
               key={p.id}
               participant={p}
-              level={null}
+              level="???"
               isActive={p.id === nextActorId}
               targetable={isPlayerTurn && selectingEnemy}
               onTarget={() => handleEnemyTarget(p.id)}
