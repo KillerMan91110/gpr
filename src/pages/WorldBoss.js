@@ -278,8 +278,8 @@ export default function WorldBoss() {
           {!inCombat && <p className="dashboard-subtitle">El Devorador de Estrellas — evento server-wide</p>}
         </div>
         <div className="craft-row">
-          {!inCombat && <Link className="rpg-button rpg-button--small" to="/worldboss/shop">🛒 Tienda</Link>}
-          {!inCombat && <Link className="logout-btn" to="/combat">Volver</Link>}
+          {!session && <Link className="rpg-button rpg-button--small" to="/worldboss/shop">🛒 Tienda</Link>}
+          {!session && <Link className="logout-btn" to="/combat">Volver</Link>}
         </div>
       </header>
 
@@ -293,9 +293,9 @@ export default function WorldBoss() {
           </div>
         </div>
       )}
-      {message && !inCombat && <p className="hint hint-ok infirmary-message">{message}</p>}
+      {message && !session && <p className="hint hint-ok infirmary-message">{message}</p>}
 
-      {!inCombat && (
+      {!session && (
         <>
           <div className="rpg-panel boss-banner">
             <div className="boss-banner-top">
@@ -356,6 +356,7 @@ export default function WorldBoss() {
           onLoadSkills={loadSkills}
           onLoadNpcSkills={loadNpcSkills}
           onAction={handleAction}
+          onReturnToLobby={() => setSession(null)}
         />
       )}
     </div>
@@ -364,16 +365,17 @@ export default function WorldBoss() {
 
 function WorldBossCombatView({
   session, player, loading, inventory, itemEffects, skills, npcSkillsCache,
-  onLoadInventory, onLoadSkills, onLoadNpcSkills, onAction,
+  onLoadInventory, onLoadSkills, onLoadNpcSkills, onAction, onReturnToLobby,
 }) {
-  const { session: combatSession, participants, log, nextActorId, round } = session;
+  const { session: combatSession, participants, log, nextActorId, round, rewards, bossTaunt } = session;
   const players = participants.filter((p) => p.side === 'PLAYER');
   const enemies = participants.filter((p) => p.side === 'ENEMY');
-  const boss = enemies.find((e) => e.monster_code?.startsWith('WORLD_BOSS_'));
   const isCoop = new Set(participants.filter((p) => p.player_id != null).map((p) => p.player_id)).size > 1;
   const actor = participants.find((p) => p.id === nextActorId);
   const hasActiveTurn = combatSession.status === 'IN_PROGRESS' && !!nextActorId;
   const isPlayerTurn = hasActiveTurn && actorBelongsToPlayer(actor, player?.id);
+  const finished = combatSession.status !== 'IN_PROGRESS';
+  const [tauntDismissed, setTauntDismissed] = useState(false);
   const [showItems, setShowItems] = useState(false);
   const [showSkills, setShowSkills] = useState(false);
   const [pendingSkill, setPendingSkill] = useState(null);
@@ -451,27 +453,55 @@ function WorldBossCombatView({
     }
   }
 
-  const bossHpPercent = boss?.max_hp ? Math.max(0, (boss.hp / boss.max_hp) * 100) : 0;
-
   return (
-    <div className="combat-view">
-      {boss && (
-        <div className="rpg-panel boss-banner" style={{ marginBottom: 12 }}>
-          <div className="boss-banner-top">
-            <span className="boss-name">🌌 {boss.name}</span>
-            <span className="hint">HP restante del jefe (compartido con todo el servidor)</span>
-          </div>
-          <div className="boss-hp-row">
-            <span className="hint">Tu intento actual</span>
-            <span>{boss.hp.toLocaleString()} / {boss.max_hp.toLocaleString()}</span>
-          </div>
-          <div className="stat-bar-track">
-            <div className="stat-bar-fill boss" style={{ width: `${bossHpPercent}%` }} />
-          </div>
+    <div className="worldboss-combat">
+      {bossTaunt && !tauntDismissed && (
+        <div className="rpg-panel worldboss-taunt">
+          <span className="worldboss-taunt-icon">🌌</span>
+          <p className="worldboss-taunt-text">{bossTaunt}</p>
+          <button className="worldboss-taunt-close" onClick={() => setTauntDismissed(true)} aria-label="Cerrar">×</button>
         </div>
       )}
 
       <TurnOrderBar participants={participants} nextActorId={nextActorId} />
+
+      <div className="rpg-panel worldboss-arena">
+        <span className="worldboss-arena-icon">🌌</span>
+        <div className="worldboss-arena-body">
+          {enemies.map((p) => (
+            <CombatantCard
+              key={p.id}
+              participant={p}
+              level={null}
+              isActive={p.id === nextActorId}
+              targetable={isPlayerTurn && selectingEnemy}
+              onTarget={() => handleEnemyTarget(p.id)}
+              floaters={floaters.filter((f) => f.participantId === p.id)}
+              shaking={shakeIds.has(p.id)}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="rpg-panel worldboss-formation">
+        <h3>{isCoop ? 'Grupo' : 'Tu formación'}</h3>
+        <div className="worldboss-formation-cards">
+          {players.map((p) => (
+            <CombatantCard
+              key={p.id}
+              participant={p}
+              level={p.player_id ? p.level : null}
+              isActive={p.id === nextActorId}
+              allyTargetable={isPlayerTurn && selectingAlly && p.hp > 0}
+              onTarget={() => handleAllyTarget(p.id)}
+              partnerOwned={isCoop && !actorBelongsToPlayer(p, player?.id)}
+              floaters={floaters.filter((f) => f.participantId === p.id)}
+              shaking={shakeIds.has(p.id)}
+            />
+          ))}
+        </div>
+      </div>
+
       <div className="combat-left">
         {isPlayerTurn && (
           <p className="combat-hint">
@@ -589,42 +619,40 @@ function WorldBossCombatView({
         )}
       </div>
 
-      <div className="combat-right">
-        <div className="combat-side rpg-panel party-side">
-          <h3>{isCoop ? 'Grupo' : 'Tu grupo'}</h3>
-          {players.map((p) => (
-            <CombatantCard
-              key={p.id}
-              participant={p}
-              level={p.player_id ? p.level : null}
-              isActive={p.id === nextActorId}
-              allyTargetable={isPlayerTurn && selectingAlly && p.hp > 0}
-              onTarget={() => handleAllyTarget(p.id)}
-              partnerOwned={isCoop && !actorBelongsToPlayer(p, player?.id)}
-              floaters={floaters.filter((f) => f.participantId === p.id)}
-              shaking={shakeIds.has(p.id)}
-            />
-          ))}
+      {finished && (
+        <div className="combat-result rpg-panel">
+          <h2>
+            {combatSession.status === 'PLAYER_WON' && '¡Heriste al Devorador de Estrellas!'}
+            {combatSession.status === 'ESCAPED' && 'Escapaste del combate'}
+            {combatSession.status === 'ENEMY_WON' && 'Tu formación cayó'}
+          </h2>
+          {combatSession.status === 'ESCAPED' ? (
+            <p className="hint">Al huir no se contabilizó tu daño ni recibiste fragmentos cósmicos en este intento.</p>
+          ) : (
+            <p className="hint">Tu daño en este intento ya quedó sumado al HP global del jefe y a tus fragmentos cósmicos.</p>
+          )}
+          {rewards && (
+            <>
+              <p>+{rewards.xp} XP · +{rewards.gold} Oro</p>
+              {rewards.itemsDropped?.length > 0 && (
+                <p className="hint hint-ok">
+                  Items: {rewards.itemsDropped.map((d) => `${d.itemName} x${d.quantity}`).join(', ')}
+                </p>
+              )}
+              {(rewards.levelUps ?? []).map((l, i) => (
+                <p key={i} className="hint hint-ok">
+                  {l.npcId
+                    ? `¡${l.npcName} subió a nivel ${l.newLevel}!`
+                    : l.playerId === player?.id
+                    ? `¡Subiste a nivel ${l.newLevel}! HP y maná restaurados.`
+                    : `¡Tu compañero subió a nivel ${l.newLevel}!`}
+                </p>
+              ))}
+            </>
+          )}
+          <button className="rpg-button" onClick={onReturnToLobby}>Volver a la sala</button>
         </div>
-
-        <div className="vs-divider">— vs —</div>
-
-        <div className="combat-side rpg-panel enemy-side">
-          <h3>Rival</h3>
-          {enemies.map((p) => (
-            <CombatantCard
-              key={p.id}
-              participant={p}
-              level={null}
-              isActive={p.id === nextActorId}
-              targetable={isPlayerTurn && selectingEnemy}
-              onTarget={() => handleEnemyTarget(p.id)}
-              floaters={floaters.filter((f) => f.participantId === p.id)}
-              shaking={shakeIds.has(p.id)}
-            />
-          ))}
-        </div>
-      </div>
+      )}
     </div>
   );
 }

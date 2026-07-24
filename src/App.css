@@ -2556,6 +2556,116 @@ h1, h2, h3 {
   font-size: 0.85rem;
 }
 
+/* ── World Boss: vista de combate (jefe grande arriba, formación abajo) ── */
+.worldboss-combat {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@keyframes worldboss-taunt-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.worldboss-taunt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-color: var(--rarity-epico);
+  box-shadow:
+    0 0 0 1px rgba(181, 114, 224, 0.35),
+    0 0 24px rgba(181, 114, 224, 0.22);
+  animation: worldboss-taunt-in 0.35s ease-out;
+}
+
+.worldboss-taunt-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(181, 114, 224, 0.6));
+}
+
+.worldboss-taunt-text {
+  flex: 1;
+  margin: 0;
+  font-style: italic;
+  color: var(--rarity-epico);
+}
+
+.worldboss-taunt-close {
+  background: none;
+  border: none;
+  color: var(--text-soft);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 4px;
+  cursor: pointer;
+}
+.worldboss-taunt-close:hover { color: var(--cream); }
+
+.worldboss-arena {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 26px 18px 22px;
+  border-color: var(--rarity-epico);
+  box-shadow:
+    0 0 0 1px rgba(181, 114, 224, 0.35),
+    0 0 32px rgba(181, 114, 224, 0.18),
+    0 18px 40px rgba(0, 0, 0, 0.65),
+    inset 0 0 50px rgba(0, 0, 0, 0.45);
+}
+
+.worldboss-arena-icon {
+  font-size: 3.4rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 18px rgba(181, 114, 224, 0.55));
+}
+
+.worldboss-arena-body {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.worldboss-arena-body .combatant-card {
+  width: min(460px, 100%);
+  padding: 16px 22px;
+  border-color: var(--rarity-epico);
+  box-shadow: 0 0 20px rgba(181, 114, 224, 0.2);
+}
+
+.worldboss-arena-body .combatant-name {
+  font-size: 1.15rem;
+  font-family: 'Cinzel', Georgia, serif;
+}
+
+.worldboss-arena-body .combatant-hp-track {
+  height: 14px;
+}
+
+.worldboss-formation h3 {
+  font-size: 0.85rem;
+  color: var(--gold);
+  margin: 0 0 10px;
+}
+
+.worldboss-formation-cards {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.worldboss-formation-cards .combatant-card {
+  flex: 1 1 220px;
+  min-width: 200px;
+}
+
+@media (max-width: 720px) {
+  .worldboss-formation-cards { flex-direction: column; }
+}
+
 /* ── Ranking (pantalla dedicada) ── */
 .ranking-tabs, .ranking-subtabs {
   display: flex;
