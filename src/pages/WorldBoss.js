@@ -42,6 +42,8 @@ export default function WorldBoss() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [readyStatus, setReadyStatus] = useState(null);
+  const [waitingReady, setWaitingReady] = useState(false);
 
   const sessionRef = useRef(session);
   useEffect(() => { sessionRef.current = session; }, [session]);
@@ -75,6 +77,45 @@ export default function WorldBoss() {
     }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player, token]);
+
+  // Ready-check co-op (mismo patrón que Tower/ExploreZone): tabla propia player_worldboss_ready,
+  // así que mientras estoy en grupo y sin sesión, sondeo quién ya confirmó "listo para el jefe".
+  useEffect(() => {
+    if (!coopParty || session) { setReadyStatus(null); return undefined; }
+    let cancelled = false;
+    async function poll() {
+      try {
+        const st = await api.getWorldBossReadyStatus(player.id, token);
+        if (!cancelled) setReadyStatus(st);
+      } catch {
+        // silencioso: es solo polling en background
+      }
+    }
+    poll();
+    const iv = setInterval(poll, 3000);
+    return () => { cancelled = true; clearInterval(iv); };
+  }, [coopParty, session, player, token]);
+
+  // Quien completa el ready-check es quien llama a /worldboss/enter (ver handleReadyClick); el
+  // resto se entera sondeando si ya apareció una sesión activa de World Boss para unirse a ella.
+  useEffect(() => {
+    if (!coopParty || session) return undefined;
+    let cancelled = false;
+    async function pollActiveSession() {
+      try {
+        const result = await api.getActiveCombatSession(token);
+        if (cancelled || !result) return;
+        if (result.participants?.some((p) => p.monster_code?.startsWith('WORLD_BOSS_'))) {
+          setWaitingReady(false);
+          setSession(result);
+        }
+      } catch {
+        // 404 = todavía no arrancó, seguimos esperando
+      }
+    }
+    const iv = setInterval(pollActiveSession, 2500);
+    return () => { cancelled = true; clearInterval(iv); };
+  }, [coopParty, session, token]);
 
   // Refresca el estado global (HP/timer/top3) mientras estás en la sala de preparación,
   // para ver el progreso de otros jugadores sin recargar la página.
@@ -221,18 +262,44 @@ export default function WorldBoss() {
     }
   }
 
-  async function handleEnter() {
+  async function handleEnter(coopPartnerIdsOverride) {
     setError('');
     setMessage('');
     setLoading(true);
     try {
-      const coopPartnerIds = (coopParty?.members || []).filter((m) => m.id !== player.id).map((m) => m.id);
+      const coopPartnerIds = coopPartnerIdsOverride
+        ?? (coopParty?.members || []).filter((m) => m.id !== player.id).map((m) => m.id);
       const state = await api.enterWorldBoss(player.id, coopPartnerIds, token);
       setSession(state);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleReadyClick() {
+    setError('');
+    try {
+      const res = await api.setWorldBossReady(player.id, token);
+      if (res.allReady) {
+        setWaitingReady(false);
+        await handleEnter(res.coopPartnerIds || []);
+      } else {
+        setWaitingReady(true);
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleCancelReady() {
+    setError('');
+    setWaitingReady(false);
+    try {
+      await api.cancelWorldBossReady(player.id, token);
+    } catch (err) {
+      setError(err.message);
     }
   }
 
@@ -314,13 +381,48 @@ export default function WorldBoss() {
           <div className="dashboard-columns">
             <div className="dashboard-main">
               <div className="rpg-panel explore-panel">
-                <p>Pelea con tu formación completa contra un clon del jefe escalado a tu nivel. El daño que le hagas se resta de la vida global compartida — no importa si mueres, lo ya hecho queda contado, y podés reintentar.</p>
-                {coopParty && coopParty.members?.length > 1 && (
-                  <p className="hint">Vas a entrar junto a tu grupo: {coopParty.members.filter((m) => m.id !== player.id).map((m) => m.nickname).join(', ')}.</p>
+                <p>Pelea con tu formación completa contra un clon del jefe escalado a tu nivel. El daño que le hagas se resta de la vida global compartida — no importa si mueres, lo ya hecho queda contado, y podés reintentar. El daño y los fragmentos cósmicos se acreditan por jugador según lo que cada uno haga, aunque entren juntos.</p>
+
+                {!coopParty && (
+                  <button className="rpg-button" onClick={() => handleEnter()} disabled={loading}>
+                    {loading ? 'Entrando...' : '⚔️ Entrar en combate'}
+                  </button>
                 )}
-                <button className="rpg-button" onClick={handleEnter} disabled={loading}>
-                  {loading ? 'Entrando...' : '⚔️ Entrar en combate'}
-                </button>
+
+                {coopParty && (() => {
+                  const groupNames = coopParty.members.filter((m) => m.id !== player.id).map((m) => m.nickname).join(', ');
+                  const readyHereIds = new Set(
+                    (readyStatus?.members || []).filter((m) => m.ready).map((m) => m.playerId)
+                  );
+                  const readyHereNames = coopParty.members.filter((m) => readyHereIds.has(m.id)).map((m) => m.nickname);
+                  return (
+                    <div className="coop-ready-panel">
+                      {readyHereNames.length > 0 && !waitingReady ? (
+                        <>
+                          <p>¿Listo para entrar? <strong>{readyHereNames.join(', ')}</strong> ya {readyHereNames.length > 1 ? 'están' : 'está'} esperando aquí.</p>
+                          <div className="craft-row" style={{ justifyContent: 'center' }}>
+                            <button className="rpg-button" onClick={handleReadyClick} disabled={loading}>
+                              ✓ Listo para entrar
+                            </button>
+                            <button className="rpg-button rpg-button--small" onClick={() => setWaitingReady(false)}>✗</button>
+                          </div>
+                        </>
+                      ) : waitingReady ? (
+                        <>
+                          <p className="hint">Esperando al resto del grupo ({groupNames})...</p>
+                          <button className="rpg-button rpg-button--small" onClick={handleCancelReady}>✗ Cancelar</button>
+                        </>
+                      ) : (
+                        <>
+                          <p>Vas a entrar en grupo con <strong>{groupNames}</strong>. Confirma cuando estés listo.</p>
+                          <button className="rpg-button" onClick={handleReadyClick} disabled={loading}>
+                            Listo para entrar
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             <div className="dashboard-side">

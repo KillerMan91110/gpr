@@ -260,4 +260,7 @@ export const api = {
   getWorldBossShop: (playerId, token) => request(`/api/player/${playerId}/worldboss/shop`, { token }),
   buyWorldBossItem: (playerId, itemId, quantity, token) =>
     request(`/api/player/${playerId}/worldboss/shop/buy`, { method: 'POST', body: { itemId, quantity }, token }),
+  setWorldBossReady: (playerId, token) => request(`/api/player/${playerId}/worldboss/ready`, { method: 'POST', token }),
+  cancelWorldBossReady: (playerId, token) => request(`/api/player/${playerId}/worldboss/ready`, { method: 'DELETE', token }),
+  getWorldBossReadyStatus: (playerId, token) => request(`/api/player/${playerId}/worldboss/ready-status`, { token }),
 };
