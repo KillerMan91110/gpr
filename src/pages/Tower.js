@@ -437,10 +437,22 @@ export default function Tower() {
         <div>
           <h1>🕳️ El Abismo</h1>
           {run && (
-            <p className="dashboard-subtitle">
-              Piso {run.current_floor}{floor ? ` · Sala ${run.current_room} de ${floor.room_count}` : ''}
-              {floor?.is_boss_floor ? ' · 👑 Piso de jefe' : ''}
-            </p>
+            <>
+              <p className="dashboard-subtitle">
+                Piso {run.current_floor}{floor?.is_boss_floor ? ' · 👑 Piso del Jefe' : ''}
+              </p>
+              {floor && !floor.is_boss_floor && (
+                <div className="abyss-explore-row">
+                  <div className="stat-bar-track abyss-explore-track">
+                    <div
+                      className="stat-bar-fill abyss"
+                      style={{ width: `${Math.round(((run.current_room - 1) / floor.room_count) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="hint">{Math.round(((run.current_room - 1) / floor.room_count) * 100)}% explorado</span>
+                </div>
+              )}
+            </>
           )}
         </div>
         <div className="craft-row">
@@ -547,21 +559,23 @@ export default function Tower() {
       )}
 
       {run && run.status === 'IN_PROGRESS' && !session && pendingEvent && (
-        <div className="rpg-panel explore-panel abyss-event-panel">
-          <h2>{EVENT_TYPE_ICONS[pendingEvent.event_type] || '❔'} Algo llama tu atención...</h2>
-          <p className="zone-description">{pendingEvent.prompt_text}</p>
-          {canControl ? (
-            <div className="craft-row" style={{ justifyContent: 'center' }}>
-              <button className="rpg-button" onClick={() => handleEventChoice('A')} disabled={loading}>
-                {loading ? '...' : pendingEvent.choice_a_label}
-              </button>
-              <button className="rpg-button rpg-button--small" onClick={() => handleEventChoice('B')} disabled={loading}>
-                {loading ? '...' : pendingEvent.choice_b_label}
-              </button>
-            </div>
-          ) : (
-            <p className="hint">Esperando a que el líder de la corrida (o alguien vivo, si murió) decida qué hacer...</p>
-          )}
+        <div className="modal-overlay">
+          <div className="modal-panel rpg-panel abyss-event-panel">
+            <h2>{EVENT_TYPE_ICONS[pendingEvent.event_type] || '❔'} Algo llama tu atención...</h2>
+            <p className="zone-description">{pendingEvent.prompt_text}</p>
+            {canControl ? (
+              <div className="craft-row" style={{ justifyContent: 'center' }}>
+                <button className="rpg-button" onClick={() => handleEventChoice('A')} disabled={loading}>
+                  {loading ? '...' : pendingEvent.choice_a_label}
+                </button>
+                <button className="rpg-button rpg-button--small" onClick={() => handleEventChoice('B')} disabled={loading}>
+                  {loading ? '...' : pendingEvent.choice_b_label}
+                </button>
+              </div>
+            ) : (
+              <p className="hint">Esperando a que el líder de la corrida (o alguien vivo, si murió) decida qué hacer...</p>
+            )}
+          </div>
         </div>
       )}
 

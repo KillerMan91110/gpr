@@ -827,6 +827,23 @@ h1, h2, h3 {
   box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
 }
 
+.stat-bar-fill.abyss {
+  background: linear-gradient(90deg, #3a1653, var(--rarity-epico));
+  box-shadow: 0 0 8px rgba(181, 114, 224, 0.6);
+}
+
+.abyss-explore-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.abyss-explore-track {
+  flex: 1;
+  max-width: 260px;
+}
+
 .stat-bar-fill.quest.done {
   background: linear-gradient(90deg, var(--gold), var(--gold-bright));
 }
