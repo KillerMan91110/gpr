@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import { getActiveCombat, setActiveCombat, clearActiveCombat } from '../utils/activeCombat';
 
-const AUTO_RESTART_DELAY_MS = 5000;
 const LOG_REVEAL_DELAY_MS = 650;
 
 // Categoría física/mágica de la skill (como el ícono de tipo en Pokémon) y a quién afecta —
@@ -716,29 +715,6 @@ function CombatView({
     }
   }, [log, logAtBottom]);
 
-  const onRestartRef = useRef(onRestart);
-  useEffect(() => {
-    onRestartRef.current = onRestart;
-  }, [onRestart]);
-
-  const [autoRestartIn, setAutoRestartIn] = useState(null);
-
-  useEffect(() => {
-    if (!finished) {
-      setAutoRestartIn(null);
-      return;
-    }
-    setAutoRestartIn(Math.ceil(AUTO_RESTART_DELAY_MS / 1000));
-    const countdown = setInterval(() => {
-      setAutoRestartIn((s) => (s != null ? s - 1 : s));
-    }, 1000);
-    const timeout = setTimeout(() => onRestartRef.current(), AUTO_RESTART_DELAY_MS);
-    return () => {
-      clearInterval(countdown);
-      clearTimeout(timeout);
-    };
-  }, [finished]);
-
   function handleLogScroll(e) {
     const el = e.target;
     setLogAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 24);
@@ -1037,12 +1013,14 @@ function CombatView({
               ))}
             </>
           )}
-          {autoRestartIn > 0 && (
-            <p className="hint">Volviendo a explorar en {autoRestartIn}s...</p>
-          )}
-          <button className="rpg-button" onClick={onRestart}>
-            Explorar de nuevo
-          </button>
+          <div className="craft-row" style={{ justifyContent: 'center' }}>
+            <button className="rpg-button" onClick={onRestart}>
+              Explorar de nuevo
+            </button>
+            <Link className="rpg-button rpg-button--small" to="/combat">
+              Volver a zonas
+            </Link>
+          </div>
         </div>
       )}
     </div>
