@@ -58,6 +58,21 @@ export default function Tower() {
   const sessionRef = useRef(session);
   useEffect(() => { sessionRef.current = session; }, [session]);
 
+  // El resultado de un evento/extracción se muestra como popup flotante (mismo patrón que el
+  // aviso de "saliste del grupo" de CoopBar) en vez de una línea de texto discreta — para que no
+  // pase desapercibido, se auto-cierra solo a los 8s.
+  const floorMsgTimer = useRef(null);
+  useEffect(() => () => clearTimeout(floorMsgTimer.current), []);
+  function showFloorMsg(msg) {
+    clearTimeout(floorMsgTimer.current);
+    setFloorMsg(msg);
+    if (msg) floorMsgTimer.current = setTimeout(() => setFloorMsg(''), 8000);
+  }
+  function clearFloorMsg() {
+    clearTimeout(floorMsgTimer.current);
+    setFloorMsg('');
+  }
+
   useEffect(() => {
     if (!player) return;
     api.getPlayerStats(player.id, token).then((s) => { setPlayerLevel(s.level); setPlayerHp({ hp: s.hp, maxHp: s.maxHp }); }).catch(() => setPlayerLevel(null));
@@ -362,7 +377,7 @@ export default function Tower() {
     setLoading(true);
     try {
       await api.startTower(player.id, difficulty, coopPartnerIds, token);
-      setFloorMsg('');
+      clearFloorMsg();
       await refreshRun();
     } catch (err) {
       setError(err.message);
@@ -373,7 +388,7 @@ export default function Tower() {
 
   async function handleAdvance() {
     setError('');
-    setFloorMsg('');
+    clearFloorMsg();
     setLoading(true);
     try {
       await api.advanceTower(player.id, token);
@@ -390,7 +405,7 @@ export default function Tower() {
     setLoading(true);
     try {
       const result = await api.resolveTowerEvent(player.id, choice, token);
-      setFloorMsg(result.message || '');
+      showFloorMsg(result.message || '');
       setRun(result.run);
       setSession(result.session || null);
       setPendingEvent(result.pendingEvent || null);
@@ -406,7 +421,7 @@ export default function Tower() {
     setLoading(true);
     try {
       const result = await api.extractTower(player.id, token);
-      setFloorMsg(`Extraído en el piso ${result.floorReached} con ${result.coinsEarned} monedas de mazmorra.`);
+      showFloorMsg(`Extraído en el piso ${result.floorReached} con ${result.coinsEarned} monedas de mazmorra.`);
       setRun(null);
       setSession(null);
       setFloor(null);
@@ -473,7 +488,13 @@ export default function Tower() {
           </div>
         </div>
       )}
-      {floorMsg && run?.status !== 'WIPED' && <p className="hint hint-ok">{floorMsg}</p>}
+      {floorMsg && run?.status !== 'WIPED' && (
+        <div className="craft-result-popup rpg-panel abyss-event-panel">
+          <button className="craft-result-close" onClick={clearFloorMsg} aria-label="Cerrar">✕</button>
+          <h4 className="craft-result-title">🕳️ El Abismo</h4>
+          <p className="hint">{floorMsg}</p>
+        </div>
+      )}
 
       {!run && (
       <div className="dashboard-columns">

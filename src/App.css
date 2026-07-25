@@ -2593,7 +2593,8 @@ h1, h2, h3 {
     0 0 20px rgba(181, 114, 224, 0.16);
   animation: worldboss-taunt-in 0.35s ease-out;
 }
-.abyss-event-panel h2 {
+.abyss-event-panel h2,
+.abyss-event-panel h4 {
   color: var(--rarity-epico);
 }
 
