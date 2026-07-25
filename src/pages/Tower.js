@@ -17,6 +17,10 @@ const DIFFICULTIES = [
   { value: 3, label: 'Muy Difícil' },
 ];
 const EVENT_TYPE_ICONS = { TRAP: '🪤', VENDOR: '🛒', SANCTUARY: '✨', SECRET: '🔍', STORY: '📜' };
+const RARITY_CLASS = {
+  COMUN: 'rarity-comun', POCO_COMUN: 'rarity-poco_comun',
+  RARO: 'rarity-raro', EPICO: 'rarity-epico', LEGENDARIO: 'rarity-legendario',
+};
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -54,6 +58,8 @@ export default function Tower() {
   const [wipedExitIn, setWipedExitIn] = useState(null);
   const [canControl, setCanControl] = useState(false);
   const [pendingEvent, setPendingEvent] = useState(null);
+  const [vendorOffer, setVendorOffer] = useState(null);
+  const [dungeonCoins, setDungeonCoins] = useState(0);
 
   const sessionRef = useRef(session);
   useEffect(() => { sessionRef.current = session; }, [session]);
@@ -405,6 +411,31 @@ export default function Tower() {
     setLoading(true);
     try {
       const result = await api.resolveTowerEvent(player.id, choice, token);
+      if (result.vendorOffer) {
+        // El vendedor no se resuelve solo: abre este pop-up de compra y el evento sigue
+        // pendiente en el back hasta que compres algo o cierres con "Cerrar sin comprar".
+        setVendorOffer(result.vendorOffer);
+        setDungeonCoins(result.dungeon_coins);
+        setRun(result.run);
+      } else {
+        showFloorMsg(result.message || '');
+        setRun(result.run);
+        setSession(result.session || null);
+        setPendingEvent(result.pendingEvent || null);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleVendorBuy(itemId) {
+    setError('');
+    setLoading(true);
+    try {
+      const result = await api.buyTowerEventItem(player.id, itemId, token);
+      setVendorOffer(null);
       showFloorMsg(result.message || '');
       setRun(result.run);
       setSession(result.session || null);
@@ -414,6 +445,11 @@ export default function Tower() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleVendorClose() {
+    setVendorOffer(null);
+    handleEventChoice('B');
   }
 
   async function handleExtract() {
@@ -586,7 +622,7 @@ export default function Tower() {
       </div>
       )}
 
-      {run && run.status === 'IN_PROGRESS' && !session && pendingEvent && (
+      {run && run.status === 'IN_PROGRESS' && !session && pendingEvent && !vendorOffer && (
         <div className="modal-overlay">
           <div className="modal-panel rpg-panel abyss-event-panel">
             <h2>{EVENT_TYPE_ICONS[pendingEvent.event_type] || '❔'} Algo llama tu atención...</h2>
@@ -600,6 +636,48 @@ export default function Tower() {
                   {loading ? '...' : pendingEvent.choice_b_label}
                 </button>
               </div>
+            ) : (
+              <p className="hint">Esperando a que el líder de la corrida (o alguien vivo, si murió) decida qué hacer...</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {vendorOffer && (
+        <div className="modal-overlay">
+          <div className="modal-panel rpg-panel abyss-event-panel">
+            <h2>🛒 Vendedor ambulante del Abismo</h2>
+            <p className="dashboard-subtitle">Monedas de mazmorra: {dungeonCoins.toLocaleString()}</p>
+            {canControl ? (
+              <>
+                <div className="guild-members-list">
+                  {vendorOffer.map((item) => (
+                    <div key={item.itemId} className="guild-member-row">
+                      <div className="guild-member-info">
+                        <span className={`guild-member-name item-rarity-dot ${RARITY_CLASS[item.rarity] || ''}`}>
+                          {item.name}
+                        </span>
+                        <span className="hint guild-member-sub">
+                          {item.rarity} · {item.price.toLocaleString()} monedas de mazmorra
+                        </span>
+                        {item.description && <span className="hint guild-member-sub">{item.description}</span>}
+                      </div>
+                      <button
+                        className="rpg-button rpg-button--small"
+                        disabled={loading || dungeonCoins < item.price}
+                        onClick={() => handleVendorBuy(item.itemId)}
+                      >
+                        {loading ? '...' : 'Comprar'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="craft-row" style={{ justifyContent: 'center', marginTop: 12 }}>
+                  <button className="rpg-button rpg-button--small" onClick={handleVendorClose} disabled={loading}>
+                    Cerrar sin comprar
+                  </button>
+                </div>
+              </>
             ) : (
               <p className="hint">Esperando a que el líder de la corrida (o alguien vivo, si murió) decida qué hacer...</p>
             )}
