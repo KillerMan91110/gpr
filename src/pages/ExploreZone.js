@@ -514,6 +514,10 @@ export default function ExploreZone() {
             setSkills(null);
             setNpcSkillsCache({});
             setEnemyLevels(null);
+            // Solo (sin grupo co-op): busca combate de una, sin pasar por la pantalla de
+            // "Explorar" de nuevo. En co-op se queda en el ready-check (hay que reconfirmar
+            // "listo" con el compañero antes de cada entrada, mismo criterio que en El Abismo).
+            if (!coopParty) handleExplore();
           }}
         />
       )}
