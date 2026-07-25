@@ -239,7 +239,7 @@ export const api = {
   getGuildBankShop: (token, guildId) => request(`/api/guilds/${guildId}/shop`, { token }),
   buyGuildBankShopItem: (token, guildId, itemId, quantity, recipientPlayerId) =>
     request(`/api/guilds/${guildId}/shop/buy`, { method: 'POST', body: { itemId, quantity, recipientPlayerId }, token }),
-  // Torre infinita
+  // El Abismo (el back sigue usando las rutas /tower/* sin cambios)
   startTower: (playerId, difficulty, coopPartnerIds, token) =>
     request(`/api/player/${playerId}/tower/start`, { method: 'POST', body: { difficulty, coopPartnerIds }, token }),
   getTowerRun: (playerId, token) => request(`/api/player/${playerId}/tower/run`, { token }),

@@ -10,7 +10,7 @@ const CATEGORIES = [
     label: 'Aventura',
     items: [
       { to: '/combat', label: 'Combate' },
-      { to: '/tower', label: 'Torre Infinita' },
+      { to: '/abismo', label: '🕳️ El Abismo' },
       { to: '/worldboss', label: '🌌 World Boss' },
       { to: '/quests', label: 'Misiones' },
     ],

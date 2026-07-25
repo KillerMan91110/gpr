@@ -82,8 +82,8 @@ function App() {
             <Route path="/formation" element={<ProtectedRoute><Formation /></ProtectedRoute>} />
             <Route path="/pets" element={<ProtectedRoute><Pets /></ProtectedRoute>} />
             <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
-            <Route path="/tower" element={<ProtectedRoute><Tower /></ProtectedRoute>} />
-            <Route path="/tower/vendor" element={<ProtectedRoute><TowerVendor /></ProtectedRoute>} />
+            <Route path="/abismo" element={<ProtectedRoute><Tower /></ProtectedRoute>} />
+            <Route path="/abismo/vendor" element={<ProtectedRoute><TowerVendor /></ProtectedRoute>} />
             <Route path="/worldboss" element={<ProtectedRoute><WorldBoss /></ProtectedRoute>} />
             <Route path="/worldboss/shop" element={<ProtectedRoute><WorldBossShop /></ProtectedRoute>} />
           </Routes>

@@ -48,10 +48,10 @@ export default function TowerVendor() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🪙 Vendedor de la Torre</h1>
+          <h1>🪙 Vendedor del Abismo</h1>
           <p className="dashboard-subtitle">Monedas de mazmorra: {dungeonCoins.toLocaleString()}</p>
         </div>
-        <Link className="logout-btn" to="/tower">Volver a la Torre</Link>
+        <Link className="logout-btn" to="/abismo">Volver al Abismo</Link>
       </header>
 
       {error && <p className="auth-error">{error}</p>}

@@ -14,7 +14,7 @@ const TOWER_MODES = [
 const CATEGORIES = [
   { key: 'players', label: 'Jugadores', icon: '🏆' },
   { key: 'guilds', label: 'Gremios', icon: '🛡️' },
-  { key: 'tower', label: 'Torre Infinita', icon: '🗼' },
+  { key: 'tower', label: 'El Abismo', icon: '🕳️' },
   { key: 'wealth', label: 'Riqueza', icon: '💰' },
 ];
 
@@ -43,7 +43,7 @@ function normalizeGuilds(list) {
 function normalizeTower(list, myNickname) {
   return list.map((e) => ({
     position: e.position,
-    icon: '🗼',
+    icon: '🕳️',
     name: e.members.join(' & '),
     sub: DIFFICULTY_LABELS[e.difficulty] || `Dificultad ${e.difficulty}`,
     value: `Piso ${e.floor}`,

@@ -75,7 +75,7 @@ export default function Tower() {
     ...(coopParty?.members || []).filter((m) => m.level < MIN_LEVEL),
   ];
 
-  // Solo un recordatorio visual, no bloquea la entrada — la Torre no cura entre pisos, así
+  // Solo un recordatorio visual, no bloquea la entrada — el Abismo no cura entre pisos, así
   // que arrancar golpeado es tirar la corrida, pero es decisión del jugador si igual entra.
   const notFullHpMembers = [
     ...(playerHp && playerHp.hp < playerHp.maxHp ? [player?.nickname] : []),
@@ -142,7 +142,7 @@ export default function Tower() {
   // Ready-check co-op: tabla propia player_tower_ready (no la compartida player_coop_ready
   // que usa ExploreZone/CoopBar), para no chocar con el foreign key a zonas reales ni con
   // el cartel global de CoopBar que navegaría a /combat/:zoneId. Mientras estoy en grupo y
-  // sin corrida, sondeo quién ya confirmó "listo para la Torre".
+  // sin corrida, sondeo quién ya confirmó "listo para El Abismo".
   useEffect(() => {
     if (!coopParty || run) {
       setReadyStatus(null);
@@ -207,7 +207,7 @@ export default function Tower() {
   // impedir navegar a cualquier otra pantalla (recarga/cierre de pestaña avisa aparte).
   useEffect(() => {
     if (inCombat) {
-      setActiveCombat('/tower', session, null);
+      setActiveCombat('/abismo', session, null);
     } else {
       clearActiveCombat();
     }
@@ -398,13 +398,13 @@ export default function Tower() {
   }
 
   if (run === undefined) {
-    return <div className="dashboard"><p>Cargando la torre...</p></div>;
+    return <div className="dashboard"><p>Cargando el Abismo...</p></div>;
   }
 
   if (playerLevel != null && playerLevel < MIN_LEVEL && !run) {
     return (
       <div className="placeholder-page">
-        <h1>🗼 Torre Infinita</h1>
+        <h1>🕳️ El Abismo</h1>
         <p>Necesitas nivel {MIN_LEVEL} para entrar. Todavía estás en nivel {playerLevel}.</p>
         <Link to="/combat">Volver a zonas</Link>
       </div>
@@ -415,7 +415,7 @@ export default function Tower() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🗼 Torre Infinita</h1>
+          <h1>🕳️ El Abismo</h1>
           {run && (
             <p className="dashboard-subtitle">
               Piso {run.current_floor}{floor ? ` · Sala ${run.current_room} de ${floor.room_count}` : ''}
@@ -424,7 +424,7 @@ export default function Tower() {
           )}
         </div>
         <div className="craft-row">
-          {!run && <Link className="rpg-button rpg-button--small" to="/tower/vendor">🪙 Vendedor</Link>}
+          {!run && <Link className="rpg-button rpg-button--small" to="/abismo/vendor">🪙 Vendedor</Link>}
           {!inCombat && (
             <Link className="logout-btn" to="/combat">Volver</Link>
           )}
@@ -447,11 +447,11 @@ export default function Tower() {
       <div className="dashboard-columns">
         <div className="dashboard-main">
         <div className="rpg-panel explore-panel">
-          <p>Sube piso a piso enfrentando monstruos cada vez más fuertes. Cada piso completo te da una moneda de mazmorra, pero si tu grupo cae antes de extraer, pierdes todas las de esta corrida.</p>
+          <p>Descendé piso a piso enfrentando monstruos cada vez más fuertes. Cada piso completo te da una moneda de mazmorra, pero si tu grupo cae antes de extraer, pierdes todas las de esta corrida.</p>
 
           {notFullHpMembers.length > 0 && (
             <p className="hint">
-              ⚠️ Recuerda que todos deben estar con la vida al máximo antes de entrar ({notFullHpMembers.join(', ')} no está{notFullHpMembers.length > 1 ? 'n' : ''} al máximo). La Torre no cura entre pisos.
+              ⚠️ Recuerda que todos deben estar con la vida al máximo antes de entrar ({notFullHpMembers.join(', ')} no está{notFullHpMembers.length > 1 ? 'n' : ''} al máximo). El Abismo no cura entre pisos.
             </p>
           )}
 
@@ -475,7 +475,7 @@ export default function Tower() {
 
           {!coopParty && (
             <button className="rpg-button" onClick={() => handleStart()} disabled={loading}>
-              {loading ? 'Entrando...' : 'Entrar a la Torre'}
+              {loading ? 'Entrando...' : 'Entrar al Abismo'}
             </button>
           )}
 

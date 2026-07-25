@@ -94,7 +94,7 @@ export default function CoopBar() {
     return () => clearInterval(readyPollRef.current);
   }, [isAuthenticated, player, token, party]);
 
-  // Mismo mecanismo, pero para el ready-check de la Torre Infinita (tabla propia
+  // Mismo mecanismo, pero para el ready-check de El Abismo (tabla propia
   // player_tower_ready, no comparte nada con el ready-check de zonas de arriba).
   useEffect(() => {
     if (!isAuthenticated || !player || !party) {
@@ -121,7 +121,7 @@ export default function CoopBar() {
     if (!towerReadyStatus?.members?.some((m) => m.ready)) setDismissedTowerReady(false);
   }, [towerReadyStatus]);
 
-  // Mismo mecanismo que el de la Torre, pero para el World Boss (tabla propia
+  // Mismo mecanismo que el de El Abismo, pero para el World Boss (tabla propia
   // player_worldboss_ready).
   useEffect(() => {
     if (!isAuthenticated || !player || !party) {
@@ -183,7 +183,7 @@ export default function CoopBar() {
     setError('');
     try {
       const res = await api.setTowerReady(player.id, token);
-      navigate('/tower', { state: res.allReady ? { autoStart: true, coopPartnerIds: res.coopPartnerIds } : {} });
+      navigate('/abismo', { state: res.allReady ? { autoStart: true, coopPartnerIds: res.coopPartnerIds } : {} });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -338,7 +338,7 @@ export default function CoopBar() {
 
       {showTowerReadyPrompt && (
         <div className="coop-ready-bar rpg-panel">
-          <span className="coop-ready-text">🗼 ¿Listo para la Torre?</span>
+          <span className="coop-ready-text">🕳️ ¿Listo para El Abismo?</span>
           <div className="coop-ready-actions">
             <button className="coop-check-btn" disabled={busy} onClick={handleAcceptTowerReady} aria-label="Aceptar">
               ✓
