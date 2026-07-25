@@ -16,6 +16,7 @@ const DIFFICULTIES = [
   { value: 2, label: 'Difícil' },
   { value: 3, label: 'Muy Difícil' },
 ];
+const EVENT_TYPE_ICONS = { TRAP: '🪤', VENDOR: '🛒', SANCTUARY: '✨', SECRET: '🔍', STORY: '📜' };
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -52,6 +53,7 @@ export default function Tower() {
   const [waitingReady, setWaitingReady] = useState(false);
   const [wipedExitIn, setWipedExitIn] = useState(null);
   const [canControl, setCanControl] = useState(false);
+  const [pendingEvent, setPendingEvent] = useState(null);
 
   const sessionRef = useRef(session);
   useEffect(() => { sessionRef.current = session; }, [session]);
@@ -88,6 +90,7 @@ export default function Tower() {
     setFloor(data.floor || null);
     setSession(data.session || null);
     setCanControl(!!data.canControl);
+    setPendingEvent(data.pendingEvent || null);
     return data;
   }
 
@@ -370,10 +373,27 @@ export default function Tower() {
 
   async function handleAdvance() {
     setError('');
+    setFloorMsg('');
     setLoading(true);
     try {
       await api.advanceTower(player.id, token);
       await refreshRun();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleEventChoice(choice) {
+    setError('');
+    setLoading(true);
+    try {
+      const result = await api.resolveTowerEvent(player.id, choice, token);
+      setFloorMsg(result.message || '');
+      setRun(result.run);
+      setSession(result.session || null);
+      setPendingEvent(result.pendingEvent || null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -441,7 +461,7 @@ export default function Tower() {
           </div>
         </div>
       )}
-      {floorMsg && !run && <p className="hint hint-ok">{floorMsg}</p>}
+      {floorMsg && run?.status !== 'WIPED' && <p className="hint hint-ok">{floorMsg}</p>}
 
       {!run && (
       <div className="dashboard-columns">
@@ -526,7 +546,26 @@ export default function Tower() {
       </div>
       )}
 
-      {run && run.status === 'IN_PROGRESS' && !session && (
+      {run && run.status === 'IN_PROGRESS' && !session && pendingEvent && (
+        <div className="rpg-panel explore-panel abyss-event-panel">
+          <h2>{EVENT_TYPE_ICONS[pendingEvent.event_type] || '❔'} Algo llama tu atención...</h2>
+          <p className="zone-description">{pendingEvent.prompt_text}</p>
+          {canControl ? (
+            <div className="craft-row" style={{ justifyContent: 'center' }}>
+              <button className="rpg-button" onClick={() => handleEventChoice('A')} disabled={loading}>
+                {loading ? '...' : pendingEvent.choice_a_label}
+              </button>
+              <button className="rpg-button rpg-button--small" onClick={() => handleEventChoice('B')} disabled={loading}>
+                {loading ? '...' : pendingEvent.choice_b_label}
+              </button>
+            </div>
+          ) : (
+            <p className="hint">Esperando a que el líder de la corrida (o alguien vivo, si murió) decida qué hacer...</p>
+          )}
+        </div>
+      )}
+
+      {run && run.status === 'IN_PROGRESS' && !session && !pendingEvent && (
         <div className="rpg-panel explore-panel">
           <h2>Piso {run.current_floor} completado</h2>
           <p>Monedas acumuladas en esta corrida: <strong>{run.coins_earned}</strong></p>

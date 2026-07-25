@@ -244,6 +244,8 @@ export const api = {
     request(`/api/player/${playerId}/tower/start`, { method: 'POST', body: { difficulty, coopPartnerIds }, token }),
   getTowerRun: (playerId, token) => request(`/api/player/${playerId}/tower/run`, { token }),
   advanceTower: (playerId, token) => request(`/api/player/${playerId}/tower/advance`, { method: 'POST', token }),
+  resolveTowerEvent: (playerId, choice, token) =>
+    request(`/api/player/${playerId}/tower/event-choice`, { method: 'POST', body: { choice }, token }),
   extractTower: (playerId, token) => request(`/api/player/${playerId}/tower/extract`, { method: 'POST', token }),
   getTowerVendor: (playerId, token) => request(`/api/player/${playerId}/tower/vendor`, { token }),
   buyTowerVendorItem: (playerId, itemId, quantity, token) =>
