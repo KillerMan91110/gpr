@@ -446,6 +446,16 @@ export default function Tower() {
     );
   }
 
+  // El back nunca incrementa current_room más allá de room_count (la sala completa el piso y
+  // ahí queda, ver advanceTowerRoomOrFloor) — con la fórmula (current_room-1)/room_count sola,
+  // la barra topeaba en (N-1)/N y jamás se veía llegar a 100% aunque el piso ya esté completo.
+  // Forzamos 100% cuando no hay sesión ni evento pendiente: esa es exactamente la señal de
+  // "piso completado" que ya usa el resto de la pantalla.
+  const floorComplete = run?.status === 'IN_PROGRESS' && !session && !pendingEvent;
+  const explorePercent = floor
+    ? (floorComplete ? 100 : Math.round(((run.current_room - 1) / floor.room_count) * 100))
+    : 0;
+
   return (
     <div className="dashboard">
       <header className="dashboard-header">
@@ -459,12 +469,9 @@ export default function Tower() {
               {floor && !floor.is_boss_floor && (
                 <div className="abyss-explore-row">
                   <div className="stat-bar-track abyss-explore-track">
-                    <div
-                      className="stat-bar-fill abyss"
-                      style={{ width: `${Math.round(((run.current_room - 1) / floor.room_count) * 100)}%` }}
-                    />
+                    <div className="stat-bar-fill abyss" style={{ width: `${explorePercent}%` }} />
                   </div>
-                  <span className="hint">{Math.round(((run.current_room - 1) / floor.room_count) * 100)}% explorado</span>
+                  <span className="hint">{explorePercent}% explorado</span>
                 </div>
               )}
             </>
