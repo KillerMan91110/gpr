@@ -368,7 +368,9 @@ export default function Inventory() {
           <div className="equipment-grid">
             {activeSlots.map((slotData) => (
               <div key={slotData.slot} className="equipment-slot">
-                <span className="equipment-slot-label">{SLOT_ICONS[slotData.slot] || ''} {SLOT_LABELS[slotData.slot]}</span>
+                <span className="equipment-slot-label">
+                  {SLOT_ICONS[slotData.slot] && <GameIcon {...SLOT_ICONS[slotData.slot]} />} {SLOT_LABELS[slotData.slot]}
+                </span>
                 {slotData.item ? (
                   <>
                     <span className={`equipment-item-name ${rarityClass(slotData.item.effectiveRarity || slotData.item.rarity)}`}>
