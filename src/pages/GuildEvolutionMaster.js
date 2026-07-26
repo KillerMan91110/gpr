@@ -239,7 +239,7 @@ export default function GuildEvolutionMaster() {
                     <span className="inventory-item-qty">{Number(item.price).toLocaleString()} <GameIcon name="two-coins" artist="delapouite" /></span>
                   </div>
                   <span className="inventory-item-rarity">{RARITY_LABELS[item.rarity] || item.rarity}</span>
-                  {item.description && <p className="skill-description">{item.description}</p>}
+                  {item.required_level && <span className="inventory-item-level">Nivel mín. {item.required_level}</span>}
                   <button
                     className="rpg-button equipment-action"
                     disabled={
