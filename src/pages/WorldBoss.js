@@ -37,6 +37,23 @@ function formatCountdown(endsAt) {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
+// Pausa entre eventos (lib/worldBossScheduler.js PAUSE_HOURS del back): el jefe reaparece 1h
+// después de que el evento anterior se cerró (killedByPlayerId o expiró). Mismo numero de los
+// dos lados porque no hay endpoint que devuelva "próximo spawn" directo, se deriva de closedAt.
+const NEXT_SPAWN_PAUSE_MS = 60 * 60 * 1000;
+
+// A diferencia de formatCountdown (Xh Ym, pensado para un timer que se refresca cada 8s vía
+// poll), acá mostramos segundos porque el reloj de "todavía no aparece" tickea en vivo cada 1s.
+function formatDuration(ms) {
+  if (ms <= 0) return null;
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const pad = (n) => String(n).padStart(2, '0');
+  return h > 0 ? `${h}h ${pad(m)}m ${pad(s)}s` : `${m}m ${pad(s)}s`;
+}
+
 export default function WorldBoss() {
   const { player, token } = useAuth();
   const location = useLocation();
@@ -55,6 +72,15 @@ export default function WorldBoss() {
 
   const sessionRef = useRef(session);
   useEffect(() => { sessionRef.current = session; }, [session]);
+
+  // Reloj en vivo para el cartel de "todavía no aparece" (tickea cada 1s mientras no hay boss
+  // activo; STATUS_POLL_MS ya se encarga de refrescar closedAt cada 8s por si otro spawn arrancó).
+  const [nowTick, setNowTick] = useState(Date.now());
+  useEffect(() => {
+    if (status?.active) return undefined;
+    const iv = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(iv);
+  }, [status?.active]);
 
   useEffect(() => {
     if (!player) return;
@@ -327,18 +353,34 @@ export default function WorldBoss() {
   }
 
   if (!status || !status.active) {
+    const msUntilNext = status?.closedAt
+      ? new Date(status.closedAt).getTime() + NEXT_SPAWN_PAUSE_MS - nowTick
+      : null;
+    const countdown = msUntilNext != null ? formatDuration(msUntilNext) : null;
+
     return (
       <div className="dashboard">
         <header className="dashboard-header">
           <div><h1><GameIcon name="galaxy" artist="delapouite" /> World Boss</h1></div>
           <Link className="logout-btn" to="/combat">Volver</Link>
         </header>
-        <div className="rpg-panel explore-panel">
+        <div className="rpg-panel explore-panel worldboss-waiting">
           <p>
             {status?.status === 'KILLED' && '¡El Devorador de Estrellas fue derrotado en el último evento! '}
             {status?.status === 'EXPIRED' && 'El último evento se cerró sin que nadie lo derrotara. '}
-            No hay ningún World Boss activo en este momento. Volvé más tarde.
+            No hay ningún World Boss activo en este momento.
           </p>
+          <div className="worldboss-clock">
+            <GameIcon name="galaxy" artist="delapouite" className="worldboss-clock-icon" />
+            {countdown ? (
+              <>
+                <span className="worldboss-clock-label">Vuelve a aparecer en</span>
+                <span className="worldboss-clock-value">{countdown}</span>
+              </>
+            ) : (
+              <span className="worldboss-clock-label">Apareciendo en cualquier momento...</span>
+            )}
+          </div>
         </div>
       </div>
     );

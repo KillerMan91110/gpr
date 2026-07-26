@@ -2598,6 +2598,42 @@ h1, h2, h3 {
   font-size: 0.85rem;
 }
 
+/* ── World Boss: pantalla de espera entre eventos (sin jefe activo) ── */
+.worldboss-waiting {
+  align-items: center;
+  text-align: center;
+}
+
+.worldboss-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 28px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.worldboss-clock-icon {
+  font-size: 2.2rem;
+  filter: drop-shadow(0 0 12px rgba(181, 114, 224, 0.5));
+}
+
+.worldboss-clock-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
+}
+
+.worldboss-clock-value {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 1.6rem;
+  color: var(--gold-bright);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── World Boss: vista de combate (jefe grande arriba, formación abajo) ── */
 .worldboss-combat {
   display: flex;
