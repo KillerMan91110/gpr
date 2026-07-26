@@ -7,18 +7,18 @@ import GameIcon from './GameIcon';
 const CATEGORIES = [
   {
     key: 'aventura',
-    icon: '🗡️',
+    gameIcon: { name: 'crossed-swords', artist: 'lorc' },
     label: 'Aventura',
     items: [
       { to: '/combat', label: 'Combate' },
       { to: '/abismo', label: 'El Abismo', gameIcon: { name: 'vortex', artist: 'lorc' } },
-      { to: '/worldboss', label: '🌌 World Boss' },
+      { to: '/worldboss', label: 'World Boss', gameIcon: { name: 'galaxy', artist: 'delapouite' } },
       { to: '/quests', label: 'Misiones' },
     ],
   },
   {
     key: 'personaje',
-    icon: '🧙',
+    gameIcon: { name: 'wizard-face', artist: 'delapouite' },
     label: 'Personaje',
     items: [
       { to: '/inventory', label: 'Inventario' },
@@ -31,7 +31,7 @@ const CATEGORIES = [
   },
   {
     key: 'economia',
-    icon: '💰',
+    gameIcon: { name: 'money-stack', artist: 'delapouite' },
     label: 'Economía',
     items: [
       { to: '/market', label: 'Mercado' },
@@ -124,7 +124,7 @@ export default function NavBar() {
             title={gold.toLocaleString()}
             onClick={() => setShowExactGold((v) => !v)}
           >
-            🪙 {showExactGold ? gold.toLocaleString() : formatGold(gold)}
+            <GameIcon name="two-coins" artist="delapouite" /> {showExactGold ? gold.toLocaleString() : formatGold(gold)}
           </button>
         )}
       </div>
@@ -137,7 +137,7 @@ export default function NavBar() {
               className={`app-navbar-link${cat.key === 'aventura' ? ' app-navbar-link--primary' : ''}${cat.items.some((i) => isActive(i.to)) ? ' app-navbar-link--active' : ''}`}
               onClick={() => setOpenMenu(openMenu === cat.key ? null : cat.key)}
             >
-              {cat.icon} {cat.label} <span className="app-navbar-caret">▾</span>
+              {cat.gameIcon && <GameIcon {...cat.gameIcon} />} {cat.label} <span className="app-navbar-caret">▾</span>
             </button>
             {openMenu === cat.key && (
               <div className="app-navbar-menu rpg-panel">
@@ -152,11 +152,11 @@ export default function NavBar() {
         ))}
 
         <Link to="/guild" className={`app-navbar-link${isActive('/guild') ? ' app-navbar-link--active' : ''}`}>
-          🏛️ Gremio
+          <GameIcon name="castle" artist="lorc" /> Gremio
         </Link>
 
         <Link to="/ranking" className={`app-navbar-link${isActive('/ranking') ? ' app-navbar-link--active' : ''}`}>
-          🏆 Ranking
+          <GameIcon name="trophy" artist="lorc" /> Ranking
         </Link>
 
         <Link to="/friends" className={`app-navbar-link${isActive('/friends') ? ' app-navbar-link--active' : ''}`}>
