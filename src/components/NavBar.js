@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from './GameIcon';
 
 const CATEGORIES = [
   {
@@ -10,7 +11,7 @@ const CATEGORIES = [
     label: 'Aventura',
     items: [
       { to: '/combat', label: 'Combate' },
-      { to: '/abismo', label: '🕳️ El Abismo' },
+      { to: '/abismo', label: 'El Abismo', gameIcon: { name: 'vortex', artist: 'lorc' } },
       { to: '/worldboss', label: '🌌 World Boss' },
       { to: '/quests', label: 'Misiones' },
     ],
@@ -142,7 +143,7 @@ export default function NavBar() {
               <div className="app-navbar-menu rpg-panel">
                 {cat.items.map((item) => (
                   <Link key={item.to} to={item.to} className="app-navbar-menu-item">
-                    {item.label}
+                    {item.gameIcon && <GameIcon {...item.gameIcon} />} {item.label}
                   </Link>
                 ))}
               </div>

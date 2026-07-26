@@ -43,6 +43,28 @@ h1, h2, h3 {
   letter-spacing: 0.04em;
 }
 
+/* ===== Íconos (game-icons.net, public/Icons — negro sólido + transparencia real) =====
+   Los PNG vienen en negro puro a propósito: se usan como máscara en vez de <img>, así el
+   ícono toma el color de texto que lo rodea (currentColor) — hover/active de un link ya lo
+   recolorea gratis, sin duplicar reglas por cada uso. El path exacto se pasa por variable
+   CSS (--icon-src) desde el inline style de cada <span className="game-icon">. */
+.game-icon {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: -0.2em;
+  flex-shrink: 0;
+  background-color: currentColor;
+  -webkit-mask-image: var(--icon-src);
+  mask-image: var(--icon-src);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
 /* ===== Navbar global ===== */
 
 .app-navbar {
