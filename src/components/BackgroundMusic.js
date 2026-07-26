@@ -6,6 +6,8 @@ import GameIcon from './GameIcon';
 const VIDEO_ID = 'oCA8DkQHC40';
 const COMBAT_POLL_MS = 1500;
 const MUTE_PREF_KEY = 'bgmMuted';
+const VOLUME_PREF_KEY = 'bgmVolume';
+const DEFAULT_VOLUME = 50;
 
 // Carga el IFrame Player API de YouTube una sola vez (persiste entre navegaciones porque este
 // componente vive en App.js, fuera de <Routes>, igual que CoopBar/ChatBox).
@@ -38,12 +40,18 @@ export default function BackgroundMusic() {
   const { isAuthenticated } = useAuth();
   const [ready, setReady] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem(MUTE_PREF_KEY) === 'true');
+  const [volume, setVolume] = useState(() => {
+    const stored = Number(localStorage.getItem(VOLUME_PREF_KEY));
+    return Number.isFinite(stored) && stored >= 0 && stored <= 100 ? stored : DEFAULT_VOLUME;
+  });
   const playerRef = useRef(null);
   const mutedRef = useRef(muted);
+  const volumeRef = useRef(volume);
   const wasInCombatRef = useRef(false);
   const unlockedRef = useRef(false);
 
   useEffect(() => { mutedRef.current = muted; }, [muted]);
+  useEffect(() => { volumeRef.current = volume; }, [volume]);
 
   useEffect(() => {
     if (!isAuthenticated) return undefined;
@@ -67,6 +75,7 @@ export default function BackgroundMusic() {
         },
         events: {
           onReady: (e) => {
+            e.target.setVolume(volumeRef.current);
             if (mutedRef.current) e.target.mute();
             e.target.playVideo();
             setReady(true);
@@ -123,20 +132,47 @@ export default function BackgroundMusic() {
     else playerRef.current?.unMute();
   }
 
+  function handleVolumeChange(e) {
+    const next = Number(e.target.value);
+    setVolume(next);
+    localStorage.setItem(VOLUME_PREF_KEY, String(next));
+    unlockedRef.current = true;
+    playerRef.current?.setVolume(next);
+    if (next > 0 && muted) {
+      setMuted(false);
+      localStorage.setItem(MUTE_PREF_KEY, 'false');
+      playerRef.current?.unMute();
+    }
+  }
+
   if (!isAuthenticated) return null;
+  const isSilent = muted || volume === 0;
 
   return (
     <>
       <div id="bgm-player" style={{ position: 'fixed', width: 0, height: 0, overflow: 'hidden' }} />
-      <button
-        type="button"
-        className="bgm-toggle"
-        onClick={toggleMute}
-        aria-label={muted ? 'Activar música' : 'Silenciar música'}
-        title={muted ? 'Activar música' : 'Silenciar música'}
-      >
-        <GameIcon name={muted ? 'speaker-off' : 'speaker'} artist="delapouite" />
-      </button>
+      <div className="bgm-control">
+        <button
+          type="button"
+          className="bgm-toggle"
+          onClick={toggleMute}
+          aria-label={isSilent ? 'Activar música' : 'Silenciar música'}
+          title={isSilent ? 'Activar música' : 'Silenciar música'}
+        >
+          <GameIcon name={isSilent ? 'speaker-off' : 'speaker'} artist="delapouite" />
+        </button>
+        <div className="bgm-volume-popover">
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={muted ? 0 : volume}
+            onChange={handleVolumeChange}
+            className="bgm-volume-slider"
+            aria-label="Volumen de la música"
+          />
+        </div>
+      </div>
     </>
   );
 }

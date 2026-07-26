@@ -3602,11 +3602,14 @@ h1, h2, h3 {
 
 /* Botón de mute de la música de fondo (BackgroundMusic) — top-right, debajo del navbar
    (z-index 70), simétrico al top-left que ya ocupa IncubatorAlert. */
-.bgm-toggle {
+.bgm-control {
   position: fixed;
   top: 90px;
   right: 20px;
   z-index: 58;
+}
+
+.bgm-toggle {
   width: 38px;
   height: 38px;
   display: flex;
@@ -3623,6 +3626,36 @@ h1, h2, h3 {
 
 .bgm-toggle:hover {
   border-color: var(--gold);
+}
+
+/* Slider de volumen: oculto por default, aparece al pasar el mouse (o con foco por teclado)
+   sobre el control entero, no solo el botón, para que no se cierre al mover el mouse hacia él. */
+.bgm-volume-popover {
+  position: absolute;
+  top: 46px;
+  right: 0;
+  padding: 10px 8px;
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border: 1px solid var(--gold-dim);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.15s, transform 0.15s, visibility 0.15s;
+}
+
+.bgm-control:hover .bgm-volume-popover,
+.bgm-control:focus-within .bgm-volume-popover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.bgm-volume-slider {
+  width: 90px;
+  accent-color: var(--gold-bright);
+  cursor: pointer;
 }
 
 .incubator-alert-text {
