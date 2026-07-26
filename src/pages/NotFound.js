@@ -1,14 +1,13 @@
 import { Link } from 'react-router-dom';
 import GameIcon from '../components/GameIcon';
 
-export default function Placeholder({ title }) {
+export default function NotFound() {
   return (
     <div className="placeholder-page">
       <h1>
-        <GameIcon name="fleur-de-lys" artist="delapouite" /> {title}{' '}
-        <GameIcon name="fleur-de-lys" artist="delapouite" />
+        <GameIcon name="magnifying-glass" artist="lorc" /> Página no encontrada
       </h1>
-      <p>Próximamente.</p>
+      <p>Esta ruta no existe.</p>
       <Link to="/">Volver al inicio</Link>
     </div>
   );

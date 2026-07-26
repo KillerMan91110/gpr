@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
+import NotFound from './pages/NotFound';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -42,57 +44,60 @@ import './App.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <SocketProvider>
-        <BrowserRouter>
-          <NavBar />
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/quests" element={<ProtectedRoute><MyQuests /></ProtectedRoute>} />
-            <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
-            <Route path="/combat" element={<ProtectedRoute><Zones /></ProtectedRoute>} />
-            <Route path="/combat/:zoneId" element={<ProtectedRoute><ExploreZone /></ProtectedRoute>} />
-            <Route path="/ranks" element={<ProtectedRoute><Ranks /></ProtectedRoute>} />
-            <Route path="/ranking" element={<ProtectedRoute><Ranking /></ProtectedRoute>} />
-            <Route path="/guild" element={<ProtectedRoute><Guild /></ProtectedRoute>} />
-            <Route path="/guild/masters" element={<ProtectedRoute><GuildMasters /></ProtectedRoute>} />
-            <Route path="/guild/masters/:classId" element={<ProtectedRoute><GuildMasterDetail /></ProtectedRoute>} />
-            <Route path="/guild/adventurers" element={<ProtectedRoute><GuildAdventurers /></ProtectedRoute>} />
-            <Route path="/guild/infirmary" element={<ProtectedRoute><Infirmary /></ProtectedRoute>} />
-            <Route path="/guild/quests" element={<ProtectedRoute><GuildQuests /></ProtectedRoute>} />
-            <Route path="/guild/create" element={<ProtectedRoute><GuildCreate /></ProtectedRoute>} />
-            <Route path="/guild/join" element={<ProtectedRoute><GuildJoin /></ProtectedRoute>} />
-            <Route path="/guild/my" element={<ProtectedRoute><GuildMy /></ProtectedRoute>} />
-            <Route path="/guild/enchant" element={<ProtectedRoute><GuildEnchant /></ProtectedRoute>} />
-            <Route path="/artisan-shop" element={<ProtectedRoute><ArtisanShop /></ProtectedRoute>} />
-            <Route path="/market" element={<ProtectedRoute><Market /></ProtectedRoute>} />
-            <Route path="/crafting" element={<ProtectedRoute><Crafting /></ProtectedRoute>} />
-            <Route path="/evolutions" element={<ProtectedRoute><Evolutions /></ProtectedRoute>} />
-            <Route path="/skills" element={<ProtectedRoute><Skills /></ProtectedRoute>} />
-            <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
-            <Route path="/formation" element={<ProtectedRoute><Formation /></ProtectedRoute>} />
-            <Route path="/pets" element={<ProtectedRoute><Pets /></ProtectedRoute>} />
-            <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
-            <Route path="/abismo" element={<ProtectedRoute><Tower /></ProtectedRoute>} />
-            <Route path="/abismo/vendor" element={<ProtectedRoute><TowerVendor /></ProtectedRoute>} />
-            <Route path="/worldboss" element={<ProtectedRoute><WorldBoss /></ProtectedRoute>} />
-            <Route path="/worldboss/shop" element={<ProtectedRoute><WorldBossShop /></ProtectedRoute>} />
-          </Routes>
-          <CoopBar />
-          <ChatBox />
-          <IncubatorAlert />
-        </BrowserRouter>
-      </SocketProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <SocketProvider>
+          <BrowserRouter>
+            <NavBar />
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/quests" element={<ProtectedRoute><MyQuests /></ProtectedRoute>} />
+              <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+              <Route path="/combat" element={<ProtectedRoute><Zones /></ProtectedRoute>} />
+              <Route path="/combat/:zoneId" element={<ProtectedRoute><ExploreZone /></ProtectedRoute>} />
+              <Route path="/ranks" element={<ProtectedRoute><Ranks /></ProtectedRoute>} />
+              <Route path="/ranking" element={<ProtectedRoute><Ranking /></ProtectedRoute>} />
+              <Route path="/guild" element={<ProtectedRoute><Guild /></ProtectedRoute>} />
+              <Route path="/guild/masters" element={<ProtectedRoute><GuildMasters /></ProtectedRoute>} />
+              <Route path="/guild/masters/:classId" element={<ProtectedRoute><GuildMasterDetail /></ProtectedRoute>} />
+              <Route path="/guild/adventurers" element={<ProtectedRoute><GuildAdventurers /></ProtectedRoute>} />
+              <Route path="/guild/infirmary" element={<ProtectedRoute><Infirmary /></ProtectedRoute>} />
+              <Route path="/guild/quests" element={<ProtectedRoute><GuildQuests /></ProtectedRoute>} />
+              <Route path="/guild/create" element={<ProtectedRoute><GuildCreate /></ProtectedRoute>} />
+              <Route path="/guild/join" element={<ProtectedRoute><GuildJoin /></ProtectedRoute>} />
+              <Route path="/guild/my" element={<ProtectedRoute><GuildMy /></ProtectedRoute>} />
+              <Route path="/guild/enchant" element={<ProtectedRoute><GuildEnchant /></ProtectedRoute>} />
+              <Route path="/artisan-shop" element={<ProtectedRoute><ArtisanShop /></ProtectedRoute>} />
+              <Route path="/market" element={<ProtectedRoute><Market /></ProtectedRoute>} />
+              <Route path="/crafting" element={<ProtectedRoute><Crafting /></ProtectedRoute>} />
+              <Route path="/evolutions" element={<ProtectedRoute><Evolutions /></ProtectedRoute>} />
+              <Route path="/skills" element={<ProtectedRoute><Skills /></ProtectedRoute>} />
+              <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
+              <Route path="/formation" element={<ProtectedRoute><Formation /></ProtectedRoute>} />
+              <Route path="/pets" element={<ProtectedRoute><Pets /></ProtectedRoute>} />
+              <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
+              <Route path="/abismo" element={<ProtectedRoute><Tower /></ProtectedRoute>} />
+              <Route path="/abismo/vendor" element={<ProtectedRoute><TowerVendor /></ProtectedRoute>} />
+              <Route path="/worldboss" element={<ProtectedRoute><WorldBoss /></ProtectedRoute>} />
+              <Route path="/worldboss/shop" element={<ProtectedRoute><WorldBossShop /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <CoopBar />
+            <ChatBox />
+            <IncubatorAlert />
+          </BrowserRouter>
+        </SocketProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
