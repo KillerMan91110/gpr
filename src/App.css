@@ -3600,6 +3600,31 @@ h1, h2, h3 {
   border-color: var(--gold);
 }
 
+/* Botón de mute de la música de fondo (BackgroundMusic) — top-right, debajo del navbar
+   (z-index 70), simétrico al top-left que ya ocupa IncubatorAlert. */
+.bgm-toggle {
+  position: fixed;
+  top: 90px;
+  right: 20px;
+  z-index: 58;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border: 1px solid var(--gold-dim);
+  border-radius: 50%;
+  color: var(--gold-bright);
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.bgm-toggle:hover {
+  border-color: var(--gold);
+}
+
 .incubator-alert-text {
   font-size: 0.9rem;
 }

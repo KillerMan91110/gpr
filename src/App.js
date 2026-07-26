@@ -39,6 +39,7 @@ import WorldBossShop from './pages/WorldBossShop';
 import CoopBar from './components/CoopBar';
 import ChatBox from './components/ChatBox';
 import IncubatorAlert from './components/IncubatorAlert';
+import BackgroundMusic from './components/BackgroundMusic';
 import NavBar from './components/NavBar';
 import './App.css';
 
@@ -94,6 +95,7 @@ function App() {
             <CoopBar />
             <ChatBox />
             <IncubatorAlert />
+            <BackgroundMusic />
           </BrowserRouter>
         </SocketProvider>
       </AuthProvider>
