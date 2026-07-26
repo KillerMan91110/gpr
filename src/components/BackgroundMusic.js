@@ -3,7 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { getActiveCombat, isCombatInProgress } from '../utils/activeCombat';
 import GameIcon from './GameIcon';
 
-const VIDEO_ID = 'oCA8DkQHC40';
+const BGM_VIDEO_ID = 'oCA8DkQHC40';
+const COMBAT_VIDEO_ID = 'z2iSqQWGFxA';
 const COMBAT_POLL_MS = 1500;
 const MUTE_PREF_KEY = 'bgmMuted';
 const VOLUME_PREF_KEY = 'bgmVolume';
@@ -31,10 +32,11 @@ function loadYouTubeApi() {
   return window.__ytApiPromise;
 }
 
-// Música de fondo global: suena en cualquier pantalla mientras estás logueado, se pausa sola
-// apenas hay un combate en curso (mismo activeCombat que usa ProtectedRoute para redirigir) y
-// retoma cuando el combate termina. Arranca muteada (autoplay con sonido lo bloquean los
-// navegadores) y se desmutea sola en la primera interacción, salvo que el jugador la haya
+// Música de fondo global: suena en cualquier pantalla mientras estás logueado, cambia sola al
+// tema de combate apenas hay un combate en curso (mismo activeCombat que usa ProtectedRoute
+// para redirigir) y vuelve al tema de fondo cuando el combate termina. Arranca muteada (autoplay
+// con sonido lo bloquean los navegadores) y se desmutea sola en la primera interacción, salvo
+// que el jugador la haya
 // muteado a mano — esa preferencia sí se respeta y se guarda.
 export default function BackgroundMusic() {
   const { isAuthenticated } = useAuth();
@@ -57,16 +59,19 @@ export default function BackgroundMusic() {
     if (!isAuthenticated) return undefined;
     let cancelled = false;
 
+    // Si recargás la página a mitad de un combate, arranca directo con el tema de combate en
+    // vez de cargar el de fondo y cambiar al instante — evita el salto feo al abrir.
+    const startsInCombat = isCombatInProgress(getActiveCombat());
+    wasInCombatRef.current = startsInCombat;
+
     loadYouTubeApi().then((YT) => {
       if (cancelled || playerRef.current) return;
       playerRef.current = new YT.Player('bgm-player', {
         height: '0',
         width: '0',
-        videoId: VIDEO_ID,
+        videoId: startsInCombat ? COMBAT_VIDEO_ID : BGM_VIDEO_ID,
         playerVars: {
           autoplay: 1,
-          loop: 1,
-          playlist: VIDEO_ID,
           controls: 0,
           disablekb: 1,
           fs: 0,
@@ -79,6 +84,14 @@ export default function BackgroundMusic() {
             if (mutedRef.current) e.target.mute();
             e.target.playVideo();
             setReady(true);
+          },
+          // Sin playlist/loop en playerVars porque el video cambia en vivo (fondo <-> combate);
+          // loopeamos a mano el que esté cargado en ese momento, sea cual sea.
+          onStateChange: (e) => {
+            if (e.data === YT.PlayerState.ENDED) {
+              e.target.seekTo(0);
+              e.target.playVideo();
+            }
           },
         },
       });
@@ -109,16 +122,16 @@ export default function BackgroundMusic() {
     };
   }, [ready, muted]);
 
-  // Pausa/reanuda según haya o no un combate en curso — mismo flag que ya escribe
-  // ExploreZone/Tower/WorldBoss vía setActiveCombat/clearActiveCombat.
+  // Cambia de tema según haya o no un combate en curso — mismo flag que ya escribe
+  // ExploreZone/Tower/WorldBoss vía setActiveCombat/clearActiveCombat. loadVideoById reemplaza
+  // el video cargado y arranca a reproducirlo solo (mute/volumen del player no se resetean).
   useEffect(() => {
     if (!ready) return undefined;
     const iv = setInterval(() => {
       const inCombat = isCombatInProgress(getActiveCombat());
       if (inCombat === wasInCombatRef.current) return;
       wasInCombatRef.current = inCombat;
-      if (inCombat) playerRef.current?.pauseVideo();
-      else playerRef.current?.playVideo();
+      playerRef.current?.loadVideoById(inCombat ? COMBAT_VIDEO_ID : BGM_VIDEO_ID);
     }, COMBAT_POLL_MS);
     return () => clearInterval(iv);
   }, [ready]);
