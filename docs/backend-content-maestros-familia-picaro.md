@@ -1,0 +1,66 @@
+# Contenido back: maestros de clase — familia Pícaro completa (18 nuevos)
+
+Pura escritura de contenido, mismo esquema `class_masters` de siempre. Cubre toda la rama Pícaro
+confirmada contra `class_evolutions`: 4→21/22/23/24/25, 21→78/79/87, 22→75, 75→76, 23→80/81,
+24→77/86, 25→82/83/84/85.
+
+```sql
+INSERT INTO class_masters (class_id, name, intro_dialogue, guild_dialogue) VALUES
+(21, 'Kiro, Sombra Silenciosa',
+ 'Kiro se mueve entre las sombras enfrentando a varios enemigos a la vez, casi sin ser visto — te sumás al ataque justo cuando el sigilo ya no alcanza. "Un ninja que necesita ayuda ya cometió un error. Gracias por no dejarme cometerlo del todo."',
+ 'El silencio es mi arma más fuerte. Vos rompiste el mío, y no me molestó.'),
+(22, 'Vex, Filo Rápido',
+ 'Vex busca el golpe letal perfecto contra un objetivo esquivo — tu distracción le da la abertura que necesitaba. "Un golpe, una muerte. Vos me diste el momento exacto."',
+ 'No cuento cuántos golpes letales llevo. Dejé de contar hace mucho.'),
+(23, 'Fenna Dedos Ligeros',
+ 'Fenna intenta robar algo de un enemigo mientras esquiva sus ataques — la cubrís el tiempo suficiente para que complete el robo. "Robar en combate es el doble de riesgo por el doble de premio. Gracias por reducir el riesgo."',
+ 'Doscientos robos después, todavía el mejor botín es la sorpresa en la cara de quien perdió algo.'),
+(24, 'Sythe, Toque Letal',
+ 'Sythe aplica veneno tras veneno mientras evita que el enemigo note el patrón — peleás a su lado disimulando el momento exacto. "El veneno perfecto es el que nadie nota hasta que ya es tarde. Vos ayudaste a que no lo notaran."',
+ 'No envenené a nadie que no lo mereciera. Al menos, eso me digo para dormir tranquilo.'),
+(25, 'Grix el Ingenioso',
+ 'Una trampa de Grix casi se activa antes de tiempo, apuntando al enemigo equivocado — la desarmás y volvés a tenderla a tiempo. "Cien trampas activadas y todavía cometo errores de cálculo. Gracias por corregir este."',
+ 'La mejor trampa es la que nadie ve ni cuando ya cayó en ella.'),
+(75, 'Kestrel, el Golpe Perfecto',
+ 'Kestrel busca EL golpe, el que termina todo de una vez, contra un objetivo casi imposible — tu apoyo le da la ventana exacta. "El golpe perfecto no admite un segundo intento. Gracias por asegurarte de que no lo necesitara."',
+ 'Perfeccioné un solo golpe toda mi vida. A veces me pregunto si valió la pena, y la respuesta siempre es sí.'),
+(76, 'Draven, Cazador de Jefes',
+ 'Draven enfrenta solo a algo mucho más grande que él, apostando todo a un instante — llegás justo para inclinar la balanza. "Cazar jefes es apostar tu vida en cada intento. Hoy la apuesta salió bien gracias a vos."',
+ 'No cuento cuántos jefes caí. Cuento cuántas veces casi no vuelvo, y son demasiadas.'),
+(77, 'Morwenna, Cinco Toxinas',
+ 'Morwenna combina cinco venenos distintos en un solo combate, arriesgando confundirse ella misma — la ayudás a mantener el orden. "Cinco venenos a la vez es elegancia, no exceso. Vos entendiste la diferencia."',
+ 'Cada toxina que domino tiene su propia personalidad. Aprendé a respetarlas todas por igual.'),
+(78, 'Shiro, Sombra Perfecta',
+ 'Shiro ataca sin que nadie note siquiera que estuvo ahí — vos sos de las pocas personas que lo ve moverse, y no parece molestarle. "Si me viste, es porque te lo permití. No a cualquiera se lo permito."',
+ 'El sigilo perfecto no busca aplausos. Busca que nadie sepa que hubo algo que aplaudir.'),
+(79, 'Kurotsuki',
+ 'Kurotsuki fusiona sigilo con magia oscura, casi perdiéndose en su propia sombra — lo ayudás a volver antes de que la sombra gane. "La oscuridad que uso a veces olvida devolverme. Gracias por recordarle que tenía que hacerlo."',
+ 'No soy completamente yo cuando uso esta técnica. Espero que eso no te asuste.'),
+(80, 'Rook, Leyenda Viva',
+ 'Rook intenta un robo que ya es leyenda entre ladrones, arriesgando demasiado — tu ayuda convierte el intento en historia real. "Cada robo legendario empezó como una locura que casi no funciona. Gracias por la parte del ''casi''."',
+ 'No robo por necesidad. Robo porque algunas cosas están mal guardadas y yo vine a corregir eso.'),
+(81, 'Delphine Buscafortunas',
+ 'Delphine casi activa una maldición antigua buscando un tesoro único — la sacás de la sala justo antes de que se cierre. "Cada tesoro único tiene su propio guardián. Hoy el guardián casi gana."',
+ 'No busco oro. Busco cosas que nadie más pudo encontrar. El oro es solo una excusa.'),
+(82, 'Cassian, Espada a Sueldo',
+ 'Cassian pelea por contrato contra algo que claramente superó lo pactado — te sumás sin que te lo pidan, y él lo nota. "No peleo gratis, normalmente. Esto lo voy a recordar de todos modos."',
+ 'El oro paga el riesgo. No paga la lealtad. Esa se gana aparte.'),
+(83, 'Talia Sendasombría',
+ 'Talia queda atrapada en un pasillo colapsado de una mazmorra peligrosa — la ayudás a abrirse paso de vuelta. "Cada mazmorra tiene un camino de salida. A veces hace falta ayuda para encontrarlo a tiempo."',
+ 'Exploré ruinas que ni los mapas recuerdan. Todavía me sorprenden.'),
+(84, 'Nadia, la que No Está',
+ 'Nadia desaparece literalmente en medio del combate y reaparece detrás del enemigo — peleás a su lado sin saber nunca dónde va a estar. "Desaparecer no es magia. Es dejar de darle al otro una razón para mirarte."',
+ 'Si me buscás, no me vas a encontrar. Si no me buscás, tampoco. Esa es la gracia.'),
+(85, 'Otho Ojo Agudo',
+ 'Otho detecta una trampa mortal un segundo antes de que se active sobre el grupo — reaccionás a tiempo gracias a su aviso. "Detectar el peligro antes de que exista es la única forma de sobrevivir a este oficio."',
+ 'Nunca vi una trampa que no pudiera desactivar. Todavía no encontré la que me gane.'),
+(86, 'Ryn, Filo de Tormenta',
+ 'Ryn combina sigilo con destellos elementales impredecibles — peleás a su lado sin saber qué elemento va a usar después. "Combinar sigilo y magia elemental es un balance raro. Pocos lo intentan, menos lo logran."',
+ 'El elemento que uso cambia con mi humor. Hoy, por suerte para vos, estaba de buen humor.'),
+(87, 'Piroette',
+ 'Piroette esquiva un ataque tras otro con una gracia casi imposible, hasta que el cansancio empieza a ganarle — la cubrís el tiempo justo. "Nunca me golpean. Hoy casi. Gracias por el ''casi''."',
+ 'La evasión perfecta no es no ser golpeado. Es asegurarte de que nunca sea la última vez que lo intentan.')
+ON CONFLICT (class_id) DO NOTHING;
+```
+
+Familia Pícaro completa: 18 clases. Sin ítems de tienda todavía.
