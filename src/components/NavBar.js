@@ -10,10 +10,10 @@ const CATEGORIES = [
     gameIcon: { name: 'crossed-swords', artist: 'lorc' },
     label: 'Aventura',
     items: [
-      { to: '/combat', label: 'Combate' },
+      { to: '/combat', label: 'Explorar', gameIcon: { name: 'compass', artist: 'lorc' } },
       { to: '/abismo', label: 'El Abismo', gameIcon: { name: 'vortex', artist: 'lorc' } },
       { to: '/worldboss', label: 'World Boss', gameIcon: { name: 'galaxy', artist: 'delapouite' } },
-      { to: '/quests', label: 'Misiones' },
+      { to: '/quests', label: 'Misiones', gameIcon: { name: 'scroll-unfurled', artist: 'lorc' } },
     ],
   },
   {
