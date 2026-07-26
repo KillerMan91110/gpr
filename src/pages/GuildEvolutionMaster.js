@@ -233,24 +233,24 @@ export default function GuildEvolutionMaster() {
           ) : (
             <div className="item-grid">
               {shopData.shop.map((item) => (
-                <div key={item.item_id} className={`rpg-panel inventory-item ${rarityClass(item.rarity)}`}>
+                <div key={item.itemId} className={`rpg-panel inventory-item ${rarityClass(item.rarity)}`}>
                   <div className="inventory-item-header">
                     <span className="inventory-item-name">{item.name}</span>
                     <span className="inventory-item-qty">{Number(item.price).toLocaleString()} <GameIcon name="two-coins" artist="delapouite" /></span>
                   </div>
                   <span className="inventory-item-rarity">{RARITY_LABELS[item.rarity] || item.rarity}</span>
-                  {item.required_level && <span className="inventory-item-level">Nivel mín. {item.required_level}</span>}
+                  {item.requiredLevel && <span className="inventory-item-level">Nivel mín. {item.requiredLevel}</span>}
                   <button
                     className="rpg-button equipment-action"
                     disabled={
-                      busyId === `buy-${item.item_id}` ||
+                      busyId === `buy-${item.itemId}` ||
                       shopData.gold < item.price ||
                       (shopData.canGift && !shopRecipient)
                     }
-                    onClick={() => handleBuyItem(item.item_id)}
+                    onClick={() => handleBuyItem(item.itemId)}
                     title={shopData.gold < item.price ? 'No tienes suficiente oro' : undefined}
                   >
-                    {busyId === `buy-${item.item_id}` ? 'Comprando...' : 'Comprar'}
+                    {busyId === `buy-${item.itemId}` ? 'Comprando...' : 'Comprar'}
                   </button>
                 </div>
               ))}
