@@ -1759,6 +1759,9 @@ h1, h2, h3 {
 .rarity-legendario { border-left-color: var(--rarity-legendario); }
 .rarity-legendario .inventory-item-rarity, .rarity-legendario.equipment-item-name { color: var(--rarity-legendario); }
 
+.rarity-unico { border-left-color: var(--rarity-unico); }
+.rarity-unico .inventory-item-rarity, .rarity-unico.equipment-item-name { color: var(--rarity-unico); }
+
 /* ===== Mercado ===== */
 .market-gold-tag {
   font-family: 'Cinzel', serif;
