@@ -209,6 +209,7 @@ export default function GuildEvolutionMaster() {
 
       {tab === 'shop' && (
         <section className="inventory-group">
+          <h2>Tienda de {master?.name || 'este maestro'}</h2>
           <p className="dashboard-subtitle">Tu oro: {Number(shopData.gold).toLocaleString()}</p>
           {shopData.canGift && (
             <div className="guild-form-group">
