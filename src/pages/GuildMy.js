@@ -93,6 +93,7 @@ export default function GuildMy() {
   const [activity, setActivity] = useState(null);
   const [bank, setBank] = useState(null);
   const [shop, setShop] = useState(null);
+  const [masters, setMasters] = useState(null);
   const [donateAmount, setDonateAmount] = useState('');
   const [donateLoading, setDonateLoading] = useState(false);
   const [buyItemId, setBuyItemId] = useState('');
@@ -139,6 +140,7 @@ export default function GuildMy() {
     if (!guild?.id) return;
     let cancelled = false;
     api.getGuildActivity(token, guild.id).then((r) => { if (!cancelled) setActivity(r); }).catch(() => { if (!cancelled) setActivity([]); });
+    api.getGuildMasters(token, guild.id).then((r) => { if (!cancelled) setMasters(r); }).catch(() => { if (!cancelled) setMasters([]); });
     if (guild.level >= 2) {
       api.getGuildBank(token, guild.id).then((r) => { if (!cancelled) setBank(r); }).catch(() => { if (!cancelled) setBank(null); });
       api.getGuildBankShop(token, guild.id).then((r) => { if (!cancelled) setShop(r); }).catch(() => { if (!cancelled) setShop([]); });
@@ -737,6 +739,31 @@ export default function GuildMy() {
           <p className="hint">Tu líder u oficiales pueden comprar items con el oro donado y enviártelos por correo.</p>
         )}
       </div>
+      </div>
+
+      {/* Maestros de clase */}
+      <div className="rpg-panel">
+        <h3 className="guild-members-title">🧙 Maestros</h3>
+        {masters === null && <p className="hint">Cargando...</p>}
+        {masters?.length === 0 && (
+          <p className="hint">Todavía ningún miembro trajo un maestro de clase al gremio. Evolucionan y explorá para encontrar uno.</p>
+        )}
+        {masters?.length > 0 && (
+          <div className="guild-activity-list">
+            {masters.map((m) => (
+              <div key={m.id} className="guild-activity-row">
+                <span>
+                  <strong>{m.name}</strong>
+                  <br />
+                  <span className="zone-description">"{m.guild_dialogue}"</span>
+                </span>
+                <span className="hint">
+                  Gracias a {m.unlocked_by_nickname ?? 'alguien'} · {formatLastSeen(m.unlocked_at)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Actividad reciente */}

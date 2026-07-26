@@ -239,6 +239,7 @@ export const api = {
   depositGuildBank: (token, guildId, amount) =>
     request(`/api/guilds/${guildId}/bank/deposit`, { method: 'POST', body: { amount }, token }),
   getGuildBankShop: (token, guildId) => request(`/api/guilds/${guildId}/shop`, { token }),
+  getGuildMasters: (token, guildId) => request(`/api/guilds/${guildId}/masters`, { token }),
   buyGuildBankShopItem: (token, guildId, itemId, quantity, recipientPlayerId) =>
     request(`/api/guilds/${guildId}/shop/buy`, { method: 'POST', body: { itemId, quantity, recipientPlayerId }, token }),
   // El Abismo (el back sigue usando las rutas /tower/* sin cambios)
