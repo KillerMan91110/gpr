@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { api } from '../api/client';
+import GameIcon from './GameIcon';
 
 const CHANNEL_LABELS = { GENERAL: 'General', TRADE: 'Comercio', PARTY: 'Grupo', GUILD: 'Gremio' };
 const PARTY_POLL_MS = 6000;
@@ -226,7 +227,7 @@ export default function ChatBox() {
   if (minimized) {
     return (
       <button className="chat-box-restore rpg-button rpg-button--small" type="button" onClick={() => setMinimized(false)}>
-        💬 Chat
+        <GameIcon name="chat-bubble" artist="delapouite" /> Chat
         {totalUnread > 0 && <span className="chat-tab-badge">{totalUnread}</span>}
       </button>
     );

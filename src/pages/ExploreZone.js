@@ -3,18 +3,37 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import { getActiveCombat, setActiveCombat, clearActiveCombat } from '../utils/activeCombat';
+import GameIcon from '../components/GameIcon';
 
 const LOG_REVEAL_DELAY_MS = 650;
 
 // Categoría física/mágica de la skill (como el ícono de tipo en Pokémon) y a quién afecta —
 // el back ya manda damageSchool/targetType/effects, solo faltaba mostrarlo antes de elegir.
 // Exportados para que Tower.js use exactamente los mismos íconos/textos.
-export const SCHOOL_ICONS = { FISICO: '⚔', MAGICO: '✦', HIBRIDO: '⚡' };
+export const SCHOOL_ICONS = {
+  FISICO: { name: 'broadsword', artist: 'lorc' },
+  MAGICO: { name: 'magic-swirl', artist: 'lorc' },
+  HIBRIDO: { name: 'zeus-sword', artist: 'lorc' },
+};
 export const SCHOOL_LABELS = { FISICO: 'Físico', MAGICO: 'Mágico', HIBRIDO: 'Híbrido' };
-export const TARGET_ICONS = { SELF: '◎', ALLY: '🤝', ALL_ALLIES: '🤝🤝', ENEMY: '🎯', ALL_ENEMIES: '💥' };
+export const TARGET_ICONS = {
+  SELF: '◎',
+  ALLY: { name: 'shaking-hands', artist: 'delapouite' },
+  ALL_ALLIES: { name: 'three-friends', artist: 'delapouite' },
+  ENEMY: { name: 'archery-target', artist: 'lorc' },
+  ALL_ENEMIES: { name: 'spiky-explosion', artist: 'lorc' },
+};
 export const TARGET_LABELS = {
   SELF: 'Uno mismo', ALLY: 'Un aliado', ALL_ALLIES: 'Todos los aliados',
   ENEMY: 'Un enemigo', ALL_ENEMIES: 'Todos los enemigos',
+};
+export const SKILL_TYPE_ICONS = {
+  ATAQUE: { name: 'pointy-sword', artist: 'lorc' },
+  CURACION: { name: 'healing', artist: 'delapouite' },
+  BUFF: { name: 'shield', artist: 'sbed' },
+  DEBUFF: { name: 'broken-shield', artist: 'lorc' },
+  ESTADO_ALTERADO: { name: 'skull-crossed-bones', artist: 'lorc' },
+  ESPECIAL: { name: 'sparkles', artist: 'delapouite' },
 };
 const STAT_LABELS = {
   ATK: 'ATK', DEF: 'DEF', MAG: 'INT', MAGIC_DEF: 'DEF MAG', SPD: 'SPD',
@@ -435,7 +454,7 @@ export default function ExploreZone() {
   if (zone && zone.unlocked === false) {
     return (
       <div className="placeholder-page">
-        <h1>🔒 Zona bloqueada</h1>
+        <h1><GameIcon name="padlock" artist="lorc" /> Zona bloqueada</h1>
         <p>Todavía no puedes entrar a esta zona.</p>
         <Link to="/combat">Volver a zonas</Link>
       </div>
@@ -461,7 +480,7 @@ export default function ExploreZone() {
       {masterEncounter && (
         <div className="modal-overlay">
           <div className="modal-panel rpg-panel abyss-event-panel">
-            <h2>🧙 {masterEncounter.name}</h2>
+            <h2><GameIcon name="wizard-face" artist="delapouite" /> {masterEncounter.name}</h2>
             <p className="zone-description">{masterEncounter.dialogue}</p>
             <div className="craft-row" style={{ justifyContent: 'center' }}>
               <button className="rpg-button" onClick={handleHelpMaster} disabled={masterHelping}>
@@ -950,10 +969,7 @@ function CombatView({
               activeSkills.filter((s) => !s.isPassive && s.skillType !== 'PASIVA').map((skill) => {
                 const insufficientMana = actor && actor.mana < skill.manaCost;
                 const disabled = loading || insufficientMana;
-                const icon = {
-                  ATAQUE: '⚔', CURACION: '✚', BUFF: '🛡', DEBUFF: '💀',
-                  ESTADO_ALTERADO: '☠', ESPECIAL: '✦',
-                }[skill.skillType] || '⚔';
+                const icon = SKILL_TYPE_ICONS[skill.skillType] || SKILL_TYPE_ICONS.ATAQUE;
                 const schoolIcon = SCHOOL_ICONS[skill.damageSchool];
                 const targetIcon = TARGET_ICONS[skill.targetType];
                 return (
@@ -964,10 +980,16 @@ function CombatView({
                     onClick={() => handleSkillClick(skill)}
                   >
                     <span className="skill-row-main">
-                      <span>{icon} {skill.name}</span>
+                      <span><GameIcon {...icon} /> {skill.name}</span>
                       <span className="skill-row-badges">
-                        {schoolIcon && <span title={SCHOOL_LABELS[skill.damageSchool]}>{schoolIcon}</span>}
-                        {targetIcon && <span title={TARGET_LABELS[skill.targetType]}>{targetIcon}</span>}
+                        {schoolIcon && (
+                          <span title={SCHOOL_LABELS[skill.damageSchool]}><GameIcon {...schoolIcon} /></span>
+                        )}
+                        {targetIcon && (
+                          <span title={TARGET_LABELS[skill.targetType]}>
+                            {typeof targetIcon === 'string' ? targetIcon : <GameIcon {...targetIcon} />}
+                          </span>
+                        )}
                       </span>
                     </span>
                     <span className="item-qty">{skill.manaCost > 0 ? `${skill.manaCost} maná` : 'gratis'}</span>
@@ -1094,9 +1116,13 @@ export function CombatantCard({ participant, level, isActive, targetable, allyTa
         <div className="combatant-name">
           {participant.name}
           {level != null && <span className="combatant-level"> Nv. {level}</span>}
-          {participant.is_defending && <span className="combatant-defending"> 🛡</span>}
+          {participant.is_defending && (
+            <span className="combatant-defending"> <GameIcon name="shield" artist="sbed" /></span>
+          )}
           {partnerOwned && <span className="combatant-partner-tag"> (compañero)</span>}
-          {participant.is_ai_controlled && <span className="combatant-ai-tag"> 🤖 IA</span>}
+          {participant.is_ai_controlled && (
+            <span className="combatant-ai-tag"> <GameIcon name="robot-golem" artist="lorc" /> IA</span>
+          )}
         </div>
         {participant.class_name && (
           <div className="combatant-class">{participant.class_name}</div>

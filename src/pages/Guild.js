@@ -2,37 +2,38 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const ROLE_LABEL = { LEADER: 'Líder', OFFICER: 'Oficial', MEMBER: 'Miembro' };
 
 const SERVICE_SECTIONS = [
   {
     to: '/guild/adventurers',
-    icon: '⚔',
+    icon: { name: 'crossed-swords', artist: 'lorc' },
     title: 'Contratar Aventureros',
     description: 'Recluta NPCs para tu equipo. Refresca el pool para ver nuevos candidatos.',
   },
   {
     to: '/guild/masters',
-    icon: '🎓',
+    icon: { name: 'graduate-cap', artist: 'delapouite' },
     title: 'Maestros de Gremio',
     description: 'Las 5 clases base tienen su propio maestro. Aprende skills si tu clase coincide.',
   },
   {
     to: '/guild/infirmary',
-    icon: '✚',
+    icon: { name: 'healing', artist: 'delapouite' },
     title: 'Enfermería',
     description: 'Restaura tu HP y Maná al máximo antes de salir a explorar.',
   },
   {
     to: '/guild/quests',
-    icon: '📜',
+    icon: { name: 'scroll-unfurled', artist: 'lorc' },
     title: 'Quests del Gremio',
     description: 'Misiones exclusivas para miembros, con recompensas para ti y el tesoro del gremio.',
   },
   {
     to: '/guild/enchant',
-    icon: '✦',
+    icon: { name: 'magic-swirl', artist: 'lorc' },
     title: 'Encantador',
     description: 'Mejora el nivel de encantamiento de tu equipo equipado con piedras mágicas.',
   },
@@ -41,19 +42,19 @@ const SERVICE_SECTIONS = [
 const COMMERCE_SECTIONS = [
   {
     to: '/artisan-shop',
-    icon: '🏪',
+    icon: { name: 'shop', artist: 'delapouite' },
     title: 'Tienda de Artesanos',
     description: 'Compra materiales raros o vende ítems a los artesanos del gremio.',
   },
   {
     to: '/market',
-    icon: '💰',
+    icon: { name: 'money-stack', artist: 'delapouite' },
     title: 'Mercado de Jugadores',
     description: 'Publica ítems de tu inventario a la venta o cómprale a otros jugadores.',
   },
   {
     to: '/crafting',
-    icon: '⚒',
+    icon: { name: 'blacksmith', artist: 'delapouite' },
     title: 'Taller de Crafteo',
     description: 'Fabrica ítems con materiales o desmantela equipos para recuperar componentes.',
   },
@@ -75,7 +76,7 @@ export default function Guild() {
     ? [
         {
           to: '/guild/my',
-          icon: '🏛',
+          icon: { name: 'castle', artist: 'lorc' },
           title: myGuild.name,
           description: `Nivel ${myGuild.level} · ${myGuild.type === 'OPEN' ? 'Abierto' : 'Cerrado'} · Rol: ${ROLE_LABEL[myGuild.myRole] ?? myGuild.myRole}`,
         },
@@ -83,13 +84,13 @@ export default function Guild() {
     : [
         {
           to: '/guild/create',
-          icon: '🏗',
+          icon: { name: 'trowel', artist: 'delapouite' },
           title: 'Crear Gremio',
           description: 'Funda tu propio gremio y conviértete en su líder.',
         },
         {
           to: '/guild/join',
-          icon: '🤝',
+          icon: { name: 'shaking-hands', artist: 'delapouite' },
           title: 'Unirse a un Gremio',
           description: 'Busca un gremio existente y pide formar parte de él.',
         },
@@ -99,7 +100,7 @@ export default function Guild() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🏛 Gremio de Aventureros</h1>
+          <h1><GameIcon name="castle" artist="lorc" /> Gremio de Aventureros</h1>
           <p className="dashboard-subtitle">Tu base de operaciones entre expediciones</p>
         </div>
         <Link className="logout-btn" to="/">
@@ -116,7 +117,7 @@ export default function Guild() {
           >
             <div className="zone-card-header">
               <h3>
-                {section.icon} {section.title}
+                <GameIcon {...section.icon} /> {section.title}
               </h3>
             </div>
             <p className="zone-description">{section.description}</p>
@@ -130,7 +131,7 @@ export default function Guild() {
           <Link key={section.to} to={section.to} className="zone-card rpg-panel guild-section-link">
             <div className="zone-card-header">
               <h3>
-                {section.icon} {section.title}
+                <GameIcon {...section.icon} /> {section.title}
               </h3>
             </div>
             <p className="zone-description">{section.description}</p>
@@ -144,7 +145,7 @@ export default function Guild() {
           <Link key={section.to} to={section.to} className="zone-card rpg-panel guild-section-link">
             <div className="zone-card-header">
               <h3>
-                {section.icon} {section.title}
+                <GameIcon {...section.icon} /> {section.title}
               </h3>
             </div>
             <p className="zone-description">{section.description}</p>

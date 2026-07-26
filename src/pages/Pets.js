@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const RARITY_LABEL = {
   COMUN: 'Común', POCO_COMUN: 'Poco común', RARO: 'Raro',
@@ -172,7 +173,7 @@ export default function Pets() {
 
   return (
     <div className="dashboard">
-      <h1>🐾 Mascotas</h1>
+      <h1><GameIcon name="paw-print" artist="lorc" /> Mascotas</h1>
       {error && <p className="auth-error">{error}</p>}
 
       <section className="rpg-panel pets-section">
@@ -313,7 +314,7 @@ export default function Pets() {
           >
             ✕
           </button>
-          <h4 className="craft-result-title">🎉 ¡Nueva mascota!</h4>
+          <h4 className="craft-result-title"><GameIcon name="party-popper" artist="delapouite" /> ¡Nueva mascota!</h4>
           <p className="hint">
             Eclosionó <strong>{hatchResult.name}</strong> ({RARITY_LABEL[hatchResult.rarity]})
           </p>

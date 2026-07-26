@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 function requirementMark(req) {
   if (req.met) return '✓';
@@ -65,7 +66,7 @@ export default function Evolutions() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>⬆ Evoluciones</h1>
+          <h1><GameIcon name="dna2" artist="lorc" /> Evoluciones</h1>
           <p className="dashboard-subtitle">Los próximos pasos posibles desde tu clase actual.</p>
         </div>
         <Link className="logout-btn" to="/">Volver</Link>

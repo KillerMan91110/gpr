@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const RANK_COLORS = {
   F: '#b9b3c4',
@@ -16,7 +17,7 @@ const RANK_COLORS = {
 function BenefitCard({ icon, label, value }) {
   return (
     <div className="rank-benefit-card">
-      <span className="rank-benefit-icon">{icon}</span>
+      <span className="rank-benefit-icon"><GameIcon {...icon} /></span>
       <span className="rank-benefit-label">{label}</span>
       <strong className="rank-benefit-value">{value}</strong>
     </div>
@@ -97,22 +98,22 @@ export default function Ranks() {
       <p className="ranks-section-title">Beneficios Actuales</p>
       <div className="ranks-benefits-grid">
         <BenefitCard
-          icon="⚡"
+          icon={{ name: 'thunder-struck', artist: 'lorc' }}
           label="Bonus XP"
           value={currentRankData?.xp_bonus_percent > 0 ? `+${currentRankData.xp_bonus_percent}%` : '—'}
         />
         <BenefitCard
-          icon="🏪"
+          icon={{ name: 'shop', artist: 'delapouite' }}
           label="Descuento Tienda"
           value={currentRankData?.shop_discount_percent > 0 ? `-${currentRankData.shop_discount_percent}%` : '—'}
         />
         <BenefitCard
-          icon="💰"
+          icon={{ name: 'money-stack', artist: 'delapouite' }}
           label="Bonus Recompensas"
           value={currentRankData?.reward_bonus_percent > 0 ? `+${currentRankData.reward_bonus_percent}%` : '—'}
         />
         <BenefitCard
-          icon="🎒"
+          icon={{ name: 'backpack', artist: 'delapouite' }}
           label="Slots Extra"
           value={currentRankData?.extra_inventory_slots > 0 ? `+${currentRankData.extra_inventory_slots}` : '—'}
         />

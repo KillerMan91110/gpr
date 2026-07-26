@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const RARITY_LABELS = {
   COMUN: 'Común',
@@ -12,14 +13,25 @@ const RARITY_LABELS = {
 };
 
 const SLOT_ICONS = {
-  WEAPON: '⚔️', OFFHAND: '🛡️', HELMET: '⛑️', ARMOR: '👕',
-  GLOVES: '🧤', BOOTS: '👢', ACCESSORY: '💍',
+  WEAPON: { name: 'pointy-sword', artist: 'lorc' },
+  OFFHAND: { name: 'shield', artist: 'sbed' },
+  HELMET: { name: 'helmet', artist: 'sbed' },
+  ARMOR: { name: 'armor-vest', artist: 'lorc' },
+  GLOVES: { name: 'gloves', artist: 'delapouite' },
+  BOOTS: { name: 'leather-boot', artist: 'lorc' },
+  ACCESSORY: { name: 'ring', artist: 'delapouite' },
 };
-const TYPE_ICONS = { EQUIPMENT: '⚔️', CONSUMABLE: '🧪', MATERIAL: '🪵' };
+const TYPE_ICONS = {
+  EQUIPMENT: { name: 'pointy-sword', artist: 'lorc' },
+  CONSUMABLE: { name: 'health-potion', artist: 'delapouite' },
+  MATERIAL: { name: 'wood-pile', artist: 'delapouite' },
+};
 
 function itemIcon(item) {
-  if (item.item_type === 'EQUIPMENT') return SLOT_ICONS[item.slot] || '⚙️';
-  return TYPE_ICONS[item.item_type] || '❔';
+  const icon = item.item_type === 'EQUIPMENT'
+    ? (SLOT_ICONS[item.slot] || { name: 'cog', artist: 'lorc' })
+    : TYPE_ICONS[item.item_type];
+  return icon ? <GameIcon {...icon} /> : '❔';
 }
 
 function rarityClass(rarity) {
@@ -33,7 +45,11 @@ function EnchantBadge({ level }) {
 
 function LuckBadge({ tier }) {
   if (!tier) return null;
-  return <span className="luck-badge" title="Salió de mejor rareza por suerte">✦ Suerte</span>;
+  return (
+    <span className="luck-badge" title="Salió de mejor rareza por suerte">
+      <GameIcon name="sparkles" artist="delapouite" /> Suerte
+    </span>
+  );
 }
 
 export default function Market() {
@@ -146,14 +162,18 @@ export default function Market() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>💰 Mercado de Jugadores</h1>
+          <h1><GameIcon name="money-stack" artist="delapouite" /> Mercado de Jugadores</h1>
           <p className="dashboard-subtitle">
             Compra y vende ítems directamente con otros jugadores.
             {' '}<span className="hint">El mercado cobra un 5% de comisión en cada venta.</span>
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          {gold !== null && <span className="market-gold-tag">🪙 {gold.toLocaleString()} Oro</span>}
+          {gold !== null && (
+            <span className="market-gold-tag">
+              <GameIcon name="two-coins" artist="delapouite" /> {gold.toLocaleString()} Oro
+            </span>
+          )}
           <Link className="logout-btn" to="/guild">Volver</Link>
         </div>
       </header>
@@ -227,7 +247,7 @@ export default function Market() {
                 <span className="inventory-item-rarity">{RARITY_LABELS[l.rarity] || l.rarity}</span>
                 <span className="hint market-seller">Vende: {l.is_mine ? 'Tú' : l.seller_nickname}</span>
                 <span className="market-price">
-                  🪙 {Number(l.total_price).toLocaleString()} Oro
+                  <GameIcon name="two-coins" artist="delapouite" /> {Number(l.total_price).toLocaleString()} Oro
                   {l.quantity > 1 && <span className="hint"> ({Number(l.price_per_unit).toLocaleString()} c/u)</span>}
                 </span>
                 <button
@@ -315,7 +335,9 @@ export default function Market() {
                   <span className="inventory-item-qty">x{l.quantity}</span>
                 </div>
                 <span className="inventory-item-rarity">{RARITY_LABELS[l.rarity] || l.rarity}</span>
-                <span className="market-price">🪙 {Number(l.total_price).toLocaleString()} Oro</span>
+                <span className="market-price">
+                  <GameIcon name="two-coins" artist="delapouite" /> {Number(l.total_price).toLocaleString()} Oro
+                </span>
                 {l.status === 'ACTIVE' && (
                   <button
                     className="rpg-button equipment-action"

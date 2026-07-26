@@ -4,12 +4,18 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import {
   CombatantCard, TurnOrderBar, useCombatFloaters, classifyLogEntry,
-  SCHOOL_ICONS, SCHOOL_LABELS, TARGET_ICONS, TARGET_LABELS, describeSkillEffect,
+  SCHOOL_ICONS, SCHOOL_LABELS, TARGET_ICONS, TARGET_LABELS, SKILL_TYPE_ICONS, describeSkillEffect,
 } from './ExploreZone';
 import { setActiveCombat, clearActiveCombat } from '../utils/activeCombat';
+import GameIcon from '../components/GameIcon';
 
 const LOG_REVEAL_DELAY_MS = 650;
 const STATUS_POLL_MS = 8000;
+const MEDAL_ICONS = [
+  { name: 'podium-winner', artist: 'delapouite' },
+  { name: 'podium-second', artist: 'delapouite' },
+  { name: 'podium-third', artist: 'delapouite' },
+];
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -324,7 +330,7 @@ export default function WorldBoss() {
     return (
       <div className="dashboard">
         <header className="dashboard-header">
-          <div><h1>🌌 World Boss</h1></div>
+          <div><h1><GameIcon name="galaxy" artist="delapouite" /> World Boss</h1></div>
           <Link className="logout-btn" to="/combat">Volver</Link>
         </header>
         <div className="rpg-panel explore-panel">
@@ -341,7 +347,7 @@ export default function WorldBoss() {
   if (playerLevel < 10) {
     return (
       <div className="placeholder-page">
-        <h1>🌌 World Boss</h1>
+        <h1><GameIcon name="galaxy" artist="delapouite" /> World Boss</h1>
         <p>Necesitas nivel 10 para enfrentar al World Boss. Todavía estás en nivel {playerLevel}.</p>
         <Link to="/combat">Volver a zonas</Link>
       </div>
@@ -354,11 +360,15 @@ export default function WorldBoss() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🌌 World Boss</h1>
+          <h1><GameIcon name="galaxy" artist="delapouite" /> World Boss</h1>
           {!inCombat && <p className="dashboard-subtitle">El Devorador de Estrellas — evento server-wide</p>}
         </div>
         <div className="craft-row">
-          {!session && <Link className="rpg-button rpg-button--small" to="/worldboss/shop">🛒 Tienda</Link>}
+          {!session && (
+            <Link className="rpg-button rpg-button--small" to="/worldboss/shop">
+              <GameIcon name="shopping-cart" artist="delapouite" /> Tienda
+            </Link>
+          )}
           {!session && <Link className="logout-btn" to="/combat">Volver</Link>}
         </div>
       </header>
@@ -379,7 +389,7 @@ export default function WorldBoss() {
         <>
           <div className="rpg-panel boss-banner">
             <div className="boss-banner-top">
-              <span className="boss-name">🌌 El Devorador de Estrellas</span>
+              <span className="boss-name"><GameIcon name="galaxy" artist="delapouite" /> El Devorador de Estrellas</span>
               <span className="event-timer">⏳ {formatCountdown(status.endsAt)} restantes</span>
             </div>
             <div className="boss-hp-row">
@@ -398,7 +408,7 @@ export default function WorldBoss() {
 
                 {!coopParty && (
                   <button className="rpg-button" onClick={() => handleEnter()} disabled={loading}>
-                    {loading ? 'Entrando...' : '⚔️ Entrar en combate'}
+                    {loading ? 'Entrando...' : <><GameIcon name="crossed-swords" artist="lorc" /> Entrar en combate</>}
                   </button>
                 )}
 
@@ -440,13 +450,13 @@ export default function WorldBoss() {
             </div>
             <div className="dashboard-side">
               <div className="rpg-panel">
-                <h3 className="guild-members-title">🏆 Ranking de daño</h3>
+                <h3 className="guild-members-title"><GameIcon name="trophy" artist="lorc" /> Ranking de daño</h3>
                 {leaderboard.length === 0 && <p className="hint">Todavía nadie le hizo daño.</p>}
                 <div className="guild-members-list">
                   {leaderboard.map((entry, i) => (
                     <div key={entry.player_id} className="guild-member-row">
                       <span className="guild-member-name">
-                        {['🥇', '🥈', '🥉'][i] ?? `${i + 1}.`} {entry.nickname}
+                        {MEDAL_ICONS[i] ? <GameIcon {...MEDAL_ICONS[i]} /> : `${i + 1}.`} {entry.nickname}
                       </span>
                       <span className="hint">{Number(entry.total_damage).toLocaleString()}</span>
                     </div>
@@ -572,7 +582,7 @@ function WorldBossCombatView({
     <div className="worldboss-combat">
       {bossTaunt && !tauntDismissed && (
         <div className="rpg-panel worldboss-taunt">
-          <span className="worldboss-taunt-icon">🌌</span>
+          <span className="worldboss-taunt-icon"><GameIcon name="galaxy" artist="delapouite" /></span>
           <p className="worldboss-taunt-text">{bossTaunt}</p>
           <button className="worldboss-taunt-close" onClick={() => setTauntDismissed(true)} aria-label="Cerrar">×</button>
         </div>
@@ -581,7 +591,7 @@ function WorldBossCombatView({
       <TurnOrderBar participants={participants} nextActorId={nextActorId} />
 
       <div className="rpg-panel worldboss-arena">
-        <span className="worldboss-arena-icon">🌌</span>
+        <span className="worldboss-arena-icon"><GameIcon name="galaxy" artist="delapouite" /></span>
         <div className="worldboss-arena-body">
           {enemies.map((p) => (
             <CombatantCard
@@ -707,16 +717,22 @@ function WorldBossCombatView({
             {activeSkills && activeSkills.filter((s) => !s.isPassive && s.skillType !== 'PASIVA').map((skill) => {
               const insufficientMana = actor && actor.mana < skill.manaCost;
               const disabled = loading || insufficientMana;
-              const icon = { ATAQUE: '⚔', CURACION: '✚', BUFF: '🛡', DEBUFF: '💀', ESTADO_ALTERADO: '☠', ESPECIAL: '✦' }[skill.skillType] || '⚔';
+              const icon = SKILL_TYPE_ICONS[skill.skillType] || SKILL_TYPE_ICONS.ATAQUE;
               const schoolIcon = SCHOOL_ICONS[skill.damageSchool];
               const targetIcon = TARGET_ICONS[skill.targetType];
               return (
                 <button key={skill.id} className="item-row" disabled={disabled} onClick={() => handleSkillClick(skill)}>
                   <span className="skill-row-main">
-                    <span>{icon} {skill.name}</span>
+                    <span><GameIcon {...icon} /> {skill.name}</span>
                     <span className="skill-row-badges">
-                      {schoolIcon && <span title={SCHOOL_LABELS[skill.damageSchool]}>{schoolIcon}</span>}
-                      {targetIcon && <span title={TARGET_LABELS[skill.targetType]}>{targetIcon}</span>}
+                      {schoolIcon && (
+                        <span title={SCHOOL_LABELS[skill.damageSchool]}><GameIcon {...schoolIcon} /></span>
+                      )}
+                      {targetIcon && (
+                        <span title={TARGET_LABELS[skill.targetType]}>
+                          {typeof targetIcon === 'string' ? targetIcon : <GameIcon {...targetIcon} />}
+                        </span>
+                      )}
                     </span>
                   </span>
                   <span className="item-qty">{skill.manaCost > 0 ? `${skill.manaCost} maná` : 'gratis'}</span>

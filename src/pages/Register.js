@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const BASE_CLASS_IDS = [1, 2, 3, 4, 5];
 // Los archivos en public/portraits/ están en Title Case (Guerrero.png), no en mayúsculas
@@ -66,7 +67,10 @@ export default function Register() {
   return (
     <div className="auth-page">
       <form className="auth-card rpg-panel" onSubmit={handleSubmit}>
-        <span className="auth-kicker">⚜ Reino de Disgaea ⚜</span>
+        <span className="auth-kicker">
+          <GameIcon name="fleur-de-lys" artist="delapouite" /> Reino de Disgaea{' '}
+          <GameIcon name="fleur-de-lys" artist="delapouite" />
+        </span>
         <h1>Crear personaje</h1>
         <hr className="auth-divider" />
         {error && <p className="auth-error">{error}</p>}

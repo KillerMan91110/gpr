@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import QuestObjectives from '../components/QuestObjectives';
+import GameIcon from '../components/GameIcon';
 
 export default function GuildQuests() {
   const { player, token } = useAuth();
@@ -58,7 +59,7 @@ export default function GuildQuests() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>📜 Quests del Gremio</h1>
+          <h1><GameIcon name="scroll-unfurled" artist="lorc" /> Quests del Gremio</h1>
           <p className="dashboard-subtitle">Solo se muestran las misiones de tu nivel y tu rango (o uno inferior).</p>
         </div>
         <Link className="logout-btn" to="/guild">
@@ -101,7 +102,7 @@ export default function GuildQuests() {
             {q.description && <p className="hint">{q.description}</p>}
             <p className="hint">
               +{q.xp_reward} XP · +{q.gold_reward} Oro · +{q.reputation_reward} Reputación
-              {q.is_repeatable ? ' · 🔁 Repetible' : ' · Única vez'}
+              {q.is_repeatable ? <> · <GameIcon name="recycle" artist="lorc" /> Repetible</> : ' · Única vez'}
             </p>
             <QuestObjectives objectives={q.objectives} />
             {q.accepted ? (

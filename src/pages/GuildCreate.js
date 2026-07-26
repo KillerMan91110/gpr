@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const CREATE_COST = 50000;
 
@@ -53,9 +54,10 @@ export default function GuildCreate() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🏗 Crear Gremio</h1>
+          <h1><GameIcon name="trowel" artist="delapouite" /> Crear Gremio</h1>
           <p className="dashboard-subtitle">
-            Funda tu propio gremio · Costo: {CREATE_COST.toLocaleString()} 🪙
+            Funda tu propio gremio · Costo: {CREATE_COST.toLocaleString()}{' '}
+            <GameIcon name="two-coins" artist="delapouite" />
           </p>
         </div>
         <Link className="logout-btn" to="/guild">
@@ -130,8 +132,10 @@ export default function GuildCreate() {
 
           <div className="guild-form-footer">
             <span className={canAfford ? 'hint' : 'auth-error'}>
-              Tu oro: {gold !== null ? Number(gold).toLocaleString() : '...'} 🪙
-              {!canAfford && gold !== null && ` · Faltan ${(CREATE_COST - gold).toLocaleString()} 🪙`}
+              Tu oro: {gold !== null ? Number(gold).toLocaleString() : '...'} <GameIcon name="two-coins" artist="delapouite" />
+              {!canAfford && gold !== null && (
+                <> · Faltan {(CREATE_COST - gold).toLocaleString()} <GameIcon name="two-coins" artist="delapouite" /></>
+              )}
             </span>
             <button
               className="rpg-button"

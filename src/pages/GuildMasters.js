@@ -2,14 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
-
-const CLASS_ICONS = {
-  GUERRERO: '⚔',
-  MAGO: '🔮',
-  ARQUERO: '🏹',
-  PICARO: '🗡',
-  SACERDOTE: '✨',
-};
+import GameIcon from '../components/GameIcon';
+import { CLASS_ICON } from '../utils/classIcons';
 
 export default function GuildMasters() {
   const { player, token } = useAuth();
@@ -34,7 +28,7 @@ export default function GuildMasters() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🎓 Maestros de Gremio</h1>
+          <h1><GameIcon name="graduate-cap" artist="delapouite" /> Maestros de Gremio</h1>
           <p className="dashboard-subtitle">
             Cada clase base tiene su propio maestro. Solo el de tu clase puede enseñarte skills.
           </p>
@@ -49,7 +43,8 @@ export default function GuildMasters() {
           <Link key={c.id} to={`/guild/masters/${c.id}`} className="zone-card rpg-panel guild-section-link">
             <div className="zone-card-header">
               <h3>
-                {CLASS_ICONS[c.code] || '🎓'} Maestro {c.name}
+                <GameIcon {...(CLASS_ICON[c.code] || { name: 'graduate-cap', artist: 'delapouite' })} /> Maestro{' '}
+                {c.name}
               </h3>
               {c.id === myClassId && <span className="hint hint-ok">Tu clase</span>}
             </div>

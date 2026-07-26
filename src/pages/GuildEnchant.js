@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const SLOT_LABEL = {
   WEAPON: 'Arma', OFFHAND: 'Mano izquierda', HELMET: 'Casco',
@@ -71,7 +72,7 @@ export default function GuildEnchant() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>✦ Encantador</h1>
+          <h1><GameIcon name="magic-swirl" artist="lorc" /> Encantador</h1>
           <p className="dashboard-subtitle">Mejora el equipo equipado con piedras de encantamiento.</p>
         </div>
         <Link className="logout-btn" to="/guild">Volver</Link>

@@ -2,14 +2,12 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
+import { CLASS_ICON } from '../utils/classIcons';
 
 const GOLD_PER_POINT = 1;
 
-const CLASS_ICON = {
-  GUERRERO: '⚔', MAGO: '✦', ARQUERO: '🏹', PICARO: '🗡', SACERDOTE: '✙',
-};
-
-function HealBar({ label, hp, maxHp, mana, maxMana, cost, gold, busy, onHeal }) {
+function HealBar({ icon, label, hp, maxHp, mana, maxMana, cost, gold, busy, onHeal }) {
   const missingHp   = maxHp - hp;
   const missingMana = maxMana - mana;
   const missing     = missingHp + missingMana;
@@ -19,7 +17,9 @@ function HealBar({ label, hp, maxHp, mana, maxMana, cost, gold, busy, onHeal }) 
   return (
     <div className="infirmary-member">
       <div className="infirmary-member-top">
-        <span className="infirmary-member-name">{label}</span>
+        <span className="infirmary-member-name">
+          {icon && <GameIcon {...icon} />} {label}
+        </span>
         {full ? (
           <span className="infirmary-full-badge">✓ Full</span>
         ) : (
@@ -29,13 +29,15 @@ function HealBar({ label, hp, maxHp, mana, maxMana, cost, gold, busy, onHeal }) 
             onClick={onHeal}
             title={canAfford ? undefined : `Faltan ${cost - gold} 🪙`}
           >
-            {canAfford ? `Curar — ${cost} 🪙` : `Faltan ${cost - gold} 🪙`}
+            {canAfford
+              ? <>Curar — {cost} <GameIcon name="two-coins" artist="delapouite" /></>
+              : <>Faltan {cost - gold} <GameIcon name="two-coins" artist="delapouite" /></>}
           </button>
         )}
       </div>
       <div className="stat-bar infirmary-bar">
         <div className="stat-bar-label">
-          <span>❤ HP</span>
+          <span><GameIcon name="health-normal" artist="sbed" /> HP</span>
           <span>{hp}/{maxHp}</span>
         </div>
         <div className="stat-bar-track">
@@ -45,7 +47,7 @@ function HealBar({ label, hp, maxHp, mana, maxMana, cost, gold, busy, onHeal }) 
       {maxMana > 0 && (
         <div className="stat-bar infirmary-bar">
           <div className="stat-bar-label">
-            <span>✦ Maná</span>
+            <span><GameIcon name="water-drop" artist="sbed" /> Maná</span>
             <span>{mana}/{maxMana}</span>
           </div>
           <div className="stat-bar-track">
@@ -142,8 +144,11 @@ export default function Infirmary() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>✚ Enfermería</h1>
-          <p className="dashboard-subtitle">{GOLD_PER_POINT} de oro por cada punto de HP o maná · Tienes {stats.gold.toLocaleString()} 🪙</p>
+          <h1><GameIcon name="healing" artist="delapouite" /> Enfermería</h1>
+          <p className="dashboard-subtitle">
+            {GOLD_PER_POINT} de oro por cada punto de HP o maná · Tienes {stats.gold.toLocaleString()}{' '}
+            <GameIcon name="two-coins" artist="delapouite" />
+          </p>
         </div>
         <Link className="logout-btn" to="/guild">Volver</Link>
       </header>
@@ -156,6 +161,7 @@ export default function Infirmary() {
       <div className="rpg-panel infirmary-panel">
         <HealBar
           label={`★ ${stats.nickname}`}
+          icon={null}
           hp={stats.hp}       maxHp={stats.maxHp}
           mana={stats.mana}   maxMana={stats.maxMana}
           cost={heroCost}     gold={stats.gold}
@@ -164,11 +170,12 @@ export default function Infirmary() {
 
         {partyNpcs.map((npc) => {
           const nd = npcCosts.find((n) => n.npcId === npc.npcId);
-          const icon = CLASS_ICON[npc.className?.toUpperCase()] || '◆';
+          const icon = CLASS_ICON[npc.className?.toUpperCase()] || null;
           return (
             <HealBar
               key={npc.npcId}
-              label={`${icon} ${npc.name}`}
+              icon={icon}
+              label={npc.name}
               hp={npc.hp}       maxHp={npc.maxHp}
               mana={npc.mana}   maxMana={npc.maxMana}
               cost={nd?.cost ?? 0}  gold={stats.gold}
@@ -188,8 +195,8 @@ export default function Infirmary() {
               onClick={handleHealAll}
             >
               {stats.gold >= totalCost
-                ? `Curar a todos — ${totalCost} 🪙`
-                : `Curar con lo que alcance — ${stats.gold} 🪙`}
+                ? <>Curar a todos — {totalCost} <GameIcon name="two-coins" artist="delapouite" /></>
+                : <>Curar con lo que alcance — {stats.gold} <GameIcon name="two-coins" artist="delapouite" /></>}
             </button>
           )}
         </div>

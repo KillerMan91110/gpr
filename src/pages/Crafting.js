@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const RARITY_LABEL = {
   COMUN: 'Común', POCO_COMUN: 'Poco común', RARO: 'Raro',
@@ -111,7 +112,7 @@ export default function Crafting() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>⚒ Crafteo</h1>
+          <h1><GameIcon name="blacksmith" artist="delapouite" /> Crafteo</h1>
           <p className="dashboard-subtitle">Fabrica ítems con materiales o desmantela equipos.</p>
         </div>
         <Link className="logout-btn" to="/guild">Volver</Link>
@@ -136,7 +137,9 @@ export default function Crafting() {
               <span className={`equipment-item-name rarity-${r.rarity.toLowerCase()}`}>
                 {RARITY_LABEL[r.rarity] || r.rarity}
               </span>
-              {r.qualityTier > 0 && <span className="luck-badge">✦ Suerte</span>}
+              {r.qualityTier > 0 && (
+                <span className="luck-badge"><GameIcon name="sparkles" artist="delapouite" /> Suerte</span>
+              )}
             </p>
           ))}
           {craftResult.failCount > 0 && (

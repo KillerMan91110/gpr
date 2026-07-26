@@ -114,7 +114,7 @@ export default function NavBar() {
     <nav className="app-navbar" ref={rootRef}>
       <div className="app-navbar-identity">
         <Link to="/" className={`app-navbar-brand${location.pathname === '/' ? ' app-navbar-link--active' : ''}`}>
-          🏠 {player.nickname}
+          <GameIcon name="house" artist="delapouite" /> {player.nickname}
         </Link>
 
         {gold !== null && (
@@ -160,7 +160,7 @@ export default function NavBar() {
         </Link>
 
         <Link to="/friends" className={`app-navbar-link${isActive('/friends') ? ' app-navbar-link--active' : ''}`}>
-          🤝 Social
+          <GameIcon name="shaking-hands" artist="delapouite" /> Social
           {socialBadge > 0 && <span className="nav-badge">{socialBadge}</span>}
         </Link>
       </div>
@@ -172,7 +172,7 @@ export default function NavBar() {
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Menú"
         >
-          ☰
+          <GameIcon name="hamburger-menu" artist="delapouite" />
         </button>
 
         <button

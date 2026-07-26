@@ -2,14 +2,8 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
-
-const CLASS_ICON = {
-  GUERRERO: '⚔', Guerrero: '⚔',
-  MAGO: '✦', Mago: '✦',
-  ARQUERO: '🏹', Arquero: '🏹',
-  PICARO: '🗡', PÍCARO: '🗡', Pícaro: '🗡',
-  SACERDOTE: '✙', Sacerdote: '✙',
-};
+import GameIcon from '../components/GameIcon';
+import { CLASS_ICON } from '../utils/classIcons';
 
 const NPC_STATS = [
   { label: 'HP',   key: 'hp' },
@@ -29,7 +23,9 @@ function NpcPoolCard({ npc, gold, disabled, onHire }) {
   return (
     <div className="rpg-panel npc-card">
       <div className="npc-card-header">
-        <span className="npc-class-icon">{CLASS_ICON[npc.className] || '⚔'}</span>
+        <span className="npc-class-icon">
+          <GameIcon {...(CLASS_ICON[npc.className] || CLASS_ICON.GUERRERO)} />
+        </span>
         <div className="npc-header-info">
           <h3 className="npc-name">{npc.name}</h3>
           <span className="hero-class-role">{npc.className} · Niv. {npc.level}</span>
@@ -51,8 +47,8 @@ function NpcPoolCard({ npc, gold, disabled, onHire }) {
         onClick={() => onHire(npc.poolNpcId, npc.hireCost)}
       >
         {canAfford
-          ? `Contratar — ${npc.hireCost} 🪙`
-          : `Faltan ${npc.hireCost - gold} 🪙`}
+          ? <>Contratar — {npc.hireCost} <GameIcon name="two-coins" artist="delapouite" /></>
+          : <>Faltan {npc.hireCost - gold} <GameIcon name="two-coins" artist="delapouite" /></>}
       </button>
     </div>
   );
@@ -160,7 +156,7 @@ export default function GuildAdventurers() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>⚔ Contratar Aventureros</h1>
+          <h1><GameIcon name="crossed-swords" artist="lorc" /> Contratar Aventureros</h1>
           <p className="dashboard-subtitle">Recluta compañeros para tu expedición</p>
         </div>
         <Link className="logout-btn" to="/guild">Volver</Link>
@@ -173,14 +169,15 @@ export default function GuildAdventurers() {
       )}
 
       <div className="rpg-panel dash-panel npc-toolbar">
-        <span className="npc-toolbar-gold">🪙 {gold?.toLocaleString()} oro</span>
+        <span className="npc-toolbar-gold"><GameIcon name="two-coins" artist="delapouite" /> {gold?.toLocaleString()} oro</span>
         <div className="npc-toolbar-refresh">
           <button
             className="logout-btn"
             onClick={handleRefresh}
             disabled={busy || !canRefresh}
           >
-            🔄 Refrescar — {refreshCost} 🪙
+            <GameIcon name="clockwise-rotation" artist="delapouite" /> Refrescar — {refreshCost}{' '}
+            <GameIcon name="two-coins" artist="delapouite" />
           </button>
           {countdown != null && countdown > 0 && (
             <span className="npc-free-timer">Gratis en {fmtCountdown(countdown)}</span>

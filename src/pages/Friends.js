@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const ONLINE_MS = 5 * 60 * 1000;
 
@@ -391,7 +392,7 @@ export default function Friends() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🤝 Amigos</h1>
+          <h1><GameIcon name="shaking-hands" artist="delapouite" /> Amigos</h1>
           <p className="dashboard-subtitle">Agrega jugadores, chatea y manda regalos.</p>
         </div>
         <Link className="logout-btn" to="/">Volver</Link>
@@ -409,7 +410,7 @@ export default function Friends() {
           >
             ×
           </button>
-          <h4 className="craft-result-title">🎁 ¡Recibiste un regalo!</h4>
+          <h4 className="craft-result-title"><GameIcon name="present" artist="delapouite" /> ¡Recibiste un regalo!</h4>
           {claimPopup.length === 0 && <p className="craft-result-line">No había nada más para reclamar.</p>}
           {claimPopup.map((c, i) => (
             <p key={i} className="craft-result-line">✓ {c}</p>
@@ -556,8 +557,12 @@ export default function Friends() {
                           </span>
                           <span className="hint guild-member-sub">
                             {formatDateTime(m.created_at)}
-                            {m.gold_amount > 0 && !m.gold_claimed && ` · 🪙 ${m.gold_amount} sin reclamar`}
-                            {m.has_unclaimed_items && ' · 🎁 items sin reclamar'}
+                            {m.gold_amount > 0 && !m.gold_claimed && (
+                              <> · <GameIcon name="two-coins" artist="delapouite" /> {m.gold_amount} sin reclamar</>
+                            )}
+                            {m.has_unclaimed_items && (
+                              <> · <GameIcon name="present" artist="delapouite" /> items sin reclamar</>
+                            )}
                           </span>
                         </div>
                         <div className="guild-member-actions">
@@ -583,7 +588,9 @@ export default function Friends() {
                           <span className="guild-member-name">{m.subject || '(Sin asunto)'} — para {m.receiver_nickname}</span>
                           <span className="hint guild-member-sub">
                             {formatDateTime(m.created_at)} · {m.read ? 'Leído' : 'No leído'}
-                            {m.gold_amount > 0 && ` · 🪙 ${m.gold_amount}`}
+                            {m.gold_amount > 0 && (
+                              <> · <GameIcon name="two-coins" artist="delapouite" /> {m.gold_amount}</>
+                            )}
                           </span>
                         </div>
                         <div className="guild-member-actions">
@@ -674,7 +681,8 @@ export default function Friends() {
             {openMessage.body && <p style={{ whiteSpace: 'pre-wrap' }}>{openMessage.body}</p>}
             {openMessage.gold_amount > 0 && (
               <p className="hint">
-                🪙 {openMessage.gold_amount} oro {openMessage.gold_claimed ? '(reclamado)' : '(sin reclamar)'}
+                <GameIcon name="two-coins" artist="delapouite" /> {openMessage.gold_amount} oro{' '}
+                {openMessage.gold_claimed ? '(reclamado)' : '(sin reclamar)'}
               </p>
             )}
             {openMessage.items?.length > 0 && (
@@ -729,12 +737,23 @@ export default function Friends() {
                   title="Ver detalle"
                 >
                   {m.body && <span>{m.body}</span>}
-                  {!m.body && !m.mine && <span className="hint">🎁 Te mandó un regalo</span>}
-                  {!m.body && m.mine && <span className="hint">🎁 Regalo enviado</span>}
+                  {!m.body && !m.mine && (
+                    <span className="hint"><GameIcon name="present" artist="delapouite" /> Te mandó un regalo</span>
+                  )}
+                  {!m.body && m.mine && (
+                    <span className="hint"><GameIcon name="present" artist="delapouite" /> Regalo enviado</span>
+                  )}
                   <span className="chat-bubble-meta">
                     {formatDateTime(m.created_at)}
-                    {m.gold_amount > 0 && ` · 🪙 ${m.gold_amount}${m.gold_claimed ? '' : ' (sin reclamar)'}`}
-                    {!m.mine && m.has_unclaimed_items && ' · 🎁 items'}
+                    {m.gold_amount > 0 && (
+                      <>
+                        {' '}· <GameIcon name="two-coins" artist="delapouite" /> {m.gold_amount}
+                        {m.gold_claimed ? '' : ' (sin reclamar)'}
+                      </>
+                    )}
+                    {!m.mine && m.has_unclaimed_items && (
+                      <> · <GameIcon name="present" artist="delapouite" /> items</>
+                    )}
                   </span>
                 </div>
               ))}
@@ -762,7 +781,7 @@ export default function Friends() {
                   title="Adjuntar oro o items"
                   type="button"
                 >
-                  🎁
+                  <GameIcon name="present" artist="delapouite" />
                 </button>
                 <button className="rpg-button rpg-button--small" disabled={busyKey === 'send-message'} onClick={handleSendChatMessage}>
                   {busyKey === 'send-message' ? '...' : 'Enviar'}

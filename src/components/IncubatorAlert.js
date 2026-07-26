@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import { getActiveCombat, isCombatInProgress } from '../utils/activeCombat';
+import GameIcon from './GameIcon';
 
 const POLL_MS = 20000;
 const TOAST_MS = 8000;
@@ -64,7 +65,7 @@ export default function IncubatorAlert() {
     return (
       <div className="incubator-alert rpg-panel">
         <span className="incubator-alert-text">
-          🥚 ¡{incubator.egg_name} está listo para eclosionar!
+          <GameIcon name="dinosaur-egg" artist="lorc" /> ¡{incubator.egg_name} está listo para eclosionar!
         </span>
       </div>
     );

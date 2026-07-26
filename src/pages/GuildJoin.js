@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 export default function GuildJoin() {
   const { token } = useAuth();
@@ -75,7 +76,7 @@ export default function GuildJoin() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🤝 Unirse a un Gremio</h1>
+          <h1><GameIcon name="shaking-hands" artist="delapouite" /> Unirse a un Gremio</h1>
           <p className="dashboard-subtitle">Busca un gremio existente para unirte</p>
         </div>
         <Link className="logout-btn" to="/guild">
@@ -115,7 +116,9 @@ export default function GuildJoin() {
                 {g.description && <p className="zone-description">{g.description}</p>}
                 <p className="hint">
                   Líder: {g.leaderName} · {g.memberCount} miembro(s) ·{' '}
-                  {g.type === 'OPEN' ? '🔓 Abierto' : '🔒 Cerrado'}
+                  {g.type === 'OPEN'
+                    ? <><GameIcon name="padlock-open" artist="delapouite" /> Abierto</>
+                    : <><GameIcon name="padlock" artist="lorc" /> Cerrado</>}
                 </p>
                 {g.type === 'OPEN' ? (
                   <button

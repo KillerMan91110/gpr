@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const TYPE_LABELS = {
   PASIVA: 'Pasiva', ATAQUE: 'Ataque', CURACION: 'Curación',
@@ -81,7 +82,7 @@ export default function Skills() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>✦ Habilidades</h1>
+          <h1><GameIcon name="spell-book" artist="delapouite" /> Habilidades</h1>
           <p className="dashboard-subtitle">Skills de tu clase y tu formación.</p>
         </div>
         <Link className="logout-btn" to="/">Volver</Link>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const RARITY_CLASS = {
   COMUN: 'rarity-comun', POCO_COMUN: 'rarity-poco_comun',
@@ -48,7 +49,7 @@ export default function TowerVendor() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🪙 Vendedor del Abismo</h1>
+          <h1><GameIcon name="two-coins" artist="delapouite" /> Vendedor del Abismo</h1>
           <p className="dashboard-subtitle">Monedas de mazmorra: {dungeonCoins.toLocaleString()}</p>
         </div>
         <Link className="logout-btn" to="/abismo">Volver al Abismo</Link>

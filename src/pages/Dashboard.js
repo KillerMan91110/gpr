@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
+import { CLASS_ICON } from '../utils/classIcons';
 
 function StatBar({ label, value, max, variant }) {
   const percent = max ? Math.min(100, (value / max) * 100) : 0;
@@ -49,14 +51,6 @@ function StatRow({ label, value }) {
   );
 }
 
-const CLASS_ICONS = {
-  GUERRERO: '⚔',
-  MAGO: '✦',
-  ARQUERO: '🏹',
-  PICARO: '🗡',
-  SACERDOTE: '✙',
-};
-
 // Los archivos en public/portraits/ están en Title Case (Guerrero.png), no en mayúsculas
 // como el code de la clase (GUERRERO) — hay que mapearlos. En Windows local el filesystem
 // no distingue mayúsculas y por eso pasaba desapercibido, pero en Vercel (Linux) sí, y
@@ -76,7 +70,7 @@ function ClassPortrait({ code, name }) {
   if (imgError || !fileName) {
     return (
       <div className="hero-portrait-fallback">
-        <span>{CLASS_ICONS[code] || '?'}</span>
+        <span>{CLASS_ICON[code] ? <GameIcon {...CLASS_ICON[code]} /> : '?'}</span>
       </div>
     );
   }
@@ -194,7 +188,8 @@ export default function Dashboard() {
           {currentUniqueSkill && (
             <div className="rpg-panel dash-panel">
               <p className="panel-title">
-                 {activeNpc ? `✦ Pasiva Aprendida — ${activeNpc.name}` : '✦ Pasiva Aprendida'}
+                <GameIcon name="sparkles" artist="delapouite" />{' '}
+                {activeNpc ? `Pasiva Aprendida — ${activeNpc.name}` : 'Pasiva Aprendida'}
                 </p>
               <p className="unique-skill-name">{currentUniqueSkill.name}</p>
               <p className="unique-skill-desc">{currentUniqueSkill.description}</p>
@@ -204,7 +199,7 @@ export default function Dashboard() {
           {/* ── Rasgo de evolución (innata de la clase evolucionada) ── */}
           {!activeNpc && stats.innate && (
             <div className="rpg-panel dash-panel">
-              <p className="panel-title">⚡ Rasgo de Evolución</p>
+              <p className="panel-title"><GameIcon name="dna2" artist="lorc" /> Rasgo de Evolución</p>
               <p className="unique-skill-name">{stats.innate.name}</p>
               <p className="unique-skill-desc">{stats.innate.description}</p>
             </div>

@@ -2,26 +2,36 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
+import { CLASS_ICON } from '../utils/classIcons';
 
-const CLASS_ICONS = { GUERRERO: '⚔', MAGO: '✦', ARQUERO: '🏹', PICARO: '🗡', SACERDOTE: '✙' };
 const DIFFICULTY_LABELS = { 1: 'Normal', 2: 'Difícil', 3: 'Muy Difícil' };
 const TOWER_MODES = [
   { key: 'solo', label: 'Solo' },
   { key: 'duo', label: 'Dúo' },
   { key: 'trio', label: 'Trío' },
 ];
+const MEDAL_ICONS = [
+  { name: 'podium-winner', artist: 'delapouite' },
+  { name: 'podium-second', artist: 'delapouite' },
+  { name: 'podium-third', artist: 'delapouite' },
+];
 
 const CATEGORIES = [
-  { key: 'players', label: 'Jugadores', icon: '🏆' },
-  { key: 'guilds', label: 'Gremios', icon: '🛡️' },
-  { key: 'tower', label: 'El Abismo', icon: '🕳️' },
-  { key: 'wealth', label: 'Riqueza', icon: '💰' },
+  { key: 'players', label: 'Jugadores', icon: { name: 'trophy', artist: 'lorc' } },
+  { key: 'guilds', label: 'Gremios', icon: { name: 'shield', artist: 'sbed' } },
+  { key: 'tower', label: 'El Abismo', icon: { name: 'vortex', artist: 'lorc' } },
+  { key: 'wealth', label: 'Riqueza', icon: { name: 'money-stack', artist: 'delapouite' } },
 ];
+
+function renderIcon(icon) {
+  return typeof icon === 'string' ? icon : <GameIcon {...icon} />;
+}
 
 function normalizePlayers(list, myNickname) {
   return list.map((e) => ({
     position: e.position,
-    icon: CLASS_ICONS[e.className?.toUpperCase()] || '◆',
+    icon: CLASS_ICON[e.className?.toUpperCase()] || '◆',
     name: e.nickname,
     sub: `${e.className} · Nv.${e.level}`,
     value: `Nv. ${e.level}`,
@@ -32,7 +42,7 @@ function normalizePlayers(list, myNickname) {
 function normalizeGuilds(list) {
   return list.map((g) => ({
     position: g.position,
-    icon: '🏛',
+    icon: { name: 'castle', artist: 'lorc' },
     name: g.name,
     sub: `${g.memberCount} miembro${g.memberCount === 1 ? '' : 's'}`,
     value: `Nv. ${g.level}`,
@@ -43,7 +53,7 @@ function normalizeGuilds(list) {
 function normalizeTower(list, myNickname) {
   return list.map((e) => ({
     position: e.position,
-    icon: '🕳️',
+    icon: { name: 'vortex', artist: 'lorc' },
     name: e.members.join(' & '),
     sub: DIFFICULTY_LABELS[e.difficulty] || `Dificultad ${e.difficulty}`,
     value: `Piso ${e.floor}`,
@@ -54,7 +64,7 @@ function normalizeTower(list, myNickname) {
 function normalizeWealth(list, myNickname) {
   return list.map((e) => ({
     position: e.position,
-    icon: CLASS_ICONS[e.className?.toUpperCase()] || '◆',
+    icon: CLASS_ICON[e.className?.toUpperCase()] || '◆',
     name: e.nickname,
     sub: `Nv. ${e.level}`,
     value: `${Number(e.gold).toLocaleString()} Oro`,
@@ -63,11 +73,11 @@ function normalizeWealth(list, myNickname) {
 }
 
 function PodiumCard({ entry, place }) {
-  const trophy = place === 1 ? '🥇' : place === 2 ? '🥈' : '🥉';
+  const medal = MEDAL_ICONS[place - 1];
   return (
     <div className={`ranking-podium-card ranking-podium-card--${place}`}>
-      <span className="ranking-podium-trophy">{trophy}</span>
-      <span className="ranking-podium-icon">{entry.icon}</span>
+      <span className="ranking-podium-trophy">{medal && <GameIcon {...medal} />}</span>
+      <span className="ranking-podium-icon">{renderIcon(entry.icon)}</span>
       <span className={`ranking-podium-name${entry.isSelf ? ' ranking-podium-name--self' : ''}`}>{entry.name}</span>
       <span className="ranking-podium-value">{entry.value}</span>
       <span className="ranking-podium-sub">{entry.sub}</span>
@@ -105,7 +115,7 @@ export default function Ranking() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🏆 Ranking</h1>
+          <h1><GameIcon name="trophy" artist="lorc" /> Ranking</h1>
           <p className="dashboard-subtitle">Los mejores de GPR</p>
         </div>
         <Link className="logout-btn" to="/">Volver</Link>
@@ -119,7 +129,7 @@ export default function Ranking() {
             className={`rpg-button rpg-button--small${tab === c.key ? ' quest-tab--active' : ''}`}
             onClick={() => setTab(c.key)}
           >
-            {c.icon} {c.label}
+            {renderIcon(c.icon)} {c.label}
           </button>
         ))}
       </div>
@@ -155,7 +165,7 @@ export default function Ranking() {
               {entries.slice(3).map((e) => (
                 <div key={e.position} className={`leaderboard-row${e.isSelf ? ' leaderboard-row--self' : ''}`}>
                   <span className="lb-pos">{e.position}</span>
-                  <span className="lb-icon">{e.icon}</span>
+                  <span className="lb-icon">{renderIcon(e.icon)}</span>
                   <div className="lb-info">
                     <span className="lb-name">{e.name}</span>
                     <span className="lb-sub">{e.sub}</span>

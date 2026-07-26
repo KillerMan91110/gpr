@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const BONUS_LABEL = {
   DAMAGE_VS_CATEGORY: (b) => `+${b.percent}% DMG vs ${b.category}`,
@@ -47,7 +48,7 @@ export default function Achievements() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🏆 Logros</h1>
+          <h1><GameIcon name="trophy" artist="lorc" /> Logros</h1>
           <p className="dashboard-subtitle">
             {unlocked.length} / {achievements.length} desbloqueados
           </p>

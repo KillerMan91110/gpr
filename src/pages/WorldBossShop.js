@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const RARITY_CLASS = {
   COMUN: 'rarity-comun', POCO_COMUN: 'rarity-poco_comun',
@@ -48,7 +49,7 @@ export default function WorldBossShop() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🌌 Tienda del World Boss</h1>
+          <h1><GameIcon name="galaxy" artist="delapouite" /> Tienda del World Boss</h1>
           <p className="dashboard-subtitle">Fragmentos cósmicos: {cosmicShards.toLocaleString()}</p>
         </div>
         <Link className="logout-btn" to="/worldboss">Volver</Link>

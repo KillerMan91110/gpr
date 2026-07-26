@@ -2,14 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
-
-const CLASS_ICON = {
-  GUERRERO: '⚔', Guerrero: '⚔',
-  MAGO: '✦', Mago: '✦',
-  ARQUERO: '🏹', Arquero: '🏹',
-  PICARO: '🗡', PÍCARO: '🗡', Pícaro: '🗡',
-  SACERDOTE: '✙', Sacerdote: '✙',
-};
+import GameIcon from '../components/GameIcon';
+import { CLASS_ICON } from '../utils/classIcons';
 
 const NPC_STATS = [
   { label: 'HP',   key: 'hp' },
@@ -126,7 +120,9 @@ export default function Formation() {
     return (
       <div className="formation-member">
         <div className="npc-card-header">
-          <span className="npc-class-icon">{CLASS_ICON[member.className] || '⚔'}</span>
+          <span className="npc-class-icon">
+            <GameIcon {...(CLASS_ICON[member.className] || CLASS_ICON.GUERRERO)} />
+          </span>
           <div className="npc-header-info">
             <h3 className="npc-name">{member.name}</h3>
             <span className="hero-class-role">{member.className} · Niv. {member.level}</span>
@@ -142,7 +138,7 @@ export default function Formation() {
                 onClick={() => setSwapSource({ partyRowId: member.partyRowId, slot, name: member.name })}
                 disabled={busy}
               >
-                🔄 Intercambiar
+                <GameIcon name="clockwise-rotation" artist="delapouite" /> Intercambiar
               </button>
             )}
             <button
@@ -180,7 +176,7 @@ export default function Formation() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>⚔ Formación — Mi Grupo</h1>
+          <h1><GameIcon name="crossed-swords" artist="lorc" /> Formación — Mi Grupo</h1>
           <p className="dashboard-subtitle">Gestiona tu equipo de aventureros</p>
         </div>
         <Link className="logout-btn" to="/">Volver</Link>
@@ -249,7 +245,9 @@ export default function Formation() {
                 className={`formation-bench-member${isSelectingSwap ? ' formation-bench-member--target' : ''}`}
               >
                 <div className="npc-card-header">
-                  <span className="npc-class-icon">{CLASS_ICON[npc.className] || '⚔'}</span>
+                  <span className="npc-class-icon">
+                  <GameIcon {...(CLASS_ICON[npc.className] || CLASS_ICON.GUERRERO)} />
+                </span>
                   <div className="npc-header-info">
                     <h3 className="npc-name">{npc.name}</h3>
                     <span className="hero-class-role">{npc.className} · Niv. {npc.level}</span>

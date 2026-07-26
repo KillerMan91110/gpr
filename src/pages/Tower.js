@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import {
   CombatantCard, TurnOrderBar, useCombatFloaters, classifyLogEntry,
-  SCHOOL_ICONS, SCHOOL_LABELS, TARGET_ICONS, TARGET_LABELS, describeSkillEffect,
+  SCHOOL_ICONS, SCHOOL_LABELS, TARGET_ICONS, TARGET_LABELS, SKILL_TYPE_ICONS, describeSkillEffect,
 } from './ExploreZone';
 import { setActiveCombat, clearActiveCombat } from '../utils/activeCombat';
+import GameIcon from '../components/GameIcon';
 
 const MIN_LEVEL = 30;
 const LOG_REVEAL_DELAY_MS = 650;
@@ -16,7 +17,13 @@ const DIFFICULTIES = [
   { value: 2, label: 'Difícil' },
   { value: 3, label: 'Muy Difícil' },
 ];
-const EVENT_TYPE_ICONS = { TRAP: '🪤', VENDOR: '🛒', SANCTUARY: '✨', SECRET: '🔍', STORY: '📜' };
+const EVENT_TYPE_ICONS = {
+  TRAP: '🪤',
+  VENDOR: { name: 'shopping-cart', artist: 'delapouite' },
+  SANCTUARY: { name: 'sparkles', artist: 'delapouite' },
+  SECRET: { name: 'magnifying-glass', artist: 'lorc' },
+  STORY: { name: 'scroll-unfurled', artist: 'lorc' },
+};
 const RARITY_CLASS = {
   COMUN: 'rarity-comun', POCO_COMUN: 'rarity-poco_comun',
   RARO: 'rarity-raro', EPICO: 'rarity-epico', LEGENDARIO: 'rarity-legendario',
@@ -475,7 +482,7 @@ export default function Tower() {
   if (playerLevel != null && playerLevel < MIN_LEVEL && !run) {
     return (
       <div className="placeholder-page">
-        <h1>🕳️ El Abismo</h1>
+        <h1><GameIcon name="vortex" artist="lorc" /> El Abismo</h1>
         <p>Necesitas nivel {MIN_LEVEL} para entrar. Todavía estás en nivel {playerLevel}.</p>
         <Link to="/combat">Volver a zonas</Link>
       </div>
@@ -496,11 +503,14 @@ export default function Tower() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🕳️ El Abismo</h1>
+          <h1><GameIcon name="vortex" artist="lorc" /> El Abismo</h1>
           {run && (
             <>
               <p className="dashboard-subtitle">
-                Piso {run.current_floor}{floor?.is_boss_floor ? ' · 👑 Piso del Jefe' : ''}
+                Piso {run.current_floor}
+                {floor?.is_boss_floor && (
+                  <> · <GameIcon name="crown" artist="lorc" /> Piso del Jefe</>
+                )}
               </p>
               {floor && !floor.is_boss_floor && (
                 <div className="abyss-explore-row">
@@ -514,7 +524,11 @@ export default function Tower() {
           )}
         </div>
         <div className="craft-row">
-          {!run && <Link className="rpg-button rpg-button--small" to="/abismo/vendor">🪙 Vendedor</Link>}
+          {!run && (
+            <Link className="rpg-button rpg-button--small" to="/abismo/vendor">
+              <GameIcon name="two-coins" artist="delapouite" /> Vendedor
+            </Link>
+          )}
           {!inCombat && (
             <Link className="logout-btn" to="/combat">Volver</Link>
           )}
@@ -534,7 +548,7 @@ export default function Tower() {
       {floorMsg && run?.status !== 'WIPED' && (
         <div className="craft-result-popup rpg-panel abyss-event-panel">
           <button className="craft-result-close" onClick={clearFloorMsg} aria-label="Cerrar">✕</button>
-          <h4 className="craft-result-title">🕳️ El Abismo</h4>
+          <h4 className="craft-result-title"><GameIcon name="vortex" artist="lorc" /> El Abismo</h4>
           <p className="hint">{floorMsg}</p>
         </div>
       )}
@@ -625,7 +639,13 @@ export default function Tower() {
       {run && run.status === 'IN_PROGRESS' && !session && pendingEvent && !vendorOffer && (
         <div className="modal-overlay">
           <div className="modal-panel rpg-panel abyss-event-panel">
-            <h2>{EVENT_TYPE_ICONS[pendingEvent.event_type] || '❔'} Algo llama tu atención...</h2>
+            <h2>
+              {(() => {
+                const eventIcon = EVENT_TYPE_ICONS[pendingEvent.event_type];
+                if (!eventIcon) return '❔';
+                return typeof eventIcon === 'string' ? eventIcon : <GameIcon {...eventIcon} />;
+              })()} Algo llama tu atención...
+            </h2>
             <p className="zone-description">{pendingEvent.prompt_text}</p>
             {canControl ? (
               <div className="craft-row" style={{ justifyContent: 'center' }}>
@@ -646,7 +666,7 @@ export default function Tower() {
       {vendorOffer && (
         <div className="modal-overlay">
           <div className="modal-panel rpg-panel abyss-event-panel">
-            <h2>🛒 Vendedor ambulante del Abismo</h2>
+            <h2><GameIcon name="shopping-cart" artist="delapouite" /> Vendedor ambulante del Abismo</h2>
             <p className="dashboard-subtitle">Monedas de mazmorra: {dungeonCoins.toLocaleString()}</p>
             {canControl ? (
               <>
@@ -920,16 +940,22 @@ function TowerCombatView({
             {activeSkills && activeSkills.filter((s) => !s.isPassive && s.skillType !== 'PASIVA').map((skill) => {
               const insufficientMana = actor && actor.mana < skill.manaCost;
               const disabled = loading || insufficientMana;
-              const icon = { ATAQUE: '⚔', CURACION: '✚', BUFF: '🛡', DEBUFF: '💀', ESTADO_ALTERADO: '☠', ESPECIAL: '✦' }[skill.skillType] || '⚔';
+              const icon = SKILL_TYPE_ICONS[skill.skillType] || SKILL_TYPE_ICONS.ATAQUE;
               const schoolIcon = SCHOOL_ICONS[skill.damageSchool];
               const targetIcon = TARGET_ICONS[skill.targetType];
               return (
                 <button key={skill.id} className="item-row" disabled={disabled} onClick={() => handleSkillClick(skill)}>
                   <span className="skill-row-main">
-                    <span>{icon} {skill.name}</span>
+                    <span><GameIcon {...icon} /> {skill.name}</span>
                     <span className="skill-row-badges">
-                      {schoolIcon && <span title={SCHOOL_LABELS[skill.damageSchool]}>{schoolIcon}</span>}
-                      {targetIcon && <span title={TARGET_LABELS[skill.targetType]}>{targetIcon}</span>}
+                      {schoolIcon && (
+                        <span title={SCHOOL_LABELS[skill.damageSchool]}><GameIcon {...schoolIcon} /></span>
+                      )}
+                      {targetIcon && (
+                        <span title={TARGET_LABELS[skill.targetType]}>
+                          {typeof targetIcon === 'string' ? targetIcon : <GameIcon {...targetIcon} />}
+                        </span>
+                      )}
                     </span>
                   </span>
                   <span className="item-qty">{skill.manaCost > 0 ? `${skill.manaCost} maná` : 'gratis'}</span>

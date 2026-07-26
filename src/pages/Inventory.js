@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const SLOT_LABELS = {
   WEAPON: 'Arma',
@@ -48,14 +49,25 @@ const STAT_LABELS = {
 const QUALITY_TIER_MULTIPLIER = [1.0, 1.15, 1.35, 1.60, 2.0];
 
 const SLOT_ICONS = {
-  WEAPON: '⚔️', OFFHAND: '🛡️', HELMET: '⛑️', ARMOR: '👕',
-  GLOVES: '🧤', BOOTS: '👢', ACCESSORY: '💍',
+  WEAPON: { name: 'pointy-sword', artist: 'lorc' },
+  OFFHAND: { name: 'shield', artist: 'sbed' },
+  HELMET: { name: 'helmet', artist: 'sbed' },
+  ARMOR: { name: 'armor-vest', artist: 'lorc' },
+  GLOVES: { name: 'gloves', artist: 'delapouite' },
+  BOOTS: { name: 'leather-boot', artist: 'lorc' },
+  ACCESSORY: { name: 'ring', artist: 'delapouite' },
 };
-const TYPE_ICONS = { EQUIPMENT: '⚔️', CONSUMABLE: '🧪', MATERIAL: '🪵' };
+const TYPE_ICONS = {
+  EQUIPMENT: { name: 'pointy-sword', artist: 'lorc' },
+  CONSUMABLE: { name: 'health-potion', artist: 'delapouite' },
+  MATERIAL: { name: 'wood-pile', artist: 'delapouite' },
+};
 
 function itemIcon(item) {
-  if (item.item_type === 'EQUIPMENT') return SLOT_ICONS[item.slot] || '⚙️';
-  return TYPE_ICONS[item.item_type] || '❔';
+  const icon = item.item_type === 'EQUIPMENT'
+    ? (SLOT_ICONS[item.slot] || { name: 'cog', artist: 'lorc' })
+    : TYPE_ICONS[item.item_type];
+  return icon ? <GameIcon {...icon} /> : '❔';
 }
 
 function rarityClass(rarity) {
@@ -69,7 +81,11 @@ function EnchantBadge({ level }) {
 
 function LuckBadge({ tier }) {
   if (!tier) return null;
-  return <span className="luck-badge" title="Salió de mejor rareza por suerte">✦ Suerte</span>;
+  return (
+    <span className="luck-badge" title="Salió de mejor rareza por suerte">
+      <GameIcon name="sparkles" artist="delapouite" /> Suerte
+    </span>
+  );
 }
 
 function EquippedTag() {
@@ -336,7 +352,7 @@ export default function Inventory() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🎒 Inventario</h1>
+          <h1><GameIcon name="backpack" artist="delapouite" /> Inventario</h1>
           <p className="dashboard-subtitle">Equipo y objetos de tu personaje</p>
         </div>
         <Link className="logout-btn" to="/">Volver</Link>
@@ -441,7 +457,7 @@ export default function Inventory() {
 
       {grouped.map(({ type, items: groupItems }) => (
         <section key={type} className="inventory-group">
-          <h2>{TYPE_ICONS[type] || ''} {TYPE_LABELS[type]}</h2>
+          <h2>{TYPE_ICONS[type] ? <GameIcon {...TYPE_ICONS[type]} /> : ''} {TYPE_LABELS[type]}</h2>
           <div className="item-grid">
             {groupItems.map((item) => {
               const enchantLevel = item.enchant_level ?? 0;
@@ -491,7 +507,7 @@ export default function Inventory() {
                   )}
                   {item.code?.startsWith('HUEVO_') && (
                     <Link to="/pets" className="rpg-button equipment-action">
-                      🐾 Incubar
+                      <GameIcon name="paw-print" artist="lorc" /> Incubar
                     </Link>
                   )}
                   {item.item_type === 'CONSUMABLE' && (
@@ -511,7 +527,9 @@ export default function Inventory() {
                     >
                       {busyId === `scroll-${item.item_id}`
                         ? 'Usando...'
-                        : item.recipe_already_learned ? '📖 Ya aprendida' : '📖 Aprender receta'}
+                        : item.recipe_already_learned
+                          ? <><GameIcon name="open-book" artist="lorc" /> Ya aprendida</>
+                          : <><GameIcon name="open-book" artist="lorc" /> Aprender receta</>}
                     </button>
                   )}
                 </div>
@@ -531,7 +549,9 @@ export default function Inventory() {
             ✕
           </button>
           <h4 className="craft-result-title">
-            {recipeResult.alreadyLearned ? '📖 Receta ya conocida' : '🎉 ¡Nueva receta!'}
+            {recipeResult.alreadyLearned
+              ? <><GameIcon name="open-book" artist="lorc" /> Receta ya conocida</>
+              : <><GameIcon name="party-popper" artist="delapouite" /> ¡Nueva receta!</>}
           </h4>
           <p className="hint">{recipeResult.message}</p>
         </div>

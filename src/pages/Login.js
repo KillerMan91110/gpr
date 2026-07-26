@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import GameIcon from '../components/GameIcon';
 
 export default function Login() {
   const { login } = useAuth();
@@ -27,7 +28,10 @@ export default function Login() {
   return (
     <div className="auth-page">
       <form className="auth-card rpg-panel" onSubmit={handleSubmit}>
-        <span className="auth-kicker">⚜ Reino de Disgaea ⚜</span>
+        <span className="auth-kicker">
+          <GameIcon name="fleur-de-lys" artist="delapouite" /> Reino de Disgaea{' '}
+          <GameIcon name="fleur-de-lys" artist="delapouite" />
+        </span>
         <h1>Iniciar sesión</h1>
         <hr className="auth-divider" />
         {error && <p className="auth-error">{error}</p>}

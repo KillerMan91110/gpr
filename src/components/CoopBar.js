@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import { clearActiveCombat, getActiveCombat, isCombatInProgress } from '../utils/activeCombat';
+import GameIcon from './GameIcon';
 
 const ONLINE_MS = 5 * 60 * 1000;
 
@@ -302,7 +303,7 @@ export default function CoopBar() {
 
       {pendingInvite && !party && (
         <div className="coop-invite-popup rpg-panel">
-          <p className="craft-result-title">🤝 Invitación de grupo</p>
+          <p className="craft-result-title"><GameIcon name="shaking-hands" artist="delapouite" /> Invitación de grupo</p>
           <p className="hint">
             <strong>{pendingInvite.leader_nickname}</strong> (Nv. {pendingInvite.leader_level} · {pendingInvite.leader_class})
             {' '}te invitó a formar un grupo co-op.
@@ -338,7 +339,7 @@ export default function CoopBar() {
 
       {showTowerReadyPrompt && (
         <div className="coop-ready-bar rpg-panel">
-          <span className="coop-ready-text">🕳️ ¿Listo para El Abismo?</span>
+          <span className="coop-ready-text"><GameIcon name="vortex" artist="lorc" /> ¿Listo para El Abismo?</span>
           <div className="coop-ready-actions">
             <button className="coop-check-btn" disabled={busy} onClick={handleAcceptTowerReady} aria-label="Aceptar">
               ✓
@@ -352,7 +353,7 @@ export default function CoopBar() {
 
       {showWorldBossReadyPrompt && (
         <div className="coop-ready-bar rpg-panel">
-          <span className="coop-ready-text">🌌 ¿Listo para el World Boss?</span>
+          <span className="coop-ready-text"><GameIcon name="galaxy" artist="delapouite" /> ¿Listo para el World Boss?</span>
           <div className="coop-ready-actions">
             <button className="coop-check-btn" disabled={busy} onClick={handleAcceptWorldBossReady} aria-label="Aceptar">
               ✓
@@ -366,7 +367,9 @@ export default function CoopBar() {
 
       {party && (
         <div className="coop-bar rpg-panel">
-          <span className="coop-bar-label">🤝 Grupo{party.isLeader ? ' · líder' : ''}</span>
+          <span className="coop-bar-label">
+            <GameIcon name="shaking-hands" artist="delapouite" /> Grupo{party.isLeader ? ' · líder' : ''}
+          </span>
           {party.members.map((m) => (
             <div key={m.id} className="coop-bar-member">
               <div className="coop-bar-info">

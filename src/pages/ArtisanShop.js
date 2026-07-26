@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const RARITY_CLASS = {
   COMUN: 'rarity-comun', POCO_COMUN: 'rarity-poco_comun',
@@ -79,7 +80,7 @@ export default function ArtisanShop() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>🏪 Tienda de Artesanos</h1>
+          <h1><GameIcon name="shop" artist="delapouite" /> Tienda de Artesanos</h1>
           <p className="dashboard-subtitle">Compra materiales especiales o vende ítems.</p>
         </div>
         <Link className="logout-btn" to="/guild">Volver</Link>

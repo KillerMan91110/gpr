@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import QuestObjectives, { allObjectivesComplete } from '../components/QuestObjectives';
+import GameIcon from '../components/GameIcon';
 
 const RARITY_STARS = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
 
@@ -83,7 +84,7 @@ export default function MyQuests() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>📜 Mis Quests</h1>
+          <h1><GameIcon name="scroll-unfurled" artist="lorc" /> Mis Quests</h1>
           <p className="dashboard-subtitle">Misiones aceptadas y registro de completadas.</p>
         </div>
         <Link className="logout-btn" to="/">
@@ -133,7 +134,7 @@ export default function MyQuests() {
                   {q.description && <p className="hint">{q.description}</p>}
                   <p className="hint">
                     +{q.xp_reward} XP · +{q.gold_reward} Oro · +{q.reputation_reward} Reputación
-                    {q.is_repeatable ? ' · 🔁 Repetible' : ' · Única vez'}
+                    {q.is_repeatable ? <> · <GameIcon name="recycle" artist="lorc" /> Repetible</> : ' · Única vez'}
                   </p>
                   <QuestObjectives objectives={q.objectives} />
                   <div className="quest-card-actions">

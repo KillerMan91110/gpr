@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 function lockReason(zone, index, zones) {
   if (index === 0) return null;
@@ -79,7 +80,8 @@ function ZoneRewards({ monsters }) {
 
   return (
     <p className="zone-rewards">
-      Recompensas por enemigo: ⭐ {range(xpValues)} XP · 🪙 {range(goldValues)} Oro
+      Recompensas por enemigo: ⭐ {range(xpValues)} XP · <GameIcon name="two-coins" artist="delapouite" />{' '}
+      {range(goldValues)} Oro
     </p>
   );
 }
@@ -122,7 +124,7 @@ export default function Zones() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div>
-          <h1>⚔ Zonas de Combate</h1>
+          <h1><GameIcon name="crossed-swords" artist="lorc" /> Zonas de Combate</h1>
           <p className="dashboard-subtitle">Avanza derrotando al jefe de cada zona</p>
         </div>
         <Link className="logout-btn" to="/">Volver</Link>
@@ -135,7 +137,9 @@ export default function Zones() {
           <div key={zone.id} className={`zone-card rpg-panel ${zone.unlocked ? '' : 'zone-locked'}${isRecommended ? ' zone-recommended' : ''}`}>
             {isRecommended && <span className="zone-recommended-badge">★ RECOMENDADA</span>}
             <div className="zone-card-header">
-              <h3>{zone.unlocked ? zone.name : `🔒 ${zone.name}`}</h3>
+              <h3>
+                {zone.unlocked ? zone.name : <><GameIcon name="padlock" artist="lorc" /> {zone.name}</>}
+              </h3>
               <span className="zone-level-range">Nv. {zone.levelRange}</span>
             </div>
             <p className="zone-description">{zone.description}</p>

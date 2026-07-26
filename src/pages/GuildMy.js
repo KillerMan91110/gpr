@@ -2,10 +2,16 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import GameIcon from '../components/GameIcon';
 
 const ROLE_LABEL = { LEADER: 'Líder', OFFICER: 'Oficial', MEMBER: 'Miembro' };
 const ONLINE_MS = 5 * 60 * 1000;
 const DEPOSIT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+const MEDAL_ICONS = [
+  { name: 'podium-winner', artist: 'delapouite' },
+  { name: 'podium-second', artist: 'delapouite' },
+  { name: 'podium-third', artist: 'delapouite' },
+];
 
 // Deben coincidir exactamente con GUILD_EMBLEMS / GUILD_COLORS de lib/guilds.js en el back.
 const GUILD_EMBLEMS = ['🐉', '🦁', '⚔️', '🛡️', '🔥', '❄️', '👑', '🦅', '🐺', '☠️', '⭐', '🌙'];
@@ -385,26 +391,32 @@ export default function GuildMy() {
         <div className="guild-header-main">
           <h1>
             <span className="guild-emblem" style={guild.color ? { color: guild.color } : undefined}>
-              {guild.emblem || '🏛'}
+              {guild.emblem || <GameIcon name="castle" artist="lorc" />}
             </span>{' '}
             {guild.name}
           </h1>
           <div className="guild-header-badges">
             <span className="guild-badge guild-badge--level">Nivel {guild.level}</span>
             <span className="guild-badge">
-              {guild.type === 'OPEN' ? '🔓 Abierto' : '🔒 Cerrado'}
+              {guild.type === 'OPEN'
+                ? <><GameIcon name="padlock-open" artist="delapouite" /> Abierto</>
+                : <><GameIcon name="padlock" artist="lorc" /> Cerrado</>}
             </span>
             <span className={`guild-badge guild-role-badge guild-role-badge--${guild.myRole}`}>
               {ROLE_LABEL[guild.myRole] ?? guild.myRole}
             </span>
             <span className="guild-badge guild-badge--members">
-              👥 {guild.members.length}/{guild.memberCap}
+              <GameIcon name="three-friends" artist="delapouite" /> {guild.members.length}/{guild.memberCap}
             </span>
             {rankPosition && (
-              <span className="guild-badge guild-badge--rank">🏆 Ranking #{rankPosition}</span>
+              <span className="guild-badge guild-badge--rank">
+                <GameIcon name="trophy" artist="lorc" /> Ranking #{rankPosition}
+              </span>
             )}
             {guild.foundedAt && (
-              <span className="guild-badge">🗓 {formatDaysAgo(guild.foundedAt)}</span>
+              <span className="guild-badge">
+                <GameIcon name="calendar" artist="delapouite" /> {formatDaysAgo(guild.foundedAt)}
+              </span>
             )}
           </div>
         </div>
@@ -545,7 +557,9 @@ export default function GuildMy() {
                         title="Transferir liderazgo"
                         onClick={() => handleTransfer(m.id)}
                       >
-                        {actionLoading === `transfer-${m.id}` ? '...' : '👑 Liderazgo'}
+                        {actionLoading === `transfer-${m.id}`
+                          ? '...'
+                          : <><GameIcon name="crown" artist="lorc" /> Liderazgo</>}
                       </button>
                     )}
                     {canKick && (
@@ -572,10 +586,12 @@ export default function GuildMy() {
           <>
             <p className="hint guild-type-desc">
               {guild.type === 'OPEN'
-                ? '🔓 Gremio abierto — cualquier aventurero puede unirse libremente.'
-                : '🔒 Gremio cerrado — el acceso es solo mediante solicitud que el líder acepta o rechaza.'}
+                ? <><GameIcon name="padlock-open" artist="delapouite" /> Gremio abierto — cualquier aventurero puede unirse libremente.</>
+                : <><GameIcon name="padlock" artist="lorc" /> Gremio cerrado — el acceso es solo mediante solicitud que el líder acepta o rechaza.</>}
             </p>
-            <h3 className="guild-members-title guild-message-title">📜 Mensaje del líder</h3>
+            <h3 className="guild-members-title guild-message-title">
+              <GameIcon name="scroll-unfurled" artist="lorc" /> Mensaje del líder
+            </h3>
             {guild.description ? (
               <p className="zone-description guild-description guild-message-parchment">{guild.description}</p>
             ) : (
@@ -651,7 +667,9 @@ export default function GuildMy() {
                 </div>
               </div>
             ) : (
-              <p className="hint">🔒 El emblema y color personalizados se desbloquean en Nivel 3.</p>
+              <p className="hint">
+                <GameIcon name="padlock" artist="lorc" /> El emblema y color personalizados se desbloquean en Nivel 3.
+              </p>
             )}
             <div className="guild-form-footer">
               <button type="button" className="rpg-button rpg-button--small" onClick={() => setEditing(false)}>
@@ -699,7 +717,11 @@ export default function GuildMy() {
               <div key={b.level} className={`guild-benefit-row${unlocked ? ' guild-benefit-row--unlocked' : ''}`}>
                 <span className="guild-benefit-level">Nivel {b.level}</span>
                 <span className="guild-benefit-label">{b.label}</span>
-                <span className="guild-benefit-status">{unlocked ? '✅ Desbloqueado' : '🔒 Bloqueado'}</span>
+                <span className="guild-benefit-status">
+                  {unlocked
+                    ? <><GameIcon name="padlock-open" artist="delapouite" /> Desbloqueado</>
+                    : <><GameIcon name="padlock" artist="lorc" /> Bloqueado</>}
+                </span>
               </div>
             );
           })}
@@ -710,9 +732,9 @@ export default function GuildMy() {
       <div className="guild-grid-2col">
       {/* Banco de gremio */}
       <div className="rpg-panel guild-bank-panel">
-        <h3 className="guild-members-title">🏦 Banco de gremio</h3>
+        <h3 className="guild-members-title"><GameIcon name="bank" artist="delapouite" /> Banco de gremio</h3>
         {guild.level < 2 ? (
-          <p className="hint">🔒 Se desbloquea en Nivel 2.</p>
+          <p className="hint"><GameIcon name="padlock" artist="lorc" /> Se desbloquea en Nivel 2.</p>
         ) : (
           <>
             <p className="guild-bank-gold">{(bank?.bankGold ?? guild.bankGold ?? 0).toLocaleString()} de oro</p>
@@ -744,7 +766,9 @@ export default function GuildMy() {
                 <div className="guild-bank-contributors">
                   {bank.topContributors.map((c, i) => (
                     <div key={c.playerId} className="guild-bank-contributor-row">
-                      <span>{['🥇', '🥈', '🥉'][i] ?? `${i + 1}.`} {c.nickname}</span>
+                      <span>
+                        {MEDAL_ICONS[i] ? <GameIcon {...MEDAL_ICONS[i]} /> : `${i + 1}.`} {c.nickname}
+                      </span>
                       <span className="hint">{c.totalDonated.toLocaleString()} oro</span>
                     </div>
                   ))}
@@ -757,9 +781,9 @@ export default function GuildMy() {
 
       {/* Tienda de gremio */}
       <div className="rpg-panel guild-shop-panel">
-        <h3 className="guild-members-title">🛒 Tienda de gremio</h3>
+        <h3 className="guild-members-title"><GameIcon name="shopping-cart" artist="delapouite" /> Tienda de gremio</h3>
         {guild.level < 2 ? (
-          <p className="hint">🔒 Se desbloquea en Nivel 2.</p>
+          <p className="hint"><GameIcon name="padlock" artist="lorc" /> Se desbloquea en Nivel 2.</p>
         ) : !shop?.length ? (
           <p className="hint">{shop === null ? 'Cargando...' : 'No hay items disponibles.'}</p>
         ) : (isLeader || isOfficer) ? (
@@ -795,7 +819,7 @@ export default function GuildMy() {
 
       {/* Maestros de clase */}
       <div className="rpg-panel">
-        <h3 className="guild-members-title">🧙 Maestros</h3>
+        <h3 className="guild-members-title"><GameIcon name="wizard-face" artist="delapouite" /> Maestros</h3>
         {masters === null && <p className="hint">Cargando...</p>}
         {masters?.length === 0 && (
           <p className="hint">Todavía ningún miembro trajo un maestro de clase al gremio. Evolucionan y explorá para encontrar uno.</p>
@@ -826,7 +850,7 @@ export default function GuildMy() {
         <div className="modal-overlay" onClick={closeMasterShop}>
           <div className="modal-panel rpg-panel" onClick={(e) => e.stopPropagation()}>
             <button className="craft-result-close" onClick={closeMasterShop} aria-label="Cerrar">×</button>
-            <h3 className="guild-members-title">🛒 Tienda del maestro</h3>
+            <h3 className="guild-members-title"><GameIcon name="shopping-cart" artist="delapouite" /> Tienda del maestro</h3>
             {masterShopError && <p className="auth-error">{masterShopError}</p>}
             {!masterShopData ? (
               !masterShopError && <p className="hint">Cargando...</p>
