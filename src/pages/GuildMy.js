@@ -829,7 +829,7 @@ export default function GuildMy() {
             <h3 className="guild-members-title">🛒 Tienda del maestro</h3>
             {masterShopError && <p className="auth-error">{masterShopError}</p>}
             {!masterShopData ? (
-              <p className="hint">Cargando...</p>
+              !masterShopError && <p className="hint">Cargando...</p>
             ) : (
               <>
                 <p className="dashboard-subtitle">Tu oro: {Number(masterShopData.gold).toLocaleString()}</p>
