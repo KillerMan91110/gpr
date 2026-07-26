@@ -86,11 +86,13 @@ export default function BackgroundMusic() {
             setReady(true);
           },
           // Sin playlist/loop en playerVars porque el video cambia en vivo (fondo <-> combate);
-          // loopeamos a mano el que esté cargado en ese momento, sea cual sea.
+          // loopeamos a mano el que esté cargado en ese momento. loadVideoById en vez de
+          // seekTo(0)+playVideo(): en algunos navegadores un video ya en estado ENDED no vuelve
+          // a arrancar solo con seek+play, pero recargarlo desde cero sí funciona siempre (es el
+          // mismo mecanismo que ya uso para cambiar entre tema de fondo y de combate).
           onStateChange: (e) => {
             if (e.data === YT.PlayerState.ENDED) {
-              e.target.seekTo(0);
-              e.target.playVideo();
+              e.target.loadVideoById(e.target.getVideoData().video_id);
             }
           },
         },
