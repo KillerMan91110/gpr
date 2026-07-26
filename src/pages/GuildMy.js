@@ -17,11 +17,6 @@ const MEDAL_ICONS = [
 const GUILD_EMBLEMS = ['🐉', '🦁', '⚔️', '🛡️', '🔥', '❄️', '👑', '🦅', '🐺', '☠️', '⭐', '🌙'];
 const GUILD_COLORS = ['#d4af37', '#e0394f', '#4fa0e0', '#5fd97e', '#b572e0', '#f0a93a', '#7a1020', '#143a66', '#ece3cf', '#b9b3c4'];
 
-const RARITY_CLASS = {
-  COMUN: 'rarity-comun', POCO_COMUN: 'rarity-poco_comun', RARO: 'rarity-raro',
-  EPICO: 'rarity-epico', LEGENDARIO: 'rarity-legendario', UNICO: 'rarity-unico',
-};
-
 // Debe coincidir con combatBonusMultipliers de lib/guilds.js en el back.
 function combatBonusPercents(level) {
   if (!level) return { gold: 0, xp: 0 };
@@ -105,11 +100,6 @@ export default function GuildMy() {
   const [bank, setBank] = useState(null);
   const [shop, setShop] = useState(null);
   const [masters, setMasters] = useState(null);
-  const [masterShopFor, setMasterShopFor] = useState(null);
-  const [masterShopData, setMasterShopData] = useState(null);
-  const [masterShopLoading, setMasterShopLoading] = useState(false);
-  const [masterShopError, setMasterShopError] = useState('');
-  const [masterShopRecipient, setMasterShopRecipient] = useState('');
   const [donateAmount, setDonateAmount] = useState('');
   const [donateLoading, setDonateLoading] = useState(false);
   const [buyItemId, setBuyItemId] = useState('');
@@ -172,48 +162,6 @@ export default function GuildMy() {
   async function refreshActivity() {
     const a = await api.getGuildActivity(token, guild.id).catch(() => []);
     setActivity(a);
-  }
-
-  async function openMasterShop(masterId) {
-    setMasterShopError('');
-    setMasterShopFor(masterId);
-    setMasterShopLoading(true);
-    try {
-      const data = await api.getGuildMasterShop(token, guild.id, masterId);
-      setMasterShopData(data);
-    } catch (err) {
-      setMasterShopError(err.message);
-    } finally {
-      setMasterShopLoading(false);
-    }
-  }
-
-  function closeMasterShop() {
-    setMasterShopFor(null);
-    setMasterShopData(null);
-    setMasterShopError('');
-    setMasterShopRecipient('');
-  }
-
-  async function handleBuyMasterItem(itemId) {
-    const isGift = masterShopData?.canGift && !masterShopData?.isMyClass;
-    if (isGift && !masterShopRecipient) {
-      setMasterShopError('Elegí a quién le comprás.');
-      return;
-    }
-    setMasterShopError('');
-    setMasterShopLoading(true);
-    try {
-      const result = await api.buyGuildMasterShopItem(
-        token, guild.id, masterShopFor, itemId, isGift ? Number(masterShopRecipient) : undefined
-      );
-      setMasterShopData((prev) => (prev ? { ...prev, gold: result.gold } : prev));
-      setMessage('Compra realizada.');
-    } catch (err) {
-      setMasterShopError(err.message);
-    } finally {
-      setMasterShopLoading(false);
-    }
   }
 
   async function refreshGuild() {
@@ -836,79 +784,15 @@ export default function GuildMy() {
                 <span className="hint" style={{ textAlign: 'right' }}>
                   Gracias a {m.unlocked_by_nickname ?? 'alguien'} · {formatLastSeen(m.unlocked_at)}
                   <br />
-                  <button className="rpg-button rpg-button--small" onClick={() => openMasterShop(m.id)}>
-                    Ver tienda
-                  </button>
+                  <Link className="rpg-button rpg-button--small" to={`/guild/my/masters/${m.id}`}>
+                    Ver maestro
+                  </Link>
                 </span>
               </div>
             ))}
           </div>
         )}
       </div>
-
-      {masterShopFor && (
-        <div className="modal-overlay" onClick={closeMasterShop}>
-          <div className="modal-panel rpg-panel" onClick={(e) => e.stopPropagation()}>
-            <button className="craft-result-close" onClick={closeMasterShop} aria-label="Cerrar">×</button>
-            <h3 className="guild-members-title"><GameIcon name="shopping-cart" artist="delapouite" /> Tienda del maestro</h3>
-            {masterShopError && <p className="auth-error">{masterShopError}</p>}
-            {!masterShopData ? (
-              !masterShopError && <p className="hint">Cargando...</p>
-            ) : (
-              <>
-                <p className="dashboard-subtitle">Tu oro: {Number(masterShopData.gold).toLocaleString()}</p>
-                {masterShopData.canGift && (
-                  <div className="guild-form-group">
-                    <label className="guild-form-label">
-                      No sos de esa clase — comprale a un compañero que sí lo sea:
-                    </label>
-                    <select
-                      className="rpg-input"
-                      value={masterShopRecipient}
-                      onChange={(e) => setMasterShopRecipient(e.target.value)}
-                    >
-                      <option value="">Elegí a quién...</option>
-                      {guild.members.map((m) => (
-                        <option key={m.id} value={m.id}>{m.nickname}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-                {masterShopData.shop.length === 0 ? (
-                  <p className="hint">Sin ítems por ahora.</p>
-                ) : (
-                  <div className="guild-members-list">
-                    {masterShopData.shop.map((item) => (
-                      <div key={item.item_id} className="guild-member-row">
-                        <div className="guild-member-info">
-                          <span className={`guild-member-name item-rarity-dot ${RARITY_CLASS[item.rarity] || ''}`}>
-                            {item.name}
-                          </span>
-                          <span className="hint guild-member-sub">
-                            {item.rarity} · {Number(item.price).toLocaleString()} oro
-                          </span>
-                          {item.description && <span className="hint guild-member-sub">{item.description}</span>}
-                        </div>
-                        <button
-                          className="rpg-button rpg-button--small"
-                          disabled={
-                            masterShopLoading ||
-                            masterShopData.gold < item.price ||
-                            (masterShopData.canGift && !masterShopRecipient)
-                          }
-                          onClick={() => handleBuyMasterItem(item.item_id)}
-                        >
-                          {masterShopLoading ? '...' : 'Comprar'}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Actividad reciente */}
       <div className="rpg-panel">

@@ -24,6 +24,7 @@ import Ranks from './pages/Ranks';
 import GuildCreate from './pages/GuildCreate';
 import GuildJoin from './pages/GuildJoin';
 import GuildMy from './pages/GuildMy';
+import GuildEvolutionMaster from './pages/GuildEvolutionMaster';
 import GuildEnchant from './pages/GuildEnchant';
 import ArtisanShop from './pages/ArtisanShop';
 import Market from './pages/Market';
@@ -76,6 +77,7 @@ function App() {
               <Route path="/guild/create" element={<ProtectedRoute><GuildCreate /></ProtectedRoute>} />
               <Route path="/guild/join" element={<ProtectedRoute><GuildJoin /></ProtectedRoute>} />
               <Route path="/guild/my" element={<ProtectedRoute><GuildMy /></ProtectedRoute>} />
+            <Route path="/guild/my/masters/:masterId" element={<ProtectedRoute><GuildEvolutionMaster /></ProtectedRoute>} />
               <Route path="/guild/enchant" element={<ProtectedRoute><GuildEnchant /></ProtectedRoute>} />
               <Route path="/artisan-shop" element={<ProtectedRoute><ArtisanShop /></ProtectedRoute>} />
               <Route path="/market" element={<ProtectedRoute><Market /></ProtectedRoute>} />
