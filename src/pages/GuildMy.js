@@ -103,6 +103,7 @@ export default function GuildMy() {
   const [masterShopData, setMasterShopData] = useState(null);
   const [masterShopLoading, setMasterShopLoading] = useState(false);
   const [masterShopError, setMasterShopError] = useState('');
+  const [masterShopRecipient, setMasterShopRecipient] = useState('');
   const [donateAmount, setDonateAmount] = useState('');
   const [donateLoading, setDonateLoading] = useState(false);
   const [buyItemId, setBuyItemId] = useState('');
@@ -185,13 +186,21 @@ export default function GuildMy() {
     setMasterShopFor(null);
     setMasterShopData(null);
     setMasterShopError('');
+    setMasterShopRecipient('');
   }
 
   async function handleBuyMasterItem(itemId) {
+    const isGift = masterShopData?.canGift && !masterShopData?.isMyClass;
+    if (isGift && !masterShopRecipient) {
+      setMasterShopError('Elegí a quién le comprás.');
+      return;
+    }
     setMasterShopError('');
     setMasterShopLoading(true);
     try {
-      const result = await api.buyGuildMasterShopItem(token, guild.id, masterShopFor, itemId);
+      const result = await api.buyGuildMasterShopItem(
+        token, guild.id, masterShopFor, itemId, isGift ? Number(masterShopRecipient) : undefined
+      );
       setMasterShopData((prev) => (prev ? { ...prev, gold: result.gold } : prev));
       setMessage('Compra realizada.');
     } catch (err) {
@@ -824,6 +833,23 @@ export default function GuildMy() {
             ) : (
               <>
                 <p className="dashboard-subtitle">Tu oro: {Number(masterShopData.gold).toLocaleString()}</p>
+                {masterShopData.canGift && (
+                  <div className="guild-form-group">
+                    <label className="guild-form-label">
+                      No sos de esa clase — comprale a un compañero que sí lo sea:
+                    </label>
+                    <select
+                      className="rpg-input"
+                      value={masterShopRecipient}
+                      onChange={(e) => setMasterShopRecipient(e.target.value)}
+                    >
+                      <option value="">Elegí a quién...</option>
+                      {guild.members.map((m) => (
+                        <option key={m.id} value={m.id}>{m.nickname}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 {masterShopData.shop.length === 0 ? (
                   <p className="hint">Sin ítems por ahora.</p>
                 ) : (
@@ -841,7 +867,11 @@ export default function GuildMy() {
                         </div>
                         <button
                           className="rpg-button rpg-button--small"
-                          disabled={masterShopLoading || masterShopData.gold < item.price}
+                          disabled={
+                            masterShopLoading ||
+                            masterShopData.gold < item.price ||
+                            (masterShopData.canGift && !masterShopRecipient)
+                          }
                           onClick={() => handleBuyMasterItem(item.item_id)}
                         >
                           {masterShopLoading ? '...' : 'Comprar'}
