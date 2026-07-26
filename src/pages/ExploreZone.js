@@ -74,6 +74,8 @@ export default function ExploreZone() {
   const [coopParty, setCoopParty] = useState(null);
   const [readyStatus, setReadyStatus] = useState(null);
   const [waitingReady, setWaitingReady] = useState(false);
+  const [masterEncounter, setMasterEncounter] = useState(null);
+  const [masterHelping, setMasterHelping] = useState(false);
 
   // session en un ref, siempre al dia: revealSession la usa para calcular "que hay de nuevo"
   // tanto cuando la llamo yo (despues de mi accion) como cuando la llama el poll de abajo
@@ -230,6 +232,12 @@ export default function ExploreZone() {
   async function exploreOrRecover(explore) {
     try {
       const result = await explore();
+      if (result.masterEncounter) {
+        // Evolucionaste a una clase con maestro pendiente: esta exploración te encuentra con
+        // él en vez de armar combate — no hay sesión que iniciar.
+        setMasterEncounter(result.masterEncounter);
+        return;
+      }
       setEnemyLevels((result.monsters || []).map((m) => m.level));
       setSession(result);
     } catch (err) {
@@ -237,6 +245,18 @@ export default function ExploreZone() {
       if (!isActiveCombatConflict || !(await tryRecoverActiveSession())) {
         setError(err.message);
       }
+    }
+  }
+
+  async function handleHelpMaster() {
+    setMasterHelping(true);
+    try {
+      await api.resolveMasterEncounter(player.id, token);
+      setMasterEncounter(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setMasterHelping(false);
     }
   }
 
@@ -437,6 +457,20 @@ export default function ExploreZone() {
       </header>
 
       {error && <p className="auth-error">{error}</p>}
+
+      {masterEncounter && (
+        <div className="modal-overlay">
+          <div className="modal-panel rpg-panel abyss-event-panel">
+            <h2>🧙 {masterEncounter.name}</h2>
+            <p className="zone-description">{masterEncounter.dialogue}</p>
+            <div className="craft-row" style={{ justifyContent: 'center' }}>
+              <button className="rpg-button" onClick={handleHelpMaster} disabled={masterHelping}>
+                {masterHelping ? '...' : 'Ayudar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {!session && !coopParty && (
         <div className="rpg-panel explore-panel">

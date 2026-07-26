@@ -124,6 +124,8 @@ export const api = {
     }),
   getZoneEncounter: (playerId, zoneId, token) =>
     request(`/api/player/${playerId}/zones/${zoneId}/encounter`, { token }),
+  resolveMasterEncounter: (playerId, token) =>
+    request(`/api/player/${playerId}/master-encounter/resolve`, { method: 'POST', token }),
   createCombatSession: (monsters, token) =>
     request('/api/combat/sessions', { method: 'POST', body: { monsters }, token }),
   sendCombatAction: (sessionId, payload, token) =>
