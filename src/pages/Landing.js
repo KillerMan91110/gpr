@@ -146,6 +146,18 @@ export default function Landing() {
           <Link to="/login" className="rpg-button">Iniciar sesión</Link>
           <Link to="/register" className="rpg-button rpg-button--ghost">Crear cuenta</Link>
         </div>
+
+        <div className="rpg-panel landing-hero-video-frame">
+          <video
+            className="landing-hero-video"
+            src={`${process.env.PUBLIC_URL}/gif/IntroEtheria.mp4`}
+            autoPlay
+            muted
+            loop
+            playsInline
+            aria-hidden="true"
+          />
+        </div>
       </section>
 
       <section className="landing-section landing-reveal">
