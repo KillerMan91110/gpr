@@ -164,7 +164,14 @@ export default function BackgroundMusic() {
   const isSilent = muted || volume === 0;
 
   return (
-    <>
+    // Wrapper real (no Fragment): el player de YouTube reemplaza #bgm-player por su propio
+    // <iframe> por fuera de React en cuanto se inicializa, así que React ya no puede confiar en
+    // ese nodo. Si #bgm-player quedara como hermano suelto al mismo nivel que NavBar/ChatBox/etc,
+    // cualquier re-render de un hermano (ej. al minimizar el chat, que cambia de <div> a <button>)
+    // puede necesitar ese nodo como referencia para insertBefore/removeChild y crashear con
+    // "not a child of this node". Envolviendo todo en un div propio, React solo necesita
+    // insertar/quitar ESE div (que él sí controla) para reconciliar con el resto del árbol.
+    <div className="bgm-root">
       <div id="bgm-player" style={{ position: 'fixed', width: 0, height: 0, overflow: 'hidden' }} />
       <div className="bgm-control">
         <button
@@ -188,6 +195,6 @@ export default function BackgroundMusic() {
           />
         </div>
       </div>
-    </>
+    </div>
   );
 }
