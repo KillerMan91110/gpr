@@ -4673,7 +4673,8 @@ h1, h2, h3 {
   gap: 10px;
   font-size: 1.7rem;
   color: var(--gold-bright);
-  margin: 0 0 18px;
+  margin-top: 0;
+  margin-bottom: 18px;
 }
 
 .landing-section p {
@@ -4681,7 +4682,8 @@ h1, h2, h3 {
   font-size: 1.08rem;
   line-height: 1.7;
   color: var(--text-soft);
-  margin: 0 0 14px;
+  margin-top: 0;
+  margin-bottom: 14px;
 }
 
 .landing-section p:last-child {
