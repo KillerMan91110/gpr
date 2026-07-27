@@ -158,6 +158,20 @@ export default function ChatBox() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, player?.id, player?.nickname]);
 
+  // TRADE y GUILD se vacían solos en el back tras 15min sin mensajes (ver routes/chat.js,
+  // clearIfInactive). El room ya filtra por guild_id, así que si nos llega el evento es porque
+  // nos corresponde: no hace falta volver a chequear guildId acá.
+  useEffect(() => {
+    if (!socket) return undefined;
+    function handleCleared({ channel }) {
+      if (!(channel in loadedRef.current)) return;
+      setMessages((prev) => ({ ...prev, [channel]: [] }));
+      setUnread((prev) => (prev[channel] ? { ...prev, [channel]: 0 } : prev));
+    }
+    socket.on('chat:cleared', handleCleared);
+    return () => socket.off('chat:cleared', handleCleared);
+  }, [socket]);
+
   // Historial: se trae una sola vez por canal, la primera vez que esa pestaña se vuelve
   // relevante (se abre, o aparece la party/gremio). De ahí en más, los mensajes nuevos
   // llegan solos por socket.
