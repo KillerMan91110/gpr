@@ -25,7 +25,7 @@ const CLASSES = [
     key: 'sacerdote',
     name: 'Sacerdote',
     icon: { name: 'holy-symbol', artist: 'lorc' },
-    text: 'Elegidos por la Luz de Disgaea. Curan aliados, eliminan maldiciones y usan magia sagrada contra las fuerzas oscuras.',
+    text: 'Elegidos por la Luz de Etheria. Curan aliados, eliminan maldiciones y usan magia sagrada contra las fuerzas oscuras.',
   },
   {
     key: 'arquero',
@@ -87,7 +87,7 @@ const ZONES = [
     name: 'Ruinas Ancestrales',
     level: '86-100',
     icon: { name: 'magic-portal', artist: 'lorc' },
-    text: 'El lugar donde comenzó la Gran Fractura. Aquí la magia deja de obedecer las leyes conocidas y los Guardianes Ancestrales protegen un secreto capaz de cambiar el destino de Disgaea.',
+    text: 'El lugar donde comenzó la Gran Fractura. Aquí la magia deja de obedecer las leyes conocidas y los Guardianes Ancestrales protegen un secreto capaz de cambiar el destino de Etheria.',
   },
 ];
 
@@ -126,17 +126,17 @@ export default function Landing() {
     <div className="landing-page" ref={rootRef}>
       <header className="landing-topbar">
         <span className="landing-topbar-brand">
-          <GameIcon name="fleur-de-lys" artist="delapouite" /> Disgaea
+          <GameIcon name="fleur-de-lys" artist="delapouite" /> Etheria
         </span>
         <Link to="/login" className="rpg-button rpg-button--small">Iniciar sesión</Link>
       </header>
 
       <section className="landing-hero">
         <span className="landing-kicker">
-          <GameIcon name="fleur-de-lys" artist="delapouite" /> Reino de Disgaea{' '}
+          <GameIcon name="fleur-de-lys" artist="delapouite" /> Reino de Etheria{' '}
           <GameIcon name="fleur-de-lys" artist="delapouite" />
         </span>
-        <h1 className="landing-hero-title">Bienvenido a Disgaea</h1>
+        <h1 className="landing-hero-title">Bienvenido a Etheria</h1>
         <p className="landing-hero-lede">
           Un reino donde la magia y el acero conviven desde hace siglos. Más allá de sus murallas
           se extiende un mundo salvaje de monstruos, ruinas olvidadas y secretos que nadie ha
@@ -149,9 +149,9 @@ export default function Landing() {
       </section>
 
       <section className="landing-section landing-reveal">
-        <h2><GameIcon name="castle" artist="lorc" /> El Reino de Disgaea</h2>
+        <h2><GameIcon name="castle" artist="lorc" /> El Reino de Etheria</h2>
         <p>
-          Gobernado por la Corona de Disgaea, el reino es el mayor bastión de la civilización
+          Gobernado por la Corona de Etheria, el reino es el mayor bastión de la civilización
           conocida. Castillos, aldeas, fortalezas y academias mágicas se alzan bajo su bandera,
           protegidos por caballeros, magos y aventureros.
         </p>
@@ -170,7 +170,7 @@ export default function Landing() {
             Hace más de mil años, una catástrofe conocida como la <strong>Gran Fractura</strong>{' '}
             alteró el equilibrio del mundo. La energía mágica comenzó a brotar desde las
             profundidades de la tierra, corrompiendo bestias, despertando gigantes dormidos y
-            abriendo portales hacia lugares prohibidos. Desde entonces, Disgaea depende de sus
+            abriendo portales hacia lugares prohibidos. Desde entonces, Etheria depende de sus
             aventureros para mantener la paz.
           </p>
         </div>
@@ -194,7 +194,7 @@ export default function Landing() {
         <h2><GameIcon name="wizard-face" artist="delapouite" /> Los Maestros de Clase</h2>
         <p>
           Cada camino tiene un Maestro del Gremio, veteranos considerados los mejores de todo
-          Disgaea. Solo quienes demuestren verdadero talento podrán aprender sus técnicas
+          Etheria. Solo quienes demuestren verdadero talento podrán aprender sus técnicas
           avanzadas y descubrir habilidades ocultas.
         </p>
       </section>
@@ -215,7 +215,7 @@ export default function Landing() {
       </section>
 
       <section className="landing-section landing-reveal">
-        <h2><GameIcon name="compass" artist="lorc" /> Las Zonas de Disgaea</h2>
+        <h2><GameIcon name="compass" artist="lorc" /> Las Zonas de Etheria</h2>
         <p>Cada región representa un desafío mayor que la anterior.</p>
         <div className="landing-zones-grid">
           {ZONES.map((z) => (
@@ -281,7 +281,7 @@ export default function Landing() {
           fortalecido. Cada piso del Abismo explorado.
         </p>
         <p>
-          Todo forma parte de una única historia: la historia de Disgaea... y la del aventurero
+          Todo forma parte de una única historia: la historia de Etheria... y la del aventurero
           que decidirá el destino del reino.
         </p>
         <div className="landing-hero-actions">
@@ -293,7 +293,7 @@ export default function Landing() {
       </section>
 
       <footer className="landing-footer">
-        <span><GameIcon name="fleur-de-lys" artist="delapouite" /> Disgaea — un mundo por explorar</span>
+        <span><GameIcon name="fleur-de-lys" artist="delapouite" /> Etheria — un mundo por explorar</span>
       </footer>
     </div>
   );

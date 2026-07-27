@@ -68,7 +68,7 @@ export default function Register() {
     <div className="auth-page">
       <form className="auth-card rpg-panel" onSubmit={handleSubmit}>
         <span className="auth-kicker">
-          <GameIcon name="fleur-de-lys" artist="delapouite" /> Reino de Disgaea{' '}
+          <GameIcon name="fleur-de-lys" artist="delapouite" /> Reino de Etheria{' '}
           <GameIcon name="fleur-de-lys" artist="delapouite" />
         </span>
         <h1>Crear personaje</h1>
