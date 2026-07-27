@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
@@ -77,19 +77,18 @@ export default function Evolutions() {
 
       {stats && (
         <div className="evo-path rpg-panel">
-          <div className="evo-path-node">
-            <span className="evo-path-node-name">{stats.class.name}</span>
-            {!stats.evolution?.name && <span className="evo-path-node-tag">Actual</span>}
-          </div>
-          {stats.evolution?.name && (
-            <>
-              <span className="evo-path-arrow">→</span>
-              <div className="evo-path-node evo-path-node--active">
-                <span className="evo-path-node-name">{stats.evolution.name}</span>
-                <span className="evo-path-node-tag">Actual</span>
-              </div>
-            </>
-          )}
+          {(stats.classChain?.length ? stats.classChain : [stats.class]).map((c, i, chain) => {
+            const isLast = i === chain.length - 1;
+            return (
+              <Fragment key={c.id}>
+                {i > 0 && <span className="evo-path-arrow">→</span>}
+                <div className={`evo-path-node${isLast ? ' evo-path-node--active' : ''}`}>
+                  <span className="evo-path-node-name">{c.name}</span>
+                  {isLast && <span className="evo-path-node-tag">Actual</span>}
+                </div>
+              </Fragment>
+            );
+          })}
           <span className="evo-path-level">Nv. {data?.level ?? stats.level}</span>
         </div>
       )}

@@ -109,9 +109,11 @@ export default function Dashboard() {
   if (error) return <div className="dashboard-error">Error: {error}</div>;
   if (!stats) return <div className="dashboard-loading">Cargando personaje...</div>;
 
-  const displayClass = stats.evolution?.name
-    ? `${stats.class.name} → ${stats.evolution.name}`
-    : stats.class.name;
+  const displayClass = stats.classChain?.length
+    ? stats.classChain.map((c) => c.name).join(' → ')
+    : stats.evolution?.name
+      ? `${stats.class.name} → ${stats.evolution.name}`
+      : stats.class.name;
   const displayClassDesc = stats.evolution?.lore || stats.class.description;
 
   const partyNpcs = party?.members?.filter((m) => !m.isHero) || [];
