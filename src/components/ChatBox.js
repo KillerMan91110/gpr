@@ -47,10 +47,10 @@ function mergeMessages(existing, incoming) {
 }
 
 // Chatbox global (visible en cualquier pantalla mientras estás logueado). Tabs fijos
-// General/Comercio siempre visibles; Grupo y Gremio aparecen solo si pertenecés a uno.
+// General/Comercio siempre visibles; Grupo y Gremio aparecen solo si perteneces a uno.
 // Los mensajes en vivo llegan por WebSocket (rooms chat:GENERAL/TRADE/GUILD:<id>/COOP:<id>);
 // el historial de cada canal se trae una sola vez por REST la primera vez que se abre esa
-// pestaña. Party/Gremio (quién sos, no los mensajes) siguen en polling: no hay evento de
+// pestaña. Party/Gremio (quién eres, no los mensajes) siguen en polling: no hay evento de
 // socket para eso todavía.
 export default function ChatBox() {
   const { player, token, isAuthenticated } = useAuth();
@@ -119,7 +119,7 @@ export default function ChatBox() {
     return () => clearInterval(guildPollRef.current);
   }, [isAuthenticated, player, token]);
 
-  // Si perdés la party/gremio estando parado en esa tab, volvé a General.
+  // Si pierdes la party/gremio estando parado en esa tab, vuelve a General.
   useEffect(() => {
     if (activeTab === 'PARTY' && !party) setActiveTab('GENERAL');
   }, [party, activeTab]);

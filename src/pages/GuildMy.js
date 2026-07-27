@@ -301,7 +301,7 @@ export default function GuildMy() {
   async function handleBuy(e) {
     e.preventDefault();
     clearMsg();
-    if (!buyItemId || !buyRecipient) { setError('Elegí un item y un destinatario.'); return; }
+    if (!buyItemId || !buyRecipient) { setError('Elige un item y un destinatario.'); return; }
     setBuyLoading(true);
     try {
       const result = await api.buyGuildBankShopItem(token, guild.id, Number(buyItemId), Number(buyQuantity) || 1, Number(buyRecipient));
@@ -706,7 +706,7 @@ export default function GuildMy() {
               </button>
             </form>
             {bank?.myLastDonationAt && Date.now() - new Date(bank.myLastDonationAt).getTime() < DEPOSIT_COOLDOWN_MS && (
-              <p className="hint">Ya donaste hoy. Podés volver a donar en {Math.ceil((DEPOSIT_COOLDOWN_MS - (Date.now() - new Date(bank.myLastDonationAt).getTime())) / 3600000)}h.</p>
+              <p className="hint">Ya donaste hoy. Puedes volver a donar en {Math.ceil((DEPOSIT_COOLDOWN_MS - (Date.now() - new Date(bank.myLastDonationAt).getTime())) / 3600000)}h.</p>
             )}
             {bank?.topContributors?.length > 0 && (
               <>
@@ -737,7 +737,7 @@ export default function GuildMy() {
         ) : (isLeader || isOfficer) ? (
           <form className="guild-buy-form" onSubmit={handleBuy}>
             <select className="rpg-input" value={buyItemId} onChange={(e) => setBuyItemId(e.target.value)} required>
-              <option value="">Elegí un item...</option>
+              <option value="">Elige un item...</option>
               {shop.map((it) => (
                 <option key={it.id} value={it.id}>{it.name} — {Number(it.buy_price).toLocaleString()} oro</option>
               ))}

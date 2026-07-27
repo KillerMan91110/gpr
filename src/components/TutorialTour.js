@@ -7,17 +7,17 @@ const STEPS = [
   {
     icon: { name: 'fleur-de-lys', artist: 'delapouite' },
     title: '¡Bienvenido a Etheria!',
-    body: 'Sos un nuevo aventurero del reino. Te muestro rápido qué podés hacer — podés saltear esto cuando quieras.',
+    body: 'Eres un nuevo aventurero del reino. Te muestro rápido qué puedes hacer — puedes saltear esto cuando quieras.',
   },
   {
     icon: { name: 'compass', artist: 'lorc' },
     title: 'Explorar',
-    body: 'Elegí una zona y enfrentá monstruos para ganar experiencia, oro y objetos. Empezá por la Pradera Dorada.',
+    body: 'Elige una zona y enfrenta monstruos para ganar experiencia, oro y objetos. Empieza por la Pradera Dorada.',
   },
   {
     icon: { name: 'scroll-unfurled', artist: 'lorc' },
     title: 'Misiones',
-    body: 'Aceptá contratos del gremio y de NPCs para ganar recompensas extra por objetivos concretos.',
+    body: 'Acepta contratos del gremio y de NPCs para ganar recompensas extra por objetivos concretos.',
   },
   {
     icon: { name: 'castle', artist: 'lorc' },
@@ -27,7 +27,7 @@ const STEPS = [
   {
     icon: { name: 'backpack', artist: 'delapouite' },
     title: 'Inventario',
-    body: 'Equipá armas, armaduras y accesorios, y usá las pociones y objetos que consigas explorando.',
+    body: 'Equipa armas, armaduras y accesorios, y usa las pociones y objetos que consigas explorando.',
   },
   {
     icon: { name: 'spell-book', artist: 'delapouite' },
@@ -37,27 +37,27 @@ const STEPS = [
   {
     icon: { name: 'crossed-swords', artist: 'lorc' },
     title: 'Formación',
-    body: 'Armá tu grupo de combate con NPCs reclutados para pelear junto a vos.',
+    body: 'Arma tu grupo de combate con NPCs reclutados para pelear junto a ti.',
   },
   {
     icon: { name: 'paw-print', artist: 'lorc' },
     title: 'Mascotas',
-    body: 'Conseguí e incubá mascotas que te acompañan y te dan bonos.',
+    body: 'Consigue e incuba mascotas que te acompañan y te dan bonos.',
   },
   {
     icon: { name: 'money-stack', artist: 'delapouite' },
     title: 'Mercado',
-    body: 'Comprale y vendele objetos a otros jugadores.',
+    body: 'Cómprale y véndele objetos a otros jugadores.',
   },
   {
     icon: { name: 'shop', artist: 'delapouite' },
     title: 'Tienda de Artesanos',
-    body: 'Comprá materiales y objetos especiales fuera del gremio.',
+    body: 'Compra materiales y objetos especiales fuera del gremio.',
   },
   {
     icon: { name: 'blacksmith', artist: 'delapouite' },
     title: 'Taller de Crafteo',
-    body: 'Usá materiales para craftear pociones, equipo y objetos únicos.',
+    body: 'Usa materiales para craftear pociones, equipo y objetos únicos.',
   },
   {
     icon: { name: 'trophy', artist: 'lorc' },
@@ -72,17 +72,17 @@ const STEPS = [
   {
     icon: { name: 'trophy', artist: 'lorc' },
     title: 'Ranking',
-    body: 'Comparate con el resto de los aventureros del reino.',
+    body: 'Compárate con el resto de los aventureros del reino.',
   },
   {
     icon: { name: 'shaking-hands', artist: 'delapouite' },
     title: 'Social',
-    body: 'Agregá amigos y chateá con otros jugadores.',
+    body: 'Agrega amigos y chatea con otros jugadores.',
   },
   {
     icon: { name: 'flag-objective', artist: 'delapouite' },
-    title: '¡Empezá tu leyenda!',
-    body: 'El Abismo y el World Boss se desbloquean más adelante, cuando tengas el nivel necesario. Por ahora, andá a explorar.',
+    title: '¡Empieza tu leyenda!',
+    body: 'El Abismo y el World Boss se desbloquean más adelante, cuando tengas el nivel necesario. Por ahora, ve a explorar.',
   },
 ];
 

@@ -232,7 +232,7 @@ export default function ExploreZone() {
     return () => { cancelled = true; clearInterval(iv); };
   }, [coopParty, session, token]);
 
-  // El back rechaza el explore con 400 si vos (o tu compañero) ya tienen una sesión
+  // El back rechaza el explore con 400 si tú (o tu compañero) ya tienen una sesión
   // IN_PROGRESS sin terminar (ver player_active_combat_session). En vez de dejarte
   // plantado con el cartel de error, buscamos esa sesión existente y te metemos ahí.
   async function tryRecoverActiveSession() {

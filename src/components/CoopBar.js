@@ -75,7 +75,7 @@ export default function CoopBar() {
     return () => clearInterval(invitePollRef.current);
   }, [isAuthenticated, player, token, party]);
 
-  // Ready-check: si tu compañero ya marcó "listo" para una zona y vos no, se muestra acá
+  // Ready-check: si tu compañero ya marcó "listo" para una zona y tú no, se muestra acá
   // (en cualquier pantalla) sin necesidad de entrar a esa zona para verlo.
   useEffect(() => {
     if (!isAuthenticated || !player || !party) {

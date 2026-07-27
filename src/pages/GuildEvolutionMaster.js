@@ -85,7 +85,7 @@ export default function GuildEvolutionMaster() {
   async function handleBuyItem(itemId) {
     const isGift = shopData?.canGift && !shopData?.isMyClass;
     if (isGift && !shopRecipient) {
-      setError('Elegí a quién le comprás.');
+      setError('Elige a quién le compras.');
       return;
     }
     setError('');
@@ -214,14 +214,14 @@ export default function GuildEvolutionMaster() {
           {shopData.canGift && (
             <div className="guild-form-group">
               <label className="guild-form-label">
-                No sos de esa clase — comprale a un compañero que sí lo sea:
+                No eres de esa clase — cómprale a un compañero que sí lo sea:
               </label>
               <select
                 className="rpg-input"
                 value={shopRecipient}
                 onChange={(e) => setShopRecipient(e.target.value)}
               >
-                <option value="">Elegí a quién...</option>
+                <option value="">Elige a quién...</option>
                 {guild.members.map((m) => (
                   <option key={m.id} value={m.id}>{m.nickname}</option>
                 ))}
