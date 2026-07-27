@@ -24,6 +24,7 @@ const CATEGORIES = [
       { to: '/inventory', label: 'Inventario' },
       { to: '/skills', label: 'Habilidades' },
       { to: '/formation', label: 'Formación' },
+      { to: '/evolutions', label: 'Evolución', gameIcon: { name: 'dna2', artist: 'lorc' } },
       { to: '/pets', label: 'Mascotas' },
       { to: '/achievements', label: 'Logros' },
       { to: '/ranks', label: 'Rangos' },
