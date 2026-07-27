@@ -41,6 +41,7 @@ import CoopBar from './components/CoopBar';
 import ChatBox from './components/ChatBox';
 import IncubatorAlert from './components/IncubatorAlert';
 import BackgroundMusic from './components/BackgroundMusic';
+import TutorialTour from './components/TutorialTour';
 import NavBar from './components/NavBar';
 import './App.css';
 
@@ -91,6 +92,7 @@ function App() {
             <ChatBox />
             <IncubatorAlert />
             <BackgroundMusic />
+            <TutorialTour />
           </BrowserRouter>
         </SocketProvider>
       </AuthProvider>
