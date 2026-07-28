@@ -330,6 +330,12 @@ export default function Tower() {
         const data = await refreshRun();
         if (data.run?.status === 'WIPED') {
           setFloorMsg('Tu grupo cayó. La corrida se perdió y no se banca ninguna moneda.');
+        } else if (newState.session.status === 'ENEMY_WON' && data.checkpoint) {
+          // Ciudades del Abismo parte 5: si ya habían pasado por un checkpoint, un wipe los
+          // devuelve revividos a la última ciudad en vez de terminar la corrida (routes/combat.js
+          // handleTowerSessionEnd) — sin este mensaje, aterrizar ahí después de perder se ve
+          // igual que llegar caminando y no queda claro qué pasó.
+          setFloorMsg(`Tu grupo cayó, pero te recuperaron en ${data.checkpoint.name}. Perdiste las monedas ganadas desde ahí.`);
         }
       } catch {
         // silencioso
