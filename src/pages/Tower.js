@@ -1024,7 +1024,7 @@ function SettlementView({
         {shop && shop.shop.length > 0 && (
           <div className="item-grid">
             {shop.shop.map((item) => (
-              <div key={item.id} className={`rpg-panel inventory-item ${RARITY_CLASS[item.rarity] || ''}`}>
+              <div key={item.itemId} className={`rpg-panel inventory-item ${RARITY_CLASS[item.rarity] || ''}`}>
                 <div className="inventory-item-header">
                   <span className="inventory-item-name">{item.name}</span>
                   <span className="inventory-item-qty">{item.price.toLocaleString()} monedas</span>
@@ -1035,17 +1035,17 @@ function SettlementView({
                     type="number"
                     min={1}
                     max={99}
-                    value={buyQty[item.id] ?? 1}
-                    onChange={(e) => setBuyQty((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                    value={buyQty[item.itemId] ?? 1}
+                    onChange={(e) => setBuyQty((prev) => ({ ...prev, [item.itemId]: e.target.value }))}
                     className="rpg-input"
                     style={{ width: 60, textAlign: 'center', padding: '4px 6px' }}
                   />
                   <button
                     className="rpg-button rpg-button--small"
-                    disabled={busyKey === `buy-${item.id}` || coins < item.price * Number(buyQty[item.id] || 1)}
-                    onClick={() => handleBuy(item.id)}
+                    disabled={busyKey === `buy-${item.itemId}` || coins < item.price * Number(buyQty[item.itemId] || 1)}
+                    onClick={() => handleBuy(item.itemId)}
                   >
-                    {busyKey === `buy-${item.id}` ? '...' : 'Comprar'}
+                    {busyKey === `buy-${item.itemId}` ? '...' : 'Comprar'}
                   </button>
                 </div>
               </div>
