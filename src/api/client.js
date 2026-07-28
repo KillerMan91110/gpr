@@ -275,6 +275,14 @@ export const api = {
   getSettlementShop: (playerId, token) => request(`/api/player/${playerId}/tower/settlement/shop`, { token }),
   buySettlementShopItem: (playerId, itemId, quantity, token) =>
     request(`/api/player/${playerId}/tower/settlement/shop/buy`, { method: 'POST', body: { itemId, quantity }, token }),
+  getSettlementNearby: (playerId, token) => request(`/api/player/${playerId}/tower/settlement/nearby`, { token }),
+  inviteSettlementPlayer: (playerId, targetPlayerId, token) =>
+    request(`/api/player/${playerId}/tower/settlement/invite`, { method: 'POST', body: { targetPlayerId }, token }),
+  getSettlementInvitePending: (playerId, token) => request(`/api/player/${playerId}/tower/settlement/invite/pending`, { token }),
+  declineSettlementInvite: (playerId, inviteId, token) =>
+    request(`/api/player/${playerId}/tower/settlement/invite/${inviteId}/decline`, { method: 'POST', token }),
+  acceptSettlementInvite: (playerId, inviteId, token) =>
+    request(`/api/player/${playerId}/tower/settlement/invite/${inviteId}/accept`, { method: 'POST', token }),
   // World Boss
   getWorldBossStatus: (token) => request('/api/worldboss/status', { token }),
   getWorldBossLeaderboard: (token) => request('/api/worldboss/leaderboard', { token }),

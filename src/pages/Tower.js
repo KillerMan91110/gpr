@@ -130,6 +130,17 @@ export default function Tower() {
     return api.getParty(player.id, token).then(setParty).catch(() => {});
   }
 
+  // Tras aceptar una invitación de reagrupe (parte 6), la corrida vieja quedó cerrada y hay una
+  // compartida nueva: refresca todo lo que dependía de la corrida/grupo anterior de una vez.
+  async function handleRegrouped(newRun) {
+    showFloorMsg('¡Grupo nuevo formado! Corrida compartida iniciada.');
+    await Promise.all([
+      refreshRun(),
+      refreshParty(),
+      api.getCoopParty(player.id, token).then(setCoopParty).catch(() => {}),
+    ]);
+  }
+
   // Piso completado, esperando la decisión de Seguir/Extraer: sondeo para enterarme apenas
   // quien tiene el control (líder, o alguien vivo si el líder murió) decide algo.
   useEffect(() => {
@@ -729,7 +740,9 @@ export default function Tower() {
           token={token}
           checkpoint={checkpoint}
           party={party}
+          coopParty={coopParty}
           onHealed={refreshParty}
+          onRegrouped={handleRegrouped}
           canControl={canControl}
           onAdvance={handleAdvance}
           onExtract={handleExtract}
@@ -794,18 +807,78 @@ const SETTLEMENT_HEAL_COST = 10;
 // Ciudad del Abismo: asentamiento cada 15 pisos (docs/backend-spec-ciudad-del-abismo.md). Vive
 // en el mismo hueco que ya existia entre limpiar el ultimo piso y llamar a /advance — el back
 // ya bancó las monedas solo con el GET /tower/run que trajo este `checkpoint`.
-function SettlementView({ player, token, checkpoint, party, onHealed, canControl, onAdvance, onExtract, loading }) {
+const NEARBY_POLL_MS = 4000;
+
+function SettlementView({
+  player, token, checkpoint, party, coopParty, onHealed, onRegrouped, canControl, onAdvance, onExtract, loading,
+}) {
   const [shop, setShop] = useState(null);
   const [shopError, setShopError] = useState('');
   const [buyQty, setBuyQty] = useState({});
   const [busyKey, setBusyKey] = useState(null);
   const [dungeonCoins, setDungeonCoins] = useState(null);
+  const [nearby, setNearby] = useState(null);
+  const [pendingInvite, setPendingInvite] = useState(null);
+  const [regroupError, setRegroupError] = useState('');
 
   useEffect(() => {
     api.getSettlementShop(player.id, token)
       .then((data) => { setShop(data); setDungeonCoins(data.dungeon_coins); })
       .catch((err) => setShopError(err.message));
   }, [player.id, token]);
+
+  // Reagrupe (parte 6): solo tiene sentido ofrecerlo si estás solo (sin grupo co-op armado).
+  // Sondea cada pocos segundos, tanto la lista de candidatos como si alguien te invitó a vos —
+  // cualquiera de los dos puede cambiar mientras estás parado leyendo la tienda.
+  const soloInSettlement = !coopParty;
+  useEffect(() => {
+    if (!soloInSettlement) return undefined;
+    let cancelled = false;
+    function poll() {
+      api.getSettlementNearby(player.id, token).then((data) => { if (!cancelled) setNearby(data.nearby); }).catch(() => {});
+      api.getSettlementInvitePending(player.id, token).then((inv) => { if (!cancelled) setPendingInvite(inv); }).catch(() => {});
+    }
+    poll();
+    const iv = setInterval(poll, NEARBY_POLL_MS);
+    return () => { cancelled = true; clearInterval(iv); };
+  }, [soloInSettlement, player.id, token, checkpoint.floor]);
+
+  async function handleInvite(targetPlayerId) {
+    setRegroupError('');
+    setBusyKey(`invite-${targetPlayerId}`);
+    try {
+      await api.inviteSettlementPlayer(player.id, targetPlayerId, token);
+    } catch (err) {
+      setRegroupError(err.message);
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function handleAcceptInvite() {
+    setRegroupError('');
+    setBusyKey('accept-invite');
+    try {
+      const result = await api.acceptSettlementInvite(player.id, pendingInvite.id, token);
+      setPendingInvite(null);
+      await onRegrouped(result.run);
+    } catch (err) {
+      setRegroupError(err.message);
+      setBusyKey(null);
+    }
+  }
+
+  async function handleDeclineInvite() {
+    setBusyKey('decline-invite');
+    try {
+      await api.declineSettlementInvite(player.id, pendingInvite.id, token);
+      setPendingInvite(null);
+    } catch (err) {
+      setRegroupError(err.message);
+    } finally {
+      setBusyKey(null);
+    }
+  }
 
   async function handleHeal(targetType, npcId) {
     setShopError('');
@@ -923,6 +996,52 @@ function SettlementView({ player, token, checkpoint, party, onHealed, canControl
           </div>
         )}
       </section>
+
+      {soloInSettlement && (
+        <section style={{ marginTop: 20 }}>
+          <h3 className="guild-members-title">Reagruparse</h3>
+          {regroupError && <p className="auth-error">{regroupError}</p>}
+
+          {pendingInvite && (
+            <div className="rpg-panel dash-panel formation-hint" style={{ marginBottom: 10 }}>
+              <span>
+                <strong>{pendingInvite.leaderNickname}</strong> (Niv. {pendingInvite.leaderLevel}) te invitó a formar
+                grupo acá y seguir juntos.
+              </span>
+              <div className="craft-row">
+                <button className="rpg-button rpg-button--small" disabled={busyKey === 'accept-invite'} onClick={handleAcceptInvite}>
+                  {busyKey === 'accept-invite' ? '...' : 'Aceptar'}
+                </button>
+                <button className="logout-btn" disabled={busyKey === 'decline-invite'} onClick={handleDeclineInvite}>
+                  Rechazar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!nearby && <p className="hint">Buscando otros aventureros solos en este asentamiento...</p>}
+          {nearby && nearby.length === 0 && <p className="hint">No hay nadie más solo acá ahora mismo.</p>}
+          {nearby && nearby.length > 0 && (
+            <div className="guild-members-list">
+              {nearby.map((p) => (
+                <div key={p.playerId} className="guild-member-row">
+                  <div className="guild-member-info">
+                    <span className="guild-member-name">{p.nickname}</span>
+                    <span className="hint guild-member-sub">{p.className} · Niv. {p.level}</span>
+                  </div>
+                  <button
+                    className="rpg-button rpg-button--small"
+                    disabled={busyKey === `invite-${p.playerId}` || !!pendingInvite}
+                    onClick={() => handleInvite(p.playerId)}
+                  >
+                    {busyKey === `invite-${p.playerId}` ? '...' : 'Invitar'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {canControl ? (
         <div className="craft-row" style={{ justifyContent: 'center', marginTop: 20 }}>
