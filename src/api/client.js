@@ -283,6 +283,9 @@ export const api = {
     request(`/api/player/${playerId}/tower/settlement/invite/${inviteId}/decline`, { method: 'POST', token }),
   acceptSettlementInvite: (playerId, inviteId, token) =>
     request(`/api/player/${playerId}/tower/settlement/invite/${inviteId}/accept`, { method: 'POST', token }),
+  getTowerDiscovered: (playerId, token) => request(`/api/player/${playerId}/tower/discovered`, { token }),
+  travelToCheckpoint: (playerId, floor, difficulty, coopPartnerIds, token) =>
+    request(`/api/player/${playerId}/tower/travel`, { method: 'POST', body: { floor, difficulty, coopPartnerIds }, token }),
   // World Boss
   getWorldBossStatus: (token) => request('/api/worldboss/status', { token }),
   getWorldBossLeaderboard: (token) => request('/api/worldboss/leaderboard', { token }),

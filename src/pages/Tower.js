@@ -69,6 +69,8 @@ export default function Tower() {
   const [vendorOffer, setVendorOffer] = useState(null);
   const [dungeonCoins, setDungeonCoins] = useState(0);
   const [checkpoint, setCheckpoint] = useState(null);
+  const [discovered, setDiscovered] = useState(null);
+  const [travelCrystalQty, setTravelCrystalQty] = useState(0);
 
   const sessionRef = useRef(session);
   useEffect(() => { sessionRef.current = session; }, [session]);
@@ -94,6 +96,16 @@ export default function Tower() {
     api.getCoopParty(player.id, token).then(setCoopParty).catch(() => setCoopParty(null));
     api.getParty(player.id, token).then(setParty).catch(() => setParty(null));
   }, [player, token]);
+
+  // Portales descubiertos (Cristal de Viaje, parte 7): solo hace falta en la pantalla de
+  // entrada (sin corrida activa), se re-chequea cada vez que se vuelve a esa pantalla.
+  useEffect(() => {
+    if (!player || run) return;
+    api.getTowerDiscovered(player.id, token).then(setDiscovered).catch(() => setDiscovered([]));
+    api.getPlayerInventory(player.id, token)
+      .then((inv) => setTravelCrystalQty(inv.find((i) => i.code === 'CRISTAL_VIAJE')?.quantity || 0))
+      .catch(() => setTravelCrystalQty(0));
+  }, [player, token, run]);
 
   const npcLevelMap = Object.fromEntries(
     (party?.members || []).filter((m) => !m.isHero && m.npcId).map((m) => [m.npcId, m.level])
@@ -426,6 +438,21 @@ export default function Tower() {
     }
   }
 
+  async function handleTravel(floor) {
+    setError('');
+    setLoading(true);
+    try {
+      const coopPartnerIds = coopParty ? coopParty.members.filter((m) => m.id !== player.id).map((m) => m.id) : [];
+      await api.travelToCheckpoint(player.id, floor, difficulty, coopPartnerIds, token);
+      clearFloorMsg();
+      await refreshRun();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleAdvance() {
     setError('');
     clearFloorMsg();
@@ -616,6 +643,36 @@ export default function Tower() {
             <button className="rpg-button" onClick={() => handleStart()} disabled={loading}>
               {loading ? 'Entrando...' : 'Entrar al Abismo'}
             </button>
+          )}
+
+          {discovered && discovered.length > 0 && (!coopParty || belowLevelMembers.length === 0) && (
+            <div className="rpg-panel dash-panel" style={{ marginTop: 16, width: '100%' }}>
+              <p className="panel-title">
+                <GameIcon name="anvil" artist="lorc" /> Portales descubiertos
+              </p>
+              {travelCrystalQty === 0 ? (
+                <p className="hint">Necesitas un Cristal de Viaje para usarlos — se venden en la tienda de cada asentamiento.</p>
+              ) : (
+                <p className="hint">
+                  Tienes {travelCrystalQty} Cristal{travelCrystalQty > 1 ? 'es' : ''} de Viaje.
+                  {coopParty && ' Tu grupo co-op viaja con vos.'}
+                </p>
+              )}
+              <div className="guild-members-list">
+                {discovered.map((d) => (
+                  <div key={d.floor} className="guild-member-row">
+                    <span className="guild-member-name">{d.name} (piso {d.floor})</span>
+                    <button
+                      className="rpg-button rpg-button--small"
+                      disabled={loading || travelCrystalQty === 0}
+                      onClick={() => handleTravel(d.floor)}
+                    >
+                      {loading ? '...' : 'Viajar'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
           {coopParty && belowLevelMembers.length > 0 && (
