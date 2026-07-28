@@ -645,33 +645,42 @@ export default function Tower() {
             </button>
           )}
 
-          {discovered && discovered.length > 0 && (!coopParty || belowLevelMembers.length === 0) && (
+          {discovered && (!coopParty || belowLevelMembers.length === 0) && (
             <div className="rpg-panel dash-panel" style={{ marginTop: 16, width: '100%' }}>
               <p className="panel-title">
                 <GameIcon name="anvil" artist="lorc" /> Portales descubiertos
               </p>
-              {travelCrystalQty === 0 ? (
-                <p className="hint">Necesitas un Cristal de Viaje para usarlos — se venden en la tienda de cada asentamiento.</p>
-              ) : (
+              {discovered.length === 0 ? (
                 <p className="hint">
-                  Tienes {travelCrystalQty} Cristal{travelCrystalQty > 1 ? 'es' : ''} de Viaje.
-                  {coopParty && ' Tu grupo co-op viaja con vos.'}
+                  Todavía no descubriste ninguna Ciudad del Abismo — llegá caminando a un checkpoint
+                  (cada 15 pisos) para poder viajar ahí después.
                 </p>
-              )}
-              <div className="guild-members-list">
-                {discovered.map((d) => (
-                  <div key={d.floor} className="guild-member-row">
-                    <span className="guild-member-name">{d.name} (piso {d.floor})</span>
-                    <button
-                      className="rpg-button rpg-button--small"
-                      disabled={loading || travelCrystalQty === 0}
-                      onClick={() => handleTravel(d.floor)}
-                    >
-                      {loading ? '...' : 'Viajar'}
-                    </button>
+              ) : (
+                <>
+                  {travelCrystalQty === 0 ? (
+                    <p className="hint">Necesitas un Cristal de Viaje para usarlos — se venden en la tienda de cada asentamiento.</p>
+                  ) : (
+                    <p className="hint">
+                      Tienes {travelCrystalQty} Cristal{travelCrystalQty > 1 ? 'es' : ''} de Viaje.
+                      {coopParty && ' Tu grupo co-op viaja con vos.'}
+                    </p>
+                  )}
+                  <div className="guild-members-list">
+                    {discovered.map((d) => (
+                      <div key={d.floor} className="guild-member-row">
+                        <span className="guild-member-name">{d.name} (piso {d.floor})</span>
+                        <button
+                          className="rpg-button rpg-button--small"
+                          disabled={loading || travelCrystalQty === 0}
+                          onClick={() => handleTravel(d.floor)}
+                        >
+                          {loading ? '...' : 'Viajar'}
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
             </div>
           )}
 
