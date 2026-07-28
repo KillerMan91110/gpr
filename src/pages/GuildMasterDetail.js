@@ -47,6 +47,7 @@ export default function GuildMasterDetail() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [busyId, setBusyId] = useState(null);
+  const [buyQty, setBuyQty] = useState({});
 
   function load() {
     return Promise.all([
@@ -103,10 +104,11 @@ export default function GuildMasterDetail() {
   async function handleBuy(itemId) {
     setError('');
     setMessage('');
+    const qty = Number(buyQty[itemId] || 1);
     setBusyId(`buy-${itemId}`);
     try {
-      const result = await api.buyGuildItem(player.id, itemId, token);
-      setMessage(`Compraste ${result.name} por ${result.cost} de oro.`);
+      const result = await api.buyGuildItem(player.id, itemId, qty, token);
+      setMessage(`Compraste ${result.quantity}x ${result.name} por ${result.cost} de oro.`);
       await load();
     } catch (err) {
       setError(err.message);
@@ -270,24 +272,39 @@ export default function GuildMasterDetail() {
           <section className="inventory-group">
             <h2>Set básico de {classInfo.name}</h2>
             <div className="item-grid">
-              {shop.items.map((i) => (
-                <div key={i.id} className={`rpg-panel inventory-item ${rarityClass(i.rarity)}`}>
-                  <div className="inventory-item-header">
-                    <span className="inventory-item-name">{i.name}</span>
-                    <span className="inventory-item-qty">{i.buyPrice} 🪙</span>
+              {shop.items.map((i) => {
+                const qty = Number(buyQty[i.id] || 1);
+                const affordable = shop.gold >= i.buyPrice * qty;
+                return (
+                  <div key={i.id} className={`rpg-panel inventory-item ${rarityClass(i.rarity)}`}>
+                    <div className="inventory-item-header">
+                      <span className="inventory-item-name">{i.name}</span>
+                      <span className="inventory-item-qty">{i.buyPrice} 🪙</span>
+                    </div>
+                    <span className="inventory-item-rarity">{RARITY_LABELS[i.rarity] || i.rarity}</span>
+                    {i.requiredLevel && <span className="inventory-item-level">Nivel mín. {i.requiredLevel}</span>}
+                    <div className="craft-row">
+                      <input
+                        type="number"
+                        min={1}
+                        max={99}
+                        value={buyQty[i.id] ?? 1}
+                        onChange={(e) => setBuyQty((prev) => ({ ...prev, [i.id]: e.target.value }))}
+                        className="rpg-input"
+                        style={{ width: 60, textAlign: 'center', padding: '4px 6px' }}
+                      />
+                      <button
+                        className="rpg-button equipment-action"
+                        disabled={busyId === `buy-${i.id}` || !affordable}
+                        onClick={() => handleBuy(i.id)}
+                        title={affordable ? undefined : 'No tienes suficiente oro'}
+                      >
+                        {busyId === `buy-${i.id}` ? 'Comprando...' : 'Comprar'}
+                      </button>
+                    </div>
                   </div>
-                  <span className="inventory-item-rarity">{RARITY_LABELS[i.rarity] || i.rarity}</span>
-                  {i.requiredLevel && <span className="inventory-item-level">Nivel mín. {i.requiredLevel}</span>}
-                  <button
-                    className="rpg-button equipment-action"
-                    disabled={busyId === `buy-${i.id}` || !i.affordable}
-                    onClick={() => handleBuy(i.id)}
-                    title={i.affordable ? undefined : 'No tienes suficiente oro'}
-                  >
-                    {busyId === `buy-${i.id}` ? 'Comprando...' : 'Comprar'}
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
 

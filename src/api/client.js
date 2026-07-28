@@ -111,8 +111,8 @@ export const api = {
     request(`/api/player/${playerId}/guild/learn-skill`, { method: 'POST', body: { skillId }, token }),
   getGuildShop: (playerId, classId, token) =>
     request(`/api/player/${playerId}/guild/shop${classId ? `?classId=${classId}` : ''}`, { token }),
-  buyGuildItem: (playerId, itemId, token) =>
-    request(`/api/player/${playerId}/guild/shop/buy`, { method: 'POST', body: { itemId }, token }),
+  buyGuildItem: (playerId, itemId, quantity, token) =>
+    request(`/api/player/${playerId}/guild/shop/buy`, { method: 'POST', body: { itemId, quantity }, token }),
   sellGuildItem: (playerId, itemId, quantity, enchantLevel = 0, token) =>
     request(`/api/player/${playerId}/guild/shop/sell`, { method: 'POST', body: { itemId, quantity, enchantLevel }, token }),
   getZoneMonsters: (zoneId) => request(`/api/zones/${zoneId}/monsters`),
@@ -242,8 +242,8 @@ export const api = {
   getGuildMasters: (token, guildId) => request(`/api/guilds/${guildId}/masters`, { token }),
   getGuildMasterShop: (token, guildId, masterId) =>
     request(`/api/guilds/${guildId}/masters/${masterId}/shop`, { token }),
-  buyGuildMasterShopItem: (token, guildId, masterId, itemId, recipientPlayerId) =>
-    request(`/api/guilds/${guildId}/masters/${masterId}/buy`, { method: 'POST', body: { itemId, recipientPlayerId }, token }),
+  buyGuildMasterShopItem: (token, guildId, masterId, itemId, recipientPlayerId, quantity) =>
+    request(`/api/guilds/${guildId}/masters/${masterId}/buy`, { method: 'POST', body: { itemId, recipientPlayerId, quantity }, token }),
   getGuildMasterSkills: (token, guildId, masterId) =>
     request(`/api/guilds/${guildId}/masters/${masterId}/skills`, { token }),
   learnGuildMasterSkill: (token, guildId, masterId, skillId) =>

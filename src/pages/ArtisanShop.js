@@ -18,6 +18,7 @@ export default function ArtisanShop() {
   const [message, setMessage] = useState('');
   const [loadingKey, setLoadingKey] = useState(null);
   const [sellQty, setSellQty] = useState({});
+  const [buyQty, setBuyQty] = useState({});
   const [filterArtisan, setFilterArtisan] = useState('todo');
 
   async function load() {
@@ -38,10 +39,11 @@ export default function ArtisanShop() {
     setError('');
     setMessage('');
     const key = `buy-${artisanCode}-${itemCode}`;
+    const qty = Number(buyQty[key] || 1);
     setLoadingKey(key);
     try {
-      await api.buyArtisanItem(player.id, artisanCode, itemCode, 1, token);
-      setMessage(`Compraste ${itemName} por ${price} Oro.`);
+      await api.buyArtisanItem(player.id, artisanCode, itemCode, qty, token);
+      setMessage(`Compraste ${qty}x ${itemName} por ${price * qty} Oro.`);
       await load();
     } catch (err) {
       setError(err.message);
@@ -144,13 +146,24 @@ export default function ArtisanShop() {
                       </span>
                       {item.description && <span className="hint guild-member-sub">{item.description}</span>}
                     </div>
-                    <button
-                      className="rpg-button rpg-button--small"
-                      disabled={loadingKey === `buy-${art.code}-${item.itemCode}`}
-                      onClick={() => handleBuy(art.code, item.itemCode, item.name, item.price)}
-                    >
-                      {loadingKey === `buy-${art.code}-${item.itemCode}` ? '...' : 'Comprar'}
-                    </button>
+                    <div className="craft-row">
+                      <input
+                        type="number"
+                        min={1}
+                        max={99}
+                        value={buyQty[`buy-${art.code}-${item.itemCode}`] ?? 1}
+                        onChange={(e) => setBuyQty((prev) => ({ ...prev, [`buy-${art.code}-${item.itemCode}`]: e.target.value }))}
+                        className="rpg-input"
+                        style={{ width: 60, textAlign: 'center', padding: '4px 6px' }}
+                      />
+                      <button
+                        className="rpg-button rpg-button--small"
+                        disabled={loadingKey === `buy-${art.code}-${item.itemCode}`}
+                        onClick={() => handleBuy(art.code, item.itemCode, item.name, item.price)}
+                      >
+                        {loadingKey === `buy-${art.code}-${item.itemCode}` ? '...' : 'Comprar'}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

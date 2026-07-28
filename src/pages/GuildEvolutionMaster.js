@@ -30,6 +30,7 @@ export default function GuildEvolutionMaster() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [busyId, setBusyId] = useState(null);
+  const [buyQty, setBuyQty] = useState({});
 
   async function load() {
     const g = await api.getMyGuild(token);
@@ -90,13 +91,14 @@ export default function GuildEvolutionMaster() {
     }
     setError('');
     setMessage('');
+    const qty = Number(buyQty[itemId] || 1);
     setBusyId(`buy-${itemId}`);
     try {
       const result = await api.buyGuildMasterShopItem(
-        token, guild.id, masterId, itemId, isGift ? Number(shopRecipient) : undefined
+        token, guild.id, masterId, itemId, isGift ? Number(shopRecipient) : undefined, qty
       );
       setShopData((prev) => (prev ? { ...prev, gold: result.gold } : prev));
-      setMessage('Compra realizada.');
+      setMessage(`Compraste x${result.quantity}.`);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -232,28 +234,43 @@ export default function GuildEvolutionMaster() {
             <p className="hint">Sin ítems por ahora.</p>
           ) : (
             <div className="item-grid">
-              {shopData.shop.map((item) => (
-                <div key={item.itemId} className={`rpg-panel inventory-item ${rarityClass(item.rarity)}`}>
-                  <div className="inventory-item-header">
-                    <span className="inventory-item-name">{item.name}</span>
-                    <span className="inventory-item-qty">{Number(item.price).toLocaleString()} <GameIcon name="two-coins" artist="delapouite" /></span>
+              {shopData.shop.map((item) => {
+                const qty = Number(buyQty[item.itemId] || 1);
+                const totalPrice = item.price * qty;
+                return (
+                  <div key={item.itemId} className={`rpg-panel inventory-item ${rarityClass(item.rarity)}`}>
+                    <div className="inventory-item-header">
+                      <span className="inventory-item-name">{item.name}</span>
+                      <span className="inventory-item-qty">{Number(item.price).toLocaleString()} <GameIcon name="two-coins" artist="delapouite" /></span>
+                    </div>
+                    <span className="inventory-item-rarity">{RARITY_LABELS[item.rarity] || item.rarity}</span>
+                    {item.requiredLevel && <span className="inventory-item-level">Nivel mín. {item.requiredLevel}</span>}
+                    <div className="craft-row">
+                      <input
+                        type="number"
+                        min={1}
+                        max={99}
+                        value={buyQty[item.itemId] ?? 1}
+                        onChange={(e) => setBuyQty((prev) => ({ ...prev, [item.itemId]: e.target.value }))}
+                        className="rpg-input"
+                        style={{ width: 60, textAlign: 'center', padding: '4px 6px' }}
+                      />
+                      <button
+                        className="rpg-button equipment-action"
+                        disabled={
+                          busyId === `buy-${item.itemId}` ||
+                          shopData.gold < totalPrice ||
+                          (shopData.canGift && !shopRecipient)
+                        }
+                        onClick={() => handleBuyItem(item.itemId)}
+                        title={shopData.gold < totalPrice ? 'No tienes suficiente oro' : undefined}
+                      >
+                        {busyId === `buy-${item.itemId}` ? 'Comprando...' : 'Comprar'}
+                      </button>
+                    </div>
                   </div>
-                  <span className="inventory-item-rarity">{RARITY_LABELS[item.rarity] || item.rarity}</span>
-                  {item.requiredLevel && <span className="inventory-item-level">Nivel mín. {item.requiredLevel}</span>}
-                  <button
-                    className="rpg-button equipment-action"
-                    disabled={
-                      busyId === `buy-${item.itemId}` ||
-                      shopData.gold < item.price ||
-                      (shopData.canGift && !shopRecipient)
-                    }
-                    onClick={() => handleBuyItem(item.itemId)}
-                    title={shopData.gold < item.price ? 'No tienes suficiente oro' : undefined}
-                  >
-                    {busyId === `buy-${item.itemId}` ? 'Comprando...' : 'Comprar'}
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
