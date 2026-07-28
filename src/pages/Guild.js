@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import { getAbyssCheckpoint } from '../utils/abyssCheckpoint';
 import GameIcon from '../components/GameIcon';
 
 const ROLE_LABEL = { LEADER: 'Líder', OFFICER: 'Oficial', MEMBER: 'Miembro' };
@@ -72,6 +73,18 @@ export default function Guild() {
 
   if (myGuild === undefined) return <div className="dashboard-loading">Cargando...</div>;
 
+  // En una Ciudad del Abismo (asentamiento cada 15 pisos) maestros, quests de gremio y
+  // reclutar aventureros necesitan presencia física en el gremio; el resto de los servicios
+  // sigue disponible. Comercio se recorta igual que en el navbar: solo el Mercado, que es
+  // global y no depende de dónde estés parado.
+  const inAbyss = !!getAbyssCheckpoint();
+  const serviceSections = inAbyss
+    ? SERVICE_SECTIONS.filter((s) => !['/guild/adventurers', '/guild/masters', '/guild/quests'].includes(s.to))
+    : SERVICE_SECTIONS;
+  const commerceSections = inAbyss
+    ? COMMERCE_SECTIONS.filter((s) => s.to === '/market')
+    : COMMERCE_SECTIONS;
+
   const guildSections = myGuild
     ? [
         {
@@ -126,8 +139,11 @@ export default function Guild() {
       </div>
 
       <h2 className="guild-category-title">Servicios del Gremio</h2>
+      {inAbyss && (
+        <p className="hint">Maestros, misiones de gremio y reclutar aventureros requieren estar en la superficie.</p>
+      )}
       <div className="zone-list">
-        {SERVICE_SECTIONS.map((section) => (
+        {serviceSections.map((section) => (
           <Link key={section.to} to={section.to} className="zone-card rpg-panel guild-section-link">
             <div className="zone-card-header">
               <h3>
@@ -141,7 +157,7 @@ export default function Guild() {
 
       <h2 className="guild-category-title">Comercio</h2>
       <div className="zone-list">
-        {COMMERCE_SECTIONS.map((section) => (
+        {commerceSections.map((section) => (
           <Link key={section.to} to={section.to} className="zone-card rpg-panel guild-section-link">
             <div className="zone-card-header">
               <h3>

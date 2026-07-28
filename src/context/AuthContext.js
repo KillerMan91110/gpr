@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { clearActiveCombat, getActiveCombat, isCombatInProgress } from '../utils/activeCombat';
+import { setAbyssCheckpoint } from '../utils/abyssCheckpoint';
 
 const AuthContext = createContext(null);
 
@@ -42,6 +43,7 @@ export function AuthProvider({ children }) {
       api.leaveCoopParty(player.id, token).catch(() => {});
     }
     clearActiveCombat();
+    setAbyssCheckpoint(null);
     setToken(null);
     setPlayer(null);
   }

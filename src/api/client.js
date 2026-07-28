@@ -51,8 +51,8 @@ export const api = {
   evolve: (playerId, evolutionId, token) =>
     request(`/api/player/${playerId}/evolve`, { method: 'POST', body: { evolutionId }, token }),
   getEnchantInfo: (playerId, token) => request(`/api/player/${playerId}/enchant/info`, { token }),
-  enchant: (playerId, slot, token) =>
-    request(`/api/player/${playerId}/enchant`, { method: 'POST', body: { slot }, token }),
+  enchant: (playerId, slot, useCrystal, token) =>
+    request(`/api/player/${playerId}/enchant`, { method: 'POST', body: { slot, useCrystal }, token }),
   getEnchantNpcInfo: (playerId, npcId, token) =>
     request(`/api/player/${playerId}/enchant/npc/${npcId}/info`, { token }),
   enchantNpc: (playerId, npcId, slot, token) =>
@@ -269,6 +269,12 @@ export const api = {
   cancelTowerReady: (playerId, token) => request(`/api/player/${playerId}/tower/ready`, { method: 'DELETE', token }),
   getTowerReadyStatus: (playerId, token) => request(`/api/player/${playerId}/tower/ready-status`, { token }),
   getTowerLeaderboard: () => request('/api/leaderboard/tower'),
+  // Ciudades del Abismo (asentamientos cada 15 pisos)
+  settlementHeal: (playerId, targetType, npcId, token) =>
+    request(`/api/player/${playerId}/tower/settlement/heal`, { method: 'POST', body: { targetType, npcId }, token }),
+  getSettlementShop: (playerId, token) => request(`/api/player/${playerId}/tower/settlement/shop`, { token }),
+  buySettlementShopItem: (playerId, itemId, quantity, token) =>
+    request(`/api/player/${playerId}/tower/settlement/shop/buy`, { method: 'POST', body: { itemId, quantity }, token }),
   // World Boss
   getWorldBossStatus: (token) => request('/api/worldboss/status', { token }),
   getWorldBossLeaderboard: (token) => request('/api/worldboss/leaderboard', { token }),

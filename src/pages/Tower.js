@@ -7,6 +7,7 @@ import {
   SCHOOL_ICONS, SCHOOL_LABELS, TARGET_ICONS, TARGET_LABELS, SKILL_TYPE_ICONS, describeSkillEffect,
 } from './ExploreZone';
 import { setActiveCombat, clearActiveCombat } from '../utils/activeCombat';
+import { setAbyssCheckpoint } from '../utils/abyssCheckpoint';
 import GameIcon from '../components/GameIcon';
 
 const MIN_LEVEL = 30;
@@ -67,6 +68,7 @@ export default function Tower() {
   const [pendingEvent, setPendingEvent] = useState(null);
   const [vendorOffer, setVendorOffer] = useState(null);
   const [dungeonCoins, setDungeonCoins] = useState(0);
+  const [checkpoint, setCheckpoint] = useState(null);
 
   const sessionRef = useRef(session);
   useEffect(() => { sessionRef.current = session; }, [session]);
@@ -119,7 +121,13 @@ export default function Tower() {
     setSession(data.session || null);
     setCanControl(!!data.canControl);
     setPendingEvent(data.pendingEvent || null);
+    setCheckpoint(data.checkpoint || null);
+    setAbyssCheckpoint(data.checkpoint || null);
     return data;
+  }
+
+  function refreshParty() {
+    return api.getParty(player.id, token).then(setParty).catch(() => {});
   }
 
   // Piso completado, esperando la decisión de Seguir/Extraer: sondeo para enterarme apenas
@@ -146,6 +154,8 @@ export default function Tower() {
       setRun(null);
       setSession(null);
       setFloor(null);
+      setCheckpoint(null);
+      setAbyssCheckpoint(null);
     }, WIPED_EXIT_DELAY_MS);
     return () => {
       clearInterval(countdown);
@@ -468,6 +478,8 @@ export default function Tower() {
       setRun(null);
       setSession(null);
       setFloor(null);
+      setCheckpoint(null);
+      setAbyssCheckpoint(null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -705,7 +717,21 @@ export default function Tower() {
         </div>
       )}
 
-      {run && run.status === 'IN_PROGRESS' && !session && !pendingEvent && (
+      {run && run.status === 'IN_PROGRESS' && !session && !pendingEvent && checkpoint && (
+        <SettlementView
+          player={player}
+          token={token}
+          checkpoint={checkpoint}
+          party={party}
+          onHealed={refreshParty}
+          canControl={canControl}
+          onAdvance={handleAdvance}
+          onExtract={handleExtract}
+          loading={loading}
+        />
+      )}
+
+      {run && run.status === 'IN_PROGRESS' && !session && !pendingEvent && !checkpoint && (
         <div className="rpg-panel explore-panel">
           <h2>Piso {run.current_floor} completado</h2>
           <p>Monedas acumuladas en esta corrida: <strong>{run.coins_earned}</strong></p>
@@ -752,6 +778,157 @@ export default function Tower() {
           onLoadNpcSkills={loadNpcSkills}
           onAction={handleAction}
         />
+      )}
+    </div>
+  );
+}
+
+const SETTLEMENT_HEAL_COST = 10;
+
+// Ciudad del Abismo: asentamiento cada 15 pisos (docs/backend-spec-ciudad-del-abismo.md). Vive
+// en el mismo hueco que ya existia entre limpiar el ultimo piso y llamar a /advance — el back
+// ya bancó las monedas solo con el GET /tower/run que trajo este `checkpoint`.
+function SettlementView({ player, token, checkpoint, party, onHealed, canControl, onAdvance, onExtract, loading }) {
+  const [shop, setShop] = useState(null);
+  const [shopError, setShopError] = useState('');
+  const [buyQty, setBuyQty] = useState({});
+  const [busyKey, setBusyKey] = useState(null);
+  const [dungeonCoins, setDungeonCoins] = useState(null);
+
+  useEffect(() => {
+    api.getSettlementShop(player.id, token)
+      .then((data) => { setShop(data); setDungeonCoins(data.dungeon_coins); })
+      .catch((err) => setShopError(err.message));
+  }, [player.id, token]);
+
+  async function handleHeal(targetType, npcId) {
+    setShopError('');
+    setBusyKey(`heal-${npcId ?? 'HERO'}`);
+    try {
+      const result = await api.settlementHeal(player.id, targetType, npcId, token);
+      setDungeonCoins(result.dungeon_coins);
+      await onHealed();
+    } catch (err) {
+      setShopError(err.message);
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function handleBuy(itemId) {
+    setShopError('');
+    const qty = Number(buyQty[itemId] || 1);
+    setBusyKey(`buy-${itemId}`);
+    try {
+      const result = await api.buySettlementShopItem(player.id, itemId, qty, token);
+      setDungeonCoins(result.dungeon_coins);
+    } catch (err) {
+      setShopError(err.message);
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  const heroMember = party?.members?.find((m) => m.isHero);
+  const npcMembers = party?.members?.filter((m) => !m.isHero) || [];
+  const coins = dungeonCoins ?? 0;
+
+  function healButton(targetType, npcId, member) {
+    const key = `heal-${npcId ?? 'HERO'}`;
+    const fullHealth = member.hp >= member.maxHp && member.mana >= member.maxMana;
+    return (
+      <button
+        className="rpg-button rpg-button--small"
+        disabled={busyKey === key || fullHealth || coins < SETTLEMENT_HEAL_COST}
+        onClick={() => handleHeal(targetType, npcId)}
+        title={fullHealth ? 'Ya está al máximo' : coins < SETTLEMENT_HEAL_COST ? 'No te alcanzan las monedas' : undefined}
+      >
+        {busyKey === key ? '...' : `Curar (${SETTLEMENT_HEAL_COST})`}
+      </button>
+    );
+  }
+
+  return (
+    <div className="rpg-panel explore-panel abyss-settlement">
+      <h2><GameIcon name="anvil" artist="lorc" /> {checkpoint.name}</h2>
+      <p className="dashboard-subtitle">
+        Monedas de mazmorra: <strong>{coins.toLocaleString()}</strong> — lo ganado hasta el piso {checkpoint.floor} ya está a salvo.
+      </p>
+
+      {shopError && <p className="auth-error">{shopError}</p>}
+
+      <section style={{ marginTop: 16 }}>
+        <h3 className="guild-members-title">Enfermera</h3>
+        <div className="guild-members-list">
+          {heroMember && (
+            <div className="guild-member-row">
+              <div className="guild-member-info">
+                <span className="guild-member-name">{heroMember.name}</span>
+                <span className="hint guild-member-sub">{heroMember.hp}/{heroMember.maxHp} HP · {heroMember.mana}/{heroMember.maxMana} MP</span>
+              </div>
+              {healButton('HERO', null, heroMember)}
+            </div>
+          )}
+          {npcMembers.map((n) => (
+            <div key={n.npcId} className="guild-member-row">
+              <div className="guild-member-info">
+                <span className="guild-member-name">{n.name}</span>
+                <span className="hint guild-member-sub">{n.hp}/{n.maxHp} HP · {n.mana}/{n.maxMana} MP</span>
+              </div>
+              {healButton('NPC', n.npcId, n)}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section style={{ marginTop: 20 }}>
+        <h3 className="guild-members-title">Tienda de artesanos del abismo</h3>
+        {!shop && <p className="hint">Cargando tienda...</p>}
+        {shop && shop.shop.length === 0 && <p className="hint">Sin ítems por ahora.</p>}
+        {shop && shop.shop.length > 0 && (
+          <div className="item-grid">
+            {shop.shop.map((item) => (
+              <div key={item.id} className={`rpg-panel inventory-item ${RARITY_CLASS[item.rarity] || ''}`}>
+                <div className="inventory-item-header">
+                  <span className="inventory-item-name">{item.name}</span>
+                  <span className="inventory-item-qty">{item.price.toLocaleString()} monedas</span>
+                </div>
+                {item.description && <p className="hint">{item.description}</p>}
+                <div className="craft-row">
+                  <input
+                    type="number"
+                    min={1}
+                    max={99}
+                    value={buyQty[item.id] ?? 1}
+                    onChange={(e) => setBuyQty((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                    className="rpg-input"
+                    style={{ width: 60, textAlign: 'center', padding: '4px 6px' }}
+                  />
+                  <button
+                    className="rpg-button rpg-button--small"
+                    disabled={busyKey === `buy-${item.id}` || coins < item.price * Number(buyQty[item.id] || 1)}
+                    onClick={() => handleBuy(item.id)}
+                  >
+                    {busyKey === `buy-${item.id}` ? '...' : 'Comprar'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {canControl ? (
+        <div className="craft-row" style={{ justifyContent: 'center', marginTop: 20 }}>
+          <button className="rpg-button" onClick={onAdvance} disabled={loading}>
+            {loading ? '...' : `Seguir al piso ${checkpoint.floor + 1}`}
+          </button>
+          <button className="rpg-button rpg-button-danger" onClick={onExtract} disabled={loading}>
+            {loading ? '...' : 'Extraer'}
+          </button>
+        </div>
+      ) : (
+        <p className="hint" style={{ marginTop: 20 }}>Esperando a que el líder de la corrida (o alguien vivo, si murió) decida seguir o extraer...</p>
       )}
     </div>
   );

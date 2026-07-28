@@ -123,6 +123,20 @@ h1, h2, h3 {
   white-space: nowrap;
 }
 
+.app-navbar-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  color: var(--gold-bright);
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid var(--gold);
+  border-radius: 20px;
+  padding: 5px 12px;
+  white-space: nowrap;
+}
+
 .app-navbar-toggle {
   display: none;
   background: transparent;
@@ -1146,6 +1160,11 @@ h1, h2, h3 {
 .infirmary-panel {
   align-items: stretch;
   max-width: 420px;
+}
+
+.abyss-settlement {
+  align-items: stretch;
+  width: 100%;
 }
 
 .infirmary-bar {

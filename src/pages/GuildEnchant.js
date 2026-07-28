@@ -17,6 +17,8 @@ export default function GuildEnchant() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [enchanting, setEnchanting] = useState(null);
+  const [crystalQty, setCrystalQty] = useState(0);
+  const [useCrystal, setUseCrystal] = useState(false);
 
   const partyNpcs = party?.members?.filter((m) => !m.isHero) || [];
   const slot2Npc = partyNpcs.find((n) => n.slot === 2) || null;
@@ -25,6 +27,9 @@ export default function GuildEnchant() {
   useEffect(() => {
     if (!player) return;
     api.getParty(player.id, token).then(setParty).catch(() => setParty(null));
+    api.getPlayerInventory(player.id, token)
+      .then((inv) => setCrystalQty(inv.find((i) => i.code === 'CRISTAL_ESTABILIDAD')?.quantity || 0))
+      .catch(() => setCrystalQty(0));
   }, [player, token]);
 
   useEffect(() => {
@@ -45,12 +50,16 @@ export default function GuildEnchant() {
     try {
       const result = npc
         ? await api.enchantNpc(player.id, npc.npcId, slot, token)
-        : await api.enchant(player.id, slot, token);
+        : await api.enchant(player.id, slot, useCrystal, token);
       setMessage(result.message);
       const data = npc
         ? await api.getEnchantNpcInfo(player.id, npc.npcId, token)
         : await api.getEnchantInfo(player.id, token);
       setSlots(data);
+      if (!npc && useCrystal) {
+        setCrystalQty((q) => Math.max(0, q - 1));
+        setUseCrystal(false);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -117,42 +126,53 @@ export default function GuildEnchant() {
         </div>
       )}
 
+      {slots && slots.length > 0 && !activeNpc && crystalQty > 0 && (
+        <label className="hint" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <input type="checkbox" checked={useCrystal} onChange={(e) => setUseCrystal(e.target.checked)} />
+          Usar Cristal de Estabilidad (+15% de éxito, se consume en el intento — tienes {crystalQty})
+        </label>
+      )}
+
       {slots && slots.length > 0 && (
         <div className="zone-list">
-          {slots.map((s) => (
-            <div key={s.slot} className="zone-card rpg-panel">
-              <div className="zone-card-header">
-                <h3>{SLOT_LABEL[s.slot] || s.slot}</h3>
-                <span className="hint enchant-level">+{s.enchantLevel}</span>
+          {slots.map((s) => {
+            const boosted = !activeNpc && useCrystal && s.nextCost;
+            const effectiveRate = boosted ? Math.min(100, s.nextCost.successRate + 15) : s.nextCost?.successRate;
+            return (
+              <div key={s.slot} className="zone-card rpg-panel">
+                <div className="zone-card-header">
+                  <h3>{SLOT_LABEL[s.slot] || s.slot}</h3>
+                  <span className="hint enchant-level">+{s.enchantLevel}</span>
+                </div>
+                <p className="zone-description">{s.itemName}</p>
+                <div className="enchant-bar-row">
+                  {[...Array(10)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`enchant-pip${i < s.enchantLevel ? ' enchant-pip--filled' : ''}`}
+                    />
+                  ))}
+                </div>
+                {s.enchantLevel >= 10 ? (
+                  <p className="hint hint-ok">Nivel máximo (+10) alcanzado.</p>
+                ) : s.nextCost ? (
+                  <>
+                    <p className="hint">
+                      Siguiente: {s.nextCost.quantity}x {s.nextCost.stone} · {s.nextCost.gold.toLocaleString()} Oro
+                      · {effectiveRate}% de éxito{boosted ? ' (con cristal)' : ''}
+                    </p>
+                    <button
+                      className="rpg-button"
+                      disabled={enchanting === s.slot}
+                      onClick={() => handleEnchant(s.slot)}
+                    >
+                      {enchanting === s.slot ? 'Encantando...' : `Encantar → +${s.enchantLevel + 1}`}
+                    </button>
+                  </>
+                ) : null}
               </div>
-              <p className="zone-description">{s.itemName}</p>
-              <div className="enchant-bar-row">
-                {[...Array(10)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`enchant-pip${i < s.enchantLevel ? ' enchant-pip--filled' : ''}`}
-                  />
-                ))}
-              </div>
-              {s.enchantLevel >= 10 ? (
-                <p className="hint hint-ok">Nivel máximo (+10) alcanzado.</p>
-              ) : s.nextCost ? (
-                <>
-                  <p className="hint">
-                    Siguiente: {s.nextCost.quantity}x {s.nextCost.stone} · {s.nextCost.gold.toLocaleString()} Oro
-                    · {s.nextCost.successRate}% de éxito
-                  </p>
-                  <button
-                    className="rpg-button"
-                    disabled={enchanting === s.slot}
-                    onClick={() => handleEnchant(s.slot)}
-                  >
-                    {enchanting === s.slot ? 'Encantando...' : `Encantar → +${s.enchantLevel + 1}`}
-                  </button>
-                </>
-              ) : null}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

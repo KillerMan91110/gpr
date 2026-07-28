@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
+import { getAbyssCheckpoint } from '../utils/abyssCheckpoint';
 import GameIcon from './GameIcon';
 
 const CATEGORIES = [
@@ -111,12 +112,30 @@ export default function NavBar() {
 
   const socialBadge = (socialCounts?.unreadMessages || 0) + (socialCounts?.pendingFriendRequests || 0);
 
+  // En una Ciudad del Abismo (asentamiento cada 15 pisos, docs/backend-spec-ciudad-del-abismo.md)
+  // no tiene sentido ofrecer explorar otras zonas ni las tiendas/talleres de la superficie — el
+  // flag lo escribe Tower.js en cada GET /tower/run, ver utils/abyssCheckpoint.
+  const checkpoint = getAbyssCheckpoint();
+  const categories = checkpoint
+    ? CATEGORIES.map((cat) => {
+        if (cat.key === 'aventura') return { ...cat, items: cat.items.filter((i) => i.to === '/abismo') };
+        if (cat.key === 'economia') return { ...cat, items: cat.items.filter((i) => i.to === '/market') };
+        return cat;
+      })
+    : CATEGORIES;
+
   return (
     <nav className="app-navbar" ref={rootRef}>
       <div className="app-navbar-identity">
         <Link to="/" className={`app-navbar-brand${location.pathname === '/' ? ' app-navbar-link--active' : ''}`}>
           <GameIcon name="house" artist="delapouite" /> {player.nickname}
         </Link>
+
+        {checkpoint && (
+          <span className="app-navbar-location">
+            <GameIcon name="anvil" artist="lorc" /> Piso {checkpoint.floor} · {checkpoint.name}
+          </span>
+        )}
 
         {gold !== null && (
           <button
@@ -131,7 +150,7 @@ export default function NavBar() {
       </div>
 
       <div className={`app-navbar-links${mobileOpen ? ' app-navbar-links--open' : ''}`}>
-        {CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <div key={cat.key} className="app-navbar-dropdown">
             <button
               type="button"

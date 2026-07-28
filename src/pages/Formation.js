@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import GameIcon from '../components/GameIcon';
 import { CLASS_ICON } from '../utils/classIcons';
+import { getAbyssCheckpoint } from '../utils/abyssCheckpoint';
 
 const NPC_STATS = [
   { label: 'HP',   key: 'hp' },
@@ -111,6 +112,9 @@ export default function Formation() {
   const partyNpcs = party?.members?.filter((m) => !m.isHero) || [];
   const slot2 = partyNpcs.find((n) => n.slot === 2);
   const slot3 = partyNpcs.find((n) => n.slot === 3);
+  // En una Ciudad del Abismo (asentamiento cada 15 pisos) el banco de reserva no está
+  // disponible: esos aventureros se quedaron en la superficie, no bajaron con vos.
+  const inAbyss = !!getAbyssCheckpoint();
   const benchMembers = bench?.members || [];
   const hasEmptySlot = partyNpcs.length < 2;
   const hasBothSlots = partyNpcs.length === 2;
@@ -132,7 +136,7 @@ export default function Formation() {
         <NpcMiniStats member={member} />
         {!isSelectingSwap && (
           <div className="formation-actions">
-            {benchMembers.length > 0 && (
+            {!inAbyss && benchMembers.length > 0 && (
               <button
                 className="logout-btn formation-action-btn"
                 onClick={() => setSwapSource({ partyRowId: member.partyRowId, slot, name: member.name })}
@@ -141,14 +145,16 @@ export default function Formation() {
                 <GameIcon name="clockwise-rotation" artist="delapouite" /> Intercambiar
               </button>
             )}
-            <button
-              className="logout-btn formation-action-btn"
-              onClick={() => handleSendToBench(member.partyRowId)}
-              disabled={busy || benchMembers.length >= (bench?.cap || 10)}
-              title={benchMembers.length >= (bench?.cap || 10) ? 'El banco está lleno' : undefined}
-            >
-              ⬇ Mandar al banco
-            </button>
+            {!inAbyss && (
+              <button
+                className="logout-btn formation-action-btn"
+                onClick={() => handleSendToBench(member.partyRowId)}
+                disabled={busy || benchMembers.length >= (bench?.cap || 10)}
+                title={benchMembers.length >= (bench?.cap || 10) ? 'El banco está lleno' : undefined}
+              >
+                ⬇ Mandar al banco
+              </button>
+            )}
             <button
               className="logout-btn formation-fire-btn"
               onClick={() => handleFireParty(member.partyRowId, member.name)}
@@ -229,6 +235,12 @@ export default function Formation() {
       </div>
 
       {/* ── Banco de Reserva ── */}
+      {inAbyss ? (
+        <div className="rpg-panel dash-panel">
+          <p className="panel-title">Banco de Reserva</p>
+          <p className="hint">No disponible en la Ciudad del Abismo — esos aventureros se quedaron en la superficie.</p>
+        </div>
+      ) : (
       <div className="rpg-panel dash-panel">
         <p className="panel-title">Banco de Reserva ({benchMembers.length}/{bench?.cap || 10})</p>
 
@@ -287,6 +299,7 @@ export default function Formation() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
