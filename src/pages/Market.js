@@ -113,7 +113,6 @@ function PetBonusList({ bonuses }) {
 export default function Market() {
   const { player, token } = useAuth();
   const [tab, setTab] = useState('buy');
-  const [gold, setGold] = useState(null);
   const [listings, setListings] = useState(null);
   const [inventory, setInventory] = useState(null);
   const [pets, setPets] = useState(null);
@@ -126,11 +125,6 @@ export default function Market() {
   const [busyKey, setBusyKey] = useState(null);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-
-  const loadGold = useCallback(async () => {
-    const stats = await api.getPlayerStats(player.id, token);
-    setGold(stats.gold);
-  }, [player, token]);
 
   const loadBuy = useCallback(async () => {
     const params = {};
@@ -154,11 +148,6 @@ export default function Market() {
 
   useEffect(() => {
     if (!player) return;
-    loadGold().catch(() => {});
-  }, [player, token, loadGold]);
-
-  useEffect(() => {
-    if (!player) return;
     setError('');
     if (tab === 'buy') loadBuy().catch((err) => setError(err.message));
     if (tab === 'sell') loadSell().catch((err) => setError(err.message));
@@ -173,7 +162,7 @@ export default function Market() {
     try {
       const res = await api.buyMarketListing(player.id, listing.id, token);
       setMessage(res.message);
-      await Promise.all([loadBuy(), loadGold()]);
+      await loadBuy();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -263,11 +252,6 @@ export default function Market() {
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          {gold !== null && (
-            <span className="market-gold-tag">
-              <GameIcon name="two-coins" artist="delapouite" /> {gold.toLocaleString()} Oro
-            </span>
-          )}
           <Link className="logout-btn" to="/guild">Volver</Link>
         </div>
       </header>
