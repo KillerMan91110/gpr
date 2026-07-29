@@ -98,6 +98,38 @@ function CurrencySelect({ value, onChange }) {
   );
 }
 
+// Agrupa por moneda -- un precio en oro y uno en fragmentos cósmicos no se pueden promediar
+// juntos, así que cada moneda que aparezca en las ventas recientes se resume por separado.
+function summarizeSales(sales) {
+  const byCurrency = {};
+  for (const s of sales) {
+    if (!byCurrency[s.currency]) byCurrency[s.currency] = [];
+    byCurrency[s.currency].push(Number(s.pricePerUnit));
+  }
+  return Object.entries(byCurrency).map(([currency, prices]) => ({
+    currency,
+    count: prices.length,
+    avg: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length),
+    min: Math.min(...prices),
+    max: Math.max(...prices),
+  }));
+}
+
+function PriceHistory({ sales }) {
+  if (!sales) return null;
+  if (sales.length === 0) return <p className="hint">Todavía no se vendió ninguno — ponele el precio que te parezca.</p>;
+  return (
+    <div className="hint" style={{ marginTop: 4, lineHeight: 1.5 }}>
+      {summarizeSales(sales).map((s) => (
+        <div key={s.currency}>
+          Últimas {s.count} venta{s.count > 1 ? 's' : ''} en {CURRENCY_LABELS[s.currency]}: promedio{' '}
+          {s.avg.toLocaleString()} (entre {s.min.toLocaleString()} y {s.max.toLocaleString()})
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function PetBonusList({ bonuses }) {
   if (!bonuses?.length) return null;
   return (
@@ -125,6 +157,8 @@ export default function Market() {
   const [busyKey, setBusyKey] = useState(null);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [history, setHistory] = useState({});
+  const [historyBusy, setHistoryBusy] = useState(null);
 
   const loadBuy = useCallback(async () => {
     const params = {};
@@ -236,6 +270,18 @@ export default function Market() {
       setError(err.message);
     } finally {
       setBusyKey(null);
+    }
+  }
+
+  async function handleViewHistory(key, params) {
+    setHistoryBusy(key);
+    try {
+      const res = await api.getMarketHistory(player.id, params, token);
+      setHistory((prev) => ({ ...prev, [key]: res.sales }));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setHistoryBusy(null);
     }
   }
 
@@ -403,6 +449,19 @@ export default function Market() {
                       onChange={(e) => setSellForm((prev) => ({ ...prev, [cardKey]: { ...form, currency: e.target.value } }))}
                     />
                   </div>
+                  {history[cardKey] === undefined ? (
+                    <button
+                      className="logout-btn"
+                      disabled={historyBusy === cardKey}
+                      onClick={() => handleViewHistory(cardKey, {
+                        itemId: item.item_id, enchantLevel: item.enchant_level, qualityTier: item.quality_tier,
+                      })}
+                    >
+                      {historyBusy === cardKey ? 'Buscando...' : 'Ver historial de precios'}
+                    </button>
+                  ) : (
+                    <PriceHistory sales={history[cardKey]} />
+                  )}
                   <button
                     className="rpg-button equipment-action"
                     disabled={busyKey === `publish-${cardKey}`}
@@ -455,6 +514,17 @@ export default function Market() {
                           onChange={(e) => setPetSellForm((prev) => ({ ...prev, [pet.id]: { ...form, currency: e.target.value } }))}
                         />
                       </div>
+                      {history[`pet-${pet.pet_id}`] === undefined ? (
+                        <button
+                          className="logout-btn"
+                          disabled={historyBusy === `pet-${pet.pet_id}`}
+                          onClick={() => handleViewHistory(`pet-${pet.pet_id}`, { petId: pet.pet_id })}
+                        >
+                          {historyBusy === `pet-${pet.pet_id}` ? 'Buscando...' : 'Ver historial de precios'}
+                        </button>
+                      ) : (
+                        <PriceHistory sales={history[`pet-${pet.pet_id}`]} />
+                      )}
                       <button
                         className="rpg-button equipment-action"
                         disabled={busyKey === `publish-pet-${pet.id}`}

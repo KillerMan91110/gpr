@@ -99,6 +99,10 @@ export const api = {
   buyMarketListing: (playerId, listingId, token) =>
     request(`/api/player/${playerId}/market/listings/${listingId}/buy`, { method: 'POST', token }),
   getMyMarketListings: (playerId, token) => request(`/api/player/${playerId}/market/mine`, { token }),
+  getMarketHistory: (playerId, params, token) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/api/player/${playerId}/market/history?${qs}`, { token });
+  },
   healAtGuild: (playerId, token, body = {}) =>
     request(`/api/player/${playerId}/guild/heal`, { method: 'POST', body, token }),
   getGuildSkills: (playerId, classId, token) =>
