@@ -115,17 +115,28 @@ function summarizeSales(sales) {
   }));
 }
 
-function PriceHistory({ sales }) {
+function PriceHistory({ sales, onRefresh, refreshing }) {
   if (!sales) return null;
-  if (sales.length === 0) return <p className="hint">Todavía no se vendió ninguno — ponele el precio que te parezca.</p>;
   return (
     <div className="hint" style={{ marginTop: 4, lineHeight: 1.5 }}>
-      {summarizeSales(sales).map((s) => (
-        <div key={s.currency}>
-          Últimas {s.count} venta{s.count > 1 ? 's' : ''} en {CURRENCY_LABELS[s.currency]}: promedio{' '}
-          {s.avg.toLocaleString()} (entre {s.min.toLocaleString()} y {s.max.toLocaleString()})
-        </div>
-      ))}
+      {sales.length === 0 ? (
+        <div>Todavía no se vendió ninguno — ponele el precio que te parezca.</div>
+      ) : (
+        summarizeSales(sales).map((s) => (
+          <div key={s.currency}>
+            Últimas {s.count} venta{s.count > 1 ? 's' : ''} en {CURRENCY_LABELS[s.currency]}: promedio{' '}
+            {s.avg.toLocaleString()} (entre {s.min.toLocaleString()} y {s.max.toLocaleString()})
+          </div>
+        ))
+      )}
+      <button
+        type="button"
+        disabled={refreshing}
+        onClick={onRefresh}
+        style={{ background: 'none', border: 'none', padding: 0, textDecoration: 'underline', cursor: 'pointer', color: 'inherit', font: 'inherit' }}
+      >
+        {refreshing ? 'Actualizando...' : '↻ Actualizar'}
+      </button>
     </div>
   );
 }
@@ -460,7 +471,13 @@ export default function Market() {
                       {historyBusy === cardKey ? 'Buscando...' : 'Ver historial de precios'}
                     </button>
                   ) : (
-                    <PriceHistory sales={history[cardKey]} />
+                    <PriceHistory
+                      sales={history[cardKey]}
+                      refreshing={historyBusy === cardKey}
+                      onRefresh={() => handleViewHistory(cardKey, {
+                        itemId: item.item_id, enchantLevel: item.enchant_level, qualityTier: item.quality_tier,
+                      })}
+                    />
                   )}
                   <button
                     className="rpg-button equipment-action"
@@ -523,7 +540,11 @@ export default function Market() {
                           {historyBusy === `pet-${pet.pet_id}` ? 'Buscando...' : 'Ver historial de precios'}
                         </button>
                       ) : (
-                        <PriceHistory sales={history[`pet-${pet.pet_id}`]} />
+                        <PriceHistory
+                          sales={history[`pet-${pet.pet_id}`]}
+                          refreshing={historyBusy === `pet-${pet.pet_id}`}
+                          onRefresh={() => handleViewHistory(`pet-${pet.pet_id}`, { petId: pet.pet_id })}
+                        />
                       )}
                       <button
                         className="rpg-button equipment-action"
