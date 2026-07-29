@@ -92,12 +92,8 @@ export const api = {
     const qs = new URLSearchParams(params).toString();
     return request(`/api/player/${playerId}/market/listings${qs ? `?${qs}` : ''}`, { token });
   },
-  createMarketListing: (playerId, itemId, enchantLevel, qualityTier, quantity, pricePerUnit, token) =>
-    request(`/api/player/${playerId}/market/listings`, {
-      method: 'POST',
-      body: { itemId, enchantLevel, qualityTier, quantity, pricePerUnit },
-      token,
-    }),
+  createMarketListing: (playerId, body, token) =>
+    request(`/api/player/${playerId}/market/listings`, { method: 'POST', body, token }),
   cancelMarketListing: (playerId, listingId, token) =>
     request(`/api/player/${playerId}/market/listings/${listingId}`, { method: 'DELETE', token }),
   buyMarketListing: (playerId, listingId, token) =>
