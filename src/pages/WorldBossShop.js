@@ -9,6 +9,8 @@ const RARITY_CLASS = {
   RARO: 'rarity-raro', EPICO: 'rarity-epico', LEGENDARIO: 'rarity-legendario', UNICO: 'rarity-unico',
 };
 
+const COSMIC_EGG_CODE = 'HUEVO_COSMICO';
+
 export default function WorldBossShop() {
   const { player, token } = useAuth();
   const [shop, setShop] = useState(null);
@@ -16,6 +18,9 @@ export default function WorldBossShop() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loadingKey, setLoadingKey] = useState(null);
+  const [legendaryPets, setLegendaryPets] = useState(null);
+  const [pickingItem, setPickingItem] = useState(null);
+  const [selectedPetId, setSelectedPetId] = useState('');
 
   async function load() {
     const data = await api.getWorldBossShop(player.id, token);
@@ -31,10 +36,46 @@ export default function WorldBossShop() {
   async function handleBuy(item) {
     setError('');
     setMessage('');
+
+    // El Huevo Cósmico no se compra directo: primero hay que elegir qué mascota LEGENDARIO
+    // se lleva, así que abrimos el selector en vez de pegarle a /shop/buy de una.
+    if (item.code === COSMIC_EGG_CODE) {
+      setSelectedPetId('');
+      setPickingItem(item);
+      if (legendaryPets === null) {
+        try {
+          const pets = await api.getWorldBossLegendaryPets(player.id, token);
+          setLegendaryPets(pets);
+        } catch (err) {
+          setError(err.message);
+          setPickingItem(null);
+        }
+      }
+      return;
+    }
+
     setLoadingKey(item.item_id);
     try {
       const result = await api.buyWorldBossItem(player.id, item.item_id, 1, token);
       setMessage(`Compraste ${result.item ?? item.name} por ${result.cost ?? item.price} fragmentos cósmicos.`);
+      await load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingKey(null);
+    }
+  }
+
+  async function handleConfirmCosmicBuy() {
+    if (!selectedPetId || !pickingItem) return;
+    setError('');
+    setMessage('');
+    setLoadingKey(pickingItem.item_id);
+    try {
+      const result = await api.buyWorldBossItem(player.id, pickingItem.item_id, 1, token, Number(selectedPetId));
+      setMessage(`¡${result.item ?? 'Mascota'} se unió a tu colección! Costó ${result.cost ?? pickingItem.price} fragmentos cósmicos.`);
+      setPickingItem(null);
+      setSelectedPetId('');
       await load();
     } catch (err) {
       setError(err.message);
@@ -77,12 +118,59 @@ export default function WorldBossShop() {
                 disabled={loadingKey === item.item_id || cosmicShards < item.price}
                 onClick={() => handleBuy(item)}
               >
-                {loadingKey === item.item_id ? '...' : 'Comprar'}
+                {loadingKey === item.item_id ? '...' : (item.code === COSMIC_EGG_CODE ? 'Elegir mascota' : 'Comprar')}
               </button>
             </div>
           ))}
         </div>
       </div>
+
+      {pickingItem && (
+        <div className="modal-overlay" onClick={() => setPickingItem(null)}>
+          <div className="modal-panel rpg-panel" onClick={(e) => e.stopPropagation()}>
+            <button className="craft-result-close" onClick={() => setPickingItem(null)} aria-label="Cerrar">×</button>
+            <h3>Elige tu mascota legendaria</h3>
+            <p className="hint">El Huevo Cósmico te deja elegir directamente qué mascota legendaria se une a vos, sin pasar por la incubadora.</p>
+
+            {legendaryPets === null && <p className="hint">Cargando...</p>}
+            {legendaryPets && legendaryPets.length === 0 && (
+              <p className="hint">No hay mascotas legendarias disponibles todavía.</p>
+            )}
+            {legendaryPets && legendaryPets.length > 0 && (
+              <div className="guild-members-list">
+                {legendaryPets.map((pet) => (
+                  <label key={pet.id} className="guild-member-row" style={{ cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="cosmic-egg-pet"
+                      checked={String(selectedPetId) === String(pet.id)}
+                      onChange={() => setSelectedPetId(pet.id)}
+                      style={{ marginRight: 10 }}
+                    />
+                    <div className="guild-member-info">
+                      <span className="guild-member-name">{pet.name}</span>
+                      <span className="hint guild-member-sub">
+                        {pet.element ? `${pet.element} · ` : ''}{pet.description}
+                      </span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            <div className="craft-row" style={{ marginTop: 14 }}>
+              <button
+                className="rpg-button"
+                disabled={!selectedPetId || loadingKey === pickingItem.item_id}
+                onClick={handleConfirmCosmicBuy}
+              >
+                {loadingKey === pickingItem.item_id ? 'Comprando...' : `Confirmar (${pickingItem.price.toLocaleString()} fragmentos)`}
+              </button>
+              <button className="rpg-button" onClick={() => setPickingItem(null)}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

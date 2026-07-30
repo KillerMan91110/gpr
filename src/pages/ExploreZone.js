@@ -761,6 +761,11 @@ function CombatView({
 
   const selectingAlly = pendingSkill?.targetType === 'ALLY' || !!pendingItem;
   const selectingEnemy = !pendingItem && (!pendingSkill || pendingSkill.targetType === 'ENEMY');
+  // Cristal de Resurrección (y cualquier otro ítem con este mismo bonus a futuro): a diferencia
+  // de curar/buffear, necesita apuntar a alguien CAÍDO, no vivo — se detecta por el stat_code
+  // que ya devuelve el back en itemEffects, no hace falta una lista hardcodeada de item codes.
+  const pendingItemIsRevive = !!pendingItem
+    && (itemEffects[pendingItem.item_id] || []).some((b) => b.stat_code === 'REVIVE_HP_PERCENT');
 
   // Sigue el combate como un chat: si el jugador estaba al fondo del log,
   // lo mantenemos ahí al llegar acciones nuevas; si scrolleó para revisar
@@ -854,7 +859,9 @@ function CombatView({
         {isPlayerTurn && (
           <p className="combat-hint">
             {pendingItem
-              ? `Elige a quién darle ${pendingItem.name}.`
+              ? pendingItemIsRevive
+                ? `Elige a quién revivir con ${pendingItem.name}.`
+                : `Elige a quién darle ${pendingItem.name}.`
               : selectingAlly
               ? `Elige un aliado para usar ${pendingSkill.name}.`
               : pendingSkill
@@ -1016,7 +1023,7 @@ function CombatView({
               participant={p}
               level={p.player_id ? (p.level ?? playerLevel) : (npcLevelMap?.[p.npc_id] ?? null)}
               isActive={p.id === nextActorId}
-              allyTargetable={isPlayerTurn && selectingAlly && p.hp > 0}
+              allyTargetable={isPlayerTurn && selectingAlly && (pendingItemIsRevive ? p.hp <= 0 : p.hp > 0)}
               onTarget={() => handleAllyTarget(p.id)}
               partnerOwned={isCoop && !actorBelongsToPlayer(p, player?.id)}
               floaters={floaters.filter((f) => f.participantId === p.id)}
@@ -1035,7 +1042,7 @@ function CombatView({
               participant={p}
               level={enemyLevels?.[i]}
               isActive={p.id === nextActorId}
-              targetable={isPlayerTurn && selectingEnemy}
+              targetable={isPlayerTurn && selectingEnemy && p.hp > 0}
               onTarget={() => handleEnemyTarget(p.id)}
               floaters={floaters.filter((f) => f.participantId === p.id)}
               shaking={shakeIds.has(p.id)}
@@ -1091,14 +1098,17 @@ export function CombatantCard({ participant, level, isActive, targetable, allyTa
   const hpPercent = participant.max_hp ? Math.max(0, (participant.hp / participant.max_hp) * 100) : 0;
   const manaPercent = participant.max_mana ? Math.max(0, (participant.mana / participant.max_mana) * 100) : 0;
   const dead = participant.hp <= 0;
-  const clickable = (targetable || allyTargetable) && !dead;
+  // dead ya no descalifica acá directo: quien llama decide si hace falta vivo o caído (el
+  // Cristal de Resurrección necesita apuntar justo a alguien caído) y manda targetable/
+  // allyTargetable ya resuelto para este participante puntual.
+  const clickable = targetable || allyTargetable;
 
   const classes = [
     'combatant-card',
     dead ? 'combatant-dead' : '',
     isActive ? 'combatant-active' : '',
-    targetable && !dead ? 'combatant-targetable' : '',
-    allyTargetable && !dead ? 'combatant-ally-targetable' : '',
+    targetable ? 'combatant-targetable' : '',
+    allyTargetable ? 'combatant-ally-targetable' : '',
     partnerOwned ? 'combatant-partner' : '',
     shaking ? 'combatant-shake' : '',
   ].filter(Boolean).join(' ');

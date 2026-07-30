@@ -18,18 +18,29 @@ export default function GuildEnchant() {
   const [message, setMessage] = useState('');
   const [enchanting, setEnchanting] = useState(null);
   const [crystalQty, setCrystalQty] = useState(0);
+  const [majorCrystalQty, setMajorCrystalQty] = useState(0);
   const [useCrystal, setUseCrystal] = useState(false);
 
   const partyNpcs = party?.members?.filter((m) => !m.isHero) || [];
   const slot2Npc = partyNpcs.find((n) => n.slot === 2) || null;
   const slot3Npc = partyNpcs.find((n) => n.slot === 3) || null;
 
+  // El back prioriza el Cristal Mayor sobre el regular si el jugador tiene los dos (ver
+  // POST /:playerId/enchant) — el front tiene que reflejar el mismo bonus que realmente se va a
+  // aplicar, no siempre +15.
+  const hasAnyCrystal = crystalQty > 0 || majorCrystalQty > 0;
+  const activeCrystalBonus = majorCrystalQty > 0 ? 30 : crystalQty > 0 ? 15 : 0;
+  const activeCrystalName = majorCrystalQty > 0 ? 'Cristal de Estabilidad Mayor' : 'Cristal de Estabilidad';
+
   useEffect(() => {
     if (!player) return;
     api.getParty(player.id, token).then(setParty).catch(() => setParty(null));
     api.getPlayerInventory(player.id, token)
-      .then((inv) => setCrystalQty(inv.find((i) => i.code === 'CRISTAL_ESTABILIDAD')?.quantity || 0))
-      .catch(() => setCrystalQty(0));
+      .then((inv) => {
+        setCrystalQty(inv.find((i) => i.code === 'CRISTAL_ESTABILIDAD')?.quantity || 0);
+        setMajorCrystalQty(inv.find((i) => i.code === 'CRISTAL_ESTABILIDAD_MAYOR')?.quantity || 0);
+      })
+      .catch(() => { setCrystalQty(0); setMajorCrystalQty(0); });
   }, [player, token]);
 
   useEffect(() => {
@@ -57,7 +68,8 @@ export default function GuildEnchant() {
         : await api.getEnchantInfo(player.id, token);
       setSlots(data);
       if (!npc && useCrystal) {
-        setCrystalQty((q) => Math.max(0, q - 1));
+        if (majorCrystalQty > 0) setMajorCrystalQty((q) => Math.max(0, q - 1));
+        else setCrystalQty((q) => Math.max(0, q - 1));
         setUseCrystal(false);
       }
     } catch (err) {
@@ -126,10 +138,11 @@ export default function GuildEnchant() {
         </div>
       )}
 
-      {slots && slots.length > 0 && !activeNpc && crystalQty > 0 && (
+      {slots && slots.length > 0 && !activeNpc && hasAnyCrystal && (
         <label className="hint" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <input type="checkbox" checked={useCrystal} onChange={(e) => setUseCrystal(e.target.checked)} />
-          Usar Cristal de Estabilidad (+15% de éxito, se consume en el intento — tienes {crystalQty})
+          Usar {activeCrystalName} (+{activeCrystalBonus}% de éxito, se consume en el intento
+          {majorCrystalQty > 0 && crystalQty > 0 ? ` — tienes ${majorCrystalQty} Mayor y ${crystalQty} normal` : ` — tienes ${majorCrystalQty > 0 ? majorCrystalQty : crystalQty}`})
         </label>
       )}
 
@@ -137,7 +150,7 @@ export default function GuildEnchant() {
         <div className="zone-list">
           {slots.map((s) => {
             const boosted = !activeNpc && useCrystal && s.nextCost;
-            const effectiveRate = boosted ? Math.min(100, s.nextCost.successRate + 15) : s.nextCost?.successRate;
+            const effectiveRate = boosted ? Math.min(100, s.nextCost.successRate + activeCrystalBonus) : s.nextCost?.successRate;
             return (
               <div key={s.slot} className="zone-card rpg-panel">
                 <div className="zone-card-header">

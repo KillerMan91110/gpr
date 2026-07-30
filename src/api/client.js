@@ -292,8 +292,9 @@ export const api = {
   enterWorldBoss: (playerId, coopPartnerIds, token) =>
     request(`/api/player/${playerId}/worldboss/enter`, { method: 'POST', body: { coopPartnerIds }, token }),
   getWorldBossShop: (playerId, token) => request(`/api/player/${playerId}/worldboss/shop`, { token }),
-  buyWorldBossItem: (playerId, itemId, quantity, token) =>
-    request(`/api/player/${playerId}/worldboss/shop/buy`, { method: 'POST', body: { itemId, quantity }, token }),
+  getWorldBossLegendaryPets: (playerId, token) => request(`/api/player/${playerId}/worldboss/shop/legendary-pets`, { token }),
+  buyWorldBossItem: (playerId, itemId, quantity, token, petId) =>
+    request(`/api/player/${playerId}/worldboss/shop/buy`, { method: 'POST', body: { itemId, quantity, petId }, token }),
   setWorldBossReady: (playerId, token) => request(`/api/player/${playerId}/worldboss/ready`, { method: 'POST', token }),
   cancelWorldBossReady: (playerId, token) => request(`/api/player/${playerId}/worldboss/ready`, { method: 'DELETE', token }),
   getWorldBossReadyStatus: (playerId, token) => request(`/api/player/${playerId}/worldboss/ready-status`, { token }),

@@ -553,6 +553,8 @@ function WorldBossCombatView({
 
   const selectingAlly = pendingSkill?.targetType === 'ALLY' || !!pendingItem;
   const selectingEnemy = !pendingItem && (!pendingSkill || pendingSkill.targetType === 'ENEMY');
+  const pendingItemIsRevive = !!pendingItem
+    && (itemEffects[pendingItem.item_id] || []).some((b) => b.stat_code === 'REVIVE_HP_PERCENT');
 
   useEffect(() => {
     const el = logRef.current;
@@ -641,7 +643,7 @@ function WorldBossCombatView({
               participant={p}
               level={null}
               isActive={p.id === nextActorId}
-              targetable={isPlayerTurn && selectingEnemy}
+              targetable={isPlayerTurn && selectingEnemy && p.hp > 0}
               onTarget={() => handleEnemyTarget(p.id)}
               floaters={floaters.filter((f) => f.participantId === p.id)}
               shaking={shakeIds.has(p.id)}
@@ -659,7 +661,7 @@ function WorldBossCombatView({
               participant={p}
               level={p.player_id ? p.level : null}
               isActive={p.id === nextActorId}
-              allyTargetable={isPlayerTurn && selectingAlly && p.hp > 0}
+              allyTargetable={isPlayerTurn && selectingAlly && (pendingItemIsRevive ? p.hp <= 0 : p.hp > 0)}
               onTarget={() => handleAllyTarget(p.id)}
               partnerOwned={isCoop && !actorBelongsToPlayer(p, player?.id)}
               floaters={floaters.filter((f) => f.participantId === p.id)}
@@ -673,7 +675,7 @@ function WorldBossCombatView({
         {isPlayerTurn && (
           <p className="combat-hint">
             {pendingItem
-              ? `Elige a quién darle ${pendingItem.name}.`
+              ? (pendingItemIsRevive ? `Elige a quién revivir con ${pendingItem.name}.` : `Elige a quién darle ${pendingItem.name}.`)
               : selectingAlly
               ? `Elige un aliado para usar ${pendingSkill.name}.`
               : pendingSkill

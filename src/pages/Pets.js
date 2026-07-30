@@ -63,6 +63,7 @@ export default function Pets() {
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [feedMessage, setFeedMessage] = useState('');
   const [hatchResult, setHatchResult] = useState(null);
   const hatchResultTimer = useRef(null);
 
@@ -94,12 +95,14 @@ export default function Pets() {
 
   const eggItems = (inventory || []).filter((i) => i.code?.startsWith('HUEVO_'));
   const materialItems = (inventory || []).filter((i) => i.item_type === 'MATERIAL' && !i.code?.startsWith('HUEVO_'));
+  const transcendenceStone = (inventory || []).find((i) => i.code === 'PIEDRA_TRASCENDENCIA') || null;
   const activePet = (pets || []).find((p) => p.is_active);
   const readyNow = incubator && (incubator.ready || new Date(incubator.hatch_ready_at).getTime() <= now);
 
   async function handleActivate(playerPetId) {
     setBusy(true);
     setError('');
+    setFeedMessage('');
     try {
       await api.activatePet(player.id, playerPetId, token);
       await loadAll();
@@ -113,6 +116,7 @@ export default function Pets() {
   async function handleDeactivate(playerPetId) {
     setBusy(true);
     setError('');
+    setFeedMessage('');
     try {
       await api.deactivatePet(player.id, playerPetId, token);
       await loadAll();
@@ -127,9 +131,29 @@ export default function Pets() {
     if (!feedTarget?.itemId) return;
     setBusy(true);
     setError('');
+    setFeedMessage('');
     try {
       await api.feedPet(player.id, playerPetId, feedTarget.itemId, feedTarget.quantity || 1, token);
       setFeedTarget(null);
+      await loadAll();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // La Piedra de Trascendencia es CONSUMABLE (no MATERIAL), así que nunca aparece en el
+  // dropdown de alimentar normal: es una acción rara/cara aparte, un click = una piedra.
+  async function handleTranscend(playerPetId) {
+    if (!transcendenceStone) return;
+    setBusy(true);
+    setError('');
+    setFeedMessage('');
+    try {
+      const result = await api.feedPet(player.id, playerPetId, transcendenceStone.item_id, 1, token);
+      const petName = pets.find((p) => p.id === playerPetId)?.name || 'Tu mascota';
+      setFeedMessage(`¡${petName} trascendió! Ahora es nivel ${result.level} (tope de nivel ${20 + result.bonus_max_level}).`);
       await loadAll();
     } catch (err) {
       setError(err.message);
@@ -142,6 +166,7 @@ export default function Pets() {
     if (!selectedEggId) return;
     setBusy(true);
     setError('');
+    setFeedMessage('');
     try {
       await api.startIncubation(player.id, selectedEggId, token);
       setSelectedEggId('');
@@ -156,6 +181,7 @@ export default function Pets() {
   async function handleClaim() {
     setBusy(true);
     setError('');
+    setFeedMessage('');
     try {
       const pet = await api.claimIncubator(player.id, token);
       clearTimeout(hatchResultTimer.current);
@@ -175,6 +201,7 @@ export default function Pets() {
     <div className="dashboard">
       <h1><GameIcon name="paw-print" artist="lorc" /> Mascotas</h1>
       {error && <p className="auth-error">{error}</p>}
+      {feedMessage && <p className="hint hint-ok">{feedMessage}</p>}
 
       <section className="rpg-panel pets-section">
         <h2>Incubadora</h2>
@@ -299,6 +326,19 @@ export default function Pets() {
                 >
                   Alimentar
                 </button>
+              )}
+
+              {transcendenceStone && (
+                <div className="craft-row">
+                  <button
+                    className="rpg-button rpg-button--small"
+                    disabled={busy}
+                    title="Sube el nivel actual y el tope máximo en +3, incluso si ya está en el tope."
+                    onClick={() => handleTranscend(pet.id)}
+                  >
+                    ✨ Piedra de Trascendencia (x{transcendenceStone.quantity})
+                  </button>
+                </div>
               )}
             </div>
           ))}

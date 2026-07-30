@@ -31,6 +31,13 @@ const TYPE_LABELS = {
 const TYPE_ORDER = ['EQUIPMENT', 'CONSUMABLE', 'MATERIAL'];
 const RARITY_ORDER = ['COMUN', 'POCO_COMUN', 'RARO', 'EPICO', 'LEGENDARIO'];
 
+// Estos CONSUMABLE no tienen efecto genérico fuera de combate (POST /use-item solo entiende
+// HEAL_HP/HEAL_MP): usarlos desde acá siempre devuelve "ya tenés HP/Maná al máximo", así que
+// se reemplaza el botón "Usar" por el camino correcto de cada uno.
+const NO_GENERIC_USE = new Set([
+  'CRISTAL_RESURRECCION', 'CRISTAL_ESTABILIDAD', 'CRISTAL_ESTABILIDAD_MAYOR', 'PIEDRA_TRASCENDENCIA',
+]);
+
 const STAT_LABELS = {
   ATK: 'ATK',
   DEF: 'DEF',
@@ -512,7 +519,7 @@ export default function Inventory() {
                       <GameIcon name="paw-print" artist="lorc" /> Incubar
                     </Link>
                   )}
-                  {item.item_type === 'CONSUMABLE' && (
+                  {item.item_type === 'CONSUMABLE' && !NO_GENERIC_USE.has(item.code) && (
                     <button
                       className="rpg-button equipment-action"
                       disabled={!!busyId}
@@ -520,6 +527,19 @@ export default function Inventory() {
                     >
                       {busyId === `use-${item.item_id}` ? 'Usando...' : 'Usar'}
                     </button>
+                  )}
+                  {(item.code === 'CRISTAL_ESTABILIDAD' || item.code === 'CRISTAL_ESTABILIDAD_MAYOR') && (
+                    <Link to="/guild/enchant" className="rpg-button equipment-action">
+                      <GameIcon name="magic-swirl" artist="lorc" /> Ir a Encantador
+                    </Link>
+                  )}
+                  {item.code === 'PIEDRA_TRASCENDENCIA' && (
+                    <Link to="/pets" className="rpg-button equipment-action">
+                      <GameIcon name="paw-print" artist="lorc" /> Ir a Mascotas
+                    </Link>
+                  )}
+                  {item.code === 'CRISTAL_RESURRECCION' && (
+                    <span className="hint">Se usa en combate, desde el menú de ítems.</span>
                   )}
                   {item.is_scroll && (
                     <button
