@@ -1104,6 +1104,24 @@ function CombatView({
 const RARITY_TIER_BY_LABEL = {
   'Poco Común': 'poco_comun', 'Raro': 'raro', 'Élite': 'elite', 'Mini Jefe': 'mini_jefe', 'Jefe': 'jefe',
 };
+// Mismo color sólido que ya usa el glow permanente (combatant-rarity-* en App.css) — se manda
+// como CSS var inline solo cuando el enemigo es targetable, para que el borde "podés atacar esto"
+// muestre la rareza en vez del rojo genérico (ver combatant-targetable en App.css: cae al rojo de
+// --hp-b por default con var(--targetable-color, ...) cuando esto no aplica, ej. enemigos COMÚN).
+const RARITY_COLOR = {
+  poco_comun: 'var(--rarity-poco_comun)',
+  raro: 'var(--rarity-raro)',
+  elite: 'var(--rarity-epico)',
+  mini_jefe: 'var(--rarity-legendario)',
+  jefe: 'var(--rarity-unico)',
+};
+const RARITY_GLOW = {
+  poco_comun: 'rgba(95, 217, 126, 0.55)',
+  raro: 'rgba(79, 160, 224, 0.55)',
+  elite: 'rgba(181, 114, 224, 0.55)',
+  mini_jefe: 'rgba(240, 169, 58, 0.6)',
+  jefe: 'rgba(232, 79, 216, 0.6)',
+};
 const MUTATION_INFO = {
   FRENETICO: { label: 'Frenético', icon: { name: 'speedometer', artist: 'delapouite' }, color: '#5fd97e', desc: 'Frenético: +40% de velocidad, actúa más seguido.' },
   GIGANTE: { label: 'Gigante', icon: { name: 'giant', artist: 'delapouite' }, color: '#f0a93a', desc: 'Gigante: HP duplicado.' },
@@ -1154,8 +1172,13 @@ export function CombatantCard({ participant, level, isActive, targetable, allyTa
     encounterTag ? `combatant-rarity-${encounterTag.tier}` : '',
   ].filter(Boolean).join(' ');
 
+  const targetableRarityVars = targetable && encounterTag ? {
+    '--targetable-color': RARITY_COLOR[encounterTag.tier],
+    '--targetable-glow': RARITY_GLOW[encounterTag.tier],
+  } : undefined;
+
   return (
-    <div className={classes} onClick={clickable ? onTarget : undefined}>
+    <div className={classes} style={targetableRarityVars} onClick={clickable ? onTarget : undefined}>
       {floaters.map((f) => (
         <span key={f.key} className={`combat-floater combat-floater--${f.kind}${f.crit ? ' combat-floater--crit' : ''}`}>
           {f.kind === 'damage' && `-${f.value}`}

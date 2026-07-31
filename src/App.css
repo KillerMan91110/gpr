@@ -1397,11 +1397,14 @@ h1, h2, h3 {
 
 .combatant-card.combatant-targetable {
   cursor: pointer;
-  border-color: var(--hp-b);
+  /* --targetable-color/--targetable-glow los manda CombatantCard inline solo cuando el enemigo
+     tiene rareza de El Abismo, para que el "podés atacar esto" se vea con su color en vez del
+     rojo genérico. Sin rareza (la mayoría: zonas normales, o COMÚN en el Abismo) cae al rojo. */
+  border-color: var(--targetable-color, var(--hp-b));
 }
 
 .combatant-card.combatant-targetable:hover {
-  box-shadow: 0 0 10px rgba(224, 57, 79, 0.5);
+  box-shadow: 0 0 10px var(--targetable-glow, rgba(224, 57, 79, 0.5));
 }
 
 .combatant-card.combatant-ally-targetable {
