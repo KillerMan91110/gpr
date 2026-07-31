@@ -1297,23 +1297,16 @@ h1, h2, h3 {
   gap: 12px;
 }
 
-/* Rareza de encuentro de El Abismo (COMÚN no lleva tag, así que no tiene clase acá) — declaradas
-   antes que combatant-active/targetable/ally-targetable para que esos estados ganen el empate de
-   especificidad cuando coinciden (el turno actual importa más que la rareza pasiva). */
-.combatant-card.combatant-rarity-poco_comun { border-color: var(--rarity-poco_comun); }
-.combatant-card.combatant-rarity-raro { border-color: var(--rarity-raro); }
-.combatant-card.combatant-rarity-elite {
-  border-color: var(--rarity-epico);
-  box-shadow: 0 0 8px rgba(181, 114, 224, 0.3);
-}
-.combatant-card.combatant-rarity-mini_jefe {
-  border-color: var(--rarity-legendario);
-  box-shadow: 0 0 9px rgba(240, 169, 58, 0.35);
-}
-.combatant-card.combatant-rarity-jefe {
-  border-color: var(--rarity-unico);
-  box-shadow: 0 0 11px rgba(232, 79, 216, 0.4);
-}
+/* Rareza de encuentro de El Abismo (COMÚN no lleva tag, así que no tiene clase acá). Solo
+   box-shadow, nunca border-color: combatant-targetable/ally-targetable/active también pisan
+   border-color y targetable está activo la mayor parte del turno del jugador (todo enemigo
+   atacable lo tiene) — si la rareza compitiera ahí, el rojo/verde de esos estados la tapa casi
+   siempre. El glow no choca con eso, solo se superpone brevemente con el :hover de esos estados. */
+.combatant-card.combatant-rarity-poco_comun { box-shadow: 0 0 6px 1px rgba(95, 217, 126, 0.45); }
+.combatant-card.combatant-rarity-raro { box-shadow: 0 0 7px 1px rgba(79, 160, 224, 0.5); }
+.combatant-card.combatant-rarity-elite { box-shadow: 0 0 8px 2px rgba(181, 114, 224, 0.5); }
+.combatant-card.combatant-rarity-mini_jefe { box-shadow: 0 0 9px 2px rgba(240, 169, 58, 0.55); }
+.combatant-card.combatant-rarity-jefe { box-shadow: 0 0 11px 3px rgba(232, 79, 216, 0.6); }
 
 @keyframes combat-float-up {
   0% { transform: translate(-50%, 0); opacity: 1; }
