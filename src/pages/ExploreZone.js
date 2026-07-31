@@ -1094,6 +1094,40 @@ function CombatView({
   );
 }
 
+// Rareza de encuentro + mutaciones de El Abismo (docs/backend-spec-abismo-rareza-mutaciones.md):
+// el back NO persiste encounter_rarity como columna propia, solo la concatena al nombre del
+// enemigo ("Goblin · Élite Gigante") — ver combat.js applyEncounterRarity. mutation_code SÍ es
+// columna real pero solo Corrupto la setea (las otras 3 mutaciones son cambios de stat de una
+// sola vez, sin necesidad de chequeo en turnos futuros). El separador " · " y las 9 etiquetas de
+// abajo son las únicas que usa ese generador, así que parsearlas del nombre es seguro (confirmado
+// que ningún monstruo base usa "·" en su nombre).
+const RARITY_TIER_BY_LABEL = {
+  'Poco Común': 'poco_comun', 'Raro': 'raro', 'Élite': 'elite', 'Mini Jefe': 'mini_jefe', 'Jefe': 'jefe',
+};
+const MUTATION_INFO = {
+  FRENETICO: { label: 'Frenético', icon: { name: 'speedometer', artist: 'delapouite' }, color: '#5fd97e', desc: 'Frenético: +40% de velocidad, actúa más seguido.' },
+  GIGANTE: { label: 'Gigante', icon: { name: 'giant', artist: 'delapouite' }, color: '#f0a93a', desc: 'Gigante: HP duplicado.' },
+  DORADO: { label: 'Dorado', icon: { name: 'coins-pile', artist: 'delapouite' }, color: '#f0d43a', desc: 'Dorado: triplica el oro que suelta al morir.' },
+  CORRUPTO: { label: 'Corrupto', icon: { name: 'poison', artist: 'sbed' }, color: '#8fd94f', desc: 'Corrupto: envenena con cada ataque básico que conecta (daño por turno).' },
+};
+const MUTATION_LABELS = Object.keys(MUTATION_INFO).map((code) => [code, MUTATION_INFO[code].label]);
+
+function parseEncounterTag(name) {
+  const sepIdx = name.indexOf(' · ');
+  if (sepIdx === -1) return null;
+  let tag = name.slice(sepIdx + 3);
+  let mutationCode = null;
+  for (const [code, label] of MUTATION_LABELS) {
+    if (tag.endsWith(` ${label}`)) {
+      mutationCode = code;
+      tag = tag.slice(0, -(label.length + 1));
+      break;
+    }
+  }
+  const tier = RARITY_TIER_BY_LABEL[tag];
+  return tier ? { tier, mutationCode } : null;
+}
+
 export function CombatantCard({ participant, level, isActive, targetable, allyTargetable, onTarget, partnerOwned, floaters = [], shaking = false }) {
   const hpPercent = participant.max_hp ? Math.max(0, (participant.hp / participant.max_hp) * 100) : 0;
   const manaPercent = participant.max_mana ? Math.max(0, (participant.mana / participant.max_mana) * 100) : 0;
@@ -1103,6 +1137,12 @@ export function CombatantCard({ participant, level, isActive, targetable, allyTa
   // allyTargetable ya resuelto para este participante puntual.
   const clickable = targetable || allyTargetable;
 
+  const encounterTag = parseEncounterTag(participant.name);
+  // mutation_code SÍ persiste de verdad en la DB (a diferencia del tier) — si por lo que sea el
+  // parseo del nombre no lo agarra, este fallback lo sigue mostrando.
+  const mutationCode = encounterTag?.mutationCode || (participant.mutation_code === 'CORRUPTO' ? 'CORRUPTO' : null);
+  const mutation = mutationCode ? MUTATION_INFO[mutationCode] : null;
+
   const classes = [
     'combatant-card',
     dead ? 'combatant-dead' : '',
@@ -1111,6 +1151,7 @@ export function CombatantCard({ participant, level, isActive, targetable, allyTa
     allyTargetable ? 'combatant-ally-targetable' : '',
     partnerOwned ? 'combatant-partner' : '',
     shaking ? 'combatant-shake' : '',
+    encounterTag ? `combatant-rarity-${encounterTag.tier}` : '',
   ].filter(Boolean).join(' ');
 
   return (
@@ -1132,6 +1173,14 @@ export function CombatantCard({ participant, level, isActive, targetable, allyTa
           {partnerOwned && <span className="combatant-partner-tag"> (compañero)</span>}
           {participant.is_ai_controlled && (
             <span className="combatant-ai-tag"> <GameIcon name="robot-golem" artist="lorc" /> IA</span>
+          )}
+          {mutation && (
+            <span className="combatant-mutation-badge" style={{ color: mutation.color }}>
+              {' '}<GameIcon name={mutation.icon.name} artist={mutation.icon.artist} title={mutation.label} />
+              <span className="item-tooltip">
+                <span className="item-tooltip-line">{mutation.desc}</span>
+              </span>
+            </span>
           )}
         </div>
         {participant.class_name && (

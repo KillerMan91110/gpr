@@ -1297,6 +1297,24 @@ h1, h2, h3 {
   gap: 12px;
 }
 
+/* Rareza de encuentro de El Abismo (COMÚN no lleva tag, así que no tiene clase acá) — declaradas
+   antes que combatant-active/targetable/ally-targetable para que esos estados ganen el empate de
+   especificidad cuando coinciden (el turno actual importa más que la rareza pasiva). */
+.combatant-card.combatant-rarity-poco_comun { border-color: var(--rarity-poco_comun); }
+.combatant-card.combatant-rarity-raro { border-color: var(--rarity-raro); }
+.combatant-card.combatant-rarity-elite {
+  border-color: var(--rarity-epico);
+  box-shadow: 0 0 8px rgba(181, 114, 224, 0.3);
+}
+.combatant-card.combatant-rarity-mini_jefe {
+  border-color: var(--rarity-legendario);
+  box-shadow: 0 0 9px rgba(240, 169, 58, 0.35);
+}
+.combatant-card.combatant-rarity-jefe {
+  border-color: var(--rarity-unico);
+  box-shadow: 0 0 11px rgba(232, 79, 216, 0.4);
+}
+
 @keyframes combat-float-up {
   0% { transform: translate(-50%, 0); opacity: 1; }
   100% { transform: translate(-50%, -36px); opacity: 0; }
@@ -1427,6 +1445,22 @@ h1, h2, h3 {
   font-size: 0.7rem;
   color: var(--gold-dim);
   font-style: italic;
+}
+
+.combatant-mutation-badge {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+}
+
+.combatant-mutation-badge:hover .item-tooltip {
+  display: block;
+}
+
+.combatant-mutation-badge .item-tooltip {
+  white-space: normal;
+  left: auto;
+  right: 0;
 }
 
 .combatant-partner {
