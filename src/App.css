@@ -4089,6 +4089,38 @@ h1, h2, h3 {
   font-size: 0.82rem;
 }
 
+.daily-event-rewards {
+  margin: 16px 0 0;
+}
+
+.daily-event-rewards-title {
+  margin: 0 0 6px;
+  color: var(--text-soft);
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.daily-event-rewards-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.daily-event-reward-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--gold-dim);
+  border-radius: 14px;
+  color: var(--cream);
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
 .daily-event-attempts {
   display: flex;
   align-items: center;

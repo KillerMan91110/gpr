@@ -202,6 +202,7 @@ export default function DailyEvent() {
         <DailyEventCombatView
           session={session}
           player={player}
+          event={event}
           loading={loading}
           inventory={inventory}
           itemEffects={itemEffects}
@@ -250,6 +251,23 @@ export default function DailyEvent() {
           </p>
         )}
 
+        <div className="daily-event-rewards">
+          <p className="daily-event-rewards-title">Recompensa de hoy</p>
+          <div className="daily-event-rewards-row">
+            <span className="daily-event-reward-chip">
+              <GameIcon name="two-coins" artist="delapouite" /> {event.goldReward.toLocaleString()} Oro
+            </span>
+            <span className="daily-event-reward-chip">
+              <GameIcon name="gem-necklace" artist="lorc" /> {event.dungeonCoinsReward.toLocaleString()} Monedas del Abismo
+            </span>
+            {event.bonusMaterial && (
+              <span className="daily-event-reward-chip">
+                <GameIcon name="present" artist="delapouite" /> {event.bonusMaterial.chancePercent}% de {event.bonusMaterial.itemName} x{event.bonusMaterial.quantity}
+              </span>
+            )}
+          </div>
+        </div>
+
         <div className="daily-event-attempts">
           <GameIcon name="ticket" artist="delapouite" />
           <div className="daily-event-attempts-pips">
@@ -273,7 +291,7 @@ export default function DailyEvent() {
 }
 
 function DailyEventCombatView({
-  session, player, loading, inventory, itemEffects, skills, npcSkillsCache,
+  session, player, event, loading, inventory, itemEffects, skills, npcSkillsCache,
   onLoadInventory, onLoadSkills, onLoadNpcSkills, onAction, onReturnToLobby,
 }) {
   const { session: combatSession, participants, log, nextActorId, round, rewards } = session;
@@ -551,10 +569,11 @@ function DailyEventCombatView({
               ))}
             </>
           )}
-          {combatSession.status === 'PLAYER_WON' && (
+          {combatSession.status === 'PLAYER_WON' && event && (
             <p className="hint hint-ok daily-event-bonus-line">
-              <GameIcon name="ticket" artist="delapouite" /> También recibiste la recompensa fija
-              del Evento del Día (oro, monedas del abismo y una chance de material extra).
+              <GameIcon name="ticket" artist="delapouite" /> Recompensa del evento: +{event.goldReward} Oro
+              · +{event.dungeonCoinsReward} Monedas del Abismo
+              {event.bonusMaterial && ` · ${event.bonusMaterial.chancePercent}% de probabilidad de ${event.bonusMaterial.itemName} x${event.bonusMaterial.quantity} (revisá tu inventario)`}
             </p>
           )}
           <button className="rpg-button" onClick={onReturnToLobby}>Volver</button>
