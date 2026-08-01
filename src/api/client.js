@@ -172,6 +172,9 @@ export const api = {
     request(`/api/player/${playerId}/friends/${targetId}`, { method: 'DELETE', token }),
   // Mensajes
   getUnreadCount: (playerId, token) => request(`/api/player/${playerId}/messages/unread-count`, { token }),
+  getDailyReward: (playerId, token) => request(`/api/player/${playerId}/daily-reward`, { token }),
+  claimDailyReward: (playerId, token) =>
+    request(`/api/player/${playerId}/daily-reward/claim`, { method: 'POST', token }),
   getInbox: (playerId, token) => request(`/api/player/${playerId}/messages/inbox`, { token }),
   getSentMessages: (playerId, token) => request(`/api/player/${playerId}/messages/sent`, { token }),
   getMessage: (playerId, messageId, token) => request(`/api/player/${playerId}/messages/${messageId}`, { token }),

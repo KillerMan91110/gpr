@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import { getAbyssCheckpoint } from '../utils/abyssCheckpoint';
 import GameIcon from './GameIcon';
+import DailyRewardModal from './DailyRewardModal';
 
 const CATEGORIES = [
   {
@@ -65,11 +66,19 @@ export default function NavBar() {
   const [socialCounts, setSocialCounts] = useState(null);
   const [gold, setGold] = useState(null);
   const [showExactGold, setShowExactGold] = useState(false);
+  const [dailyReward, setDailyReward] = useState(null);
+  const [showDailyModal, setShowDailyModal] = useState(false);
   const rootRef = useRef(null);
 
   useEffect(() => {
     if (!isAuthenticated || !player) return;
     api.getUnreadCount(player.id, token).then(setSocialCounts).catch(() => setSocialCounts(null));
+  }, [isAuthenticated, player, token, location.pathname]);
+
+  // Se refresca al cambiar de pantalla (por si reclamaste desde el pop-up) igual que socialCounts.
+  useEffect(() => {
+    if (!isAuthenticated || !player) return;
+    api.getDailyReward(player.id, token).then(setDailyReward).catch(() => setDailyReward(null));
   }, [isAuthenticated, player, token, location.pathname]);
 
   // Oro siempre visible en el navbar: se refresca al cambiar de pantalla (por si compraste/
@@ -183,6 +192,11 @@ export default function NavBar() {
           <GameIcon name="shaking-hands" artist="delapouite" /> Social
           {socialBadge > 0 && <span className="nav-badge">{socialBadge}</span>}
         </Link>
+
+        <button type="button" className="app-navbar-link" onClick={() => setShowDailyModal(true)}>
+          <GameIcon name="calendar" artist="delapouite" /> Diario
+          {dailyReward && !dailyReward.claimedToday && <span className="nav-badge">!</span>}
+        </button>
       </div>
 
       <div className="app-navbar-actions">
@@ -203,6 +217,15 @@ export default function NavBar() {
           Salir
         </button>
       </div>
+
+      {showDailyModal && (
+        <DailyRewardModal
+          player={player}
+          token={token}
+          onClose={() => setShowDailyModal(false)}
+          onClaimed={setDailyReward}
+        />
+      )}
     </nav>
   );
 }

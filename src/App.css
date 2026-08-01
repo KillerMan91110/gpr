@@ -3862,6 +3862,120 @@ h1, h2, h3 {
 .modal-panel::-webkit-scrollbar-track { background: transparent; }
 .modal-panel::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
 
+.daily-reward-panel {
+  max-width: 480px;
+}
+
+.daily-reward-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-right: 20px;
+}
+
+.daily-reward-header h3 {
+  margin: 0;
+}
+
+.daily-reward-header-icon {
+  font-size: 1.6rem;
+  color: var(--gold-bright);
+  flex-shrink: 0;
+}
+
+.daily-reward-streak {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  color: var(--gold-bright);
+  border: 1px solid var(--gold-dim);
+  border-radius: 12px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.daily-reward-result {
+  margin-top: 0;
+}
+
+.daily-reward-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin: 14px 0;
+}
+
+.daily-reward-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px;
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  opacity: 0.55;
+}
+
+.daily-reward-day {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  color: var(--text-soft);
+}
+
+.daily-reward-icon {
+  font-size: 1.1rem;
+  color: var(--gold);
+}
+
+.daily-reward-qty {
+  font-size: 0.58rem;
+  color: var(--text-soft);
+  text-align: center;
+  line-height: 1.1;
+}
+
+.daily-reward-cell--claimed {
+  opacity: 0.75;
+  border-color: var(--rarity-poco_comun);
+}
+
+.daily-reward-cell--current {
+  opacity: 1;
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 8px 1px rgba(212, 175, 55, 0.6);
+  animation: combatant-pulse 1.6s ease-in-out infinite;
+}
+
+.daily-reward-cell--grand {
+  border-color: var(--rarity-legendario);
+}
+
+.daily-reward-cell--grand .daily-reward-icon {
+  color: var(--rarity-legendario);
+}
+
+.daily-reward-check {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--rarity-poco_comun);
+  color: var(--bg-deep);
+  font-size: 0.6rem;
+  line-height: 16px;
+  text-align: center;
+}
+
+.daily-reward-claim {
+  width: 100%;
+}
+
 .chat-panel {
   display: flex;
   flex-direction: column;
