@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import GameIcon from '../components/GameIcon';
 
-const RANK_COLORS = {
+export const RANK_COLORS = {
   F: '#b9b3c4',
   E: '#5fd97e',
   D: '#4fa0e0',

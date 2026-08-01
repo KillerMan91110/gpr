@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import QuestObjectives, { allObjectivesComplete } from '../components/QuestObjectives';
 import GameIcon from '../components/GameIcon';
+import { RANK_COLORS } from './Ranks';
 
 const RARITY_STARS = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
 
@@ -17,6 +18,16 @@ export default function MyQuests() {
   const [completingId, setCompletingId] = useState(null);
   const [abandoningId, setAbandoningId] = useState(null);
   const [confirmAbandon, setConfirmAbandon] = useState(null);
+  const [questResult, setQuestResult] = useState(null);
+  const questResultTimer = useRef(null);
+
+  function showQuestResult(result) {
+    clearTimeout(questResultTimer.current);
+    setQuestResult(result);
+    questResultTimer.current = setTimeout(() => setQuestResult(null), 9000);
+  }
+
+  useEffect(() => () => clearTimeout(questResultTimer.current), []);
 
   function loadActive() {
     return api.getActiveQuests(player.id, token).then(setQuests);
@@ -41,10 +52,12 @@ export default function MyQuests() {
     setMessage('');
     setCompletingId(quest.id);
     try {
+      // Rango previo para saber si newRank es realmente NUEVO -- el endpoint de completar no
+      // manda esa comparación hecha, solo el rango resultante. Si este fetch falla no bloquea la
+      // misión en sí, simplemente no festeja un posible rank-up esta vez.
+      const previousRank = await api.getPlayerStats(player.id, token).then((s) => s.rank).catch(() => null);
       const result = await api.completeQuest(player.id, quest.id, token);
-      setMessage(
-        `Completaste "${result.questCompleted}": +${result.xpGained} XP, +${result.goldGained} Oro, +${result.reputationGained} Reputación.`
-      );
+      showQuestResult({ ...result, rankChanged: previousRank != null && previousRank !== result.newRank });
       setCompleted(null);
       await loadActive();
     } catch (err) {
@@ -94,6 +107,44 @@ export default function MyQuests() {
 
       {error && <p className="auth-error">{error}</p>}
       {message && <p className="hint hint-ok infirmary-message">{message}</p>}
+
+      {questResult && (
+        <div className="craft-result-popup rpg-panel quest-result-popup">
+          <button
+            className="craft-result-close"
+            onClick={() => { clearTimeout(questResultTimer.current); setQuestResult(null); }}
+            aria-label="Cerrar"
+          >
+            ×
+          </button>
+          <h4 className="craft-result-title">{questResult.questCompleted}</h4>
+          <p className="craft-result-line quest-result-routine">
+            +{questResult.xpGained} XP · +{questResult.goldGained} Oro · +{questResult.reputationGained} Rep.
+          </p>
+
+          {questResult.leveledUp && (
+            <p className="quest-result-highlight">
+              <GameIcon name="stairs-goal" artist="delapouite" /> ¡Subiste a nivel {questResult.newLevel}!
+            </p>
+          )}
+          {questResult.rankChanged && (
+            <p className="quest-result-highlight" style={{ color: RANK_COLORS[questResult.newRank] || 'inherit' }}>
+              <GameIcon name="star-medal" artist="delapouite" /> ¡Nuevo rango: {questResult.newRank}!
+            </p>
+          )}
+          {(questResult.unlockedAchievements || []).map((a) => (
+            <p key={a.code} className="quest-result-highlight" title={a.description}>
+              <GameIcon name="trophy" artist="lorc" /> Logro desbloqueado: {a.name}
+            </p>
+          ))}
+          {questResult.itemsGained?.length > 0 && (
+            <p className="quest-result-highlight">
+              <GameIcon name="present" artist="delapouite" />{' '}
+              {questResult.itemsGained.map((i) => `${i.quantity}x ${i.item_name}`).join(', ')}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="quest-tabs">
         <button

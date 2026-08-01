@@ -3638,6 +3638,39 @@ h1, h2, h3 {
   box-shadow: 0 8px 24px rgba(0,0,0,0.35);
 }
 
+/* Resultado de completar misión: la línea de rutina (XP/Oro/Rep) queda discreta, lo que
+   realmente vale la pena celebrar (nivel, rango, logro, ítem) entra con su propia línea grande
+   y una entrada suave, para que no se pierda mezclado con los números de siempre. */
+.quest-result-popup {
+  width: 280px;
+}
+
+.quest-result-routine {
+  color: var(--text-soft);
+  font-size: 0.78rem;
+}
+
+@keyframes quest-result-pop {
+  0% { opacity: 0; transform: translateY(-4px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.quest-result-highlight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 6px 8px;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  color: var(--gold-bright);
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  animation: quest-result-pop 0.35s ease-out;
+}
+
 /* Alerta persistente de huevo listo (IncubatorAlert) — top-left para no chocar con el
    stack de CoopBar/craft-result-popup que ya ocupan las esquinas derechas. */
 .incubator-alert {
