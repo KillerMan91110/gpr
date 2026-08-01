@@ -4009,6 +4009,129 @@ h1, h2, h3 {
   width: 100%;
 }
 
+/* Badge chico para un ítem de dropdown del NavBar (Evento del Día) -- distinto del .nav-badge de
+   esquina, que está pensado para un ícono/botón suelto, no para una fila de texto completa. */
+.nav-menu-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  margin-left: 6px;
+  border-radius: 8px;
+  background: var(--gold);
+  color: var(--bg-deep);
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+/* Evento del Día: la tarjeta del lobby toma el color de la rareza forzada de hoy (--event-color/
+   --event-glow, mandadas inline desde DailyEvent.js con RARITY_COLOR/RARITY_GLOW de
+   ExploreZone.js -- mismo lenguaje visual que ya usamos para los bordes de El Abismo). */
+.daily-event-card {
+  max-width: 540px;
+  padding: 24px 26px;
+  border-color: var(--event-color, var(--gold-dim));
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.18),
+    0 0 34px var(--event-glow, rgba(212, 175, 55, 0.25)),
+    0 18px 40px rgba(0, 0, 0, 0.65),
+    inset 0 0 50px rgba(0, 0, 0, 0.45);
+}
+
+.daily-event-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.daily-event-card-header h2 {
+  margin: 0;
+  color: var(--event-color, var(--gold-bright));
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  text-shadow: 0 0 16px var(--event-glow, transparent);
+}
+
+.daily-event-tier-badge {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--event-color, var(--gold-dim));
+  color: var(--event-color, var(--gold-bright));
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.daily-event-flavor {
+  margin: 12px 0 0;
+  color: var(--text-soft);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.daily-event-mutation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 8px 12px;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  color: var(--gold-bright);
+  font-size: 0.82rem;
+}
+
+.daily-event-attempts {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0 0;
+  color: var(--text-soft);
+}
+
+.daily-event-attempts-pips {
+  display: flex;
+  gap: 5px;
+}
+
+.daily-event-pip {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--event-color, var(--gold-dim));
+  background: var(--event-color, var(--gold-dim));
+}
+
+.daily-event-pip--used {
+  background: transparent;
+  opacity: 0.4;
+}
+
+.daily-event-attempts-label {
+  margin-left: auto;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.daily-event-enter {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.daily-event-bonus-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .chat-panel {
   display: flex;
   flex-direction: column;

@@ -15,6 +15,7 @@ const CATEGORIES = [
       { to: '/combat', label: 'Explorar', gameIcon: { name: 'compass', artist: 'lorc' } },
       { to: '/abismo', label: 'El Abismo', gameIcon: { name: 'vortex', artist: 'lorc' } },
       { to: '/worldboss', label: 'World Boss', gameIcon: { name: 'galaxy', artist: 'delapouite' } },
+      { to: '/daily-event', label: 'Evento del Día', gameIcon: { name: 'magic-portal', artist: 'lorc' } },
       { to: '/quests', label: 'Misiones', gameIcon: { name: 'scroll-unfurled', artist: 'lorc' } },
     ],
   },
@@ -68,6 +69,7 @@ export default function NavBar() {
   const [showExactGold, setShowExactGold] = useState(false);
   const [dailyReward, setDailyReward] = useState(null);
   const [showDailyModal, setShowDailyModal] = useState(false);
+  const [dailyEvent, setDailyEvent] = useState(null);
   const rootRef = useRef(null);
 
   useEffect(() => {
@@ -79,6 +81,11 @@ export default function NavBar() {
   useEffect(() => {
     if (!isAuthenticated || !player) return;
     api.getDailyReward(player.id, token).then(setDailyReward).catch(() => setDailyReward(null));
+  }, [isAuthenticated, player, token, location.pathname]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !player) return;
+    api.getDailyEvent(player.id, token).then(setDailyEvent).catch(() => setDailyEvent(null));
   }, [isAuthenticated, player, token, location.pathname]);
 
   // Oro siempre visible en el navbar: se refresca al cambiar de pantalla (por si compraste/
@@ -170,11 +177,17 @@ export default function NavBar() {
             </button>
             {openMenu === cat.key && (
               <div className="app-navbar-menu rpg-panel">
-                {cat.items.map((item) => (
-                  <Link key={item.to} to={item.to} className="app-navbar-menu-item">
-                    {item.gameIcon && <GameIcon {...item.gameIcon} />} {item.label}
-                  </Link>
-                ))}
+                {cat.items.map((item) => {
+                  const eventAttemptsLeft = item.to === '/daily-event' && dailyEvent
+                    ? Math.max(0, dailyEvent.attemptsMax - dailyEvent.attemptsUsed)
+                    : null;
+                  return (
+                    <Link key={item.to} to={item.to} className="app-navbar-menu-item">
+                      {item.gameIcon && <GameIcon {...item.gameIcon} />} {item.label}
+                      {eventAttemptsLeft > 0 && <span className="nav-menu-badge">{eventAttemptsLeft}</span>}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>

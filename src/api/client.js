@@ -175,6 +175,9 @@ export const api = {
   getDailyReward: (playerId, token) => request(`/api/player/${playerId}/daily-reward`, { token }),
   claimDailyReward: (playerId, token) =>
     request(`/api/player/${playerId}/daily-reward/claim`, { method: 'POST', token }),
+  getDailyEvent: (playerId, token) => request(`/api/player/${playerId}/daily-event`, { token }),
+  enterDailyEvent: (playerId, token) =>
+    request(`/api/player/${playerId}/daily-event/enter`, { method: 'POST', token }),
   getInbox: (playerId, token) => request(`/api/player/${playerId}/messages/inbox`, { token }),
   getSentMessages: (playerId, token) => request(`/api/player/${playerId}/messages/sent`, { token }),
   getMessage: (playerId, messageId, token) => request(`/api/player/${playerId}/messages/${messageId}`, { token }),

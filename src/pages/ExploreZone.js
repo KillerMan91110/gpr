@@ -1108,21 +1108,21 @@ const RARITY_TIER_BY_LABEL = {
 // como CSS var inline solo cuando el enemigo es targetable, para que el borde "podés atacar esto"
 // muestre la rareza en vez del rojo genérico (ver combatant-targetable en App.css: cae al rojo de
 // --hp-b por default con var(--targetable-color, ...) cuando esto no aplica, ej. enemigos COMÚN).
-const RARITY_COLOR = {
+export const RARITY_COLOR = {
   poco_comun: 'var(--rarity-poco_comun)',
   raro: 'var(--rarity-raro)',
   elite: 'var(--rarity-epico)',
   mini_jefe: 'var(--rarity-legendario)',
   jefe: 'var(--rarity-unico)',
 };
-const RARITY_GLOW = {
+export const RARITY_GLOW = {
   poco_comun: 'rgba(95, 217, 126, 0.55)',
   raro: 'rgba(79, 160, 224, 0.55)',
   elite: 'rgba(181, 114, 224, 0.55)',
   mini_jefe: 'rgba(240, 169, 58, 0.6)',
   jefe: 'rgba(232, 79, 216, 0.6)',
 };
-const MUTATION_INFO = {
+export const MUTATION_INFO = {
   FRENETICO: { label: 'Frenético', icon: { name: 'speedometer', artist: 'delapouite' }, color: '#5fd97e', desc: 'Frenético: +40% de velocidad, actúa más seguido.' },
   GIGANTE: { label: 'Gigante', icon: { name: 'giant', artist: 'delapouite' }, color: '#f0a93a', desc: 'Gigante: HP duplicado.' },
   DORADO: { label: 'Dorado', icon: { name: 'coins-pile', artist: 'delapouite' }, color: '#f0d43a', desc: 'Dorado: triplica el oro que suelta al morir.' },

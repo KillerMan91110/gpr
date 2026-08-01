@@ -37,6 +37,7 @@ import Tower from './pages/Tower';
 import TowerVendor from './pages/TowerVendor';
 import WorldBoss from './pages/WorldBoss';
 import WorldBossShop from './pages/WorldBossShop';
+import DailyEvent from './pages/DailyEvent';
 import CoopBar from './components/CoopBar';
 import ChatBox from './components/ChatBox';
 import IncubatorAlert from './components/IncubatorAlert';
@@ -86,6 +87,7 @@ function App() {
               <Route path="/abismo/vendor" element={<ProtectedRoute><TowerVendor /></ProtectedRoute>} />
               <Route path="/worldboss" element={<ProtectedRoute><WorldBoss /></ProtectedRoute>} />
               <Route path="/worldboss/shop" element={<ProtectedRoute><WorldBossShop /></ProtectedRoute>} />
+              <Route path="/daily-event" element={<ProtectedRoute><DailyEvent /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <CoopBar />
