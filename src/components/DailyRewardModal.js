@@ -51,7 +51,7 @@ export default function DailyRewardModal({ player, token, onClose, onClaimed }) 
           <span className="daily-reward-header-icon"><GameIcon name="present" artist="delapouite" /></span>
           <div>
             <h3>Regalo Diario</h3>
-            <p className="hint">Volvé todos los días y juntá las 28 recompensas del ciclo.</p>
+            <p className="hint">Vuelve todos los días y junta las 28 recompensas del ciclo.</p>
           </div>
           {data && <span className="daily-reward-streak">Día {data.nextClaimDay}/28</span>}
         </div>
@@ -90,7 +90,7 @@ export default function DailyRewardModal({ player, token, onClose, onClaimed }) 
             </div>
 
             <button className="rpg-button daily-reward-claim" disabled={busy || data.claimedToday} onClick={handleClaim}>
-              {data.claimedToday ? 'Ya reclamaste hoy, volvé mañana' : busy ? 'Reclamando...' : `🎁 Reclamar día ${data.nextClaimDay}`}
+              {data.claimedToday ? 'Ya reclamaste hoy, vuelve mañana' : busy ? 'Reclamando...' : `🎁 Reclamar día ${data.nextClaimDay}`}
             </button>
           </>
         )}
