@@ -15,7 +15,6 @@ export default function Crafting() {
   const [recipes, setRecipes] = useState(null);
   const [inventory, setInventory] = useState(null);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
   const [craftingCode, setCraftingCode] = useState(null);
   const [craftQty, setCraftQty] = useState({});
   const [dismantleId, setDismantleId] = useState(null);
@@ -60,6 +59,7 @@ export default function Crafting() {
     try {
       const result = await api.craft(player.id, recipe.code, qty, token);
       showCraftResult({
+        type: 'CRAFT',
         recipeName: recipe.resultName,
         successCount: result.successCount,
         failCount: result.failCount,
@@ -75,12 +75,16 @@ export default function Crafting() {
 
   async function handleDismantle(item) {
     setError('');
-    setMessage('');
     const qty = Number(dismantleQty[item.item_id] || 1);
     setDismantleId(item.item_id);
     try {
       const result = await api.dismantle(player.id, item.item_id, qty, token);
-      setMessage(result.message);
+      showCraftResult({
+        type: 'DISMANTLE',
+        itemName: item.name,
+        quantity: qty,
+        materials: result.materials,
+      });
       await loadInventory();
     } catch (err) {
       setError(err.message);
@@ -119,7 +123,6 @@ export default function Crafting() {
       </header>
 
       {error && <p className="auth-error">{error}</p>}
-      {message && <p className="hint hint-ok infirmary-message">{message}</p>}
 
       {craftResult && (
         <div className="craft-result-popup rpg-panel">
@@ -130,22 +133,34 @@ export default function Crafting() {
           >
             ×
           </button>
-          <h4 className="craft-result-title">{craftResult.recipeName}</h4>
-          {(craftResult.results || []).map((r) => (
-            <p key={r.qualityTier} className="craft-result-line">
-              ✓ {r.quantity}x{' '}
-              <span className={`equipment-item-name rarity-${r.rarity.toLowerCase()}`}>
-                {RARITY_LABEL[r.rarity] || r.rarity}
-              </span>
-              {r.qualityTier > 0 && (
-                <span className="luck-badge"><GameIcon name="sparkles" artist="delapouite" /> Suerte</span>
+          {craftResult.type === 'DISMANTLE' ? (
+            <>
+              <h4 className="craft-result-title">Desmantelado: {craftResult.quantity}x {craftResult.itemName}</h4>
+              {craftResult.materials.length === 0 && <p className="craft-result-line">No se recuperó ningún material.</p>}
+              {craftResult.materials.map((m) => (
+                <p key={m.id} className="craft-result-line">✓ {m.quantity}x {m.name}</p>
+              ))}
+            </>
+          ) : (
+            <>
+              <h4 className="craft-result-title">{craftResult.recipeName}</h4>
+              {(craftResult.results || []).map((r) => (
+                <p key={r.qualityTier} className="craft-result-line">
+                  ✓ {r.quantity}x{' '}
+                  <span className={`equipment-item-name rarity-${r.rarity.toLowerCase()}`}>
+                    {RARITY_LABEL[r.rarity] || r.rarity}
+                  </span>
+                  {r.qualityTier > 0 && (
+                    <span className="luck-badge"><GameIcon name="sparkles" artist="delapouite" /> Suerte</span>
+                  )}
+                </p>
+              ))}
+              {craftResult.failCount > 0 && (
+                <p className="craft-result-line craft-result-fail">
+                  ✗ Falló {craftResult.failCount} {craftResult.failCount === 1 ? 'vez' : 'veces'}
+                </p>
               )}
-            </p>
-          ))}
-          {craftResult.failCount > 0 && (
-            <p className="craft-result-line craft-result-fail">
-              ✗ Falló {craftResult.failCount} {craftResult.failCount === 1 ? 'vez' : 'veces'}
-            </p>
+            </>
           )}
         </div>
       )}
