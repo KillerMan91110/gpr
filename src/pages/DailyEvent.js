@@ -202,7 +202,6 @@ export default function DailyEvent() {
         <DailyEventCombatView
           session={session}
           player={player}
-          event={event}
           loading={loading}
           inventory={inventory}
           itemEffects={itemEffects}
@@ -294,7 +293,7 @@ export default function DailyEvent() {
 }
 
 function DailyEventCombatView({
-  session, player, event, loading, inventory, itemEffects, skills, npcSkillsCache,
+  session, player, loading, inventory, itemEffects, skills, npcSkillsCache,
   onLoadInventory, onLoadSkills, onLoadNpcSkills, onAction, onReturnToLobby,
 }) {
   const { session: combatSession, participants, log, nextActorId, round, rewards } = session;
@@ -555,10 +554,18 @@ function DailyEventCombatView({
           </h2>
           {rewards && (
             <>
-              <p>+{rewards.xp} XP · +{rewards.gold} Oro</p>
+              <p>
+                +{rewards.xp} XP · +{rewards.gold} Oro
+                {rewards.dungeonCoins > 0 && ` · +${rewards.dungeonCoins} Monedas del Abismo`}
+              </p>
               {rewards.itemsDropped?.length > 0 && (
                 <p className="hint hint-ok">
                   Items: {rewards.itemsDropped.map((d) => `${d.itemName} x${d.quantity}`).join(', ')}
+                </p>
+              )}
+              {rewards.bonusMaterial && (
+                <p className="hint hint-ok daily-event-bonus-line">
+                  <GameIcon name="ticket" artist="delapouite" /> Bono del evento: {rewards.bonusMaterial.itemName} x{rewards.bonusMaterial.quantity}
                 </p>
               )}
               {(rewards.levelUps ?? []).map((l, i) => (
@@ -571,13 +578,6 @@ function DailyEventCombatView({
                 </p>
               ))}
             </>
-          )}
-          {combatSession.status === 'PLAYER_WON' && event && (
-            <p className="hint hint-ok daily-event-bonus-line">
-              <GameIcon name="ticket" artist="delapouite" /> Recompensa del evento: +{event.goldReward} Oro
-              · +{event.dungeonCoinsReward} Monedas del Abismo
-              {event.bonusMaterial && ` · ${event.bonusMaterial.chancePercent}% de probabilidad de ${event.bonusMaterial.itemName} x${event.bonusMaterial.quantity} (revisá tu inventario)`}
-            </p>
           )}
           <button className="rpg-button" onClick={onReturnToLobby}>Volver</button>
         </div>
