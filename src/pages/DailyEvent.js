@@ -252,10 +252,13 @@ export default function DailyEvent() {
         )}
 
         <div className="daily-event-rewards">
-          <p className="daily-event-rewards-title">Recompensa de hoy</p>
+          <p className="daily-event-rewards-title">Recompensa de hoy (a tu nivel actual)</p>
           <div className="daily-event-rewards-row">
             <span className="daily-event-reward-chip">
-              <GameIcon name="two-coins" artist="delapouite" /> {event.goldReward.toLocaleString()} Oro
+              <GameIcon name="thunder-struck" artist="lorc" /> {event.previewXp.toLocaleString()} XP
+            </span>
+            <span className="daily-event-reward-chip">
+              <GameIcon name="two-coins" artist="delapouite" /> {event.previewGold.toLocaleString()} Oro
             </span>
             <span className="daily-event-reward-chip">
               <GameIcon name="gem-necklace" artist="lorc" /> {event.dungeonCoinsReward.toLocaleString()} Monedas del Abismo
