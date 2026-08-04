@@ -26,6 +26,7 @@ export const api = {
   getItem: (itemId, token) => request(`/api/items/${itemId}`, { token }),
   getClassElementals: (classId) => request(`/api/classes/${classId}/elementals`),
   getLeaderboard: () => request('/api/leaderboard'),
+  inspectPlayer: (playerId, targetId, token) => request(`/api/player/${playerId}/inspect/${targetId}`, { token }),
   getGuildLeaderboard: () => request('/api/leaderboard/guilds'),
   getWealthLeaderboard: () => request('/api/leaderboard/wealth'),
   getRanks: () => request('/api/ranks'),

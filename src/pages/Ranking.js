@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import GameIcon from '../components/GameIcon';
 import { CLASS_ICON } from '../utils/classIcons';
+import PlayerInspectModal from '../components/PlayerInspectModal';
 
 const DIFFICULTY_LABELS = { 1: 'Normal', 2: 'Difícil', 3: 'Muy Difícil' };
 const TOWER_MODES = [
@@ -31,6 +32,7 @@ function renderIcon(icon) {
 function normalizePlayers(list, myNickname) {
   return list.map((e) => ({
     position: e.position,
+    playerId: e.playerId,
     icon: CLASS_ICON[e.className?.toUpperCase()] || '◆',
     name: e.nickname,
     sub: `${e.className} · Nv.${e.level}`,
@@ -64,6 +66,7 @@ function normalizeTower(list, myNickname) {
 function normalizeWealth(list, myNickname) {
   return list.map((e) => ({
     position: e.position,
+    playerId: e.playerId,
     icon: CLASS_ICON[e.className?.toUpperCase()] || '◆',
     name: e.nickname,
     sub: `Nv. ${e.level}`,
@@ -72,10 +75,21 @@ function normalizeWealth(list, myNickname) {
   }));
 }
 
-function PodiumCard({ entry, place }) {
+function PodiumCard({ entry, place, onInspect }) {
   const medal = MEDAL_ICONS[place - 1];
   return (
     <div className={`ranking-podium-card ranking-podium-card--${place}`}>
+      {entry.playerId != null && (
+        <button
+          type="button"
+          className="ranking-inspect-btn"
+          onClick={() => onInspect(entry.playerId)}
+          aria-label={`Inspeccionar a ${entry.name}`}
+          title="Inspeccionar"
+        >
+          <GameIcon name="magnifying-glass" artist="lorc" />
+        </button>
+      )}
       <span className="ranking-podium-trophy">{medal && <GameIcon {...medal} />}</span>
       <span className="ranking-podium-icon">{renderIcon(entry.icon)}</span>
       <span className={`ranking-podium-name${entry.isSelf ? ' ranking-podium-name--self' : ''}`}>{entry.name}</span>
@@ -89,6 +103,7 @@ export default function Ranking() {
   const { player, token } = useAuth();
   const [tab, setTab] = useState('players');
   const [towerMode, setTowerMode] = useState('solo');
+  const [inspectTarget, setInspectTarget] = useState(null);
 
   const [players, setPlayers] = useState(null);
   const [guilds, setGuilds] = useState(null);
@@ -155,9 +170,9 @@ export default function Ranking() {
       {entries && entries.length > 0 && (
         <>
           <div className="ranking-podium">
-            {entries[1] && <PodiumCard entry={entries[1]} place={2} />}
-            {entries[0] && <PodiumCard entry={entries[0]} place={1} />}
-            {entries[2] && <PodiumCard entry={entries[2]} place={3} />}
+            {entries[1] && <PodiumCard entry={entries[1]} place={2} onInspect={setInspectTarget} />}
+            {entries[0] && <PodiumCard entry={entries[0]} place={1} onInspect={setInspectTarget} />}
+            {entries[2] && <PodiumCard entry={entries[2]} place={3} onInspect={setInspectTarget} />}
           </div>
 
           {entries.length > 3 && (
@@ -171,11 +186,31 @@ export default function Ranking() {
                     <span className="lb-sub">{e.sub}</span>
                   </div>
                   <span className="lb-value">{e.value}</span>
+                  {e.playerId != null && (
+                    <button
+                      type="button"
+                      className="ranking-inspect-btn ranking-inspect-btn--row"
+                      onClick={() => setInspectTarget(e.playerId)}
+                      aria-label={`Inspeccionar a ${e.name}`}
+                      title="Inspeccionar"
+                    >
+                      <GameIcon name="magnifying-glass" artist="lorc" />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
           )}
         </>
+      )}
+
+      {inspectTarget != null && (
+        <PlayerInspectModal
+          player={player}
+          token={token}
+          targetId={inspectTarget}
+          onClose={() => setInspectTarget(null)}
+        />
       )}
     </div>
   );

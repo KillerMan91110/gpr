@@ -2833,6 +2833,7 @@ h1, h2, h3 {
 }
 
 .ranking-podium-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2842,6 +2843,39 @@ h1, h2, h3 {
   border-radius: 6px;
   background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
   border: 1px solid var(--gold-dim);
+}
+
+.ranking-inspect-btn {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--gold-dim);
+  color: var(--text-soft);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.ranking-inspect-btn:hover {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.12);
+}
+.ranking-podium-card .ranking-inspect-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+}
+.ranking-inspect-btn--row {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-size: 0.7rem;
 }
 
 .ranking-podium-card--1 {
@@ -3010,6 +3044,190 @@ h1, h2, h3 {
   border: 1px solid var(--gold-dim);
   border-radius: 2px;
   padding: 1px 4px;
+}
+
+/* ── Inspeccionar jugador (PlayerInspectModal, disparado desde el Ranking) ── */
+.inspect-panel {
+  max-width: 520px;
+}
+
+.inspect-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.18);
+}
+
+.inspect-class-icon {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  color: var(--gold-bright);
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  border: 1px solid var(--gold-dim);
+}
+
+.inspect-header-info { min-width: 0; }
+
+.inspect-name {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--gold-bright);
+}
+
+.inspect-sub {
+  margin: 3px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.inspect-rank-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  color: var(--gold);
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+.inspect-since {
+  margin: 2px 0 0;
+  font-size: 0.68rem;
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+.inspect-section {
+  margin-bottom: 16px;
+}
+
+.inspect-section-title {
+  margin: 0 0 8px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+}
+
+.inspect-general-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inspect-general-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--gold-dim);
+  background: rgba(0, 0, 0, 0.25);
+  font-size: 0.74rem;
+  color: var(--cream);
+}
+
+.inspect-general-chip--rate {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+}
+
+.inspect-guild {
+  font-size: 0.86rem;
+  color: var(--cream);
+  margin: 0;
+}
+
+.inspect-role-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 3px;
+  padding: 2px 7px;
+  margin-right: 2px;
+}
+.inspect-role-badge--leader {
+  color: var(--gold-bright);
+  border: 1px solid var(--gold);
+  background: rgba(212, 175, 55, 0.14);
+}
+.inspect-role-badge--officer {
+  color: var(--cream);
+  border: 1px solid var(--text-soft);
+}
+.inspect-role-badge--member {
+  color: var(--text-soft);
+  border: 1px solid var(--line-soft, rgba(255,255,255,0.12));
+}
+
+.inspect-equip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inspect-equip-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.inspect-equip-slot {
+  flex-shrink: 0;
+  width: 92px;
+  font-size: 0.68rem;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.inspect-companions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inspect-companion-card {
+  padding: 10px 12px;
+  border-radius: 5px;
+  border: 1px solid rgba(212, 175, 55, 0.12);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.inspect-companion-name {
+  margin: 0 0 6px;
+  font-size: 0.86rem;
+  color: var(--cream);
+}
+
+.inspect-companion-equip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.inspect-companion-equip .equipment-item-name {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid currentColor;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 /* ── Infirmary: new individual heal layout ── */
