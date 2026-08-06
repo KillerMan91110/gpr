@@ -305,4 +305,12 @@ export const api = {
   setWorldBossReady: (playerId, token) => request(`/api/player/${playerId}/worldboss/ready`, { method: 'POST', token }),
   cancelWorldBossReady: (playerId, token) => request(`/api/player/${playerId}/worldboss/ready`, { method: 'DELETE', token }),
   getWorldBossReadyStatus: (playerId, token) => request(`/api/player/${playerId}/worldboss/ready-status`, { token }),
+  // Admin (panel de stats de monstruos, solo jugadores con permiso — docs/backend-spec-admin-monstruos.md)
+  getAdminMonsters: (token, zoneId) => request(`/api/admin/monsters${zoneId ? `?zoneId=${zoneId}` : ''}`, { token }),
+  updateAdminMonsterBase: (monsterId, body, token) =>
+    request(`/api/admin/monsters/${monsterId}/base`, { method: 'PATCH', body, token }),
+  upsertAdminMonsterScaling: (monsterId, level, body, token) =>
+    request(`/api/admin/monsters/${monsterId}/scalings/${level}`, { method: 'PUT', body, token }),
+  deleteAdminMonsterScaling: (monsterId, level, token) =>
+    request(`/api/admin/monsters/${monsterId}/scalings/${level}`, { method: 'DELETE', token }),
 };

@@ -210,6 +210,12 @@ export default function NavBar() {
           <GameIcon name="calendar" artist="delapouite" /> Diario
           {dailyReward && !dailyReward.claimedToday && <span className="nav-badge">!</span>}
         </button>
+
+        {Number(player.id) === 1 && (
+          <Link to="/admin/monsters" className={`app-navbar-link${isActive('/admin/monsters') ? ' app-navbar-link--active' : ''}`}>
+            <GameIcon name="cog" artist="lorc" /> Admin
+          </Link>
+        )}
       </div>
 
       <div className="app-navbar-actions">
