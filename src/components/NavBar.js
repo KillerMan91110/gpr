@@ -213,7 +213,12 @@ export default function NavBar() {
 
         {Number(player.id) === 1 && (
           <Link to="/admin/monsters" className={`app-navbar-link${isActive('/admin/monsters') ? ' app-navbar-link--active' : ''}`}>
-            <GameIcon name="cog" artist="lorc" /> Admin
+            <GameIcon name="cog" artist="lorc" /> Admin Monstruos
+          </Link>
+        )}
+        {Number(player.id) === 1 && (
+          <Link to="/admin/items" className={`app-navbar-link${isActive('/admin/items') ? ' app-navbar-link--active' : ''}`}>
+            <GameIcon name="pointy-sword" artist="lorc" /> Admin Equipo
           </Link>
         )}
       </div>

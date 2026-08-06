@@ -313,4 +313,13 @@ export const api = {
     request(`/api/admin/monsters/${monsterId}/scalings/${level}`, { method: 'PUT', body, token }),
   deleteAdminMonsterScaling: (monsterId, level, token) =>
     request(`/api/admin/monsters/${monsterId}/scalings/${level}`, { method: 'DELETE', token }),
+  getAdminItems: (token, slot) => request(`/api/admin/items${slot ? `?slot=${slot}` : ''}`, { token }),
+  updateAdminItem: (itemId, body, token) =>
+    request(`/api/admin/items/${itemId}`, { method: 'PATCH', body, token }),
+  createAdminItemStatBonus: (itemId, body, token) =>
+    request(`/api/admin/items/${itemId}/stat-bonuses`, { method: 'POST', body, token }),
+  updateAdminItemStatBonus: (itemId, bonusId, body, token) =>
+    request(`/api/admin/items/${itemId}/stat-bonuses/${bonusId}`, { method: 'PUT', body, token }),
+  deleteAdminItemStatBonus: (itemId, bonusId, token) =>
+    request(`/api/admin/items/${itemId}/stat-bonuses/${bonusId}`, { method: 'DELETE', token }),
 };

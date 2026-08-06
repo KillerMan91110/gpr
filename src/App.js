@@ -39,6 +39,7 @@ import WorldBoss from './pages/WorldBoss';
 import WorldBossShop from './pages/WorldBossShop';
 import DailyEvent from './pages/DailyEvent';
 import AdminMonsters from './pages/AdminMonsters';
+import AdminItems from './pages/AdminItems';
 import CoopBar from './components/CoopBar';
 import ChatBox from './components/ChatBox';
 import IncubatorAlert from './components/IncubatorAlert';
@@ -90,6 +91,7 @@ function App() {
               <Route path="/worldboss/shop" element={<ProtectedRoute><WorldBossShop /></ProtectedRoute>} />
               <Route path="/daily-event" element={<ProtectedRoute><DailyEvent /></ProtectedRoute>} />
               <Route path="/admin/monsters" element={<ProtectedRoute><AdminMonsters /></ProtectedRoute>} />
+              <Route path="/admin/items" element={<ProtectedRoute><AdminItems /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <CoopBar />
