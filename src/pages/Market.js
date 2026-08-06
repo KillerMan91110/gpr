@@ -163,6 +163,7 @@ export default function Market() {
   const [search, setSearch] = useState('');
   const [rarityFilter, setRarityFilter] = useState('todo');
   const [sortBy, setSortBy] = useState('recent');
+  const [buyQty, setBuyQty] = useState({});
   const [sellForm, setSellForm] = useState({});
   const [petSellForm, setPetSellForm] = useState({});
   const [busyKey, setBusyKey] = useState(null);
@@ -200,13 +201,18 @@ export default function Market() {
     if (tab === 'mine') loadMine().catch((err) => setError(err.message));
   }, [tab, player, loadBuy, loadSell, loadPets, loadMine]);
 
-  async function handleBuy(listing) {
+  async function handleBuy(listing, quantity) {
     setError('');
     setMessage('');
     setBusyKey(`buy-${listing.id}`);
     try {
-      const res = await api.buyMarketListing(player.id, listing.id, token);
+      const res = await api.buyMarketListing(player.id, listing.id, token, quantity);
       setMessage(res.message);
+      setBuyQty((prev) => {
+        const next = { ...prev };
+        delete next[listing.id];
+        return next;
+      });
       await loadBuy();
     } catch (err) {
       setError(err.message);
@@ -363,54 +369,78 @@ export default function Market() {
           {listings && listings.length === 0 && <p className="hint">No hay publicaciones activas todavía.</p>}
 
           <div className="item-grid">
-            {listings?.map((l) => l.type === 'PET' ? (
-              <div key={l.id} className={`rpg-panel inventory-item ${rarityClass(l.pet.rarity)}`}>
-                <div className="inventory-item-header">
-                  <span className="inventory-item-name">
-                    <span className="inventory-item-icon"><GameIcon name="paw-print" artist="lorc" /></span>
-                    {l.pet.name}
-                  </span>
-                  <span className="inventory-item-qty">Niv. {l.pet.level}</span>
+            {listings?.map((l) => {
+              if (l.type === 'PET') return (
+                <div key={l.id} className={`rpg-panel inventory-item ${rarityClass(l.pet.rarity)}`}>
+                  <div className="inventory-item-header">
+                    <span className="inventory-item-name">
+                      <span className="inventory-item-icon"><GameIcon name="paw-print" artist="lorc" /></span>
+                      {l.pet.name}
+                    </span>
+                    <span className="inventory-item-qty">Niv. {l.pet.level}</span>
+                  </div>
+                  <span className="inventory-item-rarity">{RARITY_LABELS[l.pet.rarity] || l.pet.rarity}</span>
+                  <span className="hint">Vínculo: {l.pet.bond_points}</span>
+                  <PetBonusList bonuses={l.pet.bonuses} />
+                  <span className="hint market-seller">Vende: {l.is_mine ? 'Tú' : l.seller_nickname}</span>
+                  <span className="market-price">{formatPrice(l.total_price, l.currency)}</span>
+                  <button
+                    className="rpg-button equipment-action"
+                    disabled={l.is_mine || busyKey === `buy-${l.id}`}
+                    onClick={() => handleBuy(l)}
+                  >
+                    {l.is_mine ? 'Tu publicación' : busyKey === `buy-${l.id}` ? 'Comprando...' : 'Comprar'}
+                  </button>
                 </div>
-                <span className="inventory-item-rarity">{RARITY_LABELS[l.pet.rarity] || l.pet.rarity}</span>
-                <span className="hint">Vínculo: {l.pet.bond_points}</span>
-                <PetBonusList bonuses={l.pet.bonuses} />
-                <span className="hint market-seller">Vende: {l.is_mine ? 'Tú' : l.seller_nickname}</span>
-                <span className="market-price">{formatPrice(l.total_price, l.currency)}</span>
-                <button
-                  className="rpg-button equipment-action"
-                  disabled={l.is_mine || busyKey === `buy-${l.id}`}
-                  onClick={() => handleBuy(l)}
-                >
-                  {l.is_mine ? 'Tu publicación' : busyKey === `buy-${l.id}` ? 'Comprando...' : 'Comprar'}
-                </button>
-              </div>
-            ) : (
-              <div key={l.id} className={`rpg-panel inventory-item ${rarityClass(l.item.item_rarity)}`}>
-                <div className="inventory-item-header">
-                  <span className="inventory-item-name">
-                    <span className="inventory-item-icon">{itemIcon({ item_type: l.item.item_type, slot: l.item.slot })}</span>
-                    {l.item.name}
-                    <EnchantBadge level={l.item.enchant_level} />
-                    <LuckBadge tier={l.item.quality_tier} />
+              );
+
+              const qty = l.quantity > 1
+                ? Math.max(1, Math.min(l.quantity, Number(buyQty[l.id] ?? l.quantity) || 1))
+                : l.quantity;
+              const effectiveTotal = qty * Number(l.price_per_unit);
+
+              return (
+                <div key={l.id} className={`rpg-panel inventory-item ${rarityClass(l.item.item_rarity)}`}>
+                  <div className="inventory-item-header">
+                    <span className="inventory-item-name">
+                      <span className="inventory-item-icon">{itemIcon({ item_type: l.item.item_type, slot: l.item.slot })}</span>
+                      {l.item.name}
+                      <EnchantBadge level={l.item.enchant_level} />
+                      <LuckBadge tier={l.item.quality_tier} />
+                    </span>
+                    <span className="inventory-item-qty">x{l.quantity}</span>
+                  </div>
+                  <span className="inventory-item-rarity">{RARITY_LABELS[l.item.item_rarity] || l.item.item_rarity}</span>
+                  <span className="hint market-seller">Vende: {l.is_mine ? 'Tú' : l.seller_nickname}</span>
+                  {l.quantity > 1 && !l.is_mine && (
+                    <label className="hint" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      Comprar
+                      <input
+                        type="number"
+                        min={1}
+                        max={l.quantity}
+                        value={buyQty[l.id] ?? l.quantity}
+                        onChange={(e) => setBuyQty((prev) => ({ ...prev, [l.id]: e.target.value }))}
+                        className="rpg-input"
+                        style={{ width: 56, textAlign: 'center', padding: '4px 6px' }}
+                      />
+                      de {l.quantity}
+                    </label>
+                  )}
+                  <span className="market-price">
+                    {formatPrice(effectiveTotal, l.currency)}
+                    {l.quantity > 1 && <span className="hint"> ({formatPrice(l.price_per_unit, l.currency)} c/u)</span>}
                   </span>
-                  <span className="inventory-item-qty">x{l.quantity}</span>
+                  <button
+                    className="rpg-button equipment-action"
+                    disabled={l.is_mine || busyKey === `buy-${l.id}`}
+                    onClick={() => handleBuy(l, qty)}
+                  >
+                    {l.is_mine ? 'Tu publicación' : busyKey === `buy-${l.id}` ? 'Comprando...' : 'Comprar'}
+                  </button>
                 </div>
-                <span className="inventory-item-rarity">{RARITY_LABELS[l.item.item_rarity] || l.item.item_rarity}</span>
-                <span className="hint market-seller">Vende: {l.is_mine ? 'Tú' : l.seller_nickname}</span>
-                <span className="market-price">
-                  {formatPrice(l.total_price, l.currency)}
-                  {l.quantity > 1 && <span className="hint"> ({formatPrice(l.price_per_unit, l.currency)} c/u)</span>}
-                </span>
-                <button
-                  className="rpg-button equipment-action"
-                  disabled={l.is_mine || busyKey === `buy-${l.id}`}
-                  onClick={() => handleBuy(l)}
-                >
-                  {l.is_mine ? 'Tu publicación' : busyKey === `buy-${l.id}` ? 'Comprando...' : 'Comprar'}
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}

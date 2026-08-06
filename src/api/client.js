@@ -97,8 +97,8 @@ export const api = {
     request(`/api/player/${playerId}/market/listings`, { method: 'POST', body, token }),
   cancelMarketListing: (playerId, listingId, token) =>
     request(`/api/player/${playerId}/market/listings/${listingId}`, { method: 'DELETE', token }),
-  buyMarketListing: (playerId, listingId, token) =>
-    request(`/api/player/${playerId}/market/listings/${listingId}/buy`, { method: 'POST', token }),
+  buyMarketListing: (playerId, listingId, token, quantity) =>
+    request(`/api/player/${playerId}/market/listings/${listingId}/buy`, { method: 'POST', body: quantity ? { quantity } : undefined, token }),
   getMyMarketListings: (playerId, token) => request(`/api/player/${playerId}/market/mine`, { token }),
   getMarketHistory: (playerId, params, token) => {
     const qs = new URLSearchParams(params).toString();
