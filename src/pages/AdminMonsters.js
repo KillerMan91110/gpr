@@ -178,16 +178,12 @@ export default function AdminMonsters() {
       {error && <p className="auth-error">{error}</p>}
       {message && <p className="hint hint-ok infirmary-message">{message}</p>}
 
-      <div className="quest-tabs">
-        {data.zones.map((z) => (
-          <button
-            key={z.id}
-            className={`rpg-button rpg-button--small${zoneId === z.id ? ' quest-tab--active' : ''}`}
-            onClick={() => setZoneId(z.id)}
-          >
-            {z.name}
-          </button>
-        ))}
+      <div className="craft-filter-bar">
+        <select className="rpg-input" value={zoneId ?? ''} onChange={(e) => setZoneId(Number(e.target.value))} style={{ maxWidth: 220 }}>
+          {data.zones.map((z) => (
+            <option key={z.id} value={z.id}>{z.name}</option>
+          ))}
+        </select>
       </div>
 
       <div className="zone-list">
