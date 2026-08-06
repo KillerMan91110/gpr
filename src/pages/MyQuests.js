@@ -171,7 +171,6 @@ export default function MyQuests() {
           <div className="zone-list">
             {sorted.map((q) => {
               const ready = allObjectivesComplete(q.objectives);
-              const isBossMain = q.is_boss_quest && q.quest_type === 'PRINCIPAL';
               return (
                 <div key={q.id} className="zone-card rpg-panel">
                   <div className="zone-card-header">
@@ -197,7 +196,7 @@ export default function MyQuests() {
                     >
                       {completingId === q.id ? 'Completando...' : ready ? 'Completar' : 'Objetivos incompletos'}
                     </button>
-                    {!isBossMain && confirmAbandon !== q.id && (
+                    {confirmAbandon !== q.id && (
                       <button
                         className="rpg-button rpg-button-danger rpg-button--small"
                         disabled={!!abandoningId}
@@ -206,7 +205,7 @@ export default function MyQuests() {
                         Abandonar
                       </button>
                     )}
-                    {!isBossMain && confirmAbandon === q.id && (
+                    {confirmAbandon === q.id && (
                       <>
                         <button
                           className="rpg-button rpg-button-danger rpg-button--small"
