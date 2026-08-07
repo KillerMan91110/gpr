@@ -16,11 +16,11 @@ const RARITY_LABELS = {
   COMUN: 'Común', POCO_COMUN: 'Poco Común', RARO: 'Raro', EPICO: 'Épico', LEGENDARIO: 'Legendario', UNICO: 'Único',
 };
 
-function sortItems(list) {
+function sortItems(list, desc) {
   return [...list].sort((a, b) => {
     const ra = RARITY_ORDER.indexOf(a.rarity);
     const rb = RARITY_ORDER.indexOf(b.rarity);
-    if (ra !== rb) return ra - rb;
+    if (ra !== rb) return desc ? rb - ra : ra - rb;
     return a.name.localeCompare(b.name);
   });
 }
@@ -105,6 +105,8 @@ function TextField({ label, value, onChange, width = 140, type = 'text' }) {
 export default function AdminItems() {
   const { player, token } = useAuth();
   const [slot, setSlot] = useState('WEAPON');
+  const [classFilter, setClassFilter] = useState('');
+  const [sortDesc, setSortDesc] = useState(false);
   const [data, setData] = useState(null);
   const [forbidden, setForbidden] = useState(false);
   const [error, setError] = useState('');
@@ -258,7 +260,11 @@ export default function AdminItems() {
   if (error && !data) return <div className="dashboard-error">Error: {error}</div>;
   if (!data) return <div className="dashboard-loading">Cargando...</div>;
 
-  const items = sortItems(data.items);
+  const roots = rootClasses(data.classes, data.evolutions);
+  const filtered = classFilter === ''
+    ? data.items
+    : data.items.filter((i) => findRootOf(data.evolutions, i.classId) === Number(classFilter));
+  const items = sortItems(filtered, sortDesc);
 
   return (
     <div className="dashboard">
@@ -276,6 +282,19 @@ export default function AdminItems() {
       <div className="craft-filter-bar">
         <select className="rpg-input" value={slot} onChange={(e) => setSlot(e.target.value)} style={{ maxWidth: 200 }}>
           {SLOTS.map((s) => <option key={s} value={s}>{SLOT_LABELS[s]}</option>)}
+        </select>
+        <select className="rpg-input" value={classFilter} onChange={(e) => setClassFilter(e.target.value)} style={{ maxWidth: 180 }}>
+          <option value="">Todas las clases</option>
+          {roots.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+        </select>
+        <select
+          className="rpg-input"
+          value={sortDesc ? 'desc' : 'asc'}
+          onChange={(e) => setSortDesc(e.target.value === 'desc')}
+          style={{ maxWidth: 200 }}
+        >
+          <option value="asc">Rareza: menor a mayor</option>
+          <option value="desc">Rareza: mayor a menor</option>
         </select>
       </div>
 
