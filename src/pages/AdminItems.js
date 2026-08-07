@@ -18,9 +18,9 @@ const RARITY_LABELS = {
 
 function sortItems(list, desc) {
   return [...list].sort((a, b) => {
-    const ra = RARITY_ORDER.indexOf(a.rarity);
-    const rb = RARITY_ORDER.indexOf(b.rarity);
-    if (ra !== rb) return desc ? rb - ra : ra - rb;
+    const la = Number(a.requiredLevel) || 0;
+    const lb = Number(b.requiredLevel) || 0;
+    if (la !== lb) return desc ? lb - la : la - lb;
     return a.name.localeCompare(b.name);
   });
 }
@@ -293,8 +293,8 @@ export default function AdminItems() {
           onChange={(e) => setSortDesc(e.target.value === 'desc')}
           style={{ maxWidth: 200 }}
         >
-          <option value="asc">Rareza: menor a mayor</option>
-          <option value="desc">Rareza: mayor a menor</option>
+          <option value="asc">Nivel: menor a mayor</option>
+          <option value="desc">Nivel: mayor a menor</option>
         </select>
       </div>
 
