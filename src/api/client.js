@@ -322,4 +322,5 @@ export const api = {
     request(`/api/admin/items/${itemId}/stat-bonuses/${bonusId}`, { method: 'PUT', body, token }),
   deleteAdminItemStatBonus: (itemId, bonusId, token) =>
     request(`/api/admin/items/${itemId}/stat-bonuses/${bonusId}`, { method: 'DELETE', token }),
+  getAdminClassStats: (token, classId) => request(`/api/admin/class-stats${classId ? `?classId=${classId}` : ''}`, { token }),
 };

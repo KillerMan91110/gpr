@@ -45,6 +45,19 @@ const CATEGORIES = [
   },
 ];
 
+// Aparte de CATEGORIES (que se muestra siempre): solo se renderiza si player.id === 1, ver el
+// gate más abajo -- gameIcon/label calcan el mismo patrón que las demás categorías del dropdown.
+const ADMIN_CATEGORY = {
+  key: 'admin',
+  gameIcon: { name: 'cog', artist: 'lorc' },
+  label: 'Admin',
+  items: [
+    { to: '/admin/monsters', label: 'Monstruos', gameIcon: { name: 'cog', artist: 'lorc' } },
+    { to: '/admin/items', label: 'Equipo', gameIcon: { name: 'pointy-sword', artist: 'lorc' } },
+    { to: '/admin/stats', label: 'Visor Stats', gameIcon: { name: 'chart', artist: 'delapouite' } },
+  ],
+};
+
 const GOLD_POLL_MS = 10000;
 
 function formatGold(value) {
@@ -212,14 +225,24 @@ export default function NavBar() {
         </button>
 
         {Number(player.id) === 1 && (
-          <Link to="/admin/monsters" className={`app-navbar-link${isActive('/admin/monsters') ? ' app-navbar-link--active' : ''}`}>
-            <GameIcon name="cog" artist="lorc" /> Admin Monstruos
-          </Link>
-        )}
-        {Number(player.id) === 1 && (
-          <Link to="/admin/items" className={`app-navbar-link${isActive('/admin/items') ? ' app-navbar-link--active' : ''}`}>
-            <GameIcon name="pointy-sword" artist="lorc" /> Admin Equipo
-          </Link>
+          <div className="app-navbar-dropdown">
+            <button
+              type="button"
+              className={`app-navbar-link${ADMIN_CATEGORY.items.some((i) => isActive(i.to)) ? ' app-navbar-link--active' : ''}`}
+              onClick={() => setOpenMenu(openMenu === ADMIN_CATEGORY.key ? null : ADMIN_CATEGORY.key)}
+            >
+              <GameIcon {...ADMIN_CATEGORY.gameIcon} /> {ADMIN_CATEGORY.label} <span className="app-navbar-caret">▾</span>
+            </button>
+            {openMenu === ADMIN_CATEGORY.key && (
+              <div className="app-navbar-menu rpg-panel">
+                {ADMIN_CATEGORY.items.map((item) => (
+                  <Link key={item.to} to={item.to} className="app-navbar-menu-item">
+                    {item.gameIcon && <GameIcon {...item.gameIcon} />} {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
 
