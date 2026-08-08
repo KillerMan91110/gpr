@@ -5712,43 +5712,65 @@ h1, h2, h3 {
   padding: 0;
   overflow: auto;
   max-height: 70vh;
+  border: 1px solid var(--gold-dim);
+  border-radius: 6px;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.35);
 }
 
 .admin-stats-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 0.85rem;
   white-space: nowrap;
 }
 
 .admin-stats-table th,
 .admin-stats-table td {
-  padding: 6px 12px;
+  padding: 7px 14px;
   text-align: right;
-  border-bottom: 1px solid rgba(122, 94, 34, 0.35);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.14);
+  border-left: 1px solid rgba(212, 175, 55, 0.08);
 }
 
 .admin-stats-table th:first-child,
 .admin-stats-table td:first-child {
   text-align: left;
+  border-left: none;
+  font-family: 'Cinzel', serif;
+  color: var(--gold);
 }
 
 .admin-stats-table thead th {
   position: sticky;
   top: 0;
-  background: var(--panel-1);
-  color: var(--gold);
+  background: linear-gradient(180deg, var(--panel-1), var(--panel-2));
+  color: var(--gold-bright);
   font-family: 'Cinzel', serif;
   font-size: 0.7rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  border-bottom: 2px solid var(--gold-dim);
+  border-left-color: rgba(212, 175, 55, 0.18);
   z-index: 1;
+}
+
+.admin-stats-table thead th:first-child {
+  color: var(--gold-bright);
 }
 
 .admin-stats-table tbody td {
   color: var(--cream);
 }
 
+.admin-stats-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 .admin-stats-table tbody tr:nth-child(even) {
-  background: rgba(212, 175, 55, 0.04);
+  background: rgba(212, 175, 55, 0.045);
+}
+
+.admin-stats-table tbody tr:hover td {
+  background: rgba(212, 175, 55, 0.1);
 }
