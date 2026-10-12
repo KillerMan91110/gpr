@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import bus from './bus';
 import audio from './audio';
 import { MINIMAP } from './hudLayout';
+import SocialLayer from './socialLayer';
 
 // Mundo abierto por trozos: la zona (public/assets/mundo/<zona>/mundo.json) está partida en
 // trozos de 40x30 tiles. Solo se construyen (tiles, colisiones, monstruos, fauna) los trozos
@@ -16,13 +17,21 @@ const TAG_RES = 4;
 
 const ASSETS = `${process.env.PUBLIC_URL}/assets`;
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-const ZONE_DIR = 'pradera';
+const DEFAULT_ZONE = 'pradera';
 const SPEED = 110;
 const POI_RADIUS = 44;
 const CHUNK_RADIUS = 1; // trozos construidos alrededor del del héroe (3x3)
 // Al entrar (o volver de un combate) los monstruos no atacan durante este tiempo, para que no
 // te enganche uno que justo pasaba por el punto donde apareces.
 const ENCOUNTER_GRACE_MS = 2500;
+
+// Paso forzado por casilla (capa "paso" de cada trozo, la pinta el editor de mapas como en RPG
+// Maker). 0 = lo que diga el tile. Con PASO_FORZADO, los bits 1/2/4/8 cierran el borde de
+// arriba/derecha/abajo/izquierda de la casilla (15 = bloqueada entera, 0 = libre aunque el tile
+// choque). PASO_CORNISA: se baja (hacia el sur) pero no se sube, como un saliente.
+export const PASO_FORZADO = 16;
+export const PASO_CORNISA = 32;
+const EDGE = 4; // grosor de los bordes cerrados
 
 // Frames de la hoja de caminar (ver art/sprites/mundo/crear_mundo.lua): 0-2 abajo, 3-5 arriba, 6-8 lado
 const WALK = { down: [1, 0, 2, 0], up: [4, 3, 5, 3], side: [7, 6, 8, 6] };
@@ -77,6 +86,7 @@ export default class WorldScene extends Phaser.Scene {
     this.heroName = data.heroName || '';
     this.heroLevel = data.heroLevel || 1;
     this.startPos = data.startPos || null;
+    this.zoneDir = data.zoneDir || DEFAULT_ZONE;
     this.facing = 'down';
     this.nearPoi = null;
     this.encounterLock = false;
@@ -95,9 +105,8 @@ export default class WorldScene extends Phaser.Scene {
   }
 
   preload() {
-    const dir = `${ASSETS}/mundo/${ZONE_DIR}`;
+    const dir = `${ASSETS}/mundo/${this.zoneDir}`;
     this.load.json('mundo_zona', `${dir}/mundo.json`);
-    this.load.image('tiles_pradera', `${ASSETS}/mundo/tileset_pradera.png`);
     this.load.spritesheet('heroe', `${ASSETS}/mundo/caminar/${this.heroClass}.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos', `${ASSETS}/mundo/recursos.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos2', `${ASSETS}/mundo/recursos2.png`, { frameWidth: 32, frameHeight: 32 });
@@ -107,10 +116,13 @@ export default class WorldScene extends Phaser.Scene {
     this.load.spritesheet('f_conejo', `${ASSETS}/mundo/fauna/conejo.png`, { frameWidth: 16, frameHeight: 16 });
     this.load.spritesheet('f_ciervo', `${ASSETS}/mundo/fauna/ciervo.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.image('aspas', `${ASSETS}/mundo/aspas.png`);
+    SocialLayer.preload(this);
     this.load.json('enemigos', `${ASSETS}/sprites/combate/enemigos.json`);
     // los mapas de los trozos son livianos: se bajan todos; lo que se arma por cercanía es el
     // contenido (capas, colisiones, monstruos, fauna)
     this.load.once('filecomplete-json-mundo_zona', (_k, _t, world) => {
+      this.tilesetName = world.tileset || 'pradera';
+      if (!this.textures.exists(`tiles_${this.tilesetName}`)) this.load.image(`tiles_${this.tilesetName}`, `${ASSETS}/mundo/tileset_${this.tilesetName}.png`);
       world.chunks.forEach((c) => this.load.tilemapTiledJSON(`chunk_${c.cx}_${c.cy}`, `${dir}/${c.file}`));
     });
   }
@@ -183,6 +195,8 @@ export default class WorldScene extends Phaser.Scene {
     });
 
     this.createDayNight(all.filter((o) => o.type === 'luz'));
+    // otros jugadores, globitos de chat, gestos y emojis
+    this.social = new SocialLayer(this);
     this.createWeather();
     this.bindBus();
 
@@ -191,7 +205,7 @@ export default class WorldScene extends Phaser.Scene {
     this.updateChunks(true);
     // al volver del combate (la escena 'batalla' la duerme mientras tanto)
     this.events.on('wake', (_sys, data) => this.onReturnFromBattle(data?.result));
-    bus.emit('world-ready');
+    bus.emit('world-ready', { zoneId: this.zoneId, zoneDir: this.zoneDir, name: this.zoneName });
   }
 
   // todos los puntos de la zona en coordenadas del mundo
@@ -215,17 +229,50 @@ export default class WorldScene extends Phaser.Scene {
       },
       'world-party': (classes) => this.setFollowers(classes),
       'world-pet': (species) => this.setPet(species),
-      'hero-level': (lvl) => { this.heroLevel = lvl; },
+      'hero-level': (lvl) => {
+        this.heroLevel = lvl;
+        // al subir de nivel los monstruos cambian de color
+        this.monsters.getChildren().forEach((m) => { const t = m.getData('tag'); if (t) t.setColor(this.levelColor(t.text.replace('Nv ', ''))); });
+      },
       'npc-marks': (marks) => this.setNpcMarks(marks),
       'resources-state': (list) => this.setResourceStates(list),
       'resource-gathered': (r) => this.onGathered(r),
       'float-loot': (lines) => this.floatLoot(lines),
       'level-up': () => this.levelUpFx(),
+      // ventana del mapa (M): todo lo que hace falta para dibujar la zona y tu posición
+      'zone-map-data': (cb) => cb?.(this.zoneMapData()),
+      // ventana Social: en qué subzona está un jugador (solo si está en esta zona)
+      'subzone-at': ({ x, y, zone }, cb) => {
+        if (zone && zone !== this.zoneDir) { cb?.(null); return; }
+        cb?.(this.world.subzonas?.find((sz) => x >= sz.x0 && x < sz.x1 && y >= sz.y0 && y < sz.y1)?.name ?? null);
+      },
+      'hero-pos': (cb) => cb?.({ x: this.player?.x ?? 0, y: this.player?.y ?? 0, facing: this.facing, flip: this.player?.flipX }),
     };
     Object.entries(handlers).forEach(([ev, fn]) => bus.on(ev, fn));
     const unbind = () => Object.entries(handlers).forEach(([ev, fn]) => bus.off(ev, fn));
     this.events.once('shutdown', unbind);
     this.events.once('destroy', unbind);
+  }
+
+  zoneMapData() {
+    const w = this.world;
+    return {
+      dir: this.zoneDir, id: this.zoneId, name: this.zoneName, heroLevel: this.heroLevel,
+      tile: w.tile, chunkWidth: w.chunkWidth, chunkHeight: w.chunkHeight, columns: w.columns, rows: w.rows,
+      subzonas: w.subzonas ?? [],
+      tileset: this.textures.get(`tiles_${this.tilesetName}`).getSourceImage(),
+      chunks: w.chunks.map((c) => {
+        const d = this.cache.tilemap.get(`chunk_${c.cx}_${c.cy}`)?.data;
+        const layer = (n) => d?.layers.find((l) => l.name === n)?.data ?? [];
+        return { cx: c.cx, cy: c.cy, suelo: layer('suelo'), objetos: layer('objetos'), encima: layer('encima') };
+      }),
+      points: this.allPoints().filter((o) => ['npc', 'poi', 'jefe'].includes(o.type)).map((o) => ({
+        type: o.type, name: o.name, x: o.x + 16, y: o.y + 16,
+        label: propOf(o, 'nombre') ?? propOf(o, 'etiqueta') ?? o.name,
+        monster: propOf(o, 'monstruo'), level: propOf(o, 'nivel'), window: propOf(o, 'ventana'), dialogue: propOf(o, 'dialogo'),
+      })),
+      marks: this.marks,
+    };
   }
 
   makeWalkAnims(key) {
@@ -259,7 +306,7 @@ export default class WorldScene extends Phaser.Scene {
   buildChunk(key) {
     const [cx, cy] = key.split('_').map(Number);
     const map = this.make.tilemap({ key: `chunk_${key}` });
-    const tiles = map.addTilesetImage('pradera', 'tiles_pradera');
+    const tiles = map.addTilesetImage(map.tilesets[0]?.name ?? this.tilesetName, `tiles_${this.tilesetName}`);
     const x0 = cx * this.chunkPx.w;
     const y0 = cy * this.chunkPx.h;
     const ground = map.createLayer('suelo', tiles, x0, y0);
@@ -268,8 +315,10 @@ export default class WorldScene extends Phaser.Scene {
     const above = map.createLayer('encima', tiles, x0, y0)?.setDepth(20);
     ground.setCollisionByProperty({ colision: true });
     objects.setCollisionByProperty({ colision: true });
+    const edges = this.applyPassage(key, ground, objects, x0, y0);
     const colliders = [this.physics.add.collider(this.player, ground), this.physics.add.collider(this.player, objects)];
-    const chunk = { key, cx, cy, map, ground, objects, above, colliders, things: [] };
+    if (edges) colliders.push(this.physics.add.collider(this.player, edges));
+    const chunk = { key, cx, cy, map, ground, objects, above, colliders, edges, things: [] };
     this.chunks.set(key, chunk);
     this.spawnChunkMonsters(chunk);
     this.spawnFauna(chunk);
@@ -279,11 +328,48 @@ export default class WorldScene extends Phaser.Scene {
     const c = this.chunks.get(key);
     if (!c) return;
     c.colliders.forEach((col) => col.destroy());
+    c.edges?.destroy(true);
     // la fauna tiene tweens y temporizadores propios: se cortan antes de destruirla
     c.things.forEach((t) => { this.tweens.killTweensOf(t); t.destroy?.(); });
     this.monsters.getChildren().filter((m) => m.getData('chunk') === key).forEach((m) => m.destroy());
     c.map.destroy();
     this.chunks.delete(key);
+  }
+
+  // Paso forzado del editor: libera casillas que el tile bloquearía y cierra bordes sueltos
+  // (escaleras con barandas, cornisas que solo se bajan, pasillos de una casilla…).
+  applyPassage(key, ground, objects, x0, y0) {
+    const paso = this.cache.tilemap.get(`chunk_${key}`)?.data?.paso;
+    if (!paso || !Object.keys(paso).length) return null;
+    const cw = this.world.chunkWidth;
+    const t = this.world.tile;
+    const edges = this.physics.add.staticGroup();
+    const wall = (x, y, w, h, oneWay) => {
+      const r = this.add.rectangle(x + w / 2, y + h / 2, w, h).setVisible(false);
+      edges.add(r);
+      // cornisa: solo choca al subir (el héroe la toca con su lado de arriba)
+      if (oneWay) Object.assign(r.body.checkCollision, { up: false, down: true, left: false, right: false });
+    };
+    for (const [idx, v] of Object.entries(paso)) {
+      const tx = Number(idx) % cw;
+      const ty = Math.floor(Number(idx) / cw);
+      const px = x0 + tx * t;
+      const py = y0 + ty * t;
+      if (!(v & (PASO_FORZADO | PASO_CORNISA))) continue;
+      // la casilla manda: se olvida la colisión de sus tiles y se cierran solo los bordes pedidos
+      [ground, objects].forEach((l) => l.getTileAt(tx, ty)?.resetCollision(false));
+      if (v & PASO_CORNISA) { wall(px, py, t, EDGE, true); continue; }
+      const m = v & 15;
+      if (m === 15) { wall(px, py, t, t); continue; }
+      if (m & 1) wall(px, py, t, EDGE);
+      if (m & 2) wall(px + t - EDGE, py, EDGE, t);
+      if (m & 4) wall(px, py + t - EDGE, t, EDGE);
+      if (m & 8) wall(px, py, EDGE, t);
+    }
+    // las caras de choque de los vecinos cambian cuando una casilla deja de chocar
+    ground.calculateFacesWithin(0, 0, cw, this.world.chunkHeight);
+    objects.calculateFacesWithin(0, 0, cw, this.world.chunkHeight);
+    return edges;
   }
 
   // capa de suelo y tile bajo un punto del mundo (para la hierba alta y la fauna)
@@ -912,7 +998,48 @@ export default class WorldScene extends Phaser.Scene {
     mon.play(animKey);
     mon.body.setSize(24, 16).setOffset(info.frameSize.w / 2 - 12, info.frameSize.h - 20);
     mon.setData({ code, name: info.name, area, chunk: chunkKey });
+    // rango de nivel de la subzona (como en un MMO), con color según el peligro para el héroe
+    const levels = this.levelsAt(area.x + area.width / 2, area.y + area.height / 2);
+    if (levels) {
+      const tag = this.add.text(x, y, `Nv ${levels}`, {
+        fontFamily: TAG_FONT, fontSize: '6px', fontStyle: 'bold', color: this.levelColor(levels), stroke: '#141420', strokeThickness: 3,
+      }).setOrigin(0.5, 1).setDepth(21).setResolution(TAG_RES);
+      this.minimap?.ignore(tag);
+      mon.setData('tag', tag);
+      mon.setData('tagDy', (info.frameSize.h * 0.75) / 2 - 2);
+      mon.once('destroy', () => tag.destroy());
+    }
     this.wander(mon);
+  }
+
+  // posición para los demás jugadores (React la manda por socket): ~7 veces por segundo y solo
+  // si cambió algo
+  reportPosition(time) {
+    if (time - (this.lastReport ?? 0) < 140) return;
+    this.lastReport = time;
+    const moving = this.player.body.velocity.lengthSq() > 0;
+    const msg = { x: Math.round(this.player.x), y: Math.round(this.player.y), f: this.facing, flip: this.player.flipX, m: moving };
+    const sig = `${msg.x},${msg.y},${msg.f},${msg.flip},${msg.m}`;
+    if (sig === this.lastReportSig) return;
+    this.lastReportSig = sig;
+    bus.emit('hero-moved', msg);
+  }
+
+  // niveles de la subzona que contiene el punto (la primera de la lista que lo contenga)
+  levelsAt(x, y) {
+    const sz = this.world.subzonas?.find((s) => x >= s.x0 && x < s.x1 && y >= s.y0 && y < s.y1);
+    return sz?.levels ?? null;
+  }
+
+  // gris muy fácil, verde fácil, amarillo parejo, naranja difícil, rojo peligroso (estilo WoW)
+  levelColor(levels) {
+    const [a, b = a] = String(levels).split('-').map(Number);
+    const diff = (a + b) / 2 - this.heroLevel;
+    if (diff >= 5) return '#ff4a4a';
+    if (diff >= 3) return '#ff9a3c';
+    if (diff >= -2) return '#ffe066';
+    if (diff >= -6) return '#7ddc5a';
+    return '#a0a0a0';
   }
 
   // Deambula dentro de su zona de hierba alta; si se sale, vuelve hacia el centro.
@@ -944,8 +1071,8 @@ export default class WorldScene extends Phaser.Scene {
     audio.sfx('encuentro');
     this.tweens.add({ targets: mon, alpha: 0.3, yoyo: true, repeat: 3, duration: 90 });
     bus.emit('encounter', {
-      kind: 'zone', code: mon.getData('code'), name: mon.getData('name'), zoneId: this.zoneId,
-      position: { x: this.player.x, y: this.player.y },
+      kind: 'zone', code: mon.getData('code'), name: mon.getData('name'), zoneId: this.zoneId, areaLevels: this.subzone?.levels ?? null,
+      position: { x: this.player.x, y: this.player.y, zona: this.zoneDir },
     });
   }
 
@@ -967,7 +1094,7 @@ export default class WorldScene extends Phaser.Scene {
     this.input.keyboard.enabled = false;
     this.cameras.main.shake(250, 0.006);
     audio.sfx('encuentro');
-    bus.emit('encounter', { kind: 'zone', name: null, zoneId: this.zoneId, position: { x: this.player.x, y: this.player.y } });
+    bus.emit('encounter', { kind: 'zone', name: null, zoneId: this.zoneId, areaLevels: this.subzone?.levels ?? null, position: { x: this.player.x, y: this.player.y, zona: this.zoneDir } });
   }
 
   // Desafiar a un jefe en su guarida (React pide confirmación antes de empezar)
@@ -976,7 +1103,7 @@ export default class WorldScene extends Phaser.Scene {
     this.lastBoss = b;
     bus.emit('boss-challenge', {
       kind: 'boss', code: b.code, level: b.level, name: b.name, rank: b.rank,
-      zoneId: this.zoneId, position: { x: this.player.x, y: this.player.y },
+      zoneId: this.zoneId, position: { x: this.player.x, y: this.player.y, zona: this.zoneDir },
     });
   }
 
@@ -995,9 +1122,15 @@ export default class WorldScene extends Phaser.Scene {
     this.player.setFrame(IDLE[this.facing]);
   }
 
-  update() {
+  update(time, delta) {
     if (!this.player) return;
     if (this.shade) this.updateSky();
+    this.social?.update(delta);
+    this.reportPosition(time);
+    for (const m of this.monsters.getChildren()) {
+      const tag = m.getData('tag');
+      if (tag) tag.setPosition(m.x, m.y - m.getData('tagDy'));
+    }
     if (this.encounterLock) return;
     const k = this.keys;
     let vx = 0;

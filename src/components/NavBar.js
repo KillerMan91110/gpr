@@ -155,7 +155,7 @@ export default function NavBar() {
     : CATEGORIES;
 
   // El mundo 2D tiene su propio HUD (barra de accesos con teclas): ahí la barra de navegación sobra
-  if (location.pathname === '/mundo') return null;
+  if (location.pathname === '/mundo' || location.pathname === '/editor') return null;
 
   return (
     <nav className="app-navbar" ref={rootRef}>

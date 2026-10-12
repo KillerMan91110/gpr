@@ -1,84 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
 import FloatingPanel from './FloatingPanel';
-
-// =====================================================================================
-// Mapa del mundo (M)
-// =====================================================================================
-// Posición de cada zona sobre el pergamino (en %), siguiendo el camino del aventurero
-const ZONE_LAYOUT = {
-  1: { x: 14, y: 76, icon: ['wheat', 'lorc'] },
-  2: { x: 27, y: 34, icon: ['stone-pile', 'delapouite'] },
-  3: { x: 45, y: 66, icon: ['fireball', 'lorc'] },
-  4: { x: 62, y: 84, icon: ['water-flask', 'delapouite'] },
-  5: { x: 68, y: 30, icon: ['ice-bolt', 'lorc'] },
-  6: { x: 84, y: 60, icon: ['ghost', 'lorc'] },
-  7: { x: 88, y: 18, icon: ['crystal-ball', 'lorc'] },
-};
-const CURRENT_ZONE = 1; // por ahora el mundo 2D es solo la Pradera
-
-export function WorldMapPanel(props) {
-  const { player, token } = useAuth();
-  const navigate = useNavigate();
-  const [zones, setZones] = useState(null);
-  const [selected, setSelected] = useState(CURRENT_ZONE);
-
-  useEffect(() => {
-    api.getPlayerZones(player.id, token).then(setZones).catch(() => setZones([]));
-  }, [player, token]);
-
-  const ordered = (zones ?? []).filter((z) => ZONE_LAYOUT[z.id]).sort((a, b) => a.id - b.id);
-  const current = ordered.find((z) => z.id === selected);
-  const path = ordered.map((z) => `${ZONE_LAYOUT[z.id].x * 6},${ZONE_LAYOUT[z.id].y * 3.6}`).join(' ');
-
-  return (
-    <FloatingPanel {...props} id="mapa" title="Mapa de Etheria" icon={<GameIcon name="treasure-map" artist="lorc" />} width={640}>
-      <div className="wp-map">
-        <svg className="wp-map-path" viewBox="0 0 600 360" preserveAspectRatio="none" aria-hidden="true">
-          <polyline points={path} />
-        </svg>
-        {ordered.map((z) => {
-          const L = ZONE_LAYOUT[z.id];
-          return (
-            <button
-              key={z.id}
-              type="button"
-              className={`wp-map-node${z.unlocked ? '' : ' wp-map-node--locked'}${z.id === selected ? ' wp-map-node--selected' : ''}`}
-              style={{ left: `${L.x}%`, top: `${L.y}%` }}
-              onClick={() => setSelected(z.id)}
-            >
-              <span className="wp-map-node-icon">
-                <GameIcon name={z.unlocked ? L.icon[0] : 'padlock'} artist={z.unlocked ? L.icon[1] : 'lorc'} />
-              </span>
-              {z.bossDefeated && <span className="wp-map-node-crown"><GameIcon name="crown" artist="lorc" /></span>}
-              {z.id === CURRENT_ZONE && <span className="wp-map-here">Estás aquí</span>}
-              <span className="wp-map-node-label">{z.name}</span>
-            </button>
-          );
-        })}
-        <span className="wp-map-compass"><GameIcon name="compass" artist="lorc" /></span>
-      </div>
-      {current && (
-        <div className="wp-map-info">
-          <div>
-            <h3>{current.name} <small>Nv. {current.levelRange}</small></h3>
-            <p>{current.description}</p>
-          </div>
-          {current.id === CURRENT_ZONE ? (
-            <span className="wp-map-status">Estás aquí</span>
-          ) : current.unlocked ? (
-            <button type="button" className="wp-btn wp-btn--gold" onClick={() => navigate(`/combat/${current.id}`)}>Explorar</button>
-          ) : (
-            <span className="wp-map-status wp-map-status--locked">Bloqueada</span>
-          )}
-        </div>
-      )}
-    </FloatingPanel>
-  );
-}
 
 // =====================================================================================
 // Logros (L)

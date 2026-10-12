@@ -1,0 +1,224 @@
+/* menú al hacer clic en otro jugador */
+.ws-menu {
+  position: fixed;
+  z-index: 60;
+  width: 200px;
+  padding: 6px;
+  background: linear-gradient(#221b12, #15110b);
+  border: 1px solid #8a6a30;
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 220, 140, 0.08);
+  animation: ws-pop 0.12s ease-out;
+}
+
+.ws-menu-head {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 6px 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #4a3a1c;
+}
+
+.ws-menu-head b {
+  font: 700 0.9rem 'Cinzel', serif;
+  color: #9fd6ff;
+}
+
+.ws-menu-head small {
+  font: 0.78rem 'EB Garamond', serif;
+  color: #cfc3a5;
+}
+
+.ws-menu button {
+  display: block;
+  width: 100%;
+  padding: 5px 8px;
+  font: 600 0.88rem 'EB Garamond', serif;
+  color: #f0e6cc;
+  text-align: left;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ws-menu button:hover {
+  background: rgba(232, 196, 106, 0.12);
+  border-color: #6b5326;
+}
+
+.ws-menu-note {
+  margin: 4px 4px 0;
+  font: 0.8rem 'EB Garamond', serif;
+  color: #ffe08a;
+}
+
+@keyframes ws-pop {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ruleta de emojis (T) */
+.ws-wheel {
+  position: fixed;
+  z-index: 55;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+}
+
+.ws-wheel::before {
+  content: '';
+  position: absolute;
+  left: -112px;
+  top: -112px;
+  width: 224px;
+  height: 224px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(20, 16, 10, 0.75) 30%, rgba(20, 16, 10, 0.35) 70%, transparent 72%);
+  border: 1px solid rgba(232, 196, 106, 0.3);
+  animation: ws-pop 0.15s ease-out;
+}
+
+.ws-wheel button {
+  position: absolute;
+  left: -22px;
+  top: -22px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  background: linear-gradient(#2c2418, #1a150e);
+  border: 1px solid #8a6a30;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+  transition: scale 0.1s;
+}
+
+.ws-wheel button:hover {
+  scale: 1.15;
+  border-color: #ffe08a;
+}
+
+.ws-wheel kbd {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  min-width: 15px;
+  padding: 0 3px;
+  font: 700 0.62rem 'Cinzel', serif;
+  color: #241a08;
+  background: #e8c46a;
+  border-radius: 7px;
+}
+
+.ws-wheel-hint {
+  position: absolute;
+  left: -40px;
+  top: -9px;
+  width: 80px;
+  text-align: center;
+  font: 700 0.7rem 'Cinzel', serif;
+  color: rgba(255, 232, 170, 0.75);
+}
+
+.ws-menu {
+  width: 240px;
+}
+
+.ws-menu button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ws-menu button:disabled:hover {
+  background: none;
+  border-color: transparent;
+}
+
+.ws-menu-status {
+  margin-top: 3px;
+  font: italic 0.82rem 'EB Garamond', serif;
+  color: #e8dcb8;
+}
+
+.ws-menu-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 5px;
+  font: 600 0.76rem 'EB Garamond', serif;
+  color: #cfc3a5;
+}
+
+.ws-bond {
+  color: #ff9ac0;
+}
+
+.ws-commend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 5px 6px 2px;
+  border-top: 1px solid #4a3a1c;
+  font: 600 0.8rem 'EB Garamond', serif;
+  color: #cfc3a5;
+}
+
+.ws-commend span {
+  flex: 1;
+}
+
+.ws-menu .ws-commend button {
+  width: 32px;
+  padding: 3px 0;
+  text-align: center;
+  font-size: 1rem;
+  border-color: #4a3a1c;
+}
+
+.ws-menu .ws-commend button.on {
+  border-color: #ffe08a;
+  background: rgba(232, 196, 106, 0.2);
+  opacity: 1;
+}
+
+/* avisos (amigo conectado, elogio recibido, rastro) */
+.ws-toasts {
+  position: fixed;
+  z-index: 56;
+  top: 92px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.ws-toast {
+  padding: 6px 16px;
+  font: 600 0.92rem 'EB Garamond', serif;
+  color: #f4ead0;
+  background: linear-gradient(rgba(34, 27, 18, 0.95), rgba(20, 16, 10, 0.95));
+  border: 1px solid #8a6a30;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  animation: ws-toast 4.2s ease forwards;
+}
+
+.ws-toast--friend { color: #9fd6ff; border-color: #3a6a9a; }
+.ws-toast--ok { color: #ffe08a; }
+.ws-toast--error { color: #ffc0b0; border-color: #8a3a2a; }
+
+@keyframes ws-toast {
+  0% { opacity: 0; transform: translateY(-8px); }
+  8% { opacity: 1; transform: translateY(0); }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}

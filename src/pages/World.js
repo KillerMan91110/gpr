@@ -27,7 +27,10 @@ import PetsPanel from '../components/world/PetsPanel';
 import FormationPanel from '../components/world/FormationPanel';
 import GuildPanel from '../components/world/GuildPanel';
 import EnchantPanel from '../components/world/EnchantPanel';
-import { AchievementsPanel, InfirmaryPanel, RankingPanel, WorldMapPanel } from '../components/world/MorePanels';
+import { AchievementsPanel, InfirmaryPanel, RankingPanel } from '../components/world/MorePanels';
+import MapPanel from '../components/world/MapPanel';
+import WorldSocial from '../components/world/WorldSocial';
+import SocialPanel from '../components/world/SocialPanel';
 import './World.css';
 
 // Ventanas del mundo. Todas son paneles flotantes que NO bloquean el mapa: se puede caminar con
@@ -42,9 +45,10 @@ const WINDOWS = {
   mascotas:        { title: 'Mascotas',           key: 'n', icon: ['paw', 'lorc'],               panel: PetsPanel,         pos: { x: 320, y: 100 } },
   gremio:          { title: 'Gremio',             key: 'g', icon: ['castle', 'delapouite'],      panel: GuildPanel,        pos: { x: 340, y: 80 } },
   mercado:         { title: 'Mercado',            key: 'b', icon: ['shop', 'delapouite'],        embed: '/market' },
-  mapa:            { title: 'Mapa del mundo',     key: 'm', icon: ['treasure-map', 'lorc'],      panel: WorldMapPanel,     pos: { x: 380, y: 90 } },
+  mapa:            { title: 'Mapa',               key: 'm', icon: ['treasure-map', 'lorc'],      panel: MapPanel,          pos: { x: 360, y: 70 } },
   logros:          { title: 'Logros',             key: 'l', icon: ['trophy-cup', 'delapouite'],  panel: AchievementsPanel, pos: { x: 350, y: 100 } },
   ranking:         { title: 'Ranking',            key: 'r', icon: ['podium', 'delapouite'],      panel: RankingPanel,      pos: 'right' },
+  social:          { title: 'Social',             key: 'o', icon: ['two-shadows', 'lorc'],       panel: SocialPanel,       pos: 'right' },
   // solo desde puntos del mapa (sin botón en la barra)
   misiones_gremio: { title: 'Tablón del gremio',  panel: QuestBoardPanel, pos: { x: 360, y: 120 } },
   enfermeria:      { title: 'Enfermería',         panel: InfirmaryPanel,  pos: { x: 420, y: 160 } },
@@ -58,6 +62,8 @@ const WINDOWS = {
   mi_gremio:       { title: 'Sala del gremio',       icon: ['castle', 'delapouite'],        embed: '/guild/my' },
   crear_gremio:    { title: 'Fundar un gremio',      icon: ['trowel', 'delapouite'],        embed: '/guild/create' },
   unirse_gremio:   { title: 'Unirse a un gremio',    icon: ['shaking-hands', 'delapouite'], embed: '/guild/join' },
+  // buzón de cartas entre amigos (desde la ventana Social)
+  buzon:           { title: 'Buzón',                 icon: ['mailbox', 'delapouite'],       embed: '/friends' },
 };
 
 function defaultPosFor(w) {
@@ -65,13 +71,14 @@ function defaultPosFor(w) {
   if (w.pos) return w.pos;
   return { x: 20 + Math.max(0, (window.innerWidth - Math.min(820, window.innerWidth - 40)) / 2), y: 70 };
 }
-const TOOLBAR = ['inventario', 'personaje', 'habilidades', 'misiones', 'formacion', 'mascotas', 'gremio', 'mercado', 'mapa', 'logros', 'ranking'];
+const TOOLBAR = ['inventario', 'personaje', 'habilidades', 'misiones', 'formacion', 'mascotas', 'gremio', 'social', 'mercado', 'mapa', 'logros', 'ranking'];
 const KEY_TO_WINDOW = Object.fromEntries(Object.entries(WINDOWS).filter(([, w]) => w.key).map(([id, w]) => [w.key, id]));
 
 const BASE_CLASSES = ['guerrero', 'mago', 'arquero', 'picaro', 'sacerdote'];
 // v2: la Pradera grande por trozos (las posiciones del mapa viejo ya no sirven)
 const POS_KEY = 'mundo_posicion_v2';
-const ZONE_ID = 1;
+// zona de arranque si no hay posición guardada (la posición guarda en qué zona estabas)
+const DEFAULT_ZONE_ID = 1;
 const plain = (s) => (s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 // clase base de un compañero (las evolucionadas empiezan con el nombre de su clase base)
 const baseOf = (m) => BASE_CLASSES.find((c) => plain(m.classCode ?? m.className).startsWith(c)) ?? 'guerrero';
@@ -128,6 +135,8 @@ export default function World() {
   const [levelUp, setLevelUp] = useState(null);
   const [clock, setClock] = useState(null);
   const [worldReady, setWorldReady] = useState(false);
+  const [zoneId, setZoneId] = useState(DEFAULT_ZONE_ID);
+  const [zoneDir, setZoneDir] = useState(null);
   // subzona donde está el héroe (cartel al entrar y nombre en el minimapa) y clima
   const [subzone, setSubzone] = useState(null);
   const [subzoneBanner, setSubzoneBanner] = useState(null);
@@ -192,6 +201,7 @@ export default function World() {
         heroName: stats.nickname,
         heroLevel: stats.level,
         startPos,
+        zoneDir: startPos?.zona,
       });
       game.scene.add('batalla', BattleScene, false);
       gameRef.current = game;
@@ -232,7 +242,7 @@ export default function World() {
 
   // ---- mundo vivo: compañeros, mascota, recursos, marcas de misión, música ----
   useEffect(() => {
-    const onReady = () => setWorldReady(true);
+    const onReady = (z) => { if (z?.zoneId) setZoneId(z.zoneId); if (z?.zoneDir) setZoneDir(z.zoneDir); setWorldReady(true); };
     const onClock = (c) => setClock(c);
     let bannerTimer = null;
     const onSubzone = (sz) => {
@@ -274,8 +284,8 @@ export default function World() {
   // estado de los recursos del mapa (hierbas, vetas, cofres)
   useEffect(() => {
     if (!worldReady || !player) return;
-    api.getWorldNodes(player.id, ZONE_ID, token).then((list) => bus.emit('resources-state', list)).catch(() => {});
-  }, [worldReady, player, token]);
+    api.getWorldNodes(player.id, zoneId, token).then((list) => bus.emit('resources-state', list)).catch(() => {});
+  }, [worldReady, player, token, zoneId]);
 
   useEffect(() => {
     const onGather = async ({ id }) => {
@@ -298,13 +308,13 @@ export default function World() {
     if (!player) return;
     Promise.all([api.getActiveQuests(player.id, token), api.getAvailableQuests(player.id, token)])
       .then(([active, available]) => {
-        const ready = active.some((q) => q.zone_id === ZONE_ID && q.objectives?.length
+        const ready = active.some((q) => q.zone_id === zoneId && q.objectives?.length
           && q.objectives.every((o) => (o.current_count ?? 0) >= o.target_count));
-        const fresh = available.some((q) => q.zone_id === ZONE_ID && !q.accepted && q.prerequisite_met !== false && q.meets_level !== false);
+        const fresh = available.some((q) => q.zone_id === zoneId && !q.accepted && q.prerequisite_met !== false && q.meets_level !== false);
         setNpcMarks({ ren: ready ? '?' : fresh ? '!' : null });
       })
       .catch(() => {});
-  }, [player, token, refreshKey]);
+  }, [player, token, refreshKey, zoneId]);
   useEffect(() => { if (worldReady) bus.emit('npc-marks', npcMarks); }, [worldReady, npcMarks]);
 
   // subida de nivel: cartel, fanfarria y columna de luz en el mapa
@@ -475,6 +485,9 @@ export default function World() {
       )}
 
       {levelUp && <LevelUpBanner {...levelUp} onDone={() => setLevelUp(null)} />}
+
+      {/* otros jugadores, globitos, gestos, emojis (T) y menú al hacer clic en alguien */}
+      <WorldSocial worldReady={worldReady} zoneDir={zoneDir} baseClass={baseClass} inBattle={!!battle} level={stats?.level} />
 
       {/* ---- barra de acciones con experiencia (abajo al centro) ---- */}
       <div className="hud-actionbar">

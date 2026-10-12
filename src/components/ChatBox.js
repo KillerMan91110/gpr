@@ -4,8 +4,39 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { api } from '../api/client';
 import GameIcon from './GameIcon';
+import bus from '../game/bus';
 
-const CHANNEL_LABELS = { GENERAL: 'General', TRADE: 'Comercio', PARTY: 'Grupo', GUILD: 'Gremio' };
+const CHANNEL_LABELS = { CERCA: 'Cerca', GENERAL: 'General', TRADE: 'Comercio', PARTY: 'Grupo', GUILD: 'Gremio' };
+
+// Mundo 2D: pestaña "Cerca" (lo que dices sale en un globito sobre tu personaje y lo leen los
+// que están cerca) y comandos que funcionan desde cualquier pestaña.
+const EMOTE_TEXT = { saludar: 'saluda', bailar: 'se pone a bailar', reir: 'se ríe', sentarse: 'se sienta', aplaudir: 'aplaude' };
+const EMOTE_SELF = { saludar: 'Saludas', bailar: 'Te pones a bailar', reir: 'Te ríes', sentarse: 'Te sientas', aplaudir: 'Aplaudes' };
+const WORLD_HELP = 'Comandos: /d decir · /g gritar (o empieza con !) · /s Nombre susurrar · /r responder · /saludar /bailar /reir /sentarse /aplaudir · T emojis';
+
+function parseWorldCommand(text, tab, lastWhisper) {
+  const m = /^\/(\S+)\s*([\s\S]*)$/.exec(text);
+  if (!m) {
+    if (tab !== 'CERCA') return null;
+    return text.startsWith('!') ? { type: 'say', loud: true, text: text.slice(1).trim() } : { type: 'say', loud: false, text };
+  }
+  const cmd = m[1].toLowerCase();
+  const rest = m[2].trim();
+  if (['s', 'susurrar', 'w'].includes(cmd)) {
+    const [to, ...words] = rest.split(/\s+/);
+    return { type: 'whisper', to, text: words.join(' ') };
+  }
+  if (cmd === 'r') return lastWhisper ? { type: 'whisper', to: lastWhisper, text: rest } : { type: 'error', text: 'Nadie te ha susurrado todavía' };
+  if (['g', 'gritar'].includes(cmd)) return { type: 'say', loud: true, text: rest };
+  if (['d', 'decir'].includes(cmd)) return { type: 'say', loud: false, text: rest };
+  if (cmd === 'hola') return { type: 'emote', emote: 'saludar' };
+  if (EMOTE_TEXT[cmd]) return { type: 'emote', emote: cmd };
+  if (cmd === 'ayuda') return { type: 'help' };
+  return { type: 'error', text: 'Comando desconocido. Escribe /ayuda' };
+}
+
+let localSeq = 0;
+const localId = () => Date.now() * 1000 + (localSeq++ % 1000);
 const PARTY_POLL_MS = 6000;
 const GUILD_POLL_MS = 15000;
 const MAX_MESSAGES = 80;
@@ -61,14 +92,19 @@ export default function ChatBox() {
   const [minimized, setMinimized] = useState(false);
   const [party, setParty] = useState(null);
   const [guild, setGuild] = useState(null);
-  const [messages, setMessages] = useState({ GENERAL: [], TRADE: [], PARTY: [], GUILD: [] });
-  const [unread, setUnread] = useState({ GENERAL: 0, TRADE: 0, PARTY: 0, GUILD: 0 });
+  const [messages, setMessages] = useState({ CERCA: [], GENERAL: [], TRADE: [], PARTY: [], GUILD: [] });
+  const [unread, setUnread] = useState({ CERCA: 0, GENERAL: 0, TRADE: 0, PARTY: 0, GUILD: 0 });
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
 
-  const loadedRef = useRef({ GENERAL: false, TRADE: false, PARTY: false, GUILD: false });
+  const loadedRef = useRef({ CERCA: true, GENERAL: false, TRADE: false, PARTY: false, GUILD: false });
   const logRef = useRef(null);
+  const inputRef = useRef(null);
+  const lastWhisperRef = useRef(null);
+  const typingRef = useRef(false);
+  const typingTimer = useRef(null);
+  const inWorld = location.pathname === '/mundo';
   const partyPollRef = useRef(null);
   const guildPollRef = useRef(null);
 
@@ -83,6 +119,85 @@ export default function ChatBox() {
     setMessages((prev) => (
       prev[channel].some((m) => m.id === msg.id) ? prev : { ...prev, [channel]: mergeMessages(prev[channel], [msg]) }
     ));
+  }
+
+  // ---- mundo 2D: pestaña Cerca, susurros, gestos y "escribiendo…" ----
+  useEffect(() => {
+    if (inWorld) setActiveTab('CERCA');
+    else setActiveTab((t) => (t === 'CERCA' ? 'GENERAL' : t));
+  }, [inWorld]);
+
+  const addLocal = (msg, unreadToo = true) => {
+    const m = { id: localId(), ...msg };
+    setMessages((prev) => ({ ...prev, CERCA: [...prev.CERCA, m].slice(-MAX_MESSAGES) }));
+    if (unreadToo && !m.mine && (minimizedRef.current || activeTabRef.current !== 'CERCA')) {
+      setUnread((prev) => ({ ...prev, CERCA: prev.CERCA + 1 }));
+    }
+  };
+
+  useEffect(() => {
+    if (!socket || !player) return undefined;
+    const onSay = (m) => addLocal({ nickname: m.name, level: m.level, body: m.text, kind: m.loud ? 'gritar' : 'decir', mine: m.id === player.id });
+    const onWhisper = (m) => {
+      const mine = m.from.id === player.id;
+      if (!mine) lastWhisperRef.current = m.from.name;
+      addLocal({ nickname: mine ? `Para ${m.to.name}` : `De ${m.from.name}`, body: m.text, kind: 'susurro', mine });
+    };
+    const onEmote = (m) => addLocal({ body: m.id === player.id ? `${EMOTE_SELF[m.emote] ?? m.emote}.` : `${m.name} ${EMOTE_TEXT[m.emote] ?? m.emote}.`, kind: 'gesto', mine: m.id === player.id }, false);
+    socket.on('world:say', onSay);
+    socket.on('world:whisper', onWhisper);
+    socket.on('world:emote', onEmote);
+    return () => { socket.off('world:say', onSay); socket.off('world:whisper', onWhisper); socket.off('world:emote', onEmote); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, player?.id]);
+
+  // menú de un jugador → "Susurrar" deja escrito /s Nombre en el chat
+  useEffect(() => {
+    const onPrefill = (text) => {
+      setMinimized(false);
+      setActiveTab('CERCA');
+      setInput(text);
+      setTimeout(() => inputRef.current?.focus(), 0);
+    };
+    bus.on('chat-prefill', onPrefill);
+    return () => bus.off('chat-prefill', onPrefill);
+  }, []);
+
+  // "escribiendo…": globito con puntos sobre tu personaje mientras escribes algo que se va a decir
+  const setTyping = (on) => {
+    if (typingRef.current === on) return;
+    typingRef.current = on;
+    socket?.emit('world:typing', on);
+    bus.emit('my-typing', on);
+  };
+  useEffect(() => {
+    if (!inWorld) return undefined;
+    const t = input.trim();
+    const speaking = activeTab === 'CERCA' ? !/^\/(?!g |gritar |d |decir )/.test(t) : /^\/(g|gritar|d|decir) /.test(t);
+    setTyping(!!t && speaking);
+    clearTimeout(typingTimer.current);
+    typingTimer.current = setTimeout(() => setTyping(false), 6000);
+    return () => clearTimeout(typingTimer.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [input, activeTab, inWorld]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => () => setTyping(false), [inWorld]);
+
+  function worldSend(cmd) {
+    if (cmd.type === 'help') { addLocal({ body: WORLD_HELP, kind: 'gesto', mine: true }, false); setInput(''); return; }
+    if (cmd.type === 'error') { setError(cmd.text); return; }
+    if ((cmd.type === 'say' || cmd.type === 'whisper') && !cmd.text) { setError(cmd.type === 'whisper' ? 'Escribe: /s Nombre mensaje' : 'Mensaje vacío'); return; }
+    if (!socket) { setError('Sin conexión'); return; }
+    const ev = { say: 'world:say', whisper: 'world:whisper', emote: 'world:emote' }[cmd.type];
+    const payload = cmd.type === 'say' ? { text: cmd.text, loud: cmd.loud } : cmd.type === 'whisper' ? { to: cmd.to, text: cmd.text } : { emote: cmd.emote };
+    setSending(true);
+    socket.emit(ev, payload, (r) => {
+      setSending(false);
+      if (r?.error) { setError(r.error); return; }
+      if (cmd.type === 'whisper' && r?.msg) addLocal({ nickname: `Para ${r.msg.to.name}`, body: r.msg.text, kind: 'susurro', mine: true }, false);
+      setInput('');
+      setTyping(false);
+    });
   }
 
   useEffect(() => {
@@ -211,8 +326,12 @@ export default function ChatBox() {
 
   async function handleSend() {
     if (!input.trim()) return;
-    setSending(true);
     setError('');
+    if (inWorld) {
+      const cmd = parseWorldCommand(input.trim(), activeTab, lastWhisperRef.current);
+      if (cmd) { worldSend(cmd); return; }
+    }
+    setSending(true);
     try {
       let sent;
       if (activeTab === 'PARTY') {
@@ -234,7 +353,7 @@ export default function ChatBox() {
   if (!isAuthenticated || !player) return null;
   if (location.pathname === '/login' || location.pathname === '/register') return null;
 
-  const tabs = ['GENERAL', 'TRADE', ...(party ? ['PARTY'] : []), ...(guild ? ['GUILD'] : [])];
+  const tabs = [...(inWorld ? ['CERCA'] : []), 'GENERAL', 'TRADE', ...(party ? ['PARTY'] : []), ...(guild ? ['GUILD'] : [])];
   const activeMessages = messages[activeTab] || [];
   const totalUnread = tabs.reduce((sum, t) => sum + unread[t], 0);
 
@@ -269,10 +388,12 @@ export default function ChatBox() {
       <div className="chat-list" ref={logRef}>
         {activeMessages.length === 0 && <p className="hint chat-empty">Sin mensajes todavía.</p>}
         {activeMessages.map((m) => (
-          <div key={m.id} className={`chat-msg${m.mine ? ' chat-msg--mine' : ''}`}>
-            <span className="chat-from">
-              {m.nickname}{m.level ? ` [${m.level}]` : ''}:
-            </span>{' '}
+          <div key={m.id} className={`chat-msg${m.mine ? ' chat-msg--mine' : ''}${m.kind ? ` chat-msg--${m.kind}` : ''}`}>
+            {m.nickname && (
+              <span className="chat-from">
+                {m.kind === 'gritar' ? '📢 ' : ''}{m.nickname}{m.level ? ` [${m.level}]` : ''}:
+              </span>
+            )}{' '}
             <span className="chat-body">{m.body}</span>
           </div>
         ))}
@@ -282,12 +403,14 @@ export default function ChatBox() {
 
       <div className="chat-input">
         <input
+          ref={inputRef}
           type="text"
           className="rpg-input"
           maxLength={300}
-          placeholder={`Hablar en ${CHANNEL_LABELS[activeTab]}...`}
+          placeholder={activeTab === 'CERCA' ? 'Decir… (/ayuda para ver comandos)' : `Hablar en ${CHANNEL_LABELS[activeTab]}...`}
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => { setInput(e.target.value); if (error) setError(''); }}
+          onBlur={() => inWorld && setTyping(false)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
         />
         <button className="rpg-button rpg-button--small" type="button" disabled={sending} onClick={handleSend}>

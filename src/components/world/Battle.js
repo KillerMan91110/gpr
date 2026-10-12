@@ -150,6 +150,26 @@ function Bar({ value, max, kind }) {
 
 // Combate estilo Octopath dentro del mundo: arranca la sesión en la API, le pasa el estado a la
 // escena de Phaser ('batalla') para que lo anime y muestra el menú de comandos encima.
+// Arranque del combate: retoma uno pendiente o crea el del encuentro. Se guarda la promesa por
+// encuentro (startRequests) para que el doble montaje de React no cree dos combates.
+const startRequests = new WeakMap();
+async function startOrResume(encounter, token) {
+  let initial = await api.getActiveCombatSession(token).catch(() => null);
+  if (initial?.session) return { initial, resumed: true };
+  // jefe desafiado en su guarida: pelea contra ese monstruo; si no, encuentro de la zona
+  try {
+    initial = encounter.kind === 'boss'
+      ? await api.createCombatSession([{ code: encounter.code, level: encounter.level }], token)
+      : await api.exploreZone(encounter.zoneId, token, undefined, encounter.code, encounter.areaLevels);
+    return { initial, resumed: false };
+  } catch (err) {
+    // otra pestaña ya creó el combate: retomarlo
+    const again = await api.getActiveCombatSession(token).catch(() => null);
+    if (!again?.session) throw err;
+    return { initial: again, resumed: true };
+  }
+}
+
 export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
   const { player, token } = useAuth();
   const [state, setState] = useState(null);
@@ -236,22 +256,9 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
     let cancelled = false;
     (async () => {
       try {
-        let initial = await api.getActiveCombatSession(token).catch(() => null);
-        let resumed = !!initial?.session;
-        if (!resumed) {
-          // jefe desafiado en su guarida: pelea contra ese monstruo; si no, encuentro de la zona
-          try {
-            initial = encounter.kind === 'boss'
-              ? await api.createCombatSession([{ code: encounter.code, level: encounter.level }], token)
-              : await api.exploreZone(encounter.zoneId, token, undefined, encounter.code);
-          } catch (err) {
-            // otra pestaña (o el doble montaje de React en desarrollo) ya creó el combate: retomarlo
-            const again = await api.getActiveCombatSession(token).catch(() => null);
-            if (!again?.session) throw err;
-            initial = again;
-            resumed = true;
-          }
-        }
+        // un solo pedido por encuentro aunque React monte el combate dos veces (modo estricto)
+        if (!startRequests.has(encounter)) startRequests.set(encounter, startOrResume(encounter, token));
+        const { initial, resumed } = await startRequests.get(encounter);
         // en la escena el héroe aparece con o sin arma según lo que tenga equipado
         const equipment = await api.getPlayerEquipment(player.id, token).catch(() => []);
         const heroHasWeapon = equipment.some((e) => e.slot === 'WEAPON' && e.item);

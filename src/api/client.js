@@ -120,10 +120,12 @@ export const api = {
   // mundo 2D: recursos para recolectar (hierbas, mineral, cofres)
   getWorldNodes: (playerId, zoneId, token) => request(`/api/player/${playerId}/world/nodes?zone=${zoneId}`, { token }),
   gatherWorldNode: (playerId, nodeId, token) => request(`/api/player/${playerId}/world/nodes/${nodeId}/gather`, { method: 'POST', token }),
-  exploreZone: (zoneId, token, coopPartnerIds, leadMonsterCode) => {
+  // areaLevels: rango de niveles de la subzona del mundo 2D donde empezó el combate ("3-6")
+  exploreZone: (zoneId, token, coopPartnerIds, leadMonsterCode, areaLevels) => {
     const body = {};
     if (coopPartnerIds?.length) body.coopPartnerIds = coopPartnerIds;
     if (leadMonsterCode) body.leadMonsterCode = leadMonsterCode;
+    if (areaLevels) body.areaLevels = String(areaLevels);
     return request(`/api/combat/zones/${zoneId}/explore`, {
       method: 'POST',
       body: Object.keys(body).length ? body : undefined,
@@ -178,6 +180,12 @@ export const api = {
     request(`/api/player/${playerId}/friends/${targetId}/accept`, { method: 'POST', token }),
   removeFriend: (playerId, targetId, token) =>
     request(`/api/player/${playerId}/friends/${targetId}`, { method: 'DELETE', token }),
+  // Ventana Social del mundo 2D (tecla O)
+  getSocialOverview: (playerId, token) => request(`/api/player/${playerId}/social/overview`, { token }),
+  setSocialStatus: (playerId, text, token) => request(`/api/player/${playerId}/social/status`, { method: 'PUT', body: { text }, token }),
+  setFriendNote: (playerId, friendId, data, token) => request(`/api/player/${playerId}/social/friends/${friendId}`, { method: 'PUT', body: data, token }),
+  commendPlayer: (playerId, targetId, kind, token) => request(`/api/player/${playerId}/social/commend`, { method: 'POST', body: { targetId, kind }, token }),
+  getPlayerCard: (playerId, targetId, token) => request(`/api/player/${playerId}/social/card/${targetId}`, { token }),
   // Mensajes
   getUnreadCount: (playerId, token) => request(`/api/player/${playerId}/messages/unread-count`, { token }),
   getDailyReward: (playerId, token) => request(`/api/player/${playerId}/daily-reward`, { token }),

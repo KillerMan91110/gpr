@@ -42,7 +42,7 @@ function loadYouTubeApi() {
 export default function BackgroundMusic() {
   const { isAuthenticated } = useAuth();
   // en el mundo 2D suena su propia banda sonora (game/audio.js): esta se pausa
-  const inWorld = useLocation().pathname === '/mundo';
+  const inWorld = ['/mundo', '/editor'].includes(useLocation().pathname);
   const [ready, setReady] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem(MUTE_PREF_KEY) === 'true');
   const [volume, setVolume] = useState(() => {

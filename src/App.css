@@ -4700,6 +4700,23 @@ h1, h2, h3 {
   color: var(--gold-bright);
 }
 
+/* mundo 2D: pestaña Cerca */
+.chat-msg--gritar .chat-from,
+.chat-msg--gritar .chat-body {
+  color: #ff8a7a;
+  font-weight: 700;
+}
+
+.chat-msg--susurro .chat-from,
+.chat-msg--susurro .chat-body {
+  color: #f0a0e0;
+}
+
+.chat-msg--gesto .chat-body {
+  color: #c8c0a8;
+  font-style: italic;
+}
+
 .chat-error {
   margin: 0;
   padding: 0 10px;

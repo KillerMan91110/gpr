@@ -12,6 +12,14 @@ export const DIALOGUES = {
     name: 'Ren',
     role: 'Guardabosque',
     portrait: PORTRAIT('ren'),
+    // frases sueltas que dice en un globito cuando pasas cerca
+    ambient: [
+      'Cuidado con los lobos de noche…',
+      'Las huellas van hacia el lago. Otra vez.',
+      '¡El tablón tiene encargos nuevos!',
+      'Hmm… la tierra del sureste huele a ceniza.',
+      'Si ves un goblin con un saco, es mío.',
+    ],
     greet: ({ night, mark }) => {
       if (mark === '?') return pick([
         'Las huellas no mienten: hiciste lo que te pedí. Revisa tu diario y entrégame el encargo.',
@@ -43,6 +51,12 @@ export const DIALOGUES = {
     name: 'Lyra',
     role: 'Mercader',
     portrait: PORTRAIT('lyra'),
+    ambient: [
+      '¡Hierbas frescas! ¡Esencias de la capital!',
+      '¡Compro pieles y colmillos, buen precio!',
+      'Pociones para el camino, aventurero.',
+      'Hoy llegó una caravana del norte…',
+    ],
     greet: ({ night }) => (night
       ? pick(['¿A estas horas? Bueno, para un buen cliente la tienda nunca cierra.', 'Los artesanos ya duermen, pero yo me encargo de sus encargos. ¿Qué buscas?'])
       : pick(['¡Bienvenido! Hierbas frescas, esencias y materiales de los mejores artesanos del gremio.', 'Si traes botín de tus cacerías, te lo compro a buen precio. Palabra de mercader.'])),
@@ -59,6 +73,12 @@ export const DIALOGUES = {
     name: 'Goreth',
     role: 'Herrero',
     portrait: PORTRAIT('goreth'),
+    ambient: [
+      '*clang* *clang*',
+      'Este yunque tiene más años que tu abuelo.',
+      '¿Esa espada? Tráemela antes de que se parta.',
+      'Hmph. Hace calor en la fragua.',
+    ],
     greet: ({ night }) => (night
       ? pick(['El fuego de la fragua no se apaga nunca. Como mi mal humor.', 'Hmph. Otro que no duerme. ¿Qué necesitas forjar?'])
       : pick(['Trae materiales y te forjo algo que no se rompa al primer golpe.', '¿Esa espada? He visto palos más afilados. Déjame ver qué puedo hacer.'])),

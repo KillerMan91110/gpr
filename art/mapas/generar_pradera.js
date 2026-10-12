@@ -10,10 +10,30 @@
 // donde duerme el Titán. Los bordes anuncian la zona vecina (pinos y rocas hacia las Montañas).
 //
 // Uso: node art/mapas/generar_pradera.js   (con --preview además deja pradera_preview.json; ver bmp.js)
+//
+// OJO: desde que existe el editor de mapas (página /editor del juego), el mapa guardado manda. Si la
+// zona ya se editó a mano el generador no la pisa, salvo con --forzar (se pierde lo editado).
 const fs = require('fs');
 const path = require('path');
 
+const outDir = path.join(__dirname, '../../public/assets/mundo/pradera');
+try {
+  const prev = JSON.parse(fs.readFileSync(path.join(outDir, 'mundo.json'), 'utf8'));
+  if (prev.editado && !process.argv.includes('--forzar')) {
+    console.error('La Pradera ya se editó con el editor de mapas: no la piso. Usa --forzar para regenerarla igual (pierdes lo editado).');
+    process.exit(1);
+  }
+} catch { /* primera vez */ }
+
 const TILESET = require('../sprites/mundo/tileset_pradera.json');
+// ajustes de paso/encima por tile hechos en el editor (pestaña Tiles), por nombre de tile
+try {
+  const ajustes = JSON.parse(fs.readFileSync(path.join(__dirname, '../sprites/mundo/tileset_pradera.ajustes.json'), 'utf8'));
+  for (const t of TILESET.tiles) if (ajustes[t.nombre]) Object.assign(t, ajustes[t.nombre]);
+} catch { /* sin ajustes */ }
+// tipos de terreno lógico: cada trozo guarda el suyo por casilla (capa "terreno") para que el
+// editor sepa armar los bordes automáticos igual que este generador
+const TERRENOS = ['pasto', 'dorado', 'camino', 'agua', 'hierba', 'plaza', 'guarida', 'trigo', 'seco', 'meseta', 'cara', 'escalera', 'puente', 'muro'];
 const T = Object.fromEntries(TILESET.tiles.map((t) => [t.nombre, t.id + 1]));
 const CW = 40;
 const CH = 30;
@@ -551,8 +571,9 @@ const subzones = [
 ];
 
 // ---------------------------------------------------------------- partir en trozos
-const outDir = path.join(__dirname, '../../public/assets/mundo/pradera');
 fs.mkdirSync(outDir, { recursive: true });
+const terrainCodes = [];
+for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) terrainCodes.push(Math.max(0, TERRENOS.indexOf(terrain[y][x])));
 const tileLayer = (id, name, data) => ({ id, name, type: 'tilelayer', visible: true, opacity: 1, x: 0, y: 0, width: CW, height: CH, data });
 const tilesetRef = {
   firstgid: 1, name: 'pradera', image: '../tileset_pradera.png', imagewidth: TILESET.columns * 32,
@@ -586,6 +607,9 @@ for (let cy = 0; cy < ROWS; cy++) {
         { id: 4, name: 'puntos', type: 'objectgroup', visible: true, opacity: 1, x: 0, y: 0, draworder: 'topdown', objects: objs },
       ],
       tilesets: [tilesetRef],
+      // datos del editor: terreno lógico por casilla y paso forzado (índice → valor, ver WorldScene)
+      terreno: cut(terrainCodes),
+      paso: {},
     };
     const file = `chunk_${cx}_${cy}.json`;
     fs.writeFileSync(path.join(outDir, file), JSON.stringify(map));
@@ -594,7 +618,7 @@ for (let cy = 0; cy < ROWS; cy++) {
 }
 
 const world = {
-  nombre: 'Pradera Dorada', zona: 1, tile: 32, chunkWidth: CW, chunkHeight: CH, columns: COLS, rows: ROWS,
+  nombre: 'Pradera Dorada', zona: 1, tileset: 'pradera', terrenos: TERRENOS, tile: 32, chunkWidth: CW, chunkHeight: CH, columns: COLS, rows: ROWS,
   encuentroHierba: 0.07, gidHierba: T.hierba_alta,
   inicio: { x: px(P.spawn.x) + 16, y: px(P.spawn.y) + 16 },
   clima: { estacion: 'verano', lluvia: 0.25 },

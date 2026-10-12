@@ -1,6 +1,23 @@
 {
  "nombre": "Pradera Dorada",
  "zona": 1,
+ "tileset": "pradera",
+ "terrenos": [
+  "pasto",
+  "dorado",
+  "camino",
+  "agua",
+  "hierba",
+  "plaza",
+  "guarida",
+  "trigo",
+  "seco",
+  "meseta",
+  "cara",
+  "escalera",
+  "puente",
+  "muro"
+ ],
  "tile": 32,
  "chunkWidth": 40,
  "chunkHeight": 30,
@@ -90,88 +107,7 @@
    96
   ]
  },
- "chunks": [
-  {
-   "cx": 0,
-   "cy": 0,
-   "file": "chunk_0_0.json"
-  },
-  {
-   "cx": 1,
-   "cy": 0,
-   "file": "chunk_1_0.json"
-  },
-  {
-   "cx": 2,
-   "cy": 0,
-   "file": "chunk_2_0.json"
-  },
-  {
-   "cx": 3,
-   "cy": 0,
-   "file": "chunk_3_0.json"
-  },
-  {
-   "cx": 0,
-   "cy": 1,
-   "file": "chunk_0_1.json"
-  },
-  {
-   "cx": 1,
-   "cy": 1,
-   "file": "chunk_1_1.json"
-  },
-  {
-   "cx": 2,
-   "cy": 1,
-   "file": "chunk_2_1.json"
-  },
-  {
-   "cx": 3,
-   "cy": 1,
-   "file": "chunk_3_1.json"
-  },
-  {
-   "cx": 0,
-   "cy": 2,
-   "file": "chunk_0_2.json"
-  },
-  {
-   "cx": 1,
-   "cy": 2,
-   "file": "chunk_1_2.json"
-  },
-  {
-   "cx": 2,
-   "cy": 2,
-   "file": "chunk_2_2.json"
-  },
-  {
-   "cx": 3,
-   "cy": 2,
-   "file": "chunk_3_2.json"
-  },
-  {
-   "cx": 0,
-   "cy": 3,
-   "file": "chunk_0_3.json"
-  },
-  {
-   "cx": 1,
-   "cy": 3,
-   "file": "chunk_1_3.json"
-  },
-  {
-   "cx": 2,
-   "cy": 3,
-   "file": "chunk_2_3.json"
-  },
-  {
-   "cx": 3,
-   "cy": 3,
-   "file": "chunk_3_3.json"
-  }
- ],
+ "editado": true,
  "subzonas": [
   {
    "name": "Aldea Espiga",
@@ -277,6 +213,88 @@
    "x1": 5120,
    "y1": 3840,
    "levels": "1-15"
+  }
+ ],
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 1,
+   "cy": 0,
+   "file": "chunk_1_0.json"
+  },
+  {
+   "cx": 2,
+   "cy": 0,
+   "file": "chunk_2_0.json"
+  },
+  {
+   "cx": 3,
+   "cy": 0,
+   "file": "chunk_3_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
+  },
+  {
+   "cx": 1,
+   "cy": 1,
+   "file": "chunk_1_1.json"
+  },
+  {
+   "cx": 2,
+   "cy": 1,
+   "file": "chunk_2_1.json"
+  },
+  {
+   "cx": 3,
+   "cy": 1,
+   "file": "chunk_3_1.json"
+  },
+  {
+   "cx": 0,
+   "cy": 2,
+   "file": "chunk_0_2.json"
+  },
+  {
+   "cx": 1,
+   "cy": 2,
+   "file": "chunk_1_2.json"
+  },
+  {
+   "cx": 2,
+   "cy": 2,
+   "file": "chunk_2_2.json"
+  },
+  {
+   "cx": 3,
+   "cy": 2,
+   "file": "chunk_3_2.json"
+  },
+  {
+   "cx": 0,
+   "cy": 3,
+   "file": "chunk_0_3.json"
+  },
+  {
+   "cx": 1,
+   "cy": 3,
+   "file": "chunk_1_3.json"
+  },
+  {
+   "cx": 2,
+   "cy": 3,
+   "file": "chunk_2_3.json"
+  },
+  {
+   "cx": 3,
+   "cy": 3,
+   "file": "chunk_3_3.json"
   }
  ]
 }
