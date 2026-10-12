@@ -1,0 +1,986 @@
+/* =====================================================================================
+   Paneles flotantes del mundo: no bloquean el mapa
+   ===================================================================================== */
+/* capa propia por encima del chat global (55) que deja pasar los clics al mapa */
+.wp-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 57;
+  pointer-events: none;
+}
+
+.wp-panel {
+  pointer-events: auto;
+  position: absolute;
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(30, 24, 38, 0.97), rgba(16, 12, 20, 0.98));
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px #000, 0 0 0 4px rgba(138, 106, 40, 0.75), 0 16px 40px rgba(0, 0, 0, 0.7);
+  user-select: none;
+  animation: wp-panel-in 0.15s ease-out;
+}
+
+@keyframes wp-panel-in { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+
+.wp-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px 7px 8px;
+  background: linear-gradient(180deg, #3a2d1a, #1c1510);
+  border-bottom: 1px solid var(--gold);
+  border-radius: 7px 7px 0 0;
+  cursor: grab;
+  touch-action: none;
+}
+
+.wp-panel-head:active { cursor: grabbing; }
+
+.wp-panel-icon {
+  width: 34px;
+  height: 34px;
+  margin: -16px 0 -16px -16px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #4a3824, #1a120a);
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 0 2px #000;
+  color: var(--gold-bright);
+  font-size: 18px;
+}
+
+.wp-panel-head h2 {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font: 700 0.95rem 'Cinzel', serif;
+  color: var(--gold-bright);
+  letter-spacing: 0.1em;
+  text-shadow: 0 1px 3px #000;
+}
+
+.wp-panel-close {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #8a2a1a, #4a1208);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  color: #ffe6c0;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.wp-panel-close:hover { filter: brightness(1.25); }
+
+.wp-panel-body { padding: 10px 12px; }
+
+.wp-panel-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 12px 8px;
+  border-top: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+/* ---- casillas ---- */
+.wp-slot {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 40%, #2a2236, #0c0a10 80%);
+  border: 2px solid #3a3346;
+  border-radius: 5px;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9), 0 0 0 1px #000;
+  color: #ddd3bd;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.wp-slot--empty {
+  cursor: default;
+  background: linear-gradient(180deg, #16121c, #0d0b11);
+  border-color: #262030;
+}
+
+.wp-slot--placeholder { color: rgba(201, 193, 214, 0.18); cursor: default; }
+
+.wp-slot:not(.wp-slot--empty):not(.wp-slot--placeholder):hover {
+  filter: brightness(1.25);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9), 0 0 0 1px #000, 0 0 10px rgba(240, 216, 120, 0.4);
+}
+
+/* borde y brillo según rareza, como en los MMO */
+.wp-slot.wp-rarity-comun { border-color: #6e6878; }
+.wp-slot.wp-rarity-poco_comun { border-color: var(--rarity-poco_comun); color: #c6f5d2; }
+.wp-slot.wp-rarity-raro { border-color: var(--rarity-raro); color: #cfe6ff; }
+.wp-slot.wp-rarity-epico { border-color: var(--rarity-epico); color: #ead6ff; }
+.wp-slot.wp-rarity-legendario { border-color: var(--rarity-legendario); color: #ffe3b5; box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9), 0 0 8px rgba(240, 169, 58, 0.55); }
+.wp-slot.wp-rarity-unico { border-color: var(--rarity-unico); color: #ffd6fa; box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9), 0 0 8px rgba(232, 79, 216, 0.55); }
+
+.wp-slot-qty,
+.wp-slot-enchant {
+  position: absolute;
+  font: 700 11px 'EB Garamond', serif;
+  text-shadow: 0 1px 1px #000, 0 0 2px #000, 0 0 2px #000;
+  pointer-events: none;
+}
+
+.wp-slot-qty { right: 3px; bottom: 0; color: #fff; }
+.wp-slot-enchant { left: 3px; top: 0; color: #7dff9a; }
+
+/* ---- mochila ---- */
+.wp-search {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+  padding: 5px 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--gold-dim);
+  border-radius: 12px;
+  color: var(--cream);
+  font: 0.85rem 'EB Garamond', serif;
+  outline: none;
+}
+
+.wp-search:focus { border-color: var(--gold); }
+
+.wp-bag-grid {
+  display: grid;
+  gap: 4px;
+  max-height: 340px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+.wp-empty {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  text-align: center;
+  font-style: italic;
+}
+
+.wp-bag-msg { font-size: 0.78rem; color: var(--text-soft); }
+.wp-bag-msg.ok { color: #7dff9a; }
+.wp-bag-msg.err { color: #ff8a8a; }
+
+.wp-currency {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--gold-dim);
+  border-radius: 10px;
+  font: 700 0.82rem 'EB Garamond', serif;
+  color: var(--gold-bright);
+}
+
+/* ---- tooltip de ítem ---- */
+.wp-tooltip {
+  position: fixed;
+  z-index: 80;
+  width: max-content;
+  max-width: 250px;
+  padding: 8px 11px;
+  background: rgba(10, 8, 16, 0.96);
+  border: 1px solid #6e6878;
+  border-radius: 5px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  font: 0.82rem/1.35 'EB Garamond', serif;
+  color: var(--cream);
+}
+
+.wp-tooltip-name { font: 700 0.95rem 'Cinzel', serif; }
+.wp-tooltip-sub { color: var(--text-soft); font-size: 0.76rem; margin-bottom: 4px; }
+.wp-tooltip-stat { color: #7dff9a; }
+.wp-tooltip-req { color: var(--text-soft); font-size: 0.76rem; }
+.wp-tooltip-desc { margin-top: 5px; color: var(--gold-bright); font-style: italic; }
+.wp-tooltip-hint { margin-top: 6px; color: #8fc9ff; font-size: 0.74rem; }
+
+.wp-rarity-comun.wp-tooltip-name { color: var(--rarity-comun); }
+.wp-rarity-poco_comun.wp-tooltip-name { color: var(--rarity-poco_comun); }
+.wp-rarity-raro.wp-tooltip-name { color: var(--rarity-raro); }
+.wp-rarity-epico.wp-tooltip-name { color: var(--rarity-epico); }
+.wp-rarity-legendario.wp-tooltip-name { color: var(--rarity-legendario); }
+.wp-rarity-unico.wp-tooltip-name { color: var(--rarity-unico); }
+
+/* ---- ficha del personaje ---- */
+.wp-char-subtitle {
+  margin: -2px 0 10px;
+  text-align: center;
+  font: 600 0.85rem 'EB Garamond', serif;
+  color: var(--gold-bright);
+}
+
+.wp-char-subtitle span { color: #ff7a6a; }
+
+.wp-char {
+  display: flex;
+  gap: 12px;
+}
+
+.wp-char-paperdoll {
+  display: grid;
+  grid-template-columns: 48px 192px 48px;
+  grid-template-rows: auto auto;
+  column-gap: 6px;
+  row-gap: 8px;
+  padding: 10px;
+  background:
+    radial-gradient(ellipse at 50% 60%, rgba(120, 95, 60, 0.35), transparent 65%),
+    linear-gradient(180deg, #1c1824, #0d0b11);
+  border: 1px solid #3a3346;
+  border-radius: 6px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.wp-char-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 8px;
+}
+
+.wp-char-bottom {
+  grid-column: 1 / 4;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.wp-char-preview {
+  position: relative;
+  width: 192px;
+  height: 192px;
+  align-self: center;
+}
+
+/* sprite de combate (48x48, 19 frames en fila) a 4x, animando el idle (frames 0 y 1) */
+.wp-char-sprite {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-repeat: no-repeat;
+  background-size: calc(192px * 19) 192px;
+  image-rendering: pixelated;
+  animation: wp-idle 0.8s steps(2) infinite;
+}
+
+@keyframes wp-idle {
+  from { background-position: 0 0; }
+  to { background-position: -384px 0; }
+}
+
+.wp-char-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  width: 100px;
+  height: 16px;
+  transform: translateX(-60%);
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.6), transparent 70%);
+}
+
+.wp-char-stats {
+  flex: 1;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+.wp-stat-section {
+  margin-bottom: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2e2838;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.wp-stat-section h3 {
+  margin: 0;
+  padding: 3px 10px;
+  font: 700 0.78rem 'Cinzel', serif;
+  color: var(--gold-bright);
+  letter-spacing: 0.08em;
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.22), transparent);
+  border-bottom: 1px solid #2e2838;
+}
+
+.wp-stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 10px;
+  font: 0.82rem 'EB Garamond', serif;
+  color: var(--text-soft);
+}
+
+.wp-stat-row strong { color: var(--cream); font-weight: 600; }
+.wp-stat-row strong.wp-stat--up { color: #7dff9a; }
+.wp-stat-row strong.wp-stat--hp { color: #ff8a96; }
+.wp-stat-row strong.wp-stat--mp { color: #8fc9ff; }
+
+/* filas de elementos con su color (pestaña Elementos de la ficha) */
+.wp-elem-row { align-items: center; padding-top: 3px; padding-bottom: 3px; }
+
+.wp-elem-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--elem);
+  font-weight: 600;
+}
+
+.wp-elem-icon {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--elem) 45%, #000), #0c0a10);
+  border: 1px solid var(--elem);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--elem) 50%, transparent);
+  color: var(--elem);
+  font-size: 12px;
+}
+
+.wp-stat-row.wp-elem-row strong { color: var(--elem); }
+
+/* el elemento siempre con su color; solo el número se apaga cuando es 0 */
+.wp-stat-row.wp-elem-row--zero strong { color: var(--text-soft); opacity: 0.6; }
+
+.wp-stat-text {
+  margin: 0;
+  padding: 4px 10px 6px;
+  font: 0.8rem/1.35 'EB Garamond', serif;
+  color: var(--text-soft);
+}
+
+.wp-stat-text strong { color: var(--gold-bright); }
+
+.wp-rank-badge {
+  width: 54px;
+  height: 54px;
+  margin: 8px auto 6px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #f6e08c, #b8902c);
+  border: 3px solid #1a1206;
+  box-shadow: 0 0 0 2px var(--gold), 0 0 14px rgba(240, 216, 120, 0.4);
+  font: 900 1.6rem 'Cinzel', serif;
+  color: #1a1206;
+}
+
+/* pestañas abajo, como Character / Reputation / Currency */
+.wp-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.wp-tab {
+  padding: 4px 14px;
+  background: linear-gradient(180deg, #2a2234, #15111b);
+  border: 1px solid var(--gold-dim);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  font: 700 0.75rem 'Cinzel', serif;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.wp-tab--active {
+  background: linear-gradient(180deg, #4a3a1c, #2a1f10);
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+
+.wp-char-msg {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: #7dff9a;
+}
+
+/* =====================================================================================
+   Piezas comunes de los paneles
+   ===================================================================================== */
+.wp-btn {
+  padding: 6px 14px;
+  background: linear-gradient(180deg, #2e2440, #16111d);
+  border: 1px solid var(--gold-dim);
+  border-radius: 5px;
+  color: var(--cream);
+  font: 700 0.78rem 'Cinzel', serif;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.wp-btn:hover:not(:disabled) { border-color: var(--gold-bright); color: #fff; }
+.wp-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.wp-btn--gold {
+  background: linear-gradient(180deg, #f6e08c, #b8902c);
+  border-color: #1a1206;
+  color: #1a1206;
+}
+
+.wp-btn--gold:hover:not(:disabled) { color: #000; filter: brightness(1.08); }
+
+.wp-btn--danger { background: linear-gradient(180deg, #5a1a20, #2a0a10); border-color: #8a3a3a; color: #ffd6d6; }
+.wp-btn--wide { width: 100%; margin-top: 10px; }
+
+.wp-foot-note { font-size: 0.78rem; color: var(--text-soft); margin-left: auto; }
+.wp-foot-note.ok { color: #7dff9a; }
+.wp-foot-note.err { color: #ff8a8a; }
+
+/* lista a la izquierda + detalle a la derecha (habilidades, misiones) */
+.wp-split {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  gap: 10px;
+  height: 380px;
+}
+
+.wp-skill-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+.wp-skill,
+.wp-quest {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2e2838;
+  border-radius: 5px;
+  color: var(--cream);
+  text-align: left;
+  cursor: pointer;
+  font: 0.82rem 'EB Garamond', serif;
+}
+
+.wp-quest { grid-template-columns: 1fr; gap: 0; padding: 6px 8px; }
+.wp-quest small { color: var(--text-soft); font-size: 0.72rem; }
+.wp-quest-name { font-weight: 600; }
+
+.wp-skill:hover,
+.wp-quest:hover { border-color: var(--gold-dim); background: rgba(212, 175, 55, 0.08); }
+
+.wp-skill.wp-skill--active,
+.wp-quest.wp-skill--active { border-color: var(--gold); background: rgba(212, 175, 55, 0.16); }
+
+.wp-skill--locked { opacity: 0.55; }
+.wp-skill--locked .wp-skill-icon { filter: grayscale(1); }
+
+.wp-skill-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 40%, #3a2d52, #120e18);
+  border: 1px solid var(--gold-dim);
+  border-radius: 5px;
+  color: #f0d8a0;
+  font-size: 19px;
+}
+
+.wp-skill-icon.wp-skill-icon--big { width: 50px; height: 50px; font-size: 30px; border-color: var(--gold); }
+.wp-skill-name { font-weight: 600; }
+.wp-skill-meta { font-size: 0.72rem; color: #8fc9ff; }
+
+.wp-detail {
+  overflow-y: auto;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2e2838;
+  border-radius: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+.wp-detail-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.wp-detail h3 { margin: 0; font: 700 1.05rem 'Cinzel', serif; color: var(--gold-bright); }
+.wp-detail-sub { font-size: 0.78rem; color: var(--text-soft); }
+.wp-detail-desc { margin: 8px 0; font: 0.88rem/1.45 'EB Garamond', serif; color: var(--cream); }
+
+.wp-detail-desc.wp-parchment {
+  padding: 10px 12px;
+  background: linear-gradient(180deg, #e8d8b0, #cdb684);
+  border: 1px solid #8a6a3a;
+  border-radius: 4px;
+  color: #3a2810;
+  font-style: italic;
+  box-shadow: inset 0 0 18px rgba(120, 80, 30, 0.35);
+}
+
+.wp-detail-rows > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  border-bottom: 1px dashed rgba(212, 175, 55, 0.15);
+  font: 0.85rem 'EB Garamond', serif;
+  color: var(--text-soft);
+}
+
+.wp-detail-rows strong { color: var(--cream); }
+.wp-detail-rows strong.wp-stat--up { color: #7dff9a; }
+.wp-detail-rows strong.wp-stat--mp { color: #8fc9ff; }
+.wp-detail-rows strong.wp-stat--locked { color: #ff9a7a; }
+
+.wp-detail-effects { margin: 8px 0 0; padding-left: 18px; font-size: 0.8rem; color: #7dff9a; }
+.wp-detail-effects li::first-letter { text-transform: uppercase; }
+
+.wp-detail-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+.wp-subhead {
+  margin: 10px 0 4px;
+  font: 700 0.78rem 'Cinzel', serif;
+  color: var(--gold-bright);
+  letter-spacing: 0.08em;
+}
+
+/* ---- misiones ---- */
+.wp-quest-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.wp-stars { color: var(--gold-bright); font-size: 0.8rem; letter-spacing: 1px; }
+.wp-stars span { color: #4a4058; }
+
+.wp-objectives { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+
+.wp-objectives li {
+  display: grid;
+  grid-template-columns: 1fr 70px auto;
+  align-items: center;
+  gap: 8px;
+  font: 0.84rem 'EB Garamond', serif;
+  color: var(--cream);
+}
+
+.wp-objectives li.done { color: #7dff9a; }
+.wp-objectives small { color: var(--text-soft); }
+
+.wp-objective-bar {
+  height: 6px;
+  background: #0b0910;
+  border: 1px solid #000;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.wp-objective-bar span { display: block; height: 100%; background: linear-gradient(90deg, #c49a2c, #f6e08c); }
+
+.wp-rewards { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.wp-rewards > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #2e2838;
+  border-radius: 10px;
+  font: 600 0.8rem 'EB Garamond', serif;
+  color: #8fc9ff;
+}
+
+.wp-rewards > span.wp-rewards-gold,
+.wp-rank-value.wp-rewards-gold { color: var(--gold-bright); }
+
+/* ---- mapa del mundo ---- */
+.wp-map {
+  position: relative;
+  height: 360px;
+  border-radius: 6px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 30% 30%, rgba(255, 255, 255, 0.25), transparent 55%),
+    radial-gradient(ellipse at 70% 80%, rgba(120, 80, 30, 0.25), transparent 50%),
+    linear-gradient(135deg, #e6d3a3, #cbb27a 60%, #b89a5e);
+  border: 2px solid #6a4a20;
+  box-shadow: inset 0 0 40px rgba(80, 50, 10, 0.55);
+}
+
+.wp-map-path { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.wp-map-path polyline {
+  fill: none;
+  stroke: #6a4a20;
+  stroke-width: 3;
+  stroke-dasharray: 8 7;
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+
+.wp-map-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.wp-map-node-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #4a3824, #1a120a);
+  border: 3px solid var(--gold);
+  box-shadow: 0 0 0 2px #2a1a08, 0 4px 10px rgba(0, 0, 0, 0.5);
+  color: var(--gold-bright);
+  font-size: 22px;
+  transition: transform 0.15s;
+}
+
+.wp-map-node:hover .wp-map-node-icon { transform: scale(1.1); }
+.wp-map-node--selected .wp-map-node-icon { box-shadow: 0 0 0 2px #2a1a08, 0 0 18px rgba(255, 220, 120, 0.9); }
+.wp-map-node--locked .wp-map-node-icon { filter: grayscale(1) brightness(0.7); border-color: #6a6060; }
+
+.wp-map-node-label {
+  margin-top: 3px;
+  padding: 1px 8px;
+  background: rgba(40, 26, 10, 0.85);
+  border-radius: 8px;
+  font: 700 0.7rem 'Cinzel', serif;
+  color: #f6e6c0;
+  white-space: nowrap;
+}
+
+.wp-map-node-crown { position: absolute; top: -12px; right: -6px; color: #ffd84a; font-size: 16px; filter: drop-shadow(0 1px 1px #000); }
+
+.wp-map-here {
+  position: absolute;
+  top: -26px;
+  padding: 1px 8px;
+  background: #8a1a1a;
+  border: 1px solid #ffd6a0;
+  border-radius: 8px;
+  font: 700 0.62rem 'Cinzel', serif;
+  color: #fff;
+  white-space: nowrap;
+  animation: wp-bounce 1.2s ease-in-out infinite;
+}
+
+@keyframes wp-bounce { 50% { transform: translateY(-3px); } }
+
+.wp-map-compass { position: absolute; right: 12px; bottom: 10px; font-size: 44px; color: rgba(90, 60, 20, 0.6); }
+
+.wp-map-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.wp-map-info h3 { margin: 0; font: 700 1rem 'Cinzel', serif; color: var(--gold-bright); }
+.wp-map-info h3 small { font: 0.78rem 'EB Garamond', serif; color: var(--text-soft); }
+.wp-map-info p { margin: 2px 0 0; font: 0.82rem 'EB Garamond', serif; color: var(--text-soft); }
+.wp-map-status { font: 700 0.78rem 'Cinzel', serif; color: #7dff9a; white-space: nowrap; }
+.wp-map-status.wp-map-status--locked { color: #ff9a7a; }
+
+/* ---- logros ---- */
+.wp-ach-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+.wp-ach {
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid #2e2838;
+  border-radius: 6px;
+}
+
+.wp-ach.wp-ach--done { border-color: var(--gold-dim); background: linear-gradient(135deg, rgba(212, 175, 55, 0.14), rgba(0, 0, 0, 0.3)); }
+
+.wp-ach-medal {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #2a2236, #0c0a10);
+  border: 2px solid #4a4058;
+  color: #6a6078;
+  font-size: 22px;
+}
+
+.wp-ach--done .wp-ach-medal { border-color: var(--gold); color: var(--gold-bright); box-shadow: 0 0 10px rgba(240, 216, 120, 0.4); }
+
+.wp-ach-body { flex: 1; min-width: 0; }
+.wp-ach-body strong { font: 700 0.85rem 'Cinzel', serif; color: var(--cream); }
+.wp-ach--done .wp-ach-body strong { color: var(--gold-bright); }
+.wp-ach-body p { margin: 2px 0; font: 0.76rem/1.3 'EB Garamond', serif; color: var(--text-soft); }
+.wp-ach-bonus { display: block; color: #7dff9a; font-size: 0.72rem; }
+
+.wp-ach-bar {
+  display: block;
+  height: 5px;
+  margin-top: 4px;
+  background: #0b0910;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.wp-ach-bar span { display: block; height: 100%; background: linear-gradient(90deg, #c49a2c, #f6e08c); }
+.wp-ach-progress { font-size: 0.68rem; color: var(--text-soft); }
+
+.wp-ach-total { display: flex; align-items: center; gap: 10px; width: 100%; font: 600 0.8rem 'EB Garamond', serif; color: var(--gold-bright); }
+.wp-ach-total-bar { flex: 1; height: 7px; background: #0b0910; border: 1px solid #000; border-radius: 4px; overflow: hidden; }
+.wp-ach-total-bar span { display: block; height: 100%; background: linear-gradient(90deg, #c49a2c, #f6e08c); }
+
+/* ---- ranking ---- */
+.wp-rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+.wp-rank-row {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2e2838;
+  border-radius: 5px;
+  font: 0.86rem 'EB Garamond', serif;
+  color: var(--cream);
+}
+
+.wp-rank-row.wp-rank-row--me { border-color: var(--gold); background: rgba(212, 175, 55, 0.14); }
+.wp-rank-pos { text-align: center; font: 700 1rem 'Cinzel', serif; color: var(--text-soft); }
+.wp-rank-row--top1 .wp-rank-pos { color: #ffd84a; font-size: 1.3rem; }
+.wp-rank-row--top2 .wp-rank-pos { color: #d8dde8; font-size: 1.2rem; }
+.wp-rank-row--top3 .wp-rank-pos { color: #d8905a; font-size: 1.1rem; }
+.wp-rank-name { display: flex; flex-direction: column; font-weight: 600; }
+.wp-rank-name small { font-weight: 400; color: var(--text-soft); font-size: 0.72rem; }
+.wp-rank-value { display: inline-flex; align-items: center; gap: 4px; font: 700 0.82rem 'Cinzel', serif; color: var(--gold-bright); }
+
+/* ---- enfermería ---- */
+.wp-heal-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(212, 175, 55, 0.15);
+}
+
+.wp-heal-info { flex: 1; display: flex; flex-direction: column; gap: 3px; font: 600 0.85rem 'EB Garamond', serif; color: var(--cream); }
+
+/* ---- pantallas completas dentro del marco (gremio, mercado, formación, mascotas) ---- */
+.wp-panel--embed .wp-panel-body { padding: 0; }
+
+.wp-embed {
+  max-height: min(70vh, 640px);
+  overflow-y: auto;
+  padding: 0 10px 10px;
+  user-select: text;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+
+/* dentro del marco sobran los "Volver" de cada pantalla */
+.wp-embed .logout-btn { display: none; }
+
+.wp-embed-nav {
+  padding: 8px 10px 0;
+}
+
+.wp-embed-nav .wp-btn { padding: 3px 12px; }
+
+/* ---- "skin" de juego para las pantallas clásicas dentro del marco ----
+   Las pantallas de la web (gremio, mercado, mascotas…) se diseñaron como páginas: cabecera
+   grande, tarjetas con mucho aire y botones dorados macizos. Aquí se compactan y se visten
+   como el resto de ventanas del mundo (ranuras oscuras, botones de cuero, pestañas). */
+.wp-embed .dashboard {
+  max-width: none;
+  margin: 0;
+  padding: 10px 2px 4px;
+  font-size: 0.92rem;
+}
+
+/* la ventana ya tiene título: la cabecera de la página queda como un subtítulo discreto */
+.wp-embed .dashboard-header {
+  margin: 0 0 10px;
+  padding: 0 2px 8px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.18);
+  align-items: center;
+}
+
+.wp-embed .dashboard-header h1 {
+  display: none;
+}
+
+.wp-embed .dashboard-subtitle {
+  margin: 0;
+  font: italic 0.88rem 'EB Garamond', serif;
+  color: var(--text-soft);
+}
+
+.wp-embed .rpg-panel {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.42));
+  border: 1px solid rgba(138, 106, 40, 0.55);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 230, 160, 0.06), inset 0 0 18px rgba(0, 0, 0, 0.35);
+}
+
+.wp-embed .rpg-panel::before,
+.wp-embed .rpg-panel::after { display: none; }
+
+.wp-embed .dash-panel { padding: 10px 12px; margin-bottom: 10px; }
+
+.wp-embed .panel-title,
+.wp-embed .guild-category-title {
+  margin: 4px 0 8px;
+  padding: 0 0 5px;
+  font: 700 0.72rem 'Cinzel', serif;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.18);
+}
+
+.wp-embed h2,
+.wp-embed h3 { font-family: 'Cinzel', serif; }
+
+.wp-embed h2 { font-size: 0.95rem; color: var(--gold-bright); margin: 6px 0 8px; }
+
+/* tarjetas de sección (gremio): filas compactas que se iluminan al pasar */
+.wp-embed .zone-list { gap: 6px; }
+
+.wp-embed .zone-card {
+  padding: 8px 12px;
+  gap: 2px;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.wp-embed a.zone-card:hover {
+  border-color: var(--gold);
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.14), rgba(0, 0, 0, 0.3));
+  text-decoration: none;
+}
+
+.wp-embed .zone-card-header h3 { font-size: 0.9rem; }
+.wp-embed .zone-description { font-size: 0.82rem; }
+
+/* botones: de lingote dorado a botón de cuero con borde dorado */
+.wp-embed .rpg-button {
+  padding: 6px 14px;
+  background: linear-gradient(180deg, #2e2440, #16111d);
+  border: 1px solid var(--gold-dim);
+  border-radius: 5px;
+  box-shadow: inset 0 1px 0 rgba(255, 230, 160, 0.08), 0 2px 0 rgba(0, 0, 0, 0.5);
+  color: var(--cream);
+  font-size: 0.74rem;
+  text-shadow: 0 1px 2px #000;
+}
+
+.wp-embed .rpg-button:hover:not(:disabled) {
+  filter: none;
+  border-color: var(--gold-bright);
+  color: #fff;
+}
+
+.wp-embed .rpg-button--small { padding: 3px 10px; font-size: 0.68rem; }
+
+/* la acción principal de cada tarjeta (comprar, incubar, contratar…) sí va en dorado */
+.wp-embed .equipment-action,
+.wp-embed .rpg-button[type='submit'] {
+  background: linear-gradient(180deg, #f6e08c, #b8902c);
+  border-color: #1a1206;
+  color: #1a1206;
+  text-shadow: none;
+}
+
+.wp-embed .equipment-action:hover:not(:disabled),
+.wp-embed .rpg-button[type='submit']:hover:not(:disabled) { color: #000; filter: brightness(1.08); }
+
+/* pestañas y filtros (mercado, misiones): la activa resalta, nunca texto dorado sobre dorado */
+.wp-embed .quest-tabs { gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+
+.wp-embed .quest-tab--active,
+.wp-embed .rpg-button.quest-tab--active {
+  background: linear-gradient(180deg, #4a3a1c, #2a1f10);
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+
+.wp-embed .craft-filter-bar { gap: 6px; margin-bottom: 8px; }
+
+.wp-embed .rpg-input,
+.wp-embed select,
+.wp-embed input[type='number'],
+.wp-embed input[type='text'] {
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--gold-dim);
+  border-radius: 5px;
+  color: var(--cream);
+  font: 0.85rem 'EB Garamond', serif;
+}
+
+.wp-embed .rpg-input:focus,
+.wp-embed select:focus,
+.wp-embed input:focus { border-color: var(--gold); outline: none; }
+
+/* rejillas de objetos: tarjetas más apretadas con la rareza en el borde izquierdo */
+.wp-embed .item-grid {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.wp-embed .inventory-item { padding: 8px 10px; gap: 4px; }
+.wp-embed .hint { font-size: 0.78rem; }
+
+.wp-embed .npc-card,
+.wp-embed .formation-member { padding: 10px 12px; }
+
+.wp-embed .dashboard-loading {
+  padding: 30px;
+  text-align: center;
+  font: italic 0.9rem 'EB Garamond', serif;
+  color: var(--text-soft);
+}

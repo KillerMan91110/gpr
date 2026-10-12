@@ -12,6 +12,7 @@ const CATEGORIES = [
     gameIcon: { name: 'crossed-swords', artist: 'lorc' },
     label: 'Aventura',
     items: [
+      { to: '/mundo', label: 'Mundo (beta)', gameIcon: { name: 'treasure-map', artist: 'lorc' } },
       { to: '/combat', label: 'Explorar', gameIcon: { name: 'compass', artist: 'lorc' } },
       { to: '/abismo', label: 'El Abismo', gameIcon: { name: 'vortex', artist: 'lorc' } },
       { to: '/worldboss', label: 'World Boss', gameIcon: { name: 'galaxy', artist: 'delapouite' } },
@@ -152,6 +153,9 @@ export default function NavBar() {
         return cat;
       })
     : CATEGORIES;
+
+  // El mundo 2D tiene su propio HUD (barra de accesos con teclas): ahí la barra de navegación sobra
+  if (location.pathname === '/mundo') return null;
 
   return (
     <nav className="app-navbar" ref={rootRef}>

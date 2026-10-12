@@ -1,0 +1,584 @@
+/* =====================================================================================
+   Mundo 2D: el mapa (canvas de Phaser) ocupa toda la pantalla y el HUD flota encima,
+   al estilo de un MMORPG: marco del héroe, grupo, minimapa, barra de acciones y chat.
+   ===================================================================================== */
+.world-root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #1a2416;
+  --hud-bg: linear-gradient(180deg, rgba(34, 27, 44, 0.92), rgba(18, 14, 24, 0.94));
+  --hud-border: #8a6a28;
+  --hud-glow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 230, 160, 0.12);
+}
+
+.world-canvas,
+.world-canvas canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+/* ---- barras de vida / maná ---- */
+.hud-bar {
+  position: relative;
+  height: 14px;
+  background: linear-gradient(180deg, #0b0910, #1c1724);
+  border: 1px solid #000;
+  border-radius: 7px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(138, 106, 40, 0.55);
+  overflow: hidden;
+}
+
+.hud-bar--thin { height: 7px; border-radius: 4px; }
+
+.hud-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.4s ease;
+  position: relative;
+}
+
+/* brillo superior, como vidrio */
+.hud-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 50% 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.05));
+  border-radius: inherit;
+}
+
+.hud-bar span {
+  position: absolute;
+  inset: 0;
+  font: 600 10px/14px 'EB Garamond', serif;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 1px 2px #000, 0 0 3px #000;
+  letter-spacing: 0.03em;
+}
+
+.hud-bar--hp .hud-bar-fill { background: linear-gradient(180deg, #ff6b78, #c02a3c 55%, #7a1020); }
+.hud-bar--mp .hud-bar-fill { background: linear-gradient(180deg, #7ec0ff, #2f74d0 55%, #143a66); }
+
+/* ---- marco del héroe ---- */
+.hud-unit {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.hud-portrait {
+  position: relative;
+  z-index: 2;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 3px solid var(--gold);
+  background: radial-gradient(circle at 50% 35%, #3a2d4a, #120e18);
+  box-shadow: 0 0 0 2px #000, 0 0 14px rgba(240, 216, 120, 0.35), inset 0 0 12px rgba(0, 0, 0, 0.8);
+  overflow: visible;
+  display: grid;
+  place-items: center;
+  color: var(--gold-bright);
+  font-size: 40px;
+}
+
+.hud-portrait img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 12%;
+}
+
+.hud-level {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 26px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 11px;
+  background: linear-gradient(180deg, #f6e08c, #b8902c);
+  border: 2px solid #1a1206;
+  color: #1a1206;
+  font: 900 12px/18px 'Cinzel', serif;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.hud-unit-body {
+  margin-left: -18px;
+  padding: 7px 12px 7px 26px;
+  width: 210px;
+  background: var(--hud-bg);
+  border: 1px solid var(--hud-border);
+  border-left: none;
+  border-radius: 0 10px 10px 0;
+  box-shadow: var(--hud-glow);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hud-unit-name {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.hud-unit-name span {
+  font: 700 0.95rem 'Cinzel', serif;
+  color: var(--gold-bright);
+  text-shadow: 0 1px 2px #000;
+  letter-spacing: 0.04em;
+}
+
+.hud-unit-name small {
+  font-size: 0.72rem;
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+.hud-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: 600 0.78rem 'EB Garamond', serif;
+  color: var(--gold-bright);
+}
+
+/* ---- compañeros ---- */
+.hud-party {
+  position: absolute;
+  top: 104px;
+  left: 22px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  user-select: none;
+}
+
+.hud-party-member {
+  display: flex;
+  align-items: center;
+  width: 190px;
+}
+
+.hud-party-icon {
+  position: relative;
+  z-index: 2;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid var(--gold-dim);
+  background: #120e18;
+  box-shadow: 0 0 0 1px #000;
+  display: grid;
+  place-items: center;
+  color: var(--gold-bright);
+  font-size: 20px;
+  overflow: hidden;
+}
+
+.hud-party-icon img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; }
+
+.hud-party-body {
+  flex: 1;
+  margin-left: -10px;
+  padding: 4px 8px 5px 16px;
+  background: var(--hud-bg);
+  border: 1px solid rgba(138, 106, 40, 0.6);
+  border-left: none;
+  border-radius: 0 7px 7px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hud-party-name {
+  font: 600 0.74rem 'EB Garamond', serif;
+  color: var(--cream);
+}
+
+.hud-party-name small { color: var(--text-soft); }
+
+/* ---- minimapa ---- */
+.hud-minimap {
+  position: absolute;
+  z-index: 20;
+  border: 3px solid var(--gold);
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px #000, 0 0 0 4px rgba(138, 106, 40, 0.8), 0 8px 20px rgba(0, 0, 0, 0.6),
+    inset 0 0 18px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+.hud-minimap-zone {
+  position: absolute;
+  left: 50%;
+  bottom: -14px;
+  transform: translateX(-50%);
+  padding: 2px 12px;
+  white-space: nowrap;
+  background: linear-gradient(180deg, #2a2034, #140f1a);
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  font: 700 0.7rem 'Cinzel', serif;
+  color: var(--gold-bright);
+  letter-spacing: 0.06em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- barra de acciones ---- */
+.hud-actionbar {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+}
+
+.hud-xp {
+  position: relative;
+  height: 9px;
+  margin: 0 10px;
+  background: #0b0910;
+  border: 1px solid #000;
+  border-radius: 5px;
+  box-shadow: 0 0 0 1px rgba(138, 106, 40, 0.6);
+  overflow: hidden;
+}
+
+.hud-xp-fill {
+  height: 100%;
+  background: linear-gradient(180deg, #f6e08c, #c49a2c 60%, #7a5e22);
+  box-shadow: 0 0 8px rgba(240, 216, 120, 0.6);
+  transition: width 0.5s ease;
+}
+
+.hud-xp span {
+  position: absolute;
+  inset: -3px 0 0;
+  font: 600 9px/14px 'EB Garamond', serif;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 1px 2px #000;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.hud-xp:hover span { opacity: 1; }
+
+.hud-slots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--hud-bg);
+  border: 1px solid var(--hud-border);
+  border-radius: 10px;
+  box-shadow: var(--hud-glow);
+}
+
+.hud-slots-sep {
+  width: 1px;
+  height: 34px;
+  margin: 0 4px;
+  background: linear-gradient(180deg, transparent, var(--gold-dim), transparent);
+}
+
+.hud-slot {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 40%, #2e2440, #0f0c15 75%);
+  border: 1px solid #000;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px var(--gold-dim), inset 0 0 10px rgba(0, 0, 0, 0.9);
+  color: #e6d39a;
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.15s, color 0.15s;
+}
+
+.hud-slot:hover {
+  color: #fff6d0;
+  box-shadow: 0 0 0 1px var(--gold-bright), 0 0 12px rgba(240, 216, 120, 0.45), inset 0 0 10px rgba(0, 0, 0, 0.9);
+  transform: translateY(-2px);
+}
+
+.hud-slot:active { transform: translateY(0); }
+
+.hud-slot--active {
+  color: #fff6d0;
+  box-shadow: 0 0 0 2px var(--gold-bright), 0 0 14px rgba(240, 216, 120, 0.55), inset 0 0 12px rgba(212, 175, 55, 0.35);
+}
+
+.hud-slot kbd {
+  position: absolute;
+  top: 1px;
+  left: 3px;
+  font: 700 9px 'Cinzel', serif;
+  color: #fff;
+  text-shadow: 0 1px 1px #000, 0 0 2px #000;
+}
+
+.hud-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  padding: 4px 10px;
+  white-space: nowrap;
+  background: linear-gradient(180deg, #2a2034, #140f1a);
+  border: 1px solid var(--gold);
+  border-radius: 5px;
+  font: 600 0.78rem 'Cinzel', serif;
+  color: var(--gold-bright);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.hud-slot:hover .hud-tooltip { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---- acción contextual (como el "Go to Market") ---- */
+.hud-context {
+  position: absolute;
+  right: 18px;
+  bottom: 24px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 20px 8px 8px;
+  background: var(--hud-bg);
+  border: 2px solid var(--gold);
+  border-radius: 30px;
+  box-shadow: var(--hud-glow), 0 0 18px rgba(240, 216, 120, 0.25);
+  cursor: pointer;
+  animation: hud-context-in 0.25s ease-out;
+}
+
+.hud-context:hover { box-shadow: var(--hud-glow), 0 0 24px rgba(240, 216, 120, 0.5); }
+
+.hud-context-key {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #f6e08c, #b8902c);
+  border: 2px solid #1a1206;
+  font: 900 15px 'Cinzel', serif;
+  color: #1a1206;
+}
+
+.hud-context-label {
+  font: 700 0.9rem 'Cinzel', serif;
+  color: var(--gold-bright);
+  letter-spacing: 0.03em;
+}
+
+@keyframes hud-context-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- nombre de la zona al entrar ---- */
+.hud-zone-title {
+  position: absolute;
+  top: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 18;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font: 900 2.4rem 'Cinzel', serif;
+  color: var(--gold-bright);
+  letter-spacing: 0.12em;
+  text-shadow: 0 2px 4px #000, 0 0 20px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  white-space: nowrap;
+  animation: hud-zone-title 4s ease forwards;
+}
+
+.hud-zone-title small {
+  font-size: 0.85rem;
+  letter-spacing: 0.4em;
+  color: var(--cream);
+  text-transform: uppercase;
+}
+
+@keyframes hud-zone-title {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  15%, 70% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(0); }
+}
+
+/* ---- encuentro con un monstruo ---- */
+.world-encounter {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  animation: world-encounter-flash 1.4s ease forwards;
+}
+
+.world-encounter-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 40px;
+  font: 900 1.7rem 'Cinzel', serif;
+  color: var(--gold-bright);
+  letter-spacing: 0.06em;
+  background: linear-gradient(90deg, transparent, rgba(10, 8, 16, 0.92) 15%, rgba(10, 8, 16, 0.92) 85%, transparent);
+  border-top: 1px solid var(--gold);
+  border-bottom: 1px solid var(--gold);
+  text-shadow: 0 2px 6px #000;
+}
+
+.world-encounter-text small {
+  font-size: 0.8rem;
+  letter-spacing: 0.5em;
+  color: #ff8a8a;
+}
+
+@keyframes world-encounter-flash {
+  0% { background: rgba(255, 255, 255, 0.6); }
+  20% { background: rgba(0, 0, 0, 0); }
+  100% { background: rgba(0, 0, 0, 0.85); }
+}
+
+
+/* ---- chat global, más discreto dentro del mundo ---- */
+body.en-mundo .chat-box {
+  background: rgba(12, 10, 18, 0.32);
+  border-color: rgba(212, 175, 55, 0.25);
+  box-shadow: none;
+  backdrop-filter: blur(1.5px);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+body.en-mundo .chat-box::before,
+body.en-mundo .chat-box::after { opacity: 0.25; }
+
+body.en-mundo .chat-box .chat-head,
+body.en-mundo .chat-box .chat-input { background: transparent; border-color: rgba(212, 175, 55, 0.12); }
+
+body.en-mundo .chat-box .chat-msg { text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+
+body.en-mundo .chat-box .rpg-input {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(212, 175, 55, 0.25);
+}
+
+/* al pasar el ratón o al escribir vuelve a ser legible */
+body.en-mundo .chat-box:hover,
+body.en-mundo .chat-box:focus-within {
+  background: rgba(12, 10, 18, 0.78);
+  border-color: var(--gold-dim);
+}
+
+/* ---- jefes ---- */
+.world-root .hud-context--boss { border-color: #ff6a5a; box-shadow: var(--hud-glow), 0 0 22px rgba(255, 90, 70, 0.45); }
+.hud-context--boss .hud-context-key { background: linear-gradient(180deg, #ff9a7a, #b8302a); }
+.hud-context--boss .hud-context-label { color: #ffc0b0; }
+
+.world-encounter-text.world-encounter-text--boss { color: #ffb0a0; font-size: 2.2rem; }
+.world-encounter-text--boss small { color: #ffd84a; }
+
+.boss-prompt {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle, rgba(60, 0, 0, 0.25), rgba(0, 0, 0, 0.7));
+  animation: hud-context-in 0.2s ease-out;
+}
+
+.boss-prompt-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 380px;
+  max-width: 460px;
+  padding: 22px 32px;
+  background: linear-gradient(180deg, rgba(40, 14, 18, 0.97), rgba(14, 8, 12, 0.98));
+  border: 1px solid #ff6a5a;
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px #000, 0 0 0 4px rgba(160, 40, 30, 0.7), 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 40px rgba(255, 70, 50, 0.25);
+  text-align: center;
+  color: var(--cream);
+}
+
+.boss-prompt-rank { font: 700 0.75rem 'Cinzel', serif; letter-spacing: 0.4em; text-transform: uppercase; }
+.boss-prompt-rank--jefe { color: #ff8a7a; }
+.boss-prompt-rank--miniboss { color: #ffc06a; }
+.boss-prompt-box h2 { margin: 0; font: 900 1.8rem 'Cinzel', serif; color: var(--gold-bright); text-shadow: 0 2px 6px #000; }
+.boss-prompt-box p { margin: 0; color: var(--text-soft); }
+.boss-prompt-box .boss-prompt-warn { color: #ffb0a0; font-size: 0.88rem; }
+
+.boss-prompt-actions { display: flex; gap: 10px; margin-top: 10px; }
+
+.boss-prompt-go,
+.boss-prompt-no {
+  padding: 9px 20px;
+  border-radius: 6px;
+  font: 900 0.85rem 'Cinzel', serif;
+  cursor: pointer;
+}
+
+.boss-prompt-go { background: linear-gradient(180deg, #ff8a6a, #a8281e); border: 2px solid #1a0606; color: #fff; }
+.boss-prompt-no { background: rgba(0, 0, 0, 0.4); border: 1px solid var(--gold-dim); color: var(--cream); }
+.boss-prompt-actions kbd { font: 700 0.6rem 'Cinzel', serif; opacity: 0.75; margin-left: 4px; }
+
+/* durante el combate el HUD del mapa (y sus ventanas) se esconde: manda la interfaz de batalla */
+.world-root--battle .hud-unit,
+.world-root--battle .hud-party,
+.world-root--battle .hud-minimap,
+.world-root--battle .hud-actionbar,
+.world-root--battle .hud-context,
+.world-root--battle .hud-zone-title,
+body.en-combate .wp-layer { display: none; }
+
+/* el botón de música global, debajo del minimapa en vez de encima */
+body.en-mundo .bgm-control { top: 186px; right: 18px; z-index: 50; }
+
+/* en pantallas medianas la barra de acciones se centra en el hueco a la derecha del chat
+   (en vez de en la pantalla) para no montarse sobre él */
+@media (min-width: 901px) and (max-width: 1240px) {
+  .hud-actionbar { left: calc(330px + (100% - 330px) / 2); }
+}
+
+@media (max-width: 900px) {
+  .hud-unit-body { width: 160px; }
+  .hud-party { display: none; }
+  .hud-slot { width: 36px; height: 36px; font-size: 19px; }
+  .hud-actionbar { bottom: 70px; }
+  .hud-minimap-zone { display: none; }
+}

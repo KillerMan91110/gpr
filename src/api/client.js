@@ -117,12 +117,16 @@ export const api = {
   sellGuildItem: (playerId, itemId, quantity, enchantLevel = 0, token) =>
     request(`/api/player/${playerId}/guild/shop/sell`, { method: 'POST', body: { itemId, quantity, enchantLevel }, token }),
   getZoneMonsters: (zoneId) => request(`/api/zones/${zoneId}/monsters`),
-  exploreZone: (zoneId, token, coopPartnerIds) =>
-    request(`/api/combat/zones/${zoneId}/explore`, {
+  exploreZone: (zoneId, token, coopPartnerIds, leadMonsterCode) => {
+    const body = {};
+    if (coopPartnerIds?.length) body.coopPartnerIds = coopPartnerIds;
+    if (leadMonsterCode) body.leadMonsterCode = leadMonsterCode;
+    return request(`/api/combat/zones/${zoneId}/explore`, {
       method: 'POST',
-      body: coopPartnerIds?.length ? { coopPartnerIds } : undefined,
+      body: Object.keys(body).length ? body : undefined,
       token,
-    }),
+    });
+  },
   getZoneEncounter: (playerId, zoneId, token) =>
     request(`/api/player/${playerId}/zones/${zoneId}/encounter`, { token }),
   resolveMasterEncounter: (playerId, token) =>

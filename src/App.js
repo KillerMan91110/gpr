@@ -41,6 +41,7 @@ import DailyEvent from './pages/DailyEvent';
 import AdminMonsters from './pages/AdminMonsters';
 import AdminItems from './pages/AdminItems';
 import AdminStatsViewer from './pages/AdminStatsViewer';
+import World from './pages/World';
 import CoopBar from './components/CoopBar';
 import ChatBox from './components/ChatBox';
 import IncubatorAlert from './components/IncubatorAlert';
@@ -60,6 +61,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/" element={<Home />} />
+              <Route path="/mundo" element={<ProtectedRoute><World /></ProtectedRoute>} />
               <Route path="/quests" element={<ProtectedRoute><MyQuests /></ProtectedRoute>} />
               <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
               <Route path="/combat" element={<ProtectedRoute><Zones /></ProtectedRoute>} />

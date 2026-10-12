@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "frameSize": { "w": 48, "h": 48 },
+  "anchor": { "x": 22, "y": 46 },
+  "animations": {
+    "idle": { "frames": [0, 1], "durations": [400, 400], "loop": true },
+    "attack_melee": { "frames": [2, 3, 4, 5], "durations": [120, 80, 180, 200], "loop": false },
+    "attack_bow": { "frames": [6, 7, 8], "durations": [150, 300, 200], "loop": false },
+    "cast": { "frames": [9, 10, 11], "durations": [150, 350, 200], "loop": false },
+    "hurt": { "frames": [12, 13], "durations": [120, 200], "loop": false },
+    "defend": { "frames": [14], "durations": [400], "loop": true },
+    "ko": { "frames": [15, 16], "durations": [200, 1000], "loop": false },
+    "victory": { "frames": [17, 18], "durations": [300, 300], "loop": true }
+  },
+  "classes": {
+    "guerrero": { "body": "clases/guerrero.png", "defaultWeapon": "espada" },
+    "mago": { "body": "clases/mago.png", "defaultWeapon": "baculo_arcano" },
+    "arquero": { "body": "clases/arquero.png", "defaultWeapon": "arco" },
+    "picaro": { "body": "clases/picaro.png", "defaultWeapon": "daga" },
+    "sacerdote": { "body": "clases/sacerdote.png", "defaultWeapon": "baculo_sagrado" }
+  },
+  "weapons": {
+    "espada": { "sheet": "armas/espada.png", "attack": "attack_melee" },
+    "daga": { "sheet": "armas/daga.png", "attack": "attack_melee" },
+    "baculo_arcano": { "sheet": "armas/baculo_arcano.png", "attack": "attack_melee" },
+    "baculo_sagrado": { "sheet": "armas/baculo_sagrado.png", "attack": "attack_melee" },
+    "arco": { "sheet": "armas/arco.png", "attack": "attack_bow" }
+  },
+  "unarmed": { "attack": "attack_melee" }
+}
