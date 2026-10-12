@@ -117,6 +117,9 @@ export const api = {
   sellGuildItem: (playerId, itemId, quantity, enchantLevel = 0, token) =>
     request(`/api/player/${playerId}/guild/shop/sell`, { method: 'POST', body: { itemId, quantity, enchantLevel }, token }),
   getZoneMonsters: (zoneId) => request(`/api/zones/${zoneId}/monsters`),
+  // mundo 2D: recursos para recolectar (hierbas, mineral, cofres)
+  getWorldNodes: (playerId, zoneId, token) => request(`/api/player/${playerId}/world/nodes?zone=${zoneId}`, { token }),
+  gatherWorldNode: (playerId, nodeId, token) => request(`/api/player/${playerId}/world/nodes/${nodeId}/gather`, { method: 'POST', token }),
   exploreZone: (zoneId, token, coopPartnerIds, leadMonsterCode) => {
     const body = {};
     if (coopPartnerIds?.length) body.coopPartnerIds = coopPartnerIds;

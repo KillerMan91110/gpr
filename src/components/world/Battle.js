@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
 import bus from '../../game/bus';
+import audio from '../../game/audio';
 import { ELEMENTS, splitResistances } from '../../game/elements';
 import { statusesOf } from '../../game/statuses';
 import './Battle.css';
@@ -218,6 +219,10 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
     if (status && status !== 'IN_PROGRESS') {
       setResult({ status, rewards: next.rewards });
       setPhase('end');
+      // fin del combate: se corta la música y suena la fanfarria
+      audio.music(null);
+      if (status === 'PLAYER_WON') audio.jingle('victoria');
+      else if (status === 'ENEMY_WON') audio.jingle('derrota');
       bus.emit('battle-active', null);
       bus.emit('battle-end', status);
     } else {
@@ -384,7 +389,7 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
     const onKey = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (phase === 'target' && e.key === 'Escape') { cancelTargeting(); return; }
-      if (phase === 'end' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onFinish({ status: result?.status }); return; }
+      if (phase === 'end' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onFinish({ status: result?.status, rewards: result?.rewards }); return; }
       if (phase !== 'command') return;
       if (e.key === 'Escape') setMenu(null);
       else if (e.key === '1') startTargeting({ side: 'ENEMY', payload: { action: 'ATTACK' } });
@@ -432,10 +437,11 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
         if (!p) return null;
         const pctHp = Math.max(0, Math.min(100, (p.hp / p.max_hp) * 100));
         return (
-          <div key={b.pid} className={`bt-bossbar bt-bossbar--${b.rank}`}>
+          <div key={b.pid} className={`bt-bossbar bt-bossbar--${b.rank}${(p.effects ?? []).some((x) => x.code === 'FURY') ? ' bt-bossbar--fury' : ''}`}>
             <span className="bt-bossbar-name">
               {p.element_code && <ElementIcon code={p.element_code} />}
               {b.name}
+              {p.shield && <span className={`bt-shield${p.shield.broken ? ' bt-shield--broken' : ''}`}><GameIcon name={p.shield.broken ? 'cracked-shield' : 'checked-shield'} artist="lorc" /><b>{p.shield.broken ? 'ROTO' : p.shield.current}</b></span>}
               <small>{p.hp} / {p.max_hp}</small>
             </span>
             <div className="bt-bossbar-track"><div className="bt-bossbar-fill" style={{ width: `${pctHp}%` }} /></div>
@@ -461,6 +467,12 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
                 onClick={() => chooseTarget(e.id)}
               >
                 <span className="bt-enemy-name">
+                  {e.shield && (
+                    <span className={`bt-shield${e.shield.broken ? ' bt-shield--broken' : ''}`} title={e.shield.broken ? 'Roto: pierde turnos y recibe +50% de daño' : `Escudo: ${e.shield.current}/${e.shield.max} (las debilidades lo rompen más rápido)`}>
+                      <GameIcon name={e.shield.broken ? 'cracked-shield' : 'checked-shield'} artist="lorc" />
+                      <b>{e.shield.broken ? 'ROTO' : e.shield.current}</b>
+                    </span>
+                  )}
                   {e.element_code && <ElementIcon code={e.element_code} title={`Elemento: ${ELEMENTS[e.element_code]?.name}`} />}
                   {e.name}
                   {effect < 0 && <em className="bt-tag bt-tag--weak">¡Débil!</em>}
@@ -606,7 +618,7 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
               </div>
             )}
             {result.status === 'ENEMY_WON' && <p>Tu grupo cayó. Recupérate en la fogata del campamento.</p>}
-            <button type="button" className="bt-continue" onClick={() => onFinish({ status: result.status })}>Continuar <kbd>Enter</kbd></button>
+            <button type="button" className="bt-continue" onClick={() => onFinish({ status: result.status, rewards: result.rewards })}>Continuar <kbd>Enter</kbd></button>
           </div>
         </div>
       )}

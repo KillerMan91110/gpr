@@ -20,6 +20,12 @@ local ORDER = {
   {"r1","9a9488"},{"r2","767060"},{"r3","4c473e"},
   {"o1","3c7a2c"},{"o2","2c5e20"},{"o3","1e4416"},{"o4","5a9a3a"},
   {"fl","f0e070"},{"fr","e86a8a"},{"fw","f4f4f4"},
+  -- v3: trigo, pasto dorado, tierra arada y herida, madera muerta, tejados, piedra de muralla, pinos, otoño
+  {"g1","f0d070"},{"g2","d0a840"},{"g3","9a7a2a"},{"gp1","b8b85a"},{"gp2","9ea248"},{"gp3","84903c"},
+  {"s1","8a6a42"},{"s2","6e5032"},{"x1","a89878"},{"x2","8a7a5e"},{"x3","5e5040"},{"dw","5a4a3a"},
+  {"rf","b04a3a"},{"rd","7a2a22"},{"sw","b8b2a8"},{"sd","8a847a"},{"sk","4c4a46"},{"pn","3a6e46"},{"pd","244a30"},
+  {"au","d87a3a"},{"ad","a8501e"},{"lp","5aa040"},{"bb","4a5ad8"},{"rn","7ad8ff"},{"T","d8c8a0"},{"t","a8987a"},
+  {"N","7a5a3a"},{"M","2e44b0"},
 }
 local C = {}
 for _,e in ipairs(ORDER) do C[e[1]] = hex(e[2]) end
@@ -400,12 +406,315 @@ TILES[#TILES+1] = {"suelo_guarida", function(G)
   for i=0,7 do G.px(5+i, 8+i, "r3"); G.px(20+i, 18-i, "r3"); G.px(10+i*2, 26, "r3") end
 end}
 
+-- ---------------------------------------------------------------------------------------
+-- v3 (Pradera grande): trigales, tierra herida, mesetas con pared de roca, puentes,
+-- edificios (granja, granero, molino), ruinas, menhires, muralla y Puerta Norte de la capital.
+-- ---------------------------------------------------------------------------------------
+local function goldenPx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 9 and "gp1" or (n < 15 and "gp3" or "gp2"))
+end
+
+-- trigal: hileras de espigas sobre tierra arada; el borde se funde con el pasto
+local function wheatTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"s1")
+    for y=0,31 do if y % 4 == 3 then G.rect(0,y,31,y,"s2") end end
+    for x=1,31,3 do for y=1,31,4 do
+      local o = (y // 4) % 2
+      G.rect(x+o,y-1,x+o,y+2,"g2"); G.px(x+o,y-2,"g1"); G.px(x+o+1,y-1,"g1"); G.px(x+o,y+2,"g3")
+    end end
+    local depth = function(i, side) return 2 + (noise(i, side, 41 + mask) % 3) end
+    sideBand(G, mask, depth, function(x, y) grassPx(G, x, y, 23) end)
+  end
+end
+
+-- tierra herida por el Titán: seca, agrietada; el pasto se apaga en el borde
+local function blightTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"x1")
+    for y=0,31 do for x=0,31 do local n = noise(x,y,51); if n < 10 then G.px(x,y,"x2") elseif n < 13 then G.px(x,y,"x3") end end end
+    -- grietas
+    local cx, cy = 4 + noise(mask, 1, 9) % 8, 6 + noise(mask, 2, 9) % 10
+    for i=0,18 do
+      G.px(cx + i, cy + (noise(i, mask, 3) % 3) - 1 + i // 3, "x3")
+      if i % 6 == 0 then G.px(cx + i, cy + i // 3 + 1, "x3"); G.px(cx + i + 1, cy + i // 3 + 2, "x3") end
+    end
+    local depth = function(i, side) return 3 + (noise(i, side, 61 + mask) % 4) end
+    sideBand(G, mask, depth, function(x, y) G.px(x, y, noise(x, y, 5) < 50 and "c3" or "c4") end)
+  end
+end
+
+-- pasto dorado (el "Dorada" de la Pradera): manchas que se funden con el pasto verde. En los
+-- lados que no siguen siendo dorados el verde entra salpicado (difuminado), sin línea recta.
+local function goldenTile(mask)
+  return function(G)
+    for y=0,31 do for x=0,31 do
+      local d = 99
+      if mask & 1 == 0 then d = math.min(d, y) end
+      if mask & 2 == 0 then d = math.min(d, 31 - x) end
+      if mask & 4 == 0 then d = math.min(d, 31 - y) end
+      if mask & 8 == 0 then d = math.min(d, x) end
+      local fade = d < 14 and (1 - d / 14) or 0
+      if noise(x, y, 97) < fade * 100 then grassPx(G, x, y, 24) else goldenPx(G, x, y, 71) end
+    end end
+    for _,p in ipairs({{9,9},{21,12},{14,21},{24,22}}) do G.px(p[1],p[2],"g3"); G.px(p[1]-1,p[2]+1,"gp3"); G.px(p[1]+1,p[2]+1,"gp3") end
+  end
+end
+
+-- meseta: el mismo pasto de siempre, con un filo de luz y una sombra fina donde termina
+local function plateauTile(mask)
+  return function(G)
+    grassBase(G, 1)
+    if mask & 1 == 0 then G.rect(0,0,31,0,"c4"); G.rect(0,1,31,2,"o4") end
+    if mask & 2 == 0 then G.rect(31,0,31,31,"c4"); G.rect(29,0,30,31,"c3") end
+    if mask & 8 == 0 then G.rect(0,0,0,31,"c4"); G.rect(1,0,2,31,"o4") end
+    if mask & 4 == 0 then G.rect(0,30,31,31,"o4") end
+  end
+end
+
+for m=0,15 do TILES[#TILES+1] = {"trigo_" .. m, wheatTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"seco_" .. m, blightTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"dorado_" .. m, goldenTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"meseta_" .. m, plateauTile(m)} end
+
+-- pared de roca de la meseta: dos filas (alta con el borde de pasto, baja con sombra)
+local function cliff(row, side)
+  return function(G)
+    G.rect(0,0,31,31,"r2")
+    for x=0,31 do
+      local n = noise(x, row, 101)
+      if x % 7 == 0 then G.rect(x,0,x,31,"r3") end
+      if n < 18 then G.px(x, n % 31, "r1") end
+    end
+    for y=4,31,9 do G.rect(0,y,31,y,"r3") end
+    if row == 1 then G.rect(0,0,31,3,"c2"); for x=0,31,2 do G.px(x,4,"c3") end; G.rect(0,4,31,4,"c4") end
+    if row == 2 then G.rect(0,26,31,31,"c4"); G.rect(0,24,31,25,"r3") end
+    if side == "i" then G.rect(0,0,2,31,"r3") end
+    if side == "d" then G.rect(29,0,31,31,"r3") end
+  end
+end
+for _, side in ipairs({"i", "c", "d"}) do
+  TILES[#TILES+1] = {"cara_a_" .. side, cliff(1, side)}
+  TILES[#TILES+1] = {"cara_b_" .. side, cliff(2, side)}
+end
+TILES[#TILES+1] = {"escalera", function(G)
+  G.rect(0,0,31,31,"r2")
+  for y=0,31,6 do G.rect(2,y,29,y+4,"r1"); G.rect(2,y+4,29,y+5,"r3") end
+  G.rect(0,0,1,31,"r3"); G.rect(30,0,31,31,"r3")
+end}
+
+-- puentes de madera sobre el río
+TILES[#TILES+1] = {"puente_h", function(G)
+  G.rect(0,0,31,31,"a1"); G.rect(0,6,31,25,"B")
+  for x=0,31,5 do G.rect(x,6,x,25,"b") end
+  G.rect(0,6,31,7,"t1"); G.rect(0,24,31,25,"b"); G.rect(0,3,31,4,"b"); G.rect(0,27,31,28,"b")
+end}
+TILES[#TILES+1] = {"puente_v", function(G)
+  G.rect(0,0,31,31,"a1"); G.rect(6,0,25,31,"B")
+  for y=0,31,5 do G.rect(6,y,25,y,"b") end
+  G.rect(6,0,7,31,"t1"); G.rect(24,0,25,31,"b"); G.rect(3,0,4,31,"b"); G.rect(27,0,28,31,"b")
+end}
+
+-- decoración pequeña (sin fondo)
+local function deco(name, draw) TILES[#TILES+1] = {name, draw} end
+deco("cerca_v", function(G)
+  G.rect(13,0,18,31,"B"); G.rect(17,0,18,31,"b"); for _,y in ipairs({4,18}) do G.rect(11,y,20,y+2,"B"); G.rect(11,y+2,20,y+2,"b") end
+end)
+deco("espantapajaros", function(G)
+  G.ellipse(16,29,6,2,"c4"); G.rect(15,10,17,29,"b"); G.rect(6,12,26,14,"b")
+  G.rect(10,13,22,22,"B"); G.rect(10,13,22,13,"t1"); G.ellipse(16,7,5,5,"g1"); G.rect(11,2,21,4,"b"); G.rect(8,4,24,5,"b")
+  G.px(14,7,"K"); G.px(18,7,"K"); G.rect(14,9,18,9,"K"); for _,x in ipairs({6,26}) do G.px(x,15,"g2"); G.px(x,16,"g1") end
+end)
+deco("heno", function(G)
+  G.ellipse(16,27,12,3,"c4"); G.ellipse(16,18,12,10,"g2"); G.ellipse(14,15,9,7,"g1")
+  for x=6,26,4 do G.rect(x,12,x,26,"g3") end; G.rect(4,18,28,19,"b")
+end)
+deco("pozo", function(G)
+  G.ellipse(16,28,13,3,"c4"); G.rect(5,14,27,28,"r2"); G.rect(5,14,27,15,"r1"); G.ellipse(16,15,9,3,"a4")
+  G.rect(5,4,7,15,"b"); G.rect(25,4,27,15,"b"); G.rect(3,2,29,5,"rf"); G.rect(3,5,29,5,"rd"); G.rect(14,6,18,9,"B")
+  for y=18,26,4 do G.rect(5,y,27,y,"r3") end
+end)
+deco("carreta", function(G)
+  G.ellipse(16,28,14,3,"c4"); G.rect(3,12,27,21,"B"); G.rect(3,12,27,13,"t1"); G.rect(3,21,27,21,"b")
+  G.ellipse(8,23,5,5,"b"); G.ellipse(8,23,2,2,"B"); G.ellipse(23,23,5,5,"b"); G.ellipse(23,23,2,2,"B")
+  G.ellipse(12,10,4,3,"g1"); G.ellipse(19,9,5,4,"g2"); G.rect(27,15,31,16,"b")
+end)
+deco("tocon", function(G)
+  G.ellipse(16,26,10,3,"c4"); G.rect(8,16,23,25,"b"); G.ellipse(16,16,8,3,"t1"); G.ellipse(16,16,5,2,"t2"); G.ellipse(16,16,2,1,"t3")
+  G.rect(8,16,9,25,"B")
+end)
+deco("bayas", function(G)
+  G.ellipse(16,26,11,3,"c4"); G.ellipse(16,19,12,9,"o2"); G.ellipse(14,16,8,6,"o1")
+  for _,p in ipairs({{10,18},{20,15},{15,21},{22,21},{12,13},{18,24}}) do G.px(p[1],p[2],"bb"); G.px(p[1]+1,p[2],"bb"); G.px(p[1],p[2]-1,"W") end
+end)
+local function flowerPatch(c1, c2)
+  return function(G)
+    for _,p in ipairs({{5,6},{12,4},{22,7},{8,15},{18,13},{26,16},{4,24},{14,23},{23,26},{29,4}}) do
+      G.px(p[1],p[2]+1,"c4"); G.px(p[1],p[2],c1); G.px(p[1]-1,p[2],c2); G.px(p[1]+1,p[2],c2); G.px(p[1],p[2]-1,c2)
+    end
+  end
+end
+deco("flores_amarillas", flowerPatch("Y", "fl"))
+deco("flores_blancas", flowerPatch("Y", "fw"))
+deco("flores_moradas", flowerPatch("fw", "fv"))
+deco("setas", function(G)
+  for _,p in ipairs({{9,22,4},{19,25,5},{24,18,3},{14,15,3}}) do
+    G.rect(p[1],p[2]-p[3]+2,p[1]+1,p[2]+2,"fw"); G.ellipse(p[1]+0.5,p[2]-p[3]+2,p[3],p[3]-1,"R"); G.px(p[1]-1,p[2]-p[3]+1,"W")
+  end
+end)
+deco("juncos", function(G)
+  for x=6,26,4 do G.rect(x,8 + (x % 3),x,28,"o3"); G.rect(x+1,10 + (x % 4),x+1,28,"o2"); G.rect(x,6 + (x % 3),x,8 + (x % 3),"b") end
+end)
+deco("nenufar", function(G)
+  G.rect(0,0,31,31,"a1")
+  for _,p in ipairs({{10,10,5},{22,20,4},{8,23,3}}) do G.ellipse(p[1],p[2],p[3],p[3]-1,"lp"); G.px(p[1],p[2]-p[3]+1,"a1"); G.px(p[1]+1,p[2]-p[3]+2,"a1") end
+  G.ellipse(10,9,2,1,"fr"); G.px(10,8,"fw")
+end)
+deco("columna_rota", function(G)
+  G.ellipse(16,29,9,2,"c4"); G.rect(9,26,23,29,"sw"); G.rect(11,8,21,26,"sw"); G.rect(11,8,13,26,"sd")
+  for y=10,24,4 do G.rect(15,y,15,y+2,"sd") end; G.rect(11,6,16,8,"sw"); G.rect(17,4,21,8,"sw"); G.px(18,3,"sw")
+  G.rect(4,27,8,29,"sd"); G.px(25,28,"sd")
+end)
+deco("muro_ruina", function(G)
+  G.ellipse(16,29,15,2,"c4"); G.rect(0,12,31,28,"sw"); G.rect(0,26,31,28,"sd")
+  for y=12,24,6 do G.rect(0,y,31,y,"sd"); for x=(y//6)%2*8,31,16 do G.rect(x,y,x,y+6,"sd") end end
+  G.rect(0,8,10,12,"sw"); G.rect(18,4,28,12,"sw"); G.rect(10,10,18,12,"sd"); G.px(5,7,"o2"); G.px(22,3,"o2"); G.px(23,3,"o1")
+end)
+deco("hueso_grande", function(G)
+  G.ellipse(16,26,13,3,"c4"); G.rect(4,18,28,22,"fw"); G.ellipse(4,18,3,3,"fw"); G.ellipse(4,23,3,3,"fw")
+  G.ellipse(28,18,3,3,"fw"); G.ellipse(28,23,3,3,"fw"); G.rect(4,22,28,22,"S")
+end)
+deco("grieta", function(G)
+  for i=0,24 do G.px(4 + i, 14 + (noise(i, 1, 7) % 4) - 2 + (i // 8), "x3"); if i % 5 == 0 then G.px(4 + i, 12 + i // 8, "x3") end end
+end)
+deco("senal", function(G)
+  G.ellipse(16,29,5,2,"c4"); G.rect(15,6,17,29,"b"); G.rect(4,6,24,11,"B"); G.rect(24,7,28,10,"B"); G.px(29,8,"B"); G.px(29,9,"B")
+  G.rect(4,6,24,6,"t1"); G.rect(8,14,26,18,"B"); G.rect(4,15,8,17,"B"); G.px(3,16,"B"); G.rect(8,14,26,14,"t1")
+end)
+deco("pino_chico", function(G)
+  G.ellipse(16,29,8,2,"c4"); G.rect(15,24,17,29,"b")
+  for i=0,2 do local y = 4 + i * 7; for r=0,6 do G.rect(16 - r - i, y + r, 16 + r + i, y + r, r < 2 and "pn" or "pd") end end
+  G.px(15,5,"Gh"); G.px(13,12,"Gh"); G.px(12,19,"Gh")
+end)
+deco("arbusto_seco", function(G)
+  G.ellipse(16,27,10,2,"x3")
+  for i=0,8 do G.rect(16,26 - i * 2,16 + (i % 3) - 1,26 - i * 2,"dw"); G.px(16 - i,22 - i,"dw"); G.px(16 + i,21 - i,"dw") end
+end)
+
+-- objetos grandes cortados en tiles (ancho x alto en tiles)
+local function addGrid(name, w, h, draw)
+  for r=0,h-1 do for c=0,w-1 do
+    TILES[#TILES+1] = {string.format("%s_%d_%d", name, r, c), slice(draw, c * 32, r * 32)}
+  end end
+end
+
+addGrid("arbol_muerto", 2, 2, function(V)
+  V.ellipse(32,58,14,4,"x3"); V.rect(28,30,35,57,"dw"); V.rect(28,30,29,57,"x3")
+  for i=0,14 do V.px(28 - i, 32 - i, "dw"); V.px(27 - i, 32 - i, "dw"); V.px(36 + i, 28 - i, "dw"); V.px(37 + i, 28 - i, "dw") end
+  for i=0,8 do V.px(20 - i, 20 - i // 2, "dw"); V.px(46 + i // 2, 16 - i, "dw"); V.px(32, 30 - i * 2, "dw"); V.px(33, 30 - i * 2, "dw") end
+  V.px(14,13,"dw"); V.px(50,6,"dw")
+end)
+addGrid("roca_grande", 2, 2, function(V)
+  V.ellipse(32,56,28,6,"c4"); V.ellipse(32,40,28,20,"r3"); V.ellipse(30,36,26,18,"r2"); V.ellipse(24,30,15,11,"r1")
+  V.ellipse(44,44,9,5,"r3"); V.px(18,26,"S"); V.px(19,25,"S"); V.px(20,25,"S"); V.ellipse(46,26,5,3,"o2")
+end)
+addGrid("tienda_goblin", 2, 2, function(V)
+  V.ellipse(32,58,26,4,"c4")
+  for y=10,56 do local half = math.floor((y - 10) * 0.5); V.rect(32 - half, y, 32 + half, y, (y // 6) % 2 == 0 and "B" or "N") end
+  V.rect(26,42,38,56,"K"); V.rect(31,4,33,12,"b"); V.rect(34,4,40,8,"R")
+  for i=0,6 do V.px(12 + i * 6, 52, "fw") end
+end)
+addGrid("tronco_caido", 2, 1, function(V)
+  V.ellipse(32,26,30,3,"c4"); V.rect(4,12,58,24,"b"); V.rect(4,12,58,14,"B"); V.ellipse(58,18,5,7,"t1"); V.ellipse(58,18,2,3,"t3")
+  V.px(20,11,"o1"); V.px(21,10,"o2"); V.px(40,11,"o1"); V.ellipse(30,12,4,2,"o2")
+end)
+addGrid("menhir", 1, 2, function(V)
+  V.ellipse(16,60,9,3,"c4"); V.rect(9,6,23,60,"r1"); V.rect(9,6,12,60,"r2"); V.rect(20,6,23,60,"r3"); V.ellipse(16,6,7,4,"r1")
+  -- runas que brillan
+  for _,y in ipairs({18,28,38,48}) do V.rect(14,y,18,y,"rn"); V.px(16,y-2,"rn"); V.px(16,y+2,"rn") end
+end)
+addGrid("pino", 2, 2, function(V)
+  V.ellipse(32,59,14,4,"c4"); V.rect(30,46,33,58,"b")
+  for i=0,3 do local y = 4 + i * 11; for r=0,12 do V.rect(32 - r - i * 2, y + r, 32 + r + i * 2, y + r, r < 3 and "pn" or "pd") end end
+  V.px(30,6,"Gh"); V.px(26,17,"Gh"); V.px(24,29,"Gh"); V.px(22,41,"Gh")
+end)
+addGrid("arbol_dorado", 2, 2, function(V)
+  V.ellipse(32,58,20,5,"c4"); V.rect(28,38,35,57,"b"); V.rect(28,38,29,57,"B")
+  V.ellipse(32,27,28,23,"ad"); V.ellipse(31,24,26,20,"au"); V.ellipse(27,20,20,15,"g1"); V.ellipse(21,13,10,7,"gp1")
+  for _,p in ipairs({{14,26},{46,22},{30,8},{20,34},{44,32}}) do V.ellipse(p[1],p[2],4,3,"au") end
+end)
+
+-- edificios 3x3: la fila de arriba (tejado) va en "encima" para pasar por detrás
+addGrid("granja", 3, 3, function(V)
+  V.ellipse(48,92,46,5,"c4")
+  V.rect(8,44,87,90,"T"); V.rect(8,44,12,90,"t"); V.rect(8,86,87,90,"t")
+  for x=8,87,10 do V.rect(x,44,x,86,"t") end
+  V.rect(40,62,55,90,"b"); V.rect(42,64,53,90,"B"); V.px(51,77,"Y")
+  V.rect(16,56,30,70,"b"); V.rect(18,58,28,68,"C"); V.rect(23,58,23,68,"b"); V.rect(18,63,28,63,"b")
+  V.rect(64,56,78,70,"b"); V.rect(66,58,76,68,"C"); V.rect(71,58,71,68,"b"); V.rect(66,63,76,63,"b")
+  for y=4,48 do local half = math.floor((y - 4) * 1.05); V.rect(48 - half, y, 48 + half, y, (y // 4) % 2 == 0 and "rf" or "rd") end
+  V.rect(66,6,74,22,"r2"); V.rect(66,6,74,8,"r1"); V.ellipse(70,3,4,2,"S")
+end)
+addGrid("granero", 3, 3, function(V)
+  V.ellipse(48,92,46,5,"c4")
+  V.rect(6,36,89,90,"rf"); V.rect(6,36,10,90,"rd"); V.rect(85,36,89,90,"rd")
+  for x=6,89,8 do V.rect(x,36,x,90,"rd") end
+  V.rect(32,52,63,90,"fw"); V.rect(34,54,61,90,"rd"); for i=0,26 do V.px(34 + i, 54 + i, "fw"); V.px(61 - i, 54 + i, "fw") end
+  for y=2,40 do local half = math.floor((y - 2) * 1.2); V.rect(48 - half, y, 48 + half, y, "sd") end
+  V.rect(40,14,55,26,"b"); V.rect(42,16,53,26,"K")
+end)
+addGrid("molino", 3, 3, function(V)
+  V.ellipse(48,92,34,5,"c4")
+  for y=26,90 do local half = 14 + math.floor((y - 26) * 0.18); V.rect(48 - half, y, 48 + half, y, "sw"); V.px(48 - half, y, "sd"); V.px(48 + half, y, "sd") end
+  for y=34,86,10 do V.rect(30,y,66,y,"sd") end
+  V.rect(41,64,55,90,"b"); V.rect(43,66,53,90,"B"); V.rect(44,40,52,50,"b"); V.rect(45,41,51,49,"fl")
+  for y=6,28 do local half = math.floor((y - 6) * 0.8); V.rect(48 - half, y, 48 + half, y, (y // 3) % 2 == 0 and "rf" or "rd") end
+  V.ellipse(48,24,4,4,"b")
+end)
+
+-- muralla de la capital y su Puerta Norte (cerrada hasta que exista la ciudad)
+deco("muro_alto", function(G)
+  G.rect(0,0,31,31,"sw"); for y=0,31,8 do G.rect(0,y,31,y,"sd"); for x=(y//8)%2*8,31,16 do G.rect(x,y,x,y+8,"sd") end end
+  for x=0,31,10 do G.rect(x,0,x+5,4,"sk") end; G.rect(0,0,31,1,"sk")
+end)
+deco("muro_bajo", function(G)
+  G.rect(0,0,31,31,"sw"); for y=0,31,8 do G.rect(0,y,31,y,"sd"); for x=(y//8)%2*8,31,16 do G.rect(x,y,x,y+8,"sd") end end
+  G.rect(0,26,31,31,"sk"); G.rect(0,31,31,31,"c4")
+end)
+addGrid("puerta_norte", 4, 3, function(V)
+  V.rect(0,0,127,95,"sw")
+  for y=0,95,8 do V.rect(0,y,127,y,"sd"); for x=(y//8)%2*8,127,16 do V.rect(x,y,x,y+8,"sd") end end
+  for x=0,127,12 do V.rect(x,0,x+6,6,"sk") end
+  -- torres a los lados
+  V.rect(0,0,22,95,"sd"); V.rect(105,0,127,95,"sd"); V.rect(2,0,20,4,"sw"); V.rect(107,0,125,4,"sw")
+  V.rect(8,20,14,32,"K"); V.rect(113,20,119,32,"K")
+  -- arco con el portón de madera
+  V.ellipse(64,52,30,26,"sk"); V.rect(34,52,94,95,"sk"); V.ellipse(64,54,26,22,"b"); V.rect(38,54,90,95,"b")
+  for x=40,90,7 do V.rect(x,34,x,95,"B") end; V.rect(38,66,90,68,"d"); V.rect(38,82,90,84,"d")
+  -- estandartes del reino
+  for _,x in ipairs({28,96}) do V.rect(x-4,12,x+4,44,"M"); V.rect(x-4,12,x+4,14,"Y"); V.px(x,28,"Y"); V.px(x-1,29,"Y"); V.px(x+1,29,"Y"); V.rect(x-4,44,x,48,"M"); V.rect(x,44,x+4,46,"M") end
+end)
+
 local COLLIDE = {arbol=true, roca=true, arbusto=true, valla=true, agua=true, cartel=true, fogata=true, orilla_agua_arriba=true,
   arbol_grande_bi=true, arbol_grande_bd=true, carpa_ai=true, carpa_ad=true, carpa_bi=true, carpa_bd=true,
   puesto_ai=true, puesto_ad=true, puesto_bi=true, puesto_bd=true, yunque=true, barril=true, caja=true, farol=true}
 for m=0,15 do COLLIDE["agua_" .. m] = true end
+-- v3
+for _, n in ipairs({"cara_a_i","cara_a_c","cara_a_d","cara_b_i","cara_b_c","cara_b_d","cerca_v","espantapajaros","heno","pozo",
+  "carreta","tocon","bayas","juncos","columna_rota","muro_ruina","hueso_grande","senal","pino_chico","arbusto_seco","muro_alto","muro_bajo"}) do COLLIDE[n] = true end
+local function bigCollide(name, w, h, fromRow)
+  for r=fromRow,h-1 do for c=0,w-1 do COLLIDE[string.format("%s_%d_%d", name, r, c)] = true end end
+end
+bigCollide("arbol_muerto", 2, 2, 1); bigCollide("roca_grande", 2, 2, 0); bigCollide("tienda_goblin", 2, 2, 1)
+bigCollide("tronco_caido", 2, 1, 0); bigCollide("menhir", 1, 2, 1); bigCollide("pino", 2, 2, 1); bigCollide("arbol_dorado", 2, 2, 1)
+bigCollide("granja", 3, 3, 1); bigCollide("granero", 3, 3, 1); bigCollide("molino", 3, 3, 1); bigCollide("puerta_norte", 4, 3, 0)
 -- tiles que se dibujan POR ENCIMA del personaje (copas de los árboles grandes)
 local ABOVE = {arbol_grande_ai=true, arbol_grande_ad=true}
+-- v3: copas y tejados (fila de arriba de los objetos grandes) tapan al personaje
+for _, n in ipairs({"arbol_muerto","pino","arbol_dorado","tienda_goblin"}) do ABOVE[n .. "_0_0"] = true; ABOVE[n .. "_0_1"] = true end
+ABOVE["menhir_0_0"] = true
+for _, n in ipairs({"granja","granero","molino"}) do for c=0,2 do ABOVE[string.format("%s_0_%d", n, c)] = true end end
 
 local COLS = 8
 local ROWS = math.ceil(#TILES / COLS)

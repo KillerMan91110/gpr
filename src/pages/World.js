@@ -9,6 +9,11 @@ import WorldScene from '../game/WorldScene';
 import BattleScene from '../game/BattleScene';
 import Battle from '../components/world/Battle';
 import bus from '../game/bus';
+import audio from '../game/audio';
+import { speciesOf } from '../game/pets';
+import DialogueBox from '../components/world/DialogueBox';
+import LevelUpBanner from '../components/world/LevelUpBanner';
+import SoundControl from '../components/world/SoundControl';
 import { MINIMAP } from '../game/hudLayout';
 import { CLASS_ICON } from '../utils/classIcons';
 import BagPanel from '../components/world/BagPanel';
@@ -64,7 +69,12 @@ const TOOLBAR = ['inventario', 'personaje', 'habilidades', 'misiones', 'formacio
 const KEY_TO_WINDOW = Object.fromEntries(Object.entries(WINDOWS).filter(([, w]) => w.key).map(([id, w]) => [w.key, id]));
 
 const BASE_CLASSES = ['guerrero', 'mago', 'arquero', 'picaro', 'sacerdote'];
-const POS_KEY = 'mundo_posicion';
+// v2: la Pradera grande por trozos (las posiciones del mapa viejo ya no sirven)
+const POS_KEY = 'mundo_posicion_v2';
+const ZONE_ID = 1;
+const plain = (s) => (s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+// clase base de un compañero (las evolucionadas empiezan con el nombre de su clase base)
+const baseOf = (m) => BASE_CLASSES.find((c) => plain(m.classCode ?? m.className).startsWith(c)) ?? 'guerrero';
 const HUD_POLL_MS = 15000;
 
 function isTyping(el) {
@@ -112,6 +122,16 @@ export default function World() {
   const [bossPrompt, setBossPrompt] = useState(null);
   // sube cada vez que algo cambia el equipo/inventario, para que los paneles abiertos se recarguen
   const [refreshKey, setRefreshKey] = useState(0);
+  // conversación con un NPC, marcas de misión, subida de nivel y hora del día
+  const [dialogue, setDialogue] = useState(null);
+  const [npcMarks, setNpcMarks] = useState({});
+  const [levelUp, setLevelUp] = useState(null);
+  const [clock, setClock] = useState(null);
+  const [worldReady, setWorldReady] = useState(false);
+  // subzona donde está el héroe (cartel al entrar y nombre en el minimapa) y clima
+  const [subzone, setSubzone] = useState(null);
+  const [subzoneBanner, setSubzoneBanner] = useState(null);
+  const [weather, setWeather] = useState('despejado');
 
   // ---- datos del HUD ----
   const loadHud = useCallback(() => {
@@ -134,12 +154,16 @@ export default function World() {
 
   // ---- ventanas ----
   const toggleWindow = useCallback((id) => {
-    setOpen((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]));
+    setOpen((list) => {
+      audio.sfx(list.includes(id) ? 'cerrar' : 'abrir');
+      return list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
+    });
   }, []);
   const openWin = useCallback((id) => {
+    audio.sfx('abrir');
     setOpen((list) => [...list.filter((x) => x !== id), id]);
   }, []);
-  const closeWin = useCallback((id) => setOpen((list) => list.filter((x) => x !== id)), []);
+  const closeWin = useCallback((id) => { audio.sfx('cerrar'); setOpen((list) => list.filter((x) => x !== id)); }, []);
   const bringToFront = useCallback((id) => {
     setOpen((list) => (list[list.length - 1] === id ? list : [...list.filter((x) => x !== id), id]));
   }, []);
@@ -166,6 +190,7 @@ export default function World() {
       game.scene.add('mundo', WorldScene, true, {
         heroClass: BASE_CLASSES.includes(baseClass) ? baseClass : 'guerrero',
         heroName: stats.nickname,
+        heroLevel: stats.level,
         startPos,
       });
       game.scene.add('batalla', BattleScene, false);
@@ -184,7 +209,11 @@ export default function World() {
   // ---- eventos que vienen del mapa ----
   useEffect(() => {
     const onPoi = (p) => setPoi(p);
-    const onInteract = (p) => { if (p?.window) openWin(p.window); };
+    // los NPCs con diálogo primero conversan; el resto abre su ventana directamente
+    const onInteract = (p) => {
+      if (p?.dialogue) setDialogue(p.dialogue);
+      else if (p?.window) openWin(p.window);
+    };
     const onEncounter = (e) => {
       setEncounter(e);
       sessionStorage.setItem(POS_KEY, JSON.stringify(e.position));
@@ -200,6 +229,97 @@ export default function World() {
       bus.off('poi', onPoi); bus.off('interact', onInteract); bus.off('encounter', onEncounter); bus.off('boss-challenge', onBossChallenge);
     };
   }, [navigate, openWin]);
+
+  // ---- mundo vivo: compañeros, mascota, recursos, marcas de misión, música ----
+  useEffect(() => {
+    const onReady = () => setWorldReady(true);
+    const onClock = (c) => setClock(c);
+    let bannerTimer = null;
+    const onSubzone = (sz) => {
+      setSubzone(sz);
+      setSubzoneBanner({ ...sz, key: Date.now() });
+      clearTimeout(bannerTimer);
+      bannerTimer = setTimeout(() => setSubzoneBanner(null), 3800);
+    };
+    const onWeather = (w) => setWeather(w);
+    bus.on('world-ready', onReady);
+    bus.on('clock', onClock);
+    bus.on('subzone', onSubzone);
+    bus.on('weather', onWeather);
+    return () => {
+      clearTimeout(bannerTimer);
+      bus.off('world-ready', onReady); bus.off('clock', onClock); bus.off('subzone', onSubzone); bus.off('weather', onWeather);
+    };
+  }, []);
+
+  useEffect(() => {
+    audio.music(battle ? (battle.kind === 'boss' ? 'jefe' : 'batalla') : 'pradera');
+  }, [battle]);
+  useEffect(() => () => audio.music(null), []);
+
+  // compañeros del grupo caminando detrás del héroe
+  const partyKey = party.filter((m) => !m.isHero).map(baseOf).join(',');
+  useEffect(() => {
+    if (worldReady) bus.emit('world-party', partyKey ? partyKey.split(',') : []);
+  }, [worldReady, partyKey]);
+
+  // mascota activa siguiéndote
+  useEffect(() => {
+    if (!worldReady || !player) return;
+    api.getPets(player.id, token)
+      .then((pets) => { const a = pets.find((p) => p.is_active); bus.emit('world-pet', a ? speciesOf(a.name) : null); })
+      .catch(() => {});
+  }, [worldReady, player, token, refreshKey]);
+
+  // estado de los recursos del mapa (hierbas, vetas, cofres)
+  useEffect(() => {
+    if (!worldReady || !player) return;
+    api.getWorldNodes(player.id, ZONE_ID, token).then((list) => bus.emit('resources-state', list)).catch(() => {});
+  }, [worldReady, player, token]);
+
+  useEffect(() => {
+    const onGather = async ({ id }) => {
+      try {
+        const r = await api.gatherWorldNode(player.id, id, token);
+        bus.emit('resource-gathered', { id, ...r });
+        loadHud();
+        setRefreshKey((k) => k + 1);
+      } catch (err) {
+        audio.sfx('error');
+        bus.emit('resource-gathered', { id, error: err.message });
+      }
+    };
+    bus.on('gather', onGather);
+    return () => bus.off('gather', onGather);
+  }, [player, token, loadHud]);
+
+  // "!" en Ren si hay encargos nuevos, "?" si hay alguna misión de la zona lista para entregar
+  useEffect(() => {
+    if (!player) return;
+    Promise.all([api.getActiveQuests(player.id, token), api.getAvailableQuests(player.id, token)])
+      .then(([active, available]) => {
+        const ready = active.some((q) => q.zone_id === ZONE_ID && q.objectives?.length
+          && q.objectives.every((o) => (o.current_count ?? 0) >= o.target_count));
+        const fresh = available.some((q) => q.zone_id === ZONE_ID && !q.accepted && q.prerequisite_met !== false && q.meets_level !== false);
+        setNpcMarks({ ren: ready ? '?' : fresh ? '!' : null });
+      })
+      .catch(() => {});
+  }, [player, token, refreshKey]);
+  useEffect(() => { if (worldReady) bus.emit('npc-marks', npcMarks); }, [worldReady, npcMarks]);
+
+  // subida de nivel: cartel, fanfarria y columna de luz en el mapa
+  const prevStats = useRef(null);
+  useEffect(() => {
+    if (!stats) return;
+    const prev = prevStats.current;
+    prevStats.current = stats;
+    if (prev && stats.level > prev.level) {
+      setLevelUp({ level: stats.level, before: prev, after: stats });
+      audio.jingle('nivel');
+      bus.emit('level-up');
+    }
+    bus.emit('hero-level', stats.level);
+  }, [stats]);
 
   const confirmBoss = useCallback(() => {
     const b = bossPrompt;
@@ -217,8 +337,8 @@ export default function World() {
 
   // ---- teclado: el mapa no escucha mientras escribes (las ventanas no lo bloquean) ----
   useEffect(() => {
-    bus.emit('input-enabled', !typing && !bossPrompt);
-  }, [typing, bossPrompt]);
+    bus.emit('input-enabled', !typing && !bossPrompt && !dialogue);
+  }, [typing, bossPrompt, dialogue]);
 
   useEffect(() => {
     const onFocusIn = (e) => setTyping(isTyping(e.target));
@@ -234,12 +354,20 @@ export default function World() {
     return () => document.body.classList.remove('en-combate');
   }, [battle]);
 
-  const finishBattle = useCallback(({ status, redirect } = {}) => {
+  const finishBattle = useCallback(({ status, redirect, rewards } = {}) => {
     if (redirect) { navigate(redirect); return; }
     const game = gameRef.current;
     if (game) {
       game.scene.stop('batalla');
       game.scene.wake('mundo', { result: status });
+    }
+    // botín del combate flotando sobre el héroe al volver al mapa
+    if (status === 'PLAYER_WON' && rewards) {
+      const lines = [];
+      if (rewards.xp) lines.push({ text: `+${Number(rewards.xp).toLocaleString()} XP`, color: '#8fc9ff' });
+      if (rewards.gold) lines.push({ text: `+${Number(rewards.gold).toLocaleString()} oro`, color: '#ffd84a' });
+      (rewards.itemsDropped ?? []).forEach((d) => lines.push({ text: `+${d.quantity} ${d.itemName}`, color: '#bfffcf' }));
+      setTimeout(() => bus.emit('float-loot', lines), 500);
     }
     if (status === 'ENEMY_WON') sessionStorage.removeItem(POS_KEY);
     setBattle(null);
@@ -249,6 +377,8 @@ export default function World() {
 
   const bossPromptRef = useRef(null);
   bossPromptRef.current = bossPrompt;
+  const dialogueRef = useRef(null);
+  dialogueRef.current = dialogue;
 
   useEffect(() => {
     const onKey = (e) => {
@@ -259,7 +389,8 @@ export default function World() {
         if (e.key === 'Escape') setBossPrompt(null);
         return;
       }
-      if (e.key === 'Escape') { setOpen((list) => list.slice(0, -1)); return; }
+      if (dialogueRef.current) return; // el diálogo maneja sus teclas
+      if (e.key === 'Escape') { setOpen((list) => { if (list.length) audio.sfx('cerrar'); return list.slice(0, -1); }); return; }
       if (e.key === 'Enter') {
         const chat = document.querySelector('.chat-box input');
         if (chat) { e.preventDefault(); chat.focus(); }
@@ -322,8 +453,28 @@ export default function World() {
 
       {/* ---- minimapa: el mapa lo dibuja Phaser, acá solo el marco ---- */}
       <div className="hud-minimap" style={{ width: MINIMAP.width, height: MINIMAP.height, top: MINIMAP.margin, right: MINIMAP.margin }}>
-        <span className="hud-minimap-zone">Pradera Dorada</span>
+        <span className="hud-minimap-zone" title="Pradera Dorada">{subzone?.name ?? 'Pradera Dorada'}</span>
+        {clock && (
+          <span className={`hud-clock${clock.night ? ' hud-clock--night' : ''}`} title={clock.night ? 'Noche' : 'Día'}>
+            <GameIcon name={clock.night ? 'moon' : 'sun'} artist="lorc" />
+            {String(clock.hour).padStart(2, '0')}:00
+            {weather === 'lluvia' && <GameIcon name="raining" artist="lorc" />}
+          </span>
+        )}
       </div>
+      {!battle && <SoundControl />}
+
+      {/* ---- conversación con un NPC ---- */}
+      {dialogue && (
+        <DialogueBox
+          id={dialogue}
+          ctx={{ night: !!clock?.night, mark: npcMarks[dialogue] ?? null }}
+          onOpenWindow={openWin}
+          onClose={() => setDialogue(null)}
+        />
+      )}
+
+      {levelUp && <LevelUpBanner {...levelUp} onDone={() => setLevelUp(null)} />}
 
       {/* ---- barra de acciones con experiencia (abajo al centro) ---- */}
       <div className="hud-actionbar">
@@ -359,12 +510,15 @@ export default function World() {
       </div>
 
       {/* ---- acción contextual (abajo a la derecha) ---- */}
-      {poi && !open.includes(poi.window) && !encounter && (
+      {poi && !open.includes(poi.window) && !encounter && !dialogue && (
         <button
           type="button"
-          className={`hud-context${poi.boss ? ' hud-context--boss' : ''}`}
+          className={`hud-context${poi.boss ? ' hud-context--boss' : ''}${poi.resource ? ' hud-context--gather' : ''}`}
           onClick={() => {
-            if (poi.boss) gameRef.current?.scene.getScene('mundo')?.challengeBoss(poi.boss);
+            const scene = gameRef.current?.scene.getScene('mundo');
+            if (poi.boss) scene?.challengeBoss(poi.boss);
+            else if (poi.resource) { const r = scene?.resources.get(poi.resource.id); if (r) scene.gather(r); }
+            else if (poi.dialogue) setDialogue(poi.dialogue);
             else if (poi.window) openWin(poi.window);
           }}
         >
@@ -393,11 +547,17 @@ export default function World() {
         </div>
       )}
 
-      {/* ---- nombre de la zona al entrar ---- */}
+      {/* ---- nombre de la zona al entrar y de cada subzona al cruzarla (como en WoW) ---- */}
       <div className="hud-zone-title" aria-hidden="true">
         <small>Zona 1</small>
         Pradera Dorada
       </div>
+      {subzoneBanner && subzoneBanner.name !== 'Pradera Dorada' && (
+        <div className={`hud-subzone${subzoneBanner.safe ? ' hud-subzone--safe' : ''}`} key={subzoneBanner.key} aria-hidden="true">
+          {subzoneBanner.name}
+          <small>{subzoneBanner.safe ? 'Zona segura' : `Niveles ${subzoneBanner.levels}`}</small>
+        </div>
+      )}
 
       {encounter && (
         <div className="world-encounter">

@@ -57,6 +57,12 @@ export function describeEffect(e) {
       detail: `${curse ? 'Recibe' : 'Reduce el daño recibido en'} ${curse ? `${e.amount}% más de daño` : `${Math.abs(e.amount)}%`}${turns}${from}`,
     };
   }
+  if (code === 'FURY') {
+    return {
+      key: 'FURY', kind: 'buff', name: 'Furia', short: 'Furia', icon: ['burning-passion', 'lorc'], color: '#ff7a5a', hex: 0xff4a3a,
+      detail: `Ataque +${e.amount} hasta el final del combate`,
+    };
+  }
   if (code === 'DEFENDING') {
     return {
       key: 'DEFENDING', kind: 'buff', name: 'Defendiendo', short: 'Defensa', icon: ['checked-shield', 'lorc'], color: '#8fc9ff', hex: 0x8fc9ff,
@@ -120,7 +126,8 @@ export function statusesOf(p) {
       prev.stacks += 1;
       prev.detail += `\n${d.detail}`;
     } else {
-      byKey.set(d.key, { ...d, rounds: e.rounds ?? null, stacks: 1 });
+      // los que duran todo el combate (furia) no muestran turnos
+      byKey.set(d.key, { ...d, rounds: e.rounds > 99 ? null : e.rounds ?? null, stacks: 1 });
     }
   }
   // primero lo malo (lo que más importa ver), después las mejoras
@@ -129,7 +136,7 @@ export function statusesOf(p) {
 
 // Íconos que la escena de combate precarga para dibujar los estados sobre los combatientes
 export const STATUS_ICONS = [
-  ['poison-bottle', 'lorc'], ['regeneration', 'sbed'], ['invisible', 'delapouite'], ['cursed-star', 'lorc'],
+  ['poison-bottle', 'lorc'], ['regeneration', 'sbed'], ['burning-passion', 'lorc'], ['invisible', 'delapouite'], ['cursed-star', 'lorc'],
   ['shield-reflect', 'lorc'], ['checked-shield', 'lorc'], ['spiked-armor', 'lorc'], ['magic-shield', 'lorc'],
   ['magic-swirl', 'lorc'], ['upgrade', 'delapouite'], ...Object.values(STATS).map((s) => s.icon),
   ...Object.values(ELEMENTS).map((e) => e.icon),

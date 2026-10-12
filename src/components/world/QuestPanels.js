@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
 import FloatingPanel from './FloatingPanel';
+import audio from '../../game/audio';
 
 const objectivesDone = (q) => (q.objectives ?? []).every((o) => (o.current_count ?? 0) >= o.target_count);
 
@@ -92,6 +93,7 @@ export function QuestLogPanel({ onChanged, ...props }) {
     setBusy(true);
     try {
       await fn();
+      if (okText.includes('completada')) audio.jingle('mision');
       setMessage({ ok: true, text: okText });
       setSelected(null);
       load();
@@ -174,6 +176,7 @@ export function QuestBoardPanel({ onChanged, ...props }) {
     setBusy(true);
     try {
       await api.acceptQuest(player.id, current.id, token);
+      audio.sfx('mejora');
       setMessage({ ok: true, text: `Aceptaste: ${current.name}` });
       setSelected(null);
       load();

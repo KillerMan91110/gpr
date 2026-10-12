@@ -567,7 +567,7 @@ body.en-mundo .chat-box:focus-within {
 body.en-combate .wp-layer { display: none; }
 
 /* el botón de música global, debajo del minimapa en vez de encima */
-body.en-mundo .bgm-control { top: 186px; right: 18px; z-index: 50; }
+body.en-mundo .bgm-control { display: none; }
 
 /* en pantallas medianas la barra de acciones se centra en el hueco a la derecha del chat
    (en vez de en la pantalla) para no montarse sobre él */
@@ -581,4 +581,259 @@ body.en-mundo .bgm-control { top: 186px; right: 18px; z-index: 50; }
   .hud-slot { width: 36px; height: 36px; font-size: 19px; }
   .hud-actionbar { bottom: 70px; }
   .hud-minimap-zone { display: none; }
+}
+
+/* =====================================================================================
+   Diálogo con NPCs (estilo JRPG: retrato grande a la izquierda, texto que se escribe solo)
+   ===================================================================================== */
+.dlg {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  z-index: 58;
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  width: min(760px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  animation: dlg-in 0.22s ease-out;
+}
+
+@keyframes dlg-in { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+.dlg-portrait {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  width: 148px;
+  height: 148px;
+  margin-right: -18px;
+  margin-bottom: 10px;
+  padding: 4px;
+  background: radial-gradient(circle at 50% 35%, #4a3a5c, #120e18);
+  border: 3px solid var(--gold);
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px #000, 0 10px 24px rgba(0, 0, 0, 0.6), 0 0 18px rgba(240, 216, 120, 0.25);
+}
+
+.dlg-portrait img { width: 100%; height: 100%; image-rendering: pixelated; border-radius: 6px; }
+
+.dlg-body {
+  flex: 1;
+  min-height: 150px;
+  padding: 12px 18px 12px 34px;
+  background: linear-gradient(180deg, rgba(30, 24, 38, 0.97), rgba(14, 10, 18, 0.98));
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  box-shadow: 0 0 0 2px #000, 0 0 0 4px rgba(138, 106, 40, 0.75), 0 16px 40px rgba(0, 0, 0, 0.7);
+}
+
+.dlg-name {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+  font: 700 1.05rem 'Cinzel', serif;
+  color: var(--gold-bright);
+  text-shadow: 0 1px 3px #000;
+}
+
+.dlg-name small { font: italic 0.85rem 'EB Garamond', serif; color: var(--text-soft); }
+
+.dlg-text {
+  min-height: 52px;
+  margin: 0 0 10px;
+  font: 1.05rem/1.45 'EB Garamond', serif;
+  color: var(--cream);
+  cursor: pointer;
+}
+
+.dlg-caret { color: var(--gold); animation: dlg-caret 0.6s steps(2) infinite; }
+@keyframes dlg-caret { 50% { opacity: 0; } }
+
+.dlg-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 8px 0 0;
+  list-style: none;
+  border-top: 1px solid rgba(212, 175, 55, 0.25);
+  transition: opacity 0.2s;
+}
+
+.dlg-options--wait { opacity: 0.35; }
+
+.dlg-options button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font: 600 0.95rem 'EB Garamond', serif;
+  color: var(--cream);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dlg-options button:hover:not(:disabled) {
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.25), transparent);
+  border-color: rgba(212, 175, 55, 0.4);
+  color: #fff;
+}
+
+.dlg-options button:hover:not(:disabled)::before { content: '▶'; position: absolute; margin-left: -18px; color: var(--gold-bright); font-size: 0.7rem; }
+
+.dlg-options kbd {
+  min-width: 18px;
+  padding: 0 4px;
+  background: linear-gradient(180deg, #f6e08c, #b8902c);
+  border: 1px solid #1a1206;
+  border-radius: 3px;
+  font: 700 0.7rem/16px 'Cinzel', serif;
+  color: #1a1206;
+  text-align: center;
+}
+
+/* ---- subida de nivel ---- */
+.lvlup {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  z-index: 59;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 48px 16px;
+  transform: translateX(-50%);
+  text-align: center;
+  cursor: pointer;
+  animation: lvlup-in 0.5s cubic-bezier(0.2, 1.4, 0.4, 1), lvlup-out 0.6s ease-in 4.6s forwards;
+}
+
+@keyframes lvlup-in { from { opacity: 0; transform: translate(-50%, 20px) scale(0.6); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+@keyframes lvlup-out { to { opacity: 0; transform: translate(-50%, -20px); } }
+
+.lvlup-rays {
+  position: absolute;
+  inset: -60px -40px;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at center, rgba(255, 216, 74, 0.45), rgba(255, 216, 74, 0) 60%),
+    repeating-conic-gradient(from 0deg, rgba(255, 230, 150, 0.18) 0deg 8deg, transparent 8deg 20deg);
+  -webkit-mask-image: radial-gradient(circle, #000 30%, transparent 70%);
+  mask-image: radial-gradient(circle, #000 30%, transparent 70%);
+  animation: lvlup-spin 8s linear infinite;
+}
+
+@keyframes lvlup-spin { to { transform: rotate(360deg); } }
+
+.lvlup small { font: 700 0.85rem 'Cinzel', serif; letter-spacing: 0.25em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 6px #000; }
+
+.lvlup strong {
+  font: 900 3.2rem 'Cinzel', serif;
+  color: #ffd84a;
+  background: linear-gradient(180deg, #fff6c0, #ffd84a 50%, #c08a20);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 3px 0 #3a2508) drop-shadow(0 0 14px rgba(255, 200, 80, 0.7));
+}
+
+.lvlup ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: 6px 0 0; padding: 0; list-style: none; }
+.lvlup li { font: 600 0.95rem 'EB Garamond', serif; color: #fff; text-shadow: 0 1px 3px #000; }
+.lvlup li b { color: #7dff9a; }
+
+/* ---- sonido (debajo del minimapa) ---- */
+.hud-sound { position: absolute; top: 186px; right: 18px; z-index: 30; }
+
+.hud-sound-btn {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: radial-gradient(circle at 50% 35%, #3a2d4a, #120e18);
+  border: 2px solid var(--gold-dim);
+  border-radius: 50%;
+  color: var(--gold-bright);
+  font-size: 17px;
+  box-shadow: 0 0 0 1px #000;
+  cursor: pointer;
+}
+
+.hud-sound-btn:hover { border-color: var(--gold-bright); }
+
+.hud-sound-pop {
+  position: absolute;
+  top: 0;
+  right: 42px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 190px;
+  padding: 10px 12px;
+  background: var(--hud-bg);
+  border: 1px solid var(--hud-border);
+  border-radius: 8px;
+  box-shadow: var(--hud-glow);
+}
+
+.hud-sound-pop label { display: flex; flex-direction: column; gap: 2px; font: 700 0.7rem 'Cinzel', serif; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em; }
+.hud-sound-pop input { accent-color: var(--gold); }
+
+/* ---- reloj (día / noche) en el marco del minimapa ---- */
+.hud-clock {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 9px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #4a3a1c, #2a1f10);
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  font: 700 0.68rem 'Cinzel', serif;
+  color: #ffe9a8;
+  white-space: nowrap;
+}
+
+.hud-clock .game-icon { color: #ffd84a; }
+.hud-clock--night { background: linear-gradient(180deg, #2a3260, #141a38); color: #cfe0ff; }
+.hud-clock--night .game-icon { color: #cfe0ff; }
+
+.hud-context--gather .hud-context-key { background: linear-gradient(180deg, #9affb0, #2fa050); }
+
+/* ---- subzona al cruzarla (debajo del título de la zona) ---- */
+.hud-subzone {
+  position: absolute;
+  top: 22%;
+  left: 50%;
+  z-index: 18;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+  font: 700 1.5rem 'Cinzel', serif;
+  color: #ffe9a8;
+  text-shadow: 0 2px 4px #000, 0 0 18px rgba(0, 0, 0, 0.7);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: hud-subzone 3.8s ease forwards;
+}
+
+.hud-subzone small { font: italic 0.95rem 'EB Garamond', serif; color: #ffd0a0; letter-spacing: 0; }
+.hud-subzone--safe small { color: #9dffb2; }
+
+@keyframes hud-subzone {
+  0% { opacity: 0; transform: translate(-50%, 8px); }
+  12% { opacity: 1; transform: translate(-50%, 0); }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
 }

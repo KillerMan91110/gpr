@@ -1,0 +1,282 @@
+{
+ "nombre": "Pradera Dorada",
+ "zona": 1,
+ "tile": 32,
+ "chunkWidth": 40,
+ "chunkHeight": 30,
+ "columns": 4,
+ "rows": 4,
+ "encuentroHierba": 0.07,
+ "gidHierba": 6,
+ "inicio": {
+  "x": 2576,
+  "y": 1840
+ },
+ "clima": {
+  "estacion": "verano",
+  "lluvia": 0.25
+ },
+ "gids": {
+  "flores": [
+   145,
+   146,
+   147,
+   3
+  ],
+  "agua": [
+   31,
+   32,
+   33,
+   34,
+   35,
+   36,
+   37,
+   38,
+   39,
+   40,
+   41,
+   42,
+   43,
+   44,
+   45,
+   46
+  ],
+  "prado": [
+   1,
+   2,
+   97,
+   98,
+   99,
+   100,
+   101,
+   102,
+   103,
+   104,
+   105,
+   106,
+   107,
+   108,
+   109,
+   110,
+   111,
+   112
+  ],
+  "arboles": [
+   47,
+   48,
+   174,
+   175
+  ],
+  "dorados": [
+   178,
+   179
+  ],
+  "seco": [
+   81,
+   82,
+   83,
+   84,
+   85,
+   86,
+   87,
+   88,
+   89,
+   90,
+   91,
+   92,
+   93,
+   94,
+   95,
+   96
+  ]
+ },
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 1,
+   "cy": 0,
+   "file": "chunk_1_0.json"
+  },
+  {
+   "cx": 2,
+   "cy": 0,
+   "file": "chunk_2_0.json"
+  },
+  {
+   "cx": 3,
+   "cy": 0,
+   "file": "chunk_3_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
+  },
+  {
+   "cx": 1,
+   "cy": 1,
+   "file": "chunk_1_1.json"
+  },
+  {
+   "cx": 2,
+   "cy": 1,
+   "file": "chunk_2_1.json"
+  },
+  {
+   "cx": 3,
+   "cy": 1,
+   "file": "chunk_3_1.json"
+  },
+  {
+   "cx": 0,
+   "cy": 2,
+   "file": "chunk_0_2.json"
+  },
+  {
+   "cx": 1,
+   "cy": 2,
+   "file": "chunk_1_2.json"
+  },
+  {
+   "cx": 2,
+   "cy": 2,
+   "file": "chunk_2_2.json"
+  },
+  {
+   "cx": 3,
+   "cy": 2,
+   "file": "chunk_3_2.json"
+  },
+  {
+   "cx": 0,
+   "cy": 3,
+   "file": "chunk_0_3.json"
+  },
+  {
+   "cx": 1,
+   "cy": 3,
+   "file": "chunk_1_3.json"
+  },
+  {
+   "cx": 2,
+   "cy": 3,
+   "file": "chunk_2_3.json"
+  },
+  {
+   "cx": 3,
+   "cy": 3,
+   "file": "chunk_3_3.json"
+  }
+ ],
+ "subzonas": [
+  {
+   "name": "Aldea Espiga",
+   "x0": 2048,
+   "y0": 1216,
+   "x1": 3104,
+   "y1": 1952,
+   "levels": null,
+   "safe": true
+  },
+  {
+   "name": "Colina del Molino",
+   "x0": 2752,
+   "y0": 640,
+   "x1": 3808,
+   "y1": 1440,
+   "levels": "3-6"
+  },
+  {
+   "name": "Lago Cristalino",
+   "x0": 3200,
+   "y0": 64,
+   "x1": 4256,
+   "y1": 992,
+   "levels": "4-8"
+  },
+  {
+   "name": "Camino Real",
+   "x0": 1920,
+   "y0": 64,
+   "x1": 3232,
+   "y1": 1216,
+   "levels": "1-3"
+  },
+  {
+   "name": "Guarida de la Manada",
+   "x0": 4096,
+   "y0": 64,
+   "x1": 5120,
+   "y1": 1504,
+   "levels": "8-12"
+  },
+  {
+   "name": "Bosque de Robleviejo",
+   "x0": 0,
+   "y0": 64,
+   "x1": 1920,
+   "y1": 1216,
+   "levels": "2-5"
+  },
+  {
+   "name": "Campos de Espiga",
+   "x0": 0,
+   "y0": 1216,
+   "x1": 2048,
+   "y1": 2464,
+   "levels": "1-4"
+  },
+  {
+   "name": "Ruinas del Vigía",
+   "x0": 0,
+   "y0": 2464,
+   "x1": 1632,
+   "y1": 3840,
+   "levels": "5-8"
+  },
+  {
+   "name": "Círculo de Piedras",
+   "x0": 1632,
+   "y0": 2464,
+   "x1": 3072,
+   "y1": 3840,
+   "levels": "8-10"
+  },
+  {
+   "name": "Corazón de la Pradera",
+   "x0": 4096,
+   "y0": 3008,
+   "x1": 5120,
+   "y1": 3840,
+   "levels": "15"
+  },
+  {
+   "name": "Tierras Heridas",
+   "x0": 3072,
+   "y0": 2112,
+   "x1": 5120,
+   "y1": 3840,
+   "levels": "10-15"
+  },
+  {
+   "name": "Praderas del Este",
+   "x0": 3104,
+   "y0": 1440,
+   "x1": 5120,
+   "y1": 2112,
+   "levels": "5-9"
+  },
+  {
+   "name": "Pradera Dorada",
+   "x0": 0,
+   "y0": 0,
+   "x1": 5120,
+   "y1": 3840,
+   "levels": "1-15"
+  }
+ ]
+}

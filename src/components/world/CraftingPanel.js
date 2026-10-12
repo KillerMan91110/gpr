@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
+import audio from '../../game/audio';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
 import { iconForItem, RARITY_LABELS } from './itemIcons';
@@ -76,6 +77,8 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
     setError(null);
     try {
       const r = await api.craft(player.id, recipe.code, qty, token);
+      audio.sfx(r.successCount > 0 ? 'golpe' : 'error');
+      if (r.successCount > 0) setTimeout(() => audio.sfx('recoger'), 160);
       setResult({ type: 'craft', name: recipe.resultName, ...r });
       setQty(1);
       await loadRecipes();

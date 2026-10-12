@@ -1,0 +1,117 @@
+[
+ {
+  "id": "hierba_camino",
+  "tipo": "hierba",
+  "spots": 3
+ },
+ {
+  "id": "hierba_campos",
+  "tipo": "hierba",
+  "spots": 3
+ },
+ {
+  "id": "hierba_lago",
+  "tipo": "hierba",
+  "spots": 3
+ },
+ {
+  "id": "hierba_sur",
+  "tipo": "hierba",
+  "spots": 3
+ },
+ {
+  "id": "hierba_este",
+  "tipo": "hierba",
+  "spots": 3
+ },
+ {
+  "id": "hierba_robleviejo",
+  "tipo": "hierba",
+  "spots": 3
+ },
+ {
+  "id": "flor_lago",
+  "tipo": "flor_luz",
+  "spots": 2
+ },
+ {
+  "id": "flor_piedras",
+  "tipo": "flor_luz",
+  "spots": 2
+ },
+ {
+  "id": "setas_robleviejo",
+  "tipo": "setas",
+  "spots": 3
+ },
+ {
+  "id": "setas_manada",
+  "tipo": "setas",
+  "spots": 3
+ },
+ {
+  "id": "tronco_robleviejo",
+  "tipo": "tronco",
+  "spots": 3
+ },
+ {
+  "id": "tronco_bosque_sur",
+  "tipo": "tronco",
+  "spots": 3
+ },
+ {
+  "id": "nido_robleviejo",
+  "tipo": "nido",
+  "spots": 2
+ },
+ {
+  "id": "nido_lago",
+  "tipo": "nido",
+  "spots": 2
+ },
+ {
+  "id": "mineral_molino",
+  "tipo": "mineral",
+  "spots": 3
+ },
+ {
+  "id": "mineral_este",
+  "tipo": "mineral",
+  "spots": 3
+ },
+ {
+  "id": "mineral_loma",
+  "tipo": "mineral",
+  "spots": 3
+ },
+ {
+  "id": "mineral_heridas",
+  "tipo": "mineral",
+  "spots": 3
+ },
+ {
+  "id": "restos_ruinas",
+  "tipo": "restos",
+  "spots": 3
+ },
+ {
+  "id": "restos_heridas",
+  "tipo": "restos",
+  "spots": 3
+ },
+ {
+  "id": "cofre_bosque",
+  "tipo": "cofre",
+  "spots": 2
+ },
+ {
+  "id": "cofre_lago",
+  "tipo": "cofre",
+  "spots": 2
+ },
+ {
+  "id": "cofre_heridas",
+  "tipo": "cofre",
+  "spots": 2
+ }
+]

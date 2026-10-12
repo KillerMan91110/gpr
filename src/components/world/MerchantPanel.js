@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
+import audio from '../../game/audio';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
 import { iconForItem, RARITY_LABELS } from './itemIcons';
@@ -90,6 +91,7 @@ export default function MerchantPanel({ gold, onChanged, onClose, zIndex, onActi
     setBusy(true);
     try {
       const r = await api.buyArtisanItem(player.id, artisan.code, selected.itemCode, qty, token);
+      audio.sfx('moneda');
       setMessage({ ok: true, text: r.message });
       await load();
       onChanged?.();
@@ -105,6 +107,7 @@ export default function MerchantPanel({ gold, onChanged, onClose, zIndex, onActi
     setBusy(true);
     try {
       const r = await api.sellArtisanItem(player.id, selected.item_id, qty, selected.enchant_level ?? 0, token);
+      audio.sfx('moneda');
       setMessage({ ok: true, text: r.message });
       setSelected(null);
       await load();

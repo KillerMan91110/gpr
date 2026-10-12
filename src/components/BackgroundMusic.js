@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getActiveCombat, isCombatInProgress } from '../utils/activeCombat';
 import GameIcon from './GameIcon';
@@ -40,6 +41,8 @@ function loadYouTubeApi() {
 // muteado a mano — esa preferencia sí se respeta y se guarda.
 export default function BackgroundMusic() {
   const { isAuthenticated } = useAuth();
+  // en el mundo 2D suena su propia banda sonora (game/audio.js): esta se pausa
+  const inWorld = useLocation().pathname === '/mundo';
   const [ready, setReady] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem(MUTE_PREF_KEY) === 'true');
   const [volume, setVolume] = useState(() => {
@@ -137,6 +140,12 @@ export default function BackgroundMusic() {
     }, COMBAT_POLL_MS);
     return () => clearInterval(iv);
   }, [ready]);
+
+  useEffect(() => {
+    if (!ready) return;
+    if (inWorld) playerRef.current?.pauseVideo?.();
+    else playerRef.current?.playVideo?.();
+  }, [ready, inWorld]);
 
   function toggleMute() {
     const next = !muted;

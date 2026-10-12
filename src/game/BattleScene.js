@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import bus from './bus';
+import audio from './audio';
 import { ELEMENTS } from './elements';
 import { STATUS_ICONS, statusesOf } from './statuses';
 
@@ -275,6 +276,7 @@ export default class BattleScene extends Phaser.Scene {
     this.drawBar(unit);
     this.playUnit(unit, 'idle');
     this.syncStatuses(unit, p, true);
+    this.syncShield(unit, p.shield, true);
   }
 
   drawBar(u) {
@@ -371,6 +373,7 @@ export default class BattleScene extends Phaser.Scene {
         if (u.alive && p.hp <= 0) this.kill(u);
         this.drawBar(u);
         if (u.alive) this.syncStatuses(u, p);
+        if (u.kind === 'monster') this.syncShield(u, p.shield);
       }
     } finally {
       // siempre avisar: React espera esto para devolver el control al jugador
@@ -395,6 +398,9 @@ export default class BattleScene extends Phaser.Scene {
     const element = ELEMENTS[this.elementOf(log, actor, ctx)] ? this.elementOf(log, actor, ctx) : null;
     // React muestra la frase y actualiza la vida del objetivo a medida que se anima cada golpe
     bus.emit('battle-log', log);
+    // Romper y Furia: el back los registra después del golpe que los provocó
+    if (target && /ha sido ROTO/.test(log.description ?? '')) { await this.breakFx(target); return; }
+    if (target && /entra en furia/.test(log.description ?? '')) { await this.furyFx(target); return; }
     // veneno / regeneración al cerrar la ronda: el back los registra con actor = objetivo
     if (actor && actor === target && log.action === 'SKILL' && (log.damage > 0 || log.heal > 0) && /veneno|regeneraci/i.test(log.description ?? '')) {
       await this.statusTick(actor, log);
@@ -477,11 +483,13 @@ export default class BattleScene extends Phaser.Scene {
   async impact(target, log, kind, element, attacker) {
     if (log.hp_after != null) target.hp = log.hp_after;
     if (log.evaded) {
+      audio.sfx('esquiva');
       this.floatText(target, '¡Esquiva!', '#ffffff', 11);
       await tween(this, { targets: [target.body, target.weapon].filter(Boolean), x: `+=${target.side === 'PLAYER' ? -12 : 12}`, duration: 90, yoyo: true });
       return;
     }
     if (log.heal) {
+      audio.sfx('curar');
       this.floatText(target, `+${log.heal}`, '#7dff9a', 14);
       this.drawBar(target);
       await wait(this, 300);
@@ -494,10 +502,15 @@ export default class BattleScene extends Phaser.Scene {
     const affinity = el && attacker?.side === 'PLAYER' ? (target.resistances?.[element] ?? 0) : 0;
     const weak = affinity < 0;
 
+    audio.sfx(log.crit || weak ? 'critico' : kind === 'magic' ? 'impacto_magico' : 'golpe');
     this.playUnit(target, 'hurt');
     target.body.setTintFill(el ? el.light : 0xffffff);
     target.weapon?.setTintFill(0xffffff);
-    this.time.delayedCall(weak ? 140 : 80, () => { target.body.clearTint(); target.weapon?.clearTint(); });
+    this.time.delayedCall(weak ? 140 : 80, () => {
+      target.body.clearTint();
+      target.weapon?.clearTint();
+      if (target.stunFx) target.body.setTint(0x9aa0c8); // sigue aturdido (roto)
+    });
     if (el && kind !== 'magic') this.elementEffect(target, element, 0.6);
     this.burst(target.home.x, target.home.y - 28, el ? el.hex : (kind === 'magic' ? 0xb07aff : 0xffe6a0), log.crit || weak ? 18 : 10);
 
@@ -537,6 +550,7 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   charge(x, y, color) {
+    audio.sfx('magia');
     this.emit(x, y, 'mota', {
       speed: { min: 30, max: 60 }, lifespan: 380, scale: { start: 1.2, end: 0 }, tint: color,
       emitZone: { type: 'edge', source: new Phaser.Geom.Circle(0, 0, 18), quantity: 14 },
@@ -615,6 +629,8 @@ export default class BattleScene extends Phaser.Scene {
   async kill(u) {
     if (!u.alive) return;
     u.alive = false;
+    audio.sfx('morir');
+    this.clearShield(u);
     this.clearStatuses(u);
     this.drawBar(u);
     if (u.kind === 'hero') {
@@ -1184,6 +1200,112 @@ export default class BattleScene extends Phaser.Scene {
     this.resetFocus();
   }
 
+  // ---------------------------------------------------------------- Romper (escudos)
+  // Escudo a la izquierda de la barra de vida con los puntos que le quedan; roto = aturdido
+  syncShield(u, shield, silent = false) {
+    if (!u.alive || !shield) { this.clearShield(u); return; }
+    const x = u.home.x - 27;
+    const y = u.barY + 1;
+    if (!u.shieldIcon) {
+      u.shieldBg = this.add.circle(x, y, 6.5, 0x0d0b14, 0.95).setStrokeStyle(1, 0x8fc9ff).setDepth(1110);
+      u.shieldIcon = this.add.image(x, y, 'icos_checked-shield').setDisplaySize(9, 9).setTintFill(0x8fc9ff).setDepth(1111);
+      u.shieldText = this.add.text(x + 0.5, y + 0.5, '', {
+        fontFamily: 'Cinzel, Georgia, serif', fontSize: '7px', fontStyle: 'bold', color: '#ffffff', stroke: '#0d0b14', strokeThickness: 3,
+      }).setOrigin(0.5).setDepth(1112).setResolution(6);
+    }
+    const before = u.shieldValue;
+    u.shieldValue = shield.current;
+    u.shieldText.setText(shield.broken ? '' : String(shield.current));
+    const broken = shield.broken;
+    u.shieldIcon.setTintFill(broken ? 0x6a6a7a : shield.current <= 1 ? 0xffb05a : 0x8fc9ff);
+    u.shieldBg.setStrokeStyle(1, broken ? 0x6a6a7a : 0x8fc9ff);
+    // el escudo que baja hace un pequeño temblor
+    if (!silent && before != null && shield.current < before && !broken) {
+      this.tweens.add({ targets: [u.shieldIcon, u.shieldBg, u.shieldText], x: '+=1.5', duration: 40, yoyo: true, repeat: 2 });
+    }
+    // aturdido: estrellas girando sobre la cabeza
+    if (broken && !u.stunFx) this.startStun(u);
+    if (!broken && u.stunFx) this.stopStun(u, !silent);
+  }
+
+  clearShield(u) {
+    [u.shieldBg, u.shieldIcon, u.shieldText].forEach((o) => o?.destroy());
+    u.shieldBg = u.shieldIcon = u.shieldText = null;
+    if (u.stunFx) this.stopStun(u, false);
+  }
+
+  startStun(u) {
+    const cx = u.home.x;
+    const cy = u.barY - 30;
+    const stars = [0, 1, 2].map(() => this.add.image(cx, cy, 'estrella').setTint(0xffe680).setDepth(1105).setScale(1.6).setBlendMode('ADD'));
+    const state = { a: 0 };
+    const tw = this.tweens.add({
+      targets: state, a: Math.PI * 2, duration: 1100, repeat: -1,
+      onUpdate: () => stars.forEach((st, i) => {
+        const ang = state.a + (i * Math.PI * 2) / 3;
+        st.setPosition(cx + Math.cos(ang) * 12, cy + Math.sin(ang) * 4);
+      }),
+    });
+    u.body.setTint(0x9aa0c8);
+    u.stunFx = { stars, tw };
+  }
+
+  stopStun(u, announce) {
+    u.stunFx.tw.stop();
+    u.stunFx.stars.forEach((st) => st.destroy());
+    u.stunFx = null;
+    if (u.alive) u.body.clearTint();
+    if (announce && u.alive) {
+      this.floatText(u, 'Escudo restaurado', '#8fc9ff', 9);
+      this.ring(u.home.x, u.home.y - 28, 0x8fc9ff, 34, 500);
+    }
+  }
+
+  async breakFx(u) {
+    audio.sfx('romper');
+    this.cameras.main.shake(380, 0.02);
+    this.cameras.main.flash(140, 200, 230, 255);
+    this.punchZoom();
+    const x = u.home.x;
+    const y = u.home.y - 30;
+    // el escudo estalla en esquirlas
+    this.emit(x, y, 'esquirla', {
+      speed: { min: 80, max: 220 }, lifespan: 700, rotate: { min: 0, max: 360 }, scale: { start: 1.3, end: 0.3 },
+      tint: [0xbfe6ff, 0x8fc9ff, 0xffffff], gravityY: 200,
+    }, 26);
+    this.ring(x, y, 0xbfe6ff, 50, 520);
+    this.ring(x, y, 0xffffff, 30, 380);
+    const t = this.add.text(x, y - 22, '¡ROTO!', {
+      fontFamily: 'Cinzel, Georgia, serif', fontSize: '22px', fontStyle: 'bold', color: '#bfe6ff', stroke: '#101830', strokeThickness: 5,
+    }).setOrigin(0.5).setDepth(1210).setResolution(6).setScale(2.2).setAlpha(0);
+    this.tweens.add({ targets: t, scale: 1, alpha: 1, duration: 180, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: t, y: y - 40, alpha: 0, delay: 900, duration: 500, onComplete: () => t.destroy() });
+    this.tweens.add({ targets: u.body, x: `+=${u.side === 'PLAYER' ? -10 : 10}`, duration: 90, yoyo: true, repeat: 1 });
+    if (u.shieldText) u.shieldText.setText('');
+    if (!u.stunFx) this.startStun(u);
+    await wait(this, 900);
+  }
+
+  async furyFx(u) {
+    audio.sfx('encuentro');
+    this.cameras.main.flash(220, 255, 60, 40);
+    this.cameras.main.shake(500, 0.014);
+    this.playUnit(u, 'cast');
+    this.ring(u.home.x, u.home.y - 30, 0xff4a3a, 60, 700);
+    this.emit(u.home.x, u.home.y - 10, 'humo', {
+      speedX: { min: -40, max: 40 }, speedY: { min: -90, max: -30 }, lifespan: 900, scale: { start: 0.5, end: 1.8 },
+      alpha: { start: 0.7, end: 0 }, tint: [0xff4a3a, 0x8a1010], blendMode: 'ADD',
+    }, 24);
+    const t = this.add.text(u.home.x, u.home.y - 90, '¡FURIA!', {
+      fontFamily: 'Cinzel, Georgia, serif', fontSize: '18px', fontStyle: 'bold', color: '#ff7a5a', stroke: '#200808', strokeThickness: 5,
+    }).setOrigin(0.5).setDepth(1210).setResolution(6).setScale(0.4);
+    this.tweens.add({ targets: t, scale: 1, duration: 200, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: t, alpha: 0, y: t.y - 20, delay: 1000, duration: 500, onComplete: () => t.destroy() });
+    bus.emit('battle-fury', u.pid);
+    await wait(this, 1300);
+    if (u.alive) this.playUnit(u, 'idle');
+  }
+
   // ---------------------------------------------------------------- estados alterados
   // Los PNG de game-icons son de 512px: dibujados a 8px con el filtro "pixel art" se ven
   // serruchados, así que se reducen una vez (con suavizado) a una textura de 32px.
@@ -1255,6 +1377,7 @@ export default class BattleScene extends Phaser.Scene {
     if (!u.alive) return;
     const { x, y } = this.statusAnchor(u);
     this.floatText(u, st.short, st.color, 10);
+    audio.sfx(st.key === 'DOT' ? 'veneno' : st.kind === 'buff' ? 'mejora' : 'penalizacion');
     if (st.key === 'DOT') {
       this.emit(u.home.x, u.home.y - 30, 'humo', {
         speedX: { min: -25, max: 25 }, speedY: { min: -50, max: -15 }, lifespan: 700, scale: { start: 0.3, end: 1 },
@@ -1297,6 +1420,11 @@ export default class BattleScene extends Phaser.Scene {
         x: { min: -16, max: 16 }, speedY: { min: -18, max: -6 }, lifespan: 1300, frequency: 300,
         scale: { start: 0.3, end: 0.9 }, alpha: { start: 0.45, end: 0 }, tint: [0x7a30b0, 0x2a1840],
       }).setDepth(1049), -6));
+    } else if (st.key === 'FURY') {
+      parts.push(follow(this.add.particles(0, 0, 'humo', {
+        x: { min: -18, max: 18 }, speedY: { min: -40, max: -15 }, lifespan: 900, frequency: 120,
+        scale: { start: 0.4, end: 1.1 }, alpha: { start: 0.5, end: 0 }, tint: [0xff4a3a, 0xff8a3a], blendMode: 'ADD',
+      }).setDepth(u.home.y - 0.6), -10));
     } else if (st.key === 'HOT') {
       parts.push(follow(this.add.particles(0, 0, 'estrella', {
         x: { min: -14, max: 14 }, speedY: { min: -24, max: -10 }, lifespan: 1000, frequency: 380,
@@ -1342,6 +1470,7 @@ export default class BattleScene extends Phaser.Scene {
   async statusTick(u, log) {
     if (log.hp_after != null) u.hp = log.hp_after;
     if (log.damage > 0) {
+      audio.sfx('veneno');
       this.emit(u.home.x, u.home.y - 28, 'humo', {
         speedX: { min: -30, max: 30 }, speedY: { min: -60, max: -20 }, lifespan: 600, scale: { start: 0.3, end: 1.1 },
         alpha: { start: 0.8, end: 0 }, tint: [0x5ad04a, 0x2a7a2a], blendMode: 'NORMAL',

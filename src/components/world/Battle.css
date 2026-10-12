@@ -575,3 +575,25 @@ body.en-combate .chat-box-restore { display: none; }
 
 .bt-status--ending { animation: bt-status-blink 0.9s ease-in-out infinite; }
 @keyframes bt-status-blink { 50% { opacity: 0.4; } }
+
+/* ---- Romper: escudo de cada enemigo ---- */
+.bt-shield {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 5px 0 3px;
+  background: linear-gradient(180deg, #24304e, #101828);
+  border: 1px solid #8fc9ff;
+  border-radius: 9px;
+  font-size: 11px;
+  color: #bfe6ff;
+}
+
+.bt-shield b { font: 700 0.68rem 'Cinzel', serif; color: #fff; }
+.bt-shield--broken { background: linear-gradient(180deg, #3a3a48, #1a1a24); border-color: #8a8a9a; color: #a8a8b8; animation: bt-shield-broken 0.8s ease-in-out infinite; }
+.bt-shield--broken b { color: #ffd84a; letter-spacing: 0.06em; }
+@keyframes bt-shield-broken { 50% { box-shadow: 0 0 8px rgba(255, 216, 74, 0.6); } }
+
+.bt-bossbar--fury .bt-bossbar-track { box-shadow: 0 0 12px rgba(255, 74, 58, 0.8); animation: bt-fury 0.9s ease-in-out infinite; }
+.bt-bossbar--fury .bt-bossbar-name { color: #ff9a7a; }
+@keyframes bt-fury { 50% { box-shadow: 0 0 22px rgba(255, 74, 58, 1); } }

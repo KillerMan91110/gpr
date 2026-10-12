@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
+import audio from '../../game/audio';
 import FloatingPanel from './FloatingPanel';
 import { iconForItem, SLOT_LABELS } from './itemIcons';
 
@@ -50,6 +51,7 @@ export default function EnchantPanel({ onChanged, onClose, zIndex, onActivate, d
     try {
       const r = npc ? await api.enchantNpc(player.id, npc.npcId, current.slot, token) : await api.enchant(player.id, current.slot, useCrystal, token);
       setFlash({ ok: r.success !== false, text: r.message });
+      audio.sfx(r.success !== false ? 'mejora' : 'romper');
       setTimeout(() => setFlash(null), 2600);
       setUseCrystal(false);
       await loadSlots();
