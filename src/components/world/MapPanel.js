@@ -156,7 +156,7 @@ function ZoneMap({ onWorld }) {
           ))}
           {data.points.map((p) => {
             const exit = exits[p.name];
-            if (p.type === 'poi' && exit != null) {
+            if ((p.type === 'poi' || p.type === 'salida') && exit != null) {
               const dest = ATLAS_ZONES[exit];
               return (
                 <span key={p.name} className="mp-pin mp-exit" style={{ left: p.x * scale, top: p.y * scale }} title={p.label}>
@@ -167,8 +167,8 @@ function ZoneMap({ onWorld }) {
             if (p.type === 'npc') {
               const mark = data.marks?.[p.dialogue];
               return (
-                <span key={p.name} className="mp-pin mp-npc" style={{ left: p.x * scale, top: p.y * scale }} title={p.label}>
-                  <i>{mark || '●'}</i>{zoom > 1 && <em>{String(p.label).split(',')[0]}</em>}
+                <span key={p.name} className={`mp-pin mp-npc${mark ? ` mp-npc--${mark === '?' ? 'entrega' : mark === 'gris' ? 'gris' : 'mision'}` : ''}`} style={{ left: p.x * scale, top: p.y * scale }} title={p.label}>
+                  <i>{mark === 'gris' ? '!' : (mark || '●')}</i>{zoom > 1 && <em>{String(p.label).split(',')[0]}</em>}
                 </span>
               );
             }
@@ -325,7 +325,8 @@ function WorldAtlas({ currentZoneId, onZone }) {
 export default function MapPanel(props) {
   const [tab, setTab] = useState('zona');
   const [zone, setZone] = useState({ id: 1, name: 'Zona' });
-  useEffect(() => { bus.emit('zone-map-data', (d) => setZone({ id: d.id, name: d.name })); }, []);
+  // en Aurelia (zona 0) el "Estás aquí" del mapa del mundo es la capital
+  useEffect(() => { bus.emit('zone-map-data', (d) => setZone({ id: d.dir === 'aurelia' ? 'capital' : d.id, name: d.name })); }, []);
   return (
     <FloatingPanel {...props} id="mapa" title="Mapa" icon={<GameIcon name="treasure-map" artist="lorc" />} width={Math.min(700, window.innerWidth - 16)}>
       <div className="mp-tabs">

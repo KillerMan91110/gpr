@@ -21,7 +21,7 @@ const TABS = [
   { id: 'solicitudes', label: 'Solicitudes', icon: ['envelope', 'lorc'] },
   { id: 'buzon', label: 'Buzón', icon: ['mailbox', 'delapouite'] },
 ];
-const ZONE_NAMES = { pradera: 'Pradera Dorada' };
+const ZONE_NAMES = { pradera: 'Pradera Dorada', aurelia: 'Aurelia' };
 const STATE_LABEL = { combate: '⚔ En combate', ausente: '💤 Ausente' };
 
 function ago(iso) {

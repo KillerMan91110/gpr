@@ -3,6 +3,8 @@
 //
 // Opción: { label, window? (abre esa ventana), next? (muestra otra línea), close? }
 
+import { DIALOGUES_CIUDAD } from './dialoguesCiudad';
+
 const PORTRAIT = (name) => `${process.env.PUBLIC_URL}/assets/mundo/retratos/${name}.png`;
 
 const pick = (list) => list[Math.floor(Math.random() * list.length)];
@@ -92,4 +94,41 @@ export const DIALOGUES = {
       equipo: 'Fácil: derrotas monstruos, juntas lo que sueltan y me lo traes. Si quieres que brille, el encantador usa piedras de encantamiento. Las rocas con vetas a veces tienen alguna.',
     },
   },
+  // el Anciano Sabio de la aldea: da las misiones del Titán y del Chamán (ver questGivers.js)
+  anciano: {
+    name: 'Aldren',
+    role: 'Anciano sabio',
+    portrait: PORTRAIT('anciano'),
+    ambient: [
+      'La tierra del sureste está enferma…',
+      'Hmm… las runas del Círculo brillaron otra vez anoche.',
+      'Cuando yo era joven, el Titán dormía tranquilo.',
+      'Siéntate, siéntate. Las historias no se cuentan de pie.',
+    ],
+    greet: ({ night, mark }) => {
+      if (mark === '?') return pick([
+        'Lo veo en tus ojos: lo hiciste. Ven, cuéntamelo todo y recibe lo que te ganaste.',
+        'La pradera ya se siente distinta. Fuiste tú, ¿verdad? Siéntate y hablemos de tu recompensa.',
+      ]);
+      if (mark === '!') return pick([
+        'Ah, un aventurero con buen paso. Tengo algo que pedirte… algo que yo ya no puedo hacer.',
+        'Te esperaba. Las estrellas dijeron que vendría alguien. Escucha bien lo que te voy a contar.',
+      ]);
+      if (mark === 'gris') return 'Todavía no estás listo para lo que tengo que pedirte. Vuelve cuando hayas crecido un poco más.';
+      return night
+        ? pick(['De noche se oyen los tambores del chamán desde el Círculo de Piedras. No vayas solo.', 'Las luciérnagas solo salen donde la tierra está sana. Cada año hay menos.'])
+        : pick(['Buen día, joven. La aldea es pequeña, pero sus historias son viejas.', 'Antes de la capital, antes del Pilar, ya había trigo en estos campos.']);
+    },
+    options: () => [
+      { label: 'Háblame del Titán', next: 'titan' },
+      { label: '¿Qué pasa en el Círculo de Piedras?', next: 'chaman' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      titan: 'El Titán de la Pradera es tan viejo como las colinas. Dormía bajo la tierra del sureste, en lo que ahora llaman el Corazón de la Pradera, hasta que alguien lo despertó. Desde entonces la tierra se seca a su alrededor y los animales enloquecen. Para enfrentarlo necesitarás nivel, buen equipo… y amigos.',
+      chaman: 'Un chamán de túnica negra hace rituales en el Círculo de Piedras, al sur. Las runas brillan rojas cuando canta. Creo que tiene algo que ver con el despertar del Titán, pero nadie que fue a preguntarle volvió para contarlo.',
+    },
+  },
+  // Aurelia (dialoguesCiudad.js)
+  ...DIALOGUES_CIUDAD,
 };

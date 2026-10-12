@@ -41,7 +41,7 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
   const toast = (text, kind = 'info') => {
     const id = Date.now() + Math.random();
     setToasts((list) => [...list.slice(-3), { id, text, kind }]);
-    setTimeout(() => setToasts((list) => list.filter((t) => t.id !== id)), 4200);
+    setTimeout(() => setToasts((list) => list.filter((t) => t.id !== id)), kind === 'tour' ? 7000 : 4200);
   };
 
   useEffect(() => {

@@ -49,13 +49,20 @@ export default class SocialLayer {
   }
 
   bind() {
+    // por socket llegan posiciones locales a la zona (la sala es la de tu zona): a globales
+    const g = (p) => {
+      if (!p || p.x == null || !this.scene.toGlobal) return p;
+      return { ...p, ...this.scene.toGlobal(p.x, p.y, p.zona ?? p.zone) };
+    };
     const handlers = {
-      'others-roster': ({ me, list }) => this.setRoster(me, list),
-      'other-join': (p) => this.upsert(p),
+      'others-roster': ({ me, list }) => this.setRoster(me, (list ?? []).map(g)),
+      'other-join': (p) => this.upsert(g(p)),
       'other-leave': ({ id }) => this.remove(id),
-      'other-move': (m) => this.move(m),
+      'other-move': (m) => this.move(g(m)),
       'other-typing': ({ id, on }) => this.typing(this.keyOf(id), on),
       'other-say': (m) => this.say(this.keyOf(m.id), m.text, m.loud),
+      // recorrido guiado: una lista de lugares; al llegar a uno se pasa al siguiente
+      'social-tour': (stops) => { this.tour = stops?.length ? stops.map(g) : null; this.nextTourStop(); },
       'other-emote': ({ id, emote }) => this.emote(this.keyOf(id), emote),
       'other-emoji': ({ id, emoji }) => this.emoji(this.keyOf(id), emoji),
       'other-state': ({ id, state }) => this.setState(id, state),
@@ -71,7 +78,14 @@ export default class SocialLayer {
   }
 
   keyOf(id) {
+    if (typeof id === 'string' && id.startsWith('cit:')) return id; // vecinos de la ciudad (cityLife)
     return id === this.myId ? 'me' : `p:${id}`;
+  }
+
+  nextTourStop() {
+    const stop = this.tour?.shift();
+    if (!stop) { this.tour = null; return; }
+    socialStore.setTrack({ name: stop.name, x: stop.x, y: stop.y, info: stop.info, tour: true });
   }
 
   // sprite y altura de la cabeza de cada entidad (yo, otro jugador, NPC)
@@ -82,6 +96,7 @@ export default class SocialLayer {
       const o = this.others.get(Number(key.slice(2)));
       return o ? { sprite: o.sprite, top: o.name.y - 8 } : null;
     }
+    if (key.startsWith('cit:')) return this.scene.city?.entity(key.slice(4)) ?? null;
     if (key.startsWith('npc:')) {
       const n = s.npcs.get(key.slice(4));
       return n ? { sprite: n.sprite, top: n.sprite.y - 38 } : null;
@@ -135,11 +150,7 @@ export default class SocialLayer {
       this.setState(p.id, p.state);
     };
     if (s.textures.exists(key)) build();
-    else {
-      s.load.spritesheet(key, `${ASSETS}/mundo/caminar/${p.cls}.png`, { frameWidth: 32, frameHeight: 32 });
-      s.load.once(`filecomplete-spritesheet-${key}`, build);
-      s.load.start();
-    }
+    else s.loadThen(() => { if (!s.textures.exists(key)) s.load.spritesheet(key, `${ASSETS}/mundo/caminar/${p.cls}.png`, { frameWidth: 32, frameHeight: 32 }); }, build);
   }
 
   remove(id) {
@@ -303,17 +314,22 @@ export default class SocialLayer {
   updateTrack() {
     const s = this.scene;
     const t = this.track;
-    const o = t && this.others.get(t.id);
-    if (!o) { this.trackBox.setVisible(false); return; }
-    const dx = o.sprite.x - s.player.x;
-    const dy = o.sprite.y - s.player.y;
+    // el rastro puede ser hacia otro jugador o hacia un lugar (x, y)
+    const o = t?.id != null ? this.others.get(t.id) : null;
+    const target = o ? o.sprite : (t?.x != null ? t : null);
+    if (!target) { this.trackBox.setVisible(false); return; }
+    const dx = target.x - s.player.x;
+    const dy = target.y - s.player.y;
     const dist = Math.hypot(dx, dy);
     if (dist < FOUND_RADIUS) {
       this.trackBox.setVisible(false);
       this.track = null;
       socialStore.setTrack(null);
       this.emoji('me', '✨');
-      bus.emit('social-toast', { text: `¡Encontraste a ${t.name}!`, kind: 'ok' });
+      if (t.tour) {
+        bus.emit('social-toast', { text: `${t.name}: ${t.info ?? ''}`, kind: 'tour' });
+        this.scene.time.delayedCall(1200, () => this.nextTourStop());
+      } else bus.emit('social-toast', { text: `¡Encontraste a ${t.name}!`, kind: 'ok' });
       return;
     }
     const ang = Math.atan2(dy, dx);
@@ -327,12 +343,13 @@ export default class SocialLayer {
     const s = this.scene;
     s.time.delayedCall(Phaser.Math.Between(...NPC_CHAT_MS), () => {
       if (!s.sys.isActive() || !s.player) { this.scheduleNpcChat(); return; }
-      const near = [...s.npcs.entries()].filter(([key, n]) => DIALOGUES[key]?.ambient?.length
+      // clave "zona:dialogo" (n.id es el dialogo)
+      const near = [...s.npcs.entries()].filter(([key, n]) => DIALOGUES[n.id]?.ambient?.length
         && Phaser.Math.Distance.Between(n.sprite.x, n.sprite.y, s.player.x, s.player.y) < 420
         && !this.bubbles.has(`npc:${key}`));
       if (near.length) {
-        const [key] = Phaser.Utils.Array.GetRandom(near);
-        this.say(`npc:${key}`, Phaser.Utils.Array.GetRandom(DIALOGUES[key].ambient));
+        const [key, n] = Phaser.Utils.Array.GetRandom(near);
+        this.say(`npc:${key}`, Phaser.Utils.Array.GetRandom(DIALOGUES[n.id].ambient));
       }
       this.scheduleNpcChat();
     });

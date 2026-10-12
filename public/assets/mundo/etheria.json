@@ -1,0 +1,8 @@
+{
+ "nombre": "Etheria",
+ "nota": "Mundo continuo: cada zona es un mapa por trozos colocado en su lugar del continente (x, y en casillas). Se camina de una a otra sin pantallas de carga.",
+ "zonas": [
+  { "dir": "aurelia", "x": 20, "y": 0 },
+  { "dir": "pradera", "x": 0, "y": 90 }
+ ]
+}

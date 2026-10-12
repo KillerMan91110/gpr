@@ -1,0 +1,248 @@
+{
+ "nombre": "Aurelia",
+ "zona": 0,
+ "ciudad": true,
+ "musica": "ciudad",
+ "tileset": "pradera",
+ "terrenos": [
+  "pasto",
+  "dorado",
+  "camino",
+  "agua",
+  "hierba",
+  "plaza",
+  "guarida",
+  "trigo",
+  "seco",
+  "meseta",
+  "cara",
+  "escalera",
+  "puente",
+  "muro",
+  "adoquin",
+  "losa",
+  "mosaico",
+  "canal",
+  "puentep"
+ ],
+ "tile": 32,
+ "chunkWidth": 40,
+ "chunkHeight": 30,
+ "columns": 3,
+ "rows": 3,
+ "encuentroHierba": 0,
+ "gidHierba": 6,
+ "inicio": {
+  "x": 1904,
+  "y": 1680
+ },
+ "clima": {
+  "estacion": "verano",
+  "lluvia": 0.15
+ },
+ "gids": {
+  "flores": [
+   145,
+   146,
+   147,
+   3
+  ],
+  "agua": [
+   31,
+   32,
+   33,
+   34,
+   35,
+   36,
+   37,
+   38,
+   39,
+   40,
+   41,
+   42,
+   43,
+   44,
+   45,
+   46
+  ],
+  "prado": [
+   1,
+   2,
+   97,
+   98,
+   99,
+   100,
+   101,
+   102,
+   103,
+   104,
+   105,
+   106,
+   107,
+   108,
+   109,
+   110,
+   111,
+   112
+  ],
+  "arboles": [
+   47,
+   48,
+   174,
+   175
+  ],
+  "dorados": [
+   178,
+   179
+  ],
+  "seco": [
+   81,
+   82,
+   83,
+   84,
+   85,
+   86,
+   87,
+   88,
+   89,
+   90,
+   91,
+   92,
+   93,
+   94,
+   95,
+   96
+  ]
+ },
+ "subzonas": [
+  {
+   "name": "Plaza del Pilar",
+   "x0": 1504,
+   "y0": 1120,
+   "x1": 2368,
+   "y1": 1824,
+   "levels": null,
+   "safe": true
+  },
+  {
+   "name": "Catedral de Aethra",
+   "x0": 1536,
+   "y0": 64,
+   "x1": 2304,
+   "y1": 672,
+   "levels": null,
+   "safe": true
+  },
+  {
+   "name": "Barrio Élfico",
+   "x0": 64,
+   "y0": 64,
+   "x1": 1024,
+   "y1": 704,
+   "levels": null,
+   "safe": true
+  },
+  {
+   "name": "Barrio Enano",
+   "x0": 2816,
+   "y0": 64,
+   "x1": 3776,
+   "y1": 704,
+   "levels": null,
+   "safe": true
+  },
+  {
+   "name": "Barrio de las Órdenes",
+   "x0": 64,
+   "y0": 704,
+   "x1": 1536,
+   "y1": 2048,
+   "levels": null,
+   "safe": true
+  },
+  {
+   "name": "Barrio del Mercado",
+   "x0": 1984,
+   "y0": 704,
+   "x1": 3776,
+   "y1": 2048,
+   "levels": null,
+   "safe": true
+  },
+  {
+   "name": "Puerta Sur",
+   "x0": 1600,
+   "y0": 2432,
+   "x1": 2272,
+   "y1": 2880,
+   "levels": null,
+   "safe": true
+  },
+  {
+   "name": "Barrio Bajo",
+   "x0": 64,
+   "y0": 2048,
+   "x1": 3776,
+   "y1": 2880,
+   "levels": null,
+   "safe": true
+  },
+  {
+   "name": "Aurelia",
+   "x0": 0,
+   "y0": 0,
+   "x1": 3840,
+   "y1": 2880,
+   "levels": null,
+   "safe": true
+  }
+ ],
+ "editado": true,
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 1,
+   "cy": 0,
+   "file": "chunk_1_0.json"
+  },
+  {
+   "cx": 2,
+   "cy": 0,
+   "file": "chunk_2_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
+  },
+  {
+   "cx": 1,
+   "cy": 1,
+   "file": "chunk_1_1.json"
+  },
+  {
+   "cx": 2,
+   "cy": 1,
+   "file": "chunk_2_1.json"
+  },
+  {
+   "cx": 0,
+   "cy": 2,
+   "file": "chunk_0_2.json"
+  },
+  {
+   "cx": 1,
+   "cy": 2,
+   "file": "chunk_1_2.json"
+  },
+  {
+   "cx": 2,
+   "cy": 2,
+   "file": "chunk_2_2.json"
+  }
+ ]
+}

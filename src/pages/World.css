@@ -837,3 +837,198 @@ body.en-mundo .bgm-control { display: none; }
   75% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+/* ---- seguimiento de misiones (estilo WoW: texto sobre el mapa, bajo el minimapa) ---- */
+.hud-tracker {
+  position: absolute;
+  top: 232px;
+  right: 16px;
+  z-index: 19;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  width: 230px;
+  pointer-events: none;
+}
+
+.hud-tracker-head,
+.hud-tracker-q {
+  pointer-events: auto;
+  padding: 0;
+  background: none;
+  border: 0;
+  text-align: right;
+  cursor: pointer;
+  text-shadow: 0 1px 2px #000, 0 0 4px #000;
+}
+
+.hud-tracker-head { font: 700 0.78rem 'Cinzel', serif; color: var(--gold-bright); letter-spacing: 0.06em; }
+.hud-tracker-head small { color: var(--cream); opacity: 0.8; }
+.hud-tracker-head span { display: inline-block; width: 14px; color: var(--cream); }
+
+.hud-tracker-q { display: flex; flex-direction: column; gap: 1px; }
+.hud-tracker-q b { font: 700 0.76rem 'EB Garamond', serif; color: #ffd84a; }
+.hud-tracker-q span { font: 500 0.72rem 'EB Garamond', serif; color: #f2ecdc; }
+.hud-tracker-q em { font: italic 600 0.72rem 'EB Garamond', serif; color: #7dff9a; }
+.hud-tracker-q.done b { color: #7dff9a; }
+.hud-tracker-q:hover b { text-decoration: underline; }
+.hud-tracker-more { font: 500 0.68rem 'EB Garamond', serif; color: var(--cream); opacity: 0.75; text-shadow: 0 1px 2px #000; }
+
+@media (max-width: 900px) { .hud-tracker { display: none; } }
+
+/* ---- bufos (estilo WoW: iconos a la izquierda del minimapa, con su descripción al pasar) ---- */
+.hud-buffs { position: absolute; z-index: 21; display: flex; flex-direction: row-reverse; gap: 6px; }
+
+.hud-buff {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 35%, #2f5a4a, #0e1e18);
+  border: 2px solid #7dffc0;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px #000, 0 0 10px rgba(125, 255, 192, 0.45);
+  color: #dfffee;
+  font-size: 22px;
+  outline: none;
+  animation: hud-buff-in 0.35s ease-out;
+}
+
+.hud-buff small {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font: 700 0.62rem 'Cinzel', serif;
+  color: #dfffee;
+  text-shadow: 0 1px 2px #000;
+}
+
+.hud-buff-tip {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  display: none;
+  flex-direction: column;
+  gap: 3px;
+  width: 210px;
+  padding: 8px 10px;
+  background: var(--hud-bg);
+  border: 1px solid var(--hud-border);
+  border-radius: 6px;
+  box-shadow: var(--hud-glow);
+  text-align: left;
+}
+
+.hud-buff-tip b { font: 700 0.8rem 'Cinzel', serif; color: #7dffc0; }
+.hud-buff-tip span { font: 500 0.78rem 'EB Garamond', serif; color: var(--cream); }
+.hud-buff:hover .hud-buff-tip,
+.hud-buff:focus .hud-buff-tip { display: flex; }
+
+@keyframes hud-buff-in { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+@media (max-width: 900px) { .hud-buffs { display: none; } }
+
+/* ---- marco del objetivo (estilo WoW: espejo del marco del héroe, a su derecha) ---- */
+.hud-target {
+  position: absolute;
+  top: 14px;
+  left: 340px; /* justo a la derecha del marco del héroe */
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  pointer-events: none;
+  animation: hud-target-in 0.18s ease-out;
+}
+
+.hud-target-body {
+  margin-right: -18px;
+  padding: 7px 26px 7px 12px;
+  width: 200px;
+  background: var(--hud-bg);
+  border: 1px solid var(--hud-border);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  box-shadow: var(--hud-glow);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hud-target-name { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.hud-target-name span { font: 700 0.86rem 'Cinzel', serif; color: #ffe9a8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hud-target--jefe .hud-target-name span { color: #ff8a7a; }
+.hud-target--recurso .hud-target-name span { color: #bfffcf; }
+.hud-target-body small { font: italic 600 0.74rem 'EB Garamond', serif; color: var(--text-soft, #d8cdb4); }
+.hud-target-body em { font: 700 0.62rem 'Cinzel', serif; color: var(--gold); letter-spacing: 0.06em; font-style: normal; }
+
+.hud-target-bar { height: 7px; border-radius: 4px; border: 1px solid #000; background: linear-gradient(180deg, #7ddc5a, #3e8a2a); }
+.hud-target-bar--jefe { background: linear-gradient(180deg, #ff6a5a, #a8281e); }
+.hud-target-bar--recurso { background: linear-gradient(180deg, #6fc3ff, #2a6ab0); }
+.hud-target-bar--lugar { background: linear-gradient(180deg, #d8cdb4, #8a7a5a); }
+
+.hud-target-mark { font: 900 1.05rem 'Cinzel', serif; line-height: 1; text-shadow: 0 0 4px #000; color: #ffd84a; }
+.hud-target-mark--entrega { color: #7dff9a; }
+.hud-target-mark--gris { color: #a8a8b0; }
+
+.hud-target-portrait {
+  position: relative;
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--gold);
+  background: radial-gradient(circle at 50% 35%, #3a2d4a, #120e18);
+  box-shadow: 0 0 0 2px #000, inset 0 0 12px rgba(0, 0, 0, 0.8);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--gold-bright);
+  font-size: 34px;
+}
+
+.hud-target--jefe .hud-target-portrait { border-color: #ff6a5a; color: #ff8a7a; overflow: visible; }
+.hud-target-portrait img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+
+@keyframes hud-target-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+
+/* ---- barra de lanzamiento (recolectar), sobre la barra de acciones ---- */
+.hud-cast {
+  position: absolute;
+  left: 50%;
+  bottom: 150px;
+  z-index: 30;
+  width: 260px;
+  height: 22px;
+  transform: translateX(-50%);
+  background: rgba(10, 8, 14, 0.85);
+  border: 2px solid var(--gold);
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px #000, 0 4px 12px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hud-cast-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  background: linear-gradient(180deg, #ffe680, #c89a2a);
+  animation: hud-cast-fill linear forwards;
+}
+
+.hud-cast span {
+  position: relative;
+  display: block;
+  text-align: center;
+  font: 700 0.72rem/18px 'Cinzel', serif;
+  color: #fff;
+  text-shadow: 0 1px 2px #000, 0 0 3px #000;
+}
+
+@keyframes hud-cast-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+@media (max-width: 900px) { .hud-target { display: none; } }

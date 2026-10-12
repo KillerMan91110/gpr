@@ -12,6 +12,9 @@ import bus from '../game/bus';
 import audio from '../game/audio';
 import { speciesOf } from '../game/pets';
 import DialogueBox from '../components/world/DialogueBox';
+import QuestTracker from '../components/world/QuestTracker';
+import TargetFrame from '../components/world/TargetFrame';
+import { questMarks } from '../game/questGivers';
 import LevelUpBanner from '../components/world/LevelUpBanner';
 import SoundControl from '../components/world/SoundControl';
 import { MINIMAP } from '../game/hudLayout';
@@ -31,6 +34,7 @@ import { AchievementsPanel, InfirmaryPanel, RankingPanel } from '../components/w
 import MapPanel from '../components/world/MapPanel';
 import WorldSocial from '../components/world/WorldSocial';
 import SocialPanel from '../components/world/SocialPanel';
+import { OfrendaPanel, LibroPanel } from '../components/world/CityPanels';
 import './World.css';
 
 // Ventanas del mundo. Todas son paneles flotantes que NO bloquean el mapa: se puede caminar con
@@ -64,6 +68,14 @@ const WINDOWS = {
   unirse_gremio:   { title: 'Unirse a un gremio',    icon: ['shaking-hands', 'delapouite'], embed: '/guild/join' },
   // buzón de cartas entre amigos (desde la ventana Social)
   buzon:           { title: 'Buzón',                 icon: ['mailbox', 'delapouite'],       embed: '/friends' },
+  // Aurelia: el Pilar de Aethra, el libro de visitas de la posada y las casas de las órdenes
+  ofrenda:         { title: 'Pilar de Aethra',       panel: OfrendaPanel, pos: { x: 380, y: 120 } },
+  libro:           { title: 'Libro de visitas',      panel: LibroPanel,   pos: { x: 360, y: 100 } },
+  orden_guerrero:  { title: 'Cuartel del Acero',     icon: ['broadsword', 'lorc'],          embed: '/guild/masters/1' },
+  orden_mago:      { title: 'Torre Arcana',          icon: ['wizard-staff', 'lorc'],        embed: '/guild/masters/2' },
+  orden_arquero:   { title: 'Campo del Halcón',      icon: ['pocket-bow', 'lorc'],          embed: '/guild/masters/3' },
+  orden_picaro:    { title: 'La Sombra Callada',     icon: ['plain-dagger', 'lorc'],        embed: '/guild/masters/4' },
+  orden_sacerdote: { title: 'Capilla de la Luz',     icon: ['holy-symbol', 'lorc'],         embed: '/guild/masters/5' },
 };
 
 function defaultPosFor(w) {
@@ -77,8 +89,20 @@ const KEY_TO_WINDOW = Object.fromEntries(Object.entries(WINDOWS).filter(([, w]) 
 const BASE_CLASSES = ['guerrero', 'mago', 'arquero', 'picaro', 'sacerdote'];
 // v2: la Pradera grande por trozos (las posiciones del mapa viejo ya no sirven)
 const POS_KEY = 'mundo_posicion_v2';
-// zona de arranque si no hay posición guardada (la posición guarda en qué zona estabas)
-const DEFAULT_ZONE_ID = 1;
+// zona de arranque si no hay posición guardada (la posición guarda en qué zona estabas): todos
+// los aventureros empiezan en Aurelia, la capital
+const DEFAULT_ZONE_ID = 0;
+const DEFAULT_ZONE_DIR = 'aurelia';
+const ZONE_TITLES = { aurelia: ['La capital', 'Aurelia'], pradera: ['Zona 1', 'Pradera Dorada'] };
+// recorrido del guía Tomás por Aurelia (lugar, posición en píxeles y qué hay ahí)
+const AURELIA_TOUR = [
+  { name: 'Catedral de Aethra', x: 59.5 * 32, y: 16 * 32, info: 'Aquí te curan y aquí despiertas si caes en combate.' },
+  { name: 'Barrio de las Órdenes', x: 16 * 32, y: 45 * 32, info: 'Las casas de cada clase: tienda y maestro de tu oficio.' },
+  { name: 'Barrio del Mercado', x: 76 * 32, y: 47 * 32, info: 'Lyra, los puestos y la casa de subastas de Durin.' },
+  { name: 'El Grifo Dorado', x: 76 * 32, y: 63 * 32, info: 'La posada de Marta y el libro de visitas.' },
+  { name: 'Puerta Sur', x: 59.5 * 32, y: 84 * 32, info: 'El Camino Real baja a la Pradera Dorada. La diligencia de Gaspar está al lado.' },
+  { name: 'Pilar de Aethra', x: 60 * 32, y: 51 * 32, info: '¡Listo! Haz una ofrenda al Pilar para que la diosa bendiga tu viaje.' },
+];
 const plain = (s) => (s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 // clase base de un compañero (las evolucionadas empiezan con el nombre de su clase base)
 const baseOf = (m) => BASE_CLASSES.find((c) => plain(m.classCode ?? m.className).startsWith(c)) ?? 'guerrero';
@@ -132,11 +156,31 @@ export default function World() {
   // conversación con un NPC, marcas de misión, subida de nivel y hora del día
   const [dialogue, setDialogue] = useState(null);
   const [npcMarks, setNpcMarks] = useState({});
+  // misiones del jugador (para las marcas de los NPCs y el seguimiento de la derecha)
+  const [quests, setQuests] = useState({ active: [], available: [] });
+  // NPC con el que se abrió el tablón: muestra solo sus misiones (null = todas, el tablón del gremio)
+  const [questGiver, setQuestGiver] = useState(null);
+  // ids de las zonas del mundo abierto (las de etheria.json)
+  const [continentZoneIds, setContinentZoneIds] = useState([]);
+  // bufos del héroe que da el mundo (Paso de la ciudad…): iconos junto al minimapa, como en WoW
+  const [buffs, setBuffs] = useState([]);
+  // barra de lanzamiento (recolectar): { label, ms, key }
+  const [cast, setCast] = useState(null);
+  useEffect(() => {
+    let t = null;
+    const onCast = (c) => { clearTimeout(t); setCast({ ...c, key: Date.now() }); t = setTimeout(() => setCast(null), c.ms + 150); };
+    const onDone = (r) => { if (r?.error) { clearTimeout(t); setCast(null); } };
+    bus.on('cast', onCast);
+    bus.on('resource-gathered', onDone);
+    return () => { clearTimeout(t); bus.off('cast', onCast); bus.off('resource-gathered', onDone); };
+  }, []);
   const [levelUp, setLevelUp] = useState(null);
   const [clock, setClock] = useState(null);
   const [worldReady, setWorldReady] = useState(false);
   const [zoneId, setZoneId] = useState(DEFAULT_ZONE_ID);
   const [zoneDir, setZoneDir] = useState(null);
+  const [zoneInfo, setZoneInfo] = useState({ name: null, music: 'pradera', key: 0 });
+  const sceneDataRef = useRef(null);
   // subzona donde está el héroe (cartel al entrar y nombre en el minimapa) y clima
   const [subzone, setSubzone] = useState(null);
   const [subzoneBanner, setSubzoneBanner] = useState(null);
@@ -196,13 +240,17 @@ export default function World() {
         physics: { default: 'arcade', arcade: { debug: false } },
         input: { keyboard: { target: window } },
       });
-      game.scene.add('mundo', WorldScene, true, {
+      // posiciones guardadas antes de que existiera la ciudad: eran de la Pradera
+      const zoneDirStart = startPos ? (startPos.zona ?? 'pradera') : DEFAULT_ZONE_DIR;
+      const sceneData = {
         heroClass: BASE_CLASSES.includes(baseClass) ? baseClass : 'guerrero',
         heroName: stats.nickname,
         heroLevel: stats.level,
         startPos,
-        zoneDir: startPos?.zona,
-      });
+        zoneDir: zoneDirStart,
+      };
+      sceneDataRef.current = sceneData;
+      game.scene.add('mundo', WorldScene, true, sceneData);
       game.scene.add('batalla', BattleScene, false);
       gameRef.current = game;
       if (process.env.NODE_ENV === 'development') window.etheriaGame = game; // para inspeccionar desde la consola
@@ -222,7 +270,10 @@ export default function World() {
     // los NPCs con diálogo primero conversan; el resto abre su ventana directamente
     const onInteract = (p) => {
       if (p?.dialogue) setDialogue(p.dialogue);
-      else if (p?.window) openWin(p.window);
+      else if (p?.window) {
+        if (p.window === 'misiones_gremio') setQuestGiver(null); // el tablón muestra todas
+        openWin(p.window);
+      }
     };
     const onEncounter = (e) => {
       setEncounter(e);
@@ -242,7 +293,14 @@ export default function World() {
 
   // ---- mundo vivo: compañeros, mascota, recursos, marcas de misión, música ----
   useEffect(() => {
-    const onReady = (z) => { if (z?.zoneId) setZoneId(z.zoneId); if (z?.zoneDir) setZoneDir(z.zoneDir); setWorldReady(true); };
+    const onReady = (z) => {
+      if (z?.zoneId != null) setZoneId(z.zoneId);
+      if (z?.zoneDir) setZoneDir(z.zoneDir);
+      if (z?.zoneIds) setContinentZoneIds((cur) => (cur.join() === z.zoneIds.join() ? cur : z.zoneIds));
+      setBuffs(z?.buffs ?? []);
+      setZoneInfo((cur) => ({ name: z?.name, dir: z?.zoneDir, music: z?.music ?? 'pradera', key: cur.key + 1 }));
+      setWorldReady(true);
+    };
     const onClock = (c) => setClock(c);
     let bannerTimer = null;
     const onSubzone = (sz) => {
@@ -263,8 +321,48 @@ export default function World() {
   }, []);
 
   useEffect(() => {
-    audio.music(battle ? (battle.kind === 'boss' ? 'jefe' : 'batalla') : 'pradera');
-  }, [battle]);
+    audio.music(battle ? (battle.kind === 'boss' ? 'jefe' : 'batalla') : zoneInfo.music);
+  }, [battle, zoneInfo.music]);
+
+  // ---- salto de zona (diligencia, salidas a zonas fuera del continente) ----
+  // Las zonas de etheria.json se cruzan caminando; un viaje dentro del continente solo mueve al
+  // héroe (fundido corto, sin desmontar la escena). Solo una zona fuera del continente remonta.
+  useEffect(() => {
+    const onZone = ({ zoneDir: dir, x, y }) => {
+      const pos = { x, y, zona: dir };
+      sessionStorage.setItem(POS_KEY, JSON.stringify(pos));
+      let moved = false;
+      bus.emit('teleport', { zoneDir: dir, x, y }, (ok) => { moved = ok; });
+      if (moved) return;
+      setWorldReady(false);
+      setPoi(null);
+      const sc = gameRef.current?.scene.getScene('mundo');
+      if (!sc) return;
+      const data = { ...sceneDataRef.current, heroLevel: stats?.level ?? sceneDataRef.current?.heroLevel, startPos: pos, zoneDir: dir };
+      sceneDataRef.current = data;
+      sc.scene.restart(data);
+    };
+    bus.on('zone-change', onZone);
+    return () => bus.off('zone-change', onZone);
+  }, [stats?.level]);
+
+  // ---- acciones de los diálogos: recorrido del guía, viajes en diligencia ----
+  const onDialogueAction = useCallback(async (o) => {
+    if (o.action === 'tour') {
+      bus.emit('social-tour', AURELIA_TOUR);
+      bus.emit('social-toast', { text: 'Tomás: «¡Sígueme! La flecha verde te lleva a cada lugar.»', kind: 'tour' });
+    } else if (o.action === 'viaje') {
+      try {
+        const r = await api.travel(player.id, o.destino, token);
+        audio.sfx('monedas');
+        loadHud();
+        bus.emit('zone-change', { zoneDir: r.zona, x: r.x, y: r.y });
+      } catch (err) {
+        audio.sfx('error');
+        bus.emit('social-toast', { text: err.message, kind: 'error' });
+      }
+    }
+  }, [player, token, loadHud]);
   useEffect(() => () => audio.music(null), []);
 
   // compañeros del grupo caminando detrás del héroe
@@ -303,18 +401,18 @@ export default function World() {
     return () => bus.off('gather', onGather);
   }, [player, token, loadHud]);
 
-  // "!" en Ren si hay encargos nuevos, "?" si hay alguna misión de la zona lista para entregar
+  // Misiones en el mundo (estilo WoW, ver game/questGivers.js): cada NPC que da misiones lleva
+  // "?" si tienes algo para entregarle, "!" si tiene una que ya puedes aceptar y "!" gris si
+  // tendrá una cuando subas un poco más. Todo el mundo abierto a la vez, no solo tu zona.
   useEffect(() => {
     if (!player) return;
     Promise.all([api.getActiveQuests(player.id, token), api.getAvailableQuests(player.id, token)])
-      .then(([active, available]) => {
-        const ready = active.some((q) => q.zone_id === zoneId && q.objectives?.length
-          && q.objectives.every((o) => (o.current_count ?? 0) >= o.target_count));
-        const fresh = available.some((q) => q.zone_id === zoneId && !q.accepted && q.prerequisite_met !== false && q.meets_level !== false);
-        setNpcMarks({ ren: ready ? '?' : fresh ? '!' : null });
-      })
+      .then(([active, available]) => setQuests({ active, available }))
       .catch(() => {});
-  }, [player, token, refreshKey, zoneId]);
+  }, [player, token, refreshKey, stats?.level]);
+  useEffect(() => {
+    setNpcMarks(questMarks({ ...quests, level: stats?.level ?? 1, continentZoneIds }));
+  }, [quests, stats?.level, continentZoneIds]);
   useEffect(() => { if (worldReady) bus.emit('npc-marks', npcMarks); }, [worldReady, npcMarks]);
 
   // subida de nivel: cartel, fanfarria y columna de luz en el mapa
@@ -463,7 +561,7 @@ export default function World() {
 
       {/* ---- minimapa: el mapa lo dibuja Phaser, acá solo el marco ---- */}
       <div className="hud-minimap" style={{ width: MINIMAP.width, height: MINIMAP.height, top: MINIMAP.margin, right: MINIMAP.margin }}>
-        <span className="hud-minimap-zone" title="Pradera Dorada">{subzone?.name ?? 'Pradera Dorada'}</span>
+        <span className="hud-minimap-zone" title={zoneInfo.name ?? ''}>{subzone?.name ?? zoneInfo.name ?? ''}</span>
         {clock && (
           <span className={`hud-clock${clock.night ? ' hud-clock--night' : ''}`} title={clock.night ? 'Noche' : 'Día'}>
             <GameIcon name={clock.night ? 'moon' : 'sun'} artist="lorc" />
@@ -472,14 +570,42 @@ export default function World() {
           </span>
         )}
       </div>
+      {/* ---- objetivo: con quién o qué interactúas (E), a la derecha del marco del héroe ---- */}
+      {!battle && !dialogue && <TargetFrame poi={poi} marks={npcMarks} />}
+
+      {/* ---- barra de lanzamiento (recolectar) ---- */}
+      {cast && !battle && (
+        <div className="hud-cast" key={cast.key}>
+          <div className="hud-cast-fill" style={{ animationDuration: `${cast.ms}ms` }} />
+          <span>{cast.label}</span>
+        </div>
+      )}
+
+      {!battle && buffs.length > 0 && (
+        <div className="hud-buffs" style={{ top: MINIMAP.margin + 2, right: MINIMAP.margin + MINIMAP.width + 16 }}>
+          {buffs.map((b) => (
+            <div className="hud-buff" key={b.id} tabIndex={0}>
+              <GameIcon name={b.icon[0]} artist={b.icon[1]} />
+              <small>{b.label ?? '∞'}</small>
+              <div className="hud-buff-tip" role="tooltip"><b>{b.name}</b><span>{b.desc}</span></div>
+            </div>
+          ))}
+        </div>
+      )}
       {!battle && <SoundControl />}
+      {!battle && <QuestTracker active={quests.active} continentZoneIds={continentZoneIds} onOpen={() => openWin('misiones')} />}
 
       {/* ---- conversación con un NPC ---- */}
       {dialogue && (
         <DialogueBox
           id={dialogue}
           ctx={{ night: !!clock?.night, mark: npcMarks[dialogue] ?? null }}
-          onOpenWindow={openWin}
+          onOpenWindow={(win) => {
+            // el tablón abierto desde un NPC muestra solo sus misiones
+            if (win === 'misiones_gremio') setQuestGiver(dialogue);
+            openWin(win);
+          }}
+          onAction={onDialogueAction}
           onClose={() => setDialogue(null)}
         />
       )}
@@ -561,11 +687,13 @@ export default function World() {
       )}
 
       {/* ---- nombre de la zona al entrar y de cada subzona al cruzarla (como en WoW) ---- */}
-      <div className="hud-zone-title" aria-hidden="true">
-        <small>Zona 1</small>
-        Pradera Dorada
-      </div>
-      {subzoneBanner && subzoneBanner.name !== 'Pradera Dorada' && (
+      {zoneInfo.name && (
+        <div className="hud-zone-title" aria-hidden="true" key={zoneInfo.key}>
+          <small>{ZONE_TITLES[zoneInfo.dir]?.[0] ?? ''}</small>
+          {ZONE_TITLES[zoneInfo.dir]?.[1] ?? zoneInfo.name}
+        </div>
+      )}
+      {subzoneBanner && subzoneBanner.name !== zoneInfo.name && (
         <div className={`hud-subzone${subzoneBanner.safe ? ' hud-subzone--safe' : ''}`} key={subzoneBanner.key} aria-hidden="true">
           {subzoneBanner.name}
           <small>{subzoneBanner.safe ? 'Zona segura' : `Niveles ${subzoneBanner.levels}`}</small>
@@ -605,6 +733,9 @@ export default function World() {
                 refreshKey={refreshKey}
                 onChanged={onInventoryChanged}
                 openWindow={openWin}
+                giver={id === 'misiones_gremio' ? questGiver : undefined}
+                onClearGiver={() => setQuestGiver(null)}
+                continentZoneIds={continentZoneIds}
               />
             );
           })}

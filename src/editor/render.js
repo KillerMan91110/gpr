@@ -19,6 +19,13 @@ export const POINT_STYLE = {
   recurso: { color: '#b0ff7a', label: 'Recurso' },
   luz: { color: '#ffb347', label: 'Luz' },
   encuentro: { color: '#ff7ad9', label: 'Combates' },
+  salida: { color: '#7dffa8', label: 'Salida' },
+  pilar: { color: '#9ae8ff', label: 'Pilar' },
+  cartel: { color: '#e8c46a', label: 'Cartel' },
+  ciudadano: { color: '#c8b0ff', label: 'Ciudadano' },
+  ruta: { color: '#8a7aff', label: 'Ruta' },
+  palomas: { color: '#d8dce4', label: 'Palomas' },
+  gato: { color: '#e07a3a', label: 'Gato' },
   aspas: { color: '#e0e0e0', label: 'Aspas' },
 };
 
@@ -26,7 +33,7 @@ const propOf = (o, name) => o.properties?.find((p) => p.name === name)?.value;
 
 // centro visible de un punto (en píxeles del mundo)
 export function pointCenter(p) {
-  if (p.type === 'encuentro') return { x: p.x + p.width / 2, y: p.y + p.height / 2 };
+  if (p.type === 'encuentro' || p.type === 'salida') return { x: p.x + p.width / 2, y: p.y + p.height / 2 };
   return TOPLEFT_TYPES.has(p.type) ? { x: p.x + 16, y: p.y + 16 } : { x: p.x, y: p.y };
 }
 
@@ -334,16 +341,18 @@ export class Renderer {
     for (const p of this.zone.puntos) {
       const st = POINT_STYLE[p.type] ?? { color: '#ccc', label: p.type };
       const on = sel === p.uid;
-      if (p.type === 'encuentro') {
+      if (p.type === 'encuentro' || p.type === 'salida') {
+        const exit = p.type === 'salida';
         const a = this.toScreen(p.x, p.y);
         const b = this.toScreen(p.x + p.width, p.y + p.height);
-        ctx.fillStyle = on ? 'rgba(255,122,217,0.18)' : 'rgba(255,122,217,0.07)';
+        ctx.fillStyle = exit ? (on ? 'rgba(125,255,168,0.25)' : 'rgba(125,255,168,0.12)') : (on ? 'rgba(255,122,217,0.18)' : 'rgba(255,122,217,0.07)');
         ctx.fillRect(a.x, a.y, b.x - a.x, b.y - a.y);
-        ctx.strokeStyle = on ? '#ffd0f2' : 'rgba(255,122,217,0.7)';
+        ctx.strokeStyle = exit ? '#7dffa8' : (on ? '#ffd0f2' : 'rgba(255,122,217,0.7)');
         ctx.lineWidth = on ? 2.5 : 1.5;
         ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
-        if (on) { ctx.fillStyle = '#ffd0f2'; ctx.fillRect(b.x - 6, b.y - 6, 12, 12); }
-        if (zoom >= 0.4 || on) this.label(`⚔ ${p.name}`, a.x + 5, a.y + 14, '#ffd0f2', 'left');
+        if (on) { ctx.fillStyle = exit ? '#7dffa8' : '#ffd0f2'; ctx.fillRect(b.x - 6, b.y - 6, 12, 12); }
+        const dest = p.properties?.find((q) => q.name === 'destino')?.value;
+        if (zoom >= 0.4 || on) this.label(exit ? `➜ ${dest ?? '?'}` : `⚔ ${p.name}`, a.x + 5, a.y + 14, exit ? '#b9ffcf' : '#ffd0f2', 'left');
         continue;
       }
       const c = pointCenter(p);

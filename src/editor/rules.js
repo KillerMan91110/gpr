@@ -4,7 +4,9 @@
 //
 // Máscara de vecinos de 4 bits: 1 arriba, 2 derecha, 4 abajo, 8 izquierda → tile "<terreno>_<máscara>".
 
-export const TERRAIN_LIST = ['pasto', 'dorado', 'camino', 'agua', 'hierba', 'plaza', 'guarida', 'trigo', 'seco', 'meseta', 'cara', 'escalera', 'puente', 'muro'];
+export const TERRAIN_LIST = ['pasto', 'dorado', 'camino', 'agua', 'hierba', 'plaza', 'guarida', 'trigo', 'seco', 'meseta', 'cara', 'escalera', 'puente', 'muro',
+  // v4 (ciudad)
+  'adoquin', 'losa', 'mosaico', 'canal', 'puentep'];
 
 // Pinceles de terreno de la paleta (orden y nombre que se ven)
 export const TERRAIN_BRUSHES = [
@@ -21,12 +23,22 @@ export const TERRAIN_BRUSHES = [
   { id: 'escalera', label: 'Escalera', icon: 'escalera' },
   { id: 'plaza', label: 'Empedrado', icon: 'piedra_plaza' },
   { id: 'guarida', label: 'Tierra pisada', icon: 'suelo_guarida' },
+  { id: 'adoquin', label: 'Adoquines (calle)', icon: 'adoquin' },
+  { id: 'losa', label: 'Losas de mármol', icon: 'losa' },
+  { id: 'mosaico', label: 'Mosaico', icon: 'mosaico' },
+  { id: 'canal', label: 'Canal', icon: 'canal_10' },
+  { id: 'puentep', label: 'Puente de piedra', icon: 'puente_piedra_v' },
 ];
 
-const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_[hv]|piedra_plaza|suelo_guarida|hierba_alta)$/;
+const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_[hv]|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_[hv])$/;
 
 export function terrainOfName(name) {
   if (!name) return 'pasto';
+  if (/^adoquin/.test(name)) return 'adoquin';
+  if (/^losa/.test(name)) return 'losa';
+  if (name === 'mosaico') return 'mosaico';
+  if (/^canal_/.test(name)) return 'canal';
+  if (/^puente_piedra_/.test(name)) return 'puentep';
   if (/^camino/.test(name)) return 'camino';
   if (/^agua|^orilla_agua/.test(name)) return 'agua';
   if (/^trigo_/.test(name)) return 'trigo';
@@ -50,6 +62,9 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
   for (const t of meta.tiles) flags[t.id + 1] = { colision: !!t.colision, encima: !!t.encima };
   const code = Object.fromEntries(terrainList.map((t, i) => [t, i]));
   const pastoFamily = new Set([T.pasto, T.pasto_matas, T.pasto_flores, T.dorado_15].filter(Boolean));
+  const cobbleFamily = new Set([T.adoquin, T.adoquin_b, T.adoquin_musgo].filter(Boolean));
+  const slabFamily = new Set([T.losa, T.losa_b].filter(Boolean));
+  const randomCobble = () => { const r = Math.random(); return r < 0.12 ? T.adoquin_musgo : r < 0.4 ? T.adoquin_b : T.adoquin; };
 
   const randomPasto = () => {
     const r = Math.random();
@@ -88,6 +103,15 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
         return T[`meseta_${m}`];
       }
       case 'escalera': return T.escalera;
+      case 'adoquin': {
+        const m = mask((n) => ['adoquin', 'losa', 'mosaico', 'plaza', 'puentep', 'escalera', null].includes(n));
+        if (m === 15) return cobbleFamily.has(cur) ? cur : randomCobble();
+        return T[`adoquin_${m}`];
+      }
+      case 'losa': return slabFamily.has(cur) ? cur : (Math.random() < 0.15 ? T.losa_b : T.losa);
+      case 'mosaico': return T.mosaico;
+      case 'canal': return T[`canal_${mask((n) => n === 'canal' || n === 'puentep')}`];
+      case 'puentep': return tAt(x - 1, y) === 'canal' && tAt(x + 1, y) === 'canal' ? T.puente_piedra_v : T.puente_piedra_h;
       case 'cara': {
         const top = tAt(x, y - 1) === 'meseta';
         const sideOk = (n) => n === 'cara' || n === 'escalera';

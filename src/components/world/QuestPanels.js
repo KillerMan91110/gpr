@@ -3,6 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
 import FloatingPanel from './FloatingPanel';
+import { questsOfGiver } from '../../game/questGivers';
+import { DIALOGUES } from '../../game/dialogues';
 import audio from '../../game/audio';
 
 const objectivesDone = (q) => (q.objectives ?? []).every((o) => (o.current_count ?? 0) >= o.target_count);
@@ -124,7 +126,7 @@ export function QuestLogPanel({ onChanged, ...props }) {
         <div className="wp-skill-list">
           {active === null && <p className="wp-empty">Cargando…</p>}
           {active !== null && list.length === 0 && (
-            <p className="wp-empty">{tab === 'curso' ? 'No tienes misiones. Busca el tablón del gremio en el campamento.' : 'Todavía no completaste ninguna.'}</p>
+            <p className="wp-empty">{tab === 'curso' ? 'No tienes misiones. Busca a los NPCs con un ❗ amarillo sobre la cabeza (también salen en el minimapa y en el mapa, M).' : 'Todavía no completaste ninguna.'}</p>
           )}
           {list.map((q) => (
             <button key={`${q.id}-${q.completed_at ?? ''}`} type="button" className={`wp-quest${current?.id === q.id ? ' wp-skill--active' : ''}`} onClick={() => setSelected(q.id)}>
@@ -154,7 +156,8 @@ export function QuestLogPanel({ onChanged, ...props }) {
 }
 
 // Tablón de misiones del gremio (cartel del campamento): misiones disponibles para aceptar.
-export function QuestBoardPanel({ onChanged, ...props }) {
+// Abierto desde un NPC (giver), muestra solo las misiones que da ese NPC, como en WoW.
+export function QuestBoardPanel({ onChanged, giver, onClearGiver, continentZoneIds, ...props }) {
   const { player, token } = useAuth();
   const [quests, setQuests] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -166,7 +169,7 @@ export function QuestBoardPanel({ onChanged, ...props }) {
   }, [player, token]);
   useEffect(() => { load(); }, [load]);
 
-  const list = (quests ?? [])
+  const list = (giver ? questsOfGiver(quests, giver, continentZoneIds) : (quests ?? []))
     .filter((q) => !q.accepted)
     .sort((a, b) => Number(b.meets_level) - Number(a.meets_level) || a.min_level - b.min_level);
   const current = list.find((q) => q.id === selected) ?? list[0];
@@ -192,12 +195,17 @@ export function QuestBoardPanel({ onChanged, ...props }) {
     <FloatingPanel
       {...props}
       id="tablon"
-      title="Tablón del gremio"
+      title={giver ? `Misiones de ${DIALOGUES[giver]?.name ?? giver}` : 'Tablón del gremio'}
       icon={<GameIcon name="scroll-quill" artist="delapouite" />}
       width={640}
       footer={message
         ? <span className={`wp-foot-note ${message.ok ? 'ok' : 'err'}`}>{message.text}</span>
-        : <span className="wp-foot-note">{list.length} misiones disponibles</span>}
+        : (
+          <span className="wp-foot-note">
+            {list.length} misiones disponibles
+            {giver && <button type="button" className="wp-btn" style={{ marginLeft: 8 }} onClick={onClearGiver}>Ver todas</button>}
+          </span>
+        )}
     >
       <div className="wp-split">
         <div className="wp-skill-list">

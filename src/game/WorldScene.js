@@ -3,12 +3,18 @@ import bus from './bus';
 import audio from './audio';
 import { MINIMAP } from './hudLayout';
 import SocialLayer from './socialLayer';
+import CityLife, { isFestival } from './cityLife';
 
-// Mundo abierto por trozos: la zona (public/assets/mundo/<zona>/mundo.json) está partida en
-// trozos de 40x30 tiles. Solo se construyen (tiles, colisiones, monstruos, fauna) los trozos
-// alrededor del héroe y se destruyen los que quedan lejos: se camina por toda la zona sin
-// pantallas de carga. Lo que es poco y siempre importa (NPCs, jefes, recursos, luces, puntos de
+// Mundo abierto continuo (estilo MMO): public/assets/mundo/etheria.json coloca cada zona
+// (public/assets/mundo/<zona>/mundo.json) en su lugar del continente. Todas las zonas viven en
+// la misma escena con coordenadas globales: se camina de Aurelia a la Pradera por la Puerta Sur
+// sin fundidos ni pantallas de carga. Cada zona está partida en trozos de 40x30 tiles; solo se
+// construyen (tiles, colisiones, monstruos, fauna) los trozos cercanos al héroe, crucen o no el
+// borde entre zonas. Lo que es poco y siempre importa (NPCs, jefes, recursos, luces, puntos de
 // interés) vive toda la partida.
+//
+// Hacia afuera (React, servidor, sockets) las posiciones siguen siendo LOCALES a la zona donde
+// está el héroe ({ x, y, zona }), así el backend no cambia: toLocal()/toGlobal() traducen.
 
 // Letreros sobre personajes: misma fuente que la interfaz y alta resolución para que el zoom
 // de la cámara (pixel art) no los deje borrosos.
@@ -19,8 +25,17 @@ const ASSETS = `${process.env.PUBLIC_URL}/assets`;
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 const DEFAULT_ZONE = 'pradera';
 const SPEED = 110;
+// Las ciudades son grandes: dentro se corre un 50% más rápido (bufo "Paso de la ciudad", que se
+// ve en el HUD y se pierde al salir). Una zona puede fijar el suyo con "velocidad" en su
+// mundo.json (1 = normal).
+const CITY_SPEED = 1.5;
 const POI_RADIUS = 44;
-const CHUNK_RADIUS = 1; // trozos construidos alrededor del del héroe (3x3)
+const GATHER_MS = 1100; // barra de recolectar
+// trozos construidos: los que tocan una ventana de ±0.8 trozos alrededor del héroe (a lo sumo
+// 3x3, como antes, aunque la ventana cruce el borde entre dos zonas); se destruyen cuando quedan
+// fuera de ±1.4 (margen para no armar y desarmar al ir y venir por un borde)
+const CHUNK_NEAR = 0.8;
+const CHUNK_FAR = 1.4;
 // Al entrar (o volver de un combate) los monstruos no atacan durante este tiempo, para que no
 // te enganche uno que justo pasaba por el punto donde apareces.
 const ENCOUNTER_GRACE_MS = 2500;
@@ -105,8 +120,21 @@ export default class WorldScene extends Phaser.Scene {
   }
 
   preload() {
-    const dir = `${ASSETS}/mundo/${this.zoneDir}`;
-    this.load.json('mundo_zona', `${dir}/mundo.json`);
+    // el continente y, a partir de él, cada zona con sus trozos (la zona de inicio siempre)
+    this.queuedZones = new Set();
+    this.queuedTilesets = new Set();
+    const onEtheria = (eth) => {
+      (eth?.zonas ?? []).forEach((z) => this.queueZone(z.dir));
+      this.queueZone(this.zoneDir);
+    };
+    if (this.cache.json.exists('etheria')) onEtheria(this.cache.json.get('etheria'));
+    else {
+      this.load.json('etheria', `${ASSETS}/mundo/etheria.json`);
+      this.load.once('filecomplete-json-etheria', (_k, _t, eth) => onEtheria(eth));
+      // sin etheria.json (o roto) se juega solo la zona de inicio, como antes
+      const onError = (file) => { if (file.key === 'etheria') { this.load.off('loaderror', onError); this.queueZone(this.zoneDir); } };
+      this.load.on('loaderror', onError);
+    }
     this.load.spritesheet('heroe', `${ASSETS}/mundo/caminar/${this.heroClass}.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos', `${ASSETS}/mundo/recursos.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos2', `${ASSETS}/mundo/recursos2.png`, { frameWidth: 32, frameHeight: 32 });
@@ -117,14 +145,166 @@ export default class WorldScene extends Phaser.Scene {
     this.load.spritesheet('f_ciervo', `${ASSETS}/mundo/fauna/ciervo.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.image('aspas', `${ASSETS}/mundo/aspas.png`);
     SocialLayer.preload(this);
+    CityLife.preload(this);
     this.load.json('enemigos', `${ASSETS}/sprites/combate/enemigos.json`);
-    // los mapas de los trozos son livianos: se bajan todos; lo que se arma por cercanía es el
-    // contenido (capas, colisiones, monstruos, fauna)
-    this.load.once('filecomplete-json-mundo_zona', (_k, _t, world) => {
-      this.tilesetName = world.tileset || 'pradera';
-      if (!this.textures.exists(`tiles_${this.tilesetName}`)) this.load.image(`tiles_${this.tilesetName}`, `${ASSETS}/mundo/tileset_${this.tilesetName}.png`);
-      world.chunks.forEach((c) => this.load.tilemapTiledJSON(`chunk_${c.cx}_${c.cy}`, `${dir}/${c.file}`));
+  }
+
+  // Los mapas de los trozos son livianos (~37 KB): se bajan todos los de todas las zonas; lo que
+  // se arma por cercanía es el contenido (capas, colisiones, monstruos, fauna).
+  queueZone(dir) {
+    if (!dir || this.queuedZones.has(dir)) return;
+    this.queuedZones.add(dir);
+    const base = `${ASSETS}/mundo/${dir}`;
+    const onWorld = (world) => {
+      const ts = world.tileset || 'pradera';
+      if (!this.textures.exists(`tiles_${ts}`) && !this.queuedTilesets.has(ts)) {
+        this.queuedTilesets.add(ts);
+        this.load.image(`tiles_${ts}`, `${ASSETS}/mundo/tileset_${ts}.png`);
+      }
+      world.chunks.forEach((c) => {
+        const key = `chunk_${dir}_${c.cx}_${c.cy}`;
+        if (!this.cache.tilemap.exists(key)) this.load.tilemapTiledJSON(key, `${base}/${c.file}`);
+      });
+    };
+    const key = `mundo_${dir}`;
+    if (this.cache.json.exists(key)) { onWorld(this.cache.json.get(key)); return; }
+    this.load.json(key, `${base}/mundo.json`);
+    this.load.once(`filecomplete-json-${key}`, (_k, _t, world) => onWorld(world));
+  }
+
+  // ---------------------------------------------------------------- continente
+  // Arma la lista de zonas con su desplazamiento en píxeles dentro del continente.
+  buildContinent() {
+    const eth = this.cache.json.get('etheria');
+    let placed = (eth?.zonas ?? []).filter((z) => this.cache.json.exists(`mundo_${z.dir}`));
+    if (!placed.some((z) => z.dir === this.zoneDir)) placed = [{ dir: this.zoneDir, x: 0, y: 0 }];
+    this.zones = placed.map((z) => {
+      const world = this.cache.json.get(`mundo_${z.dir}`);
+      const t = world.tile;
+      const chunkPx = { w: world.chunkWidth * t, h: world.chunkHeight * t };
+      return {
+        dir: z.dir, world, chunkPx, tileset: world.tileset || 'pradera',
+        ox: z.x * t, oy: z.y * t, w: chunkPx.w * world.columns, h: chunkPx.h * world.rows,
+        gidSets: Object.fromEntries(Object.entries(world.gids ?? {}).map(([k, v]) => [k, new Set(v)])),
+      };
     });
+    this.zoneByDir = Object.fromEntries(this.zones.map((z) => [z.dir, z]));
+    this.worldPx = {
+      w: Math.max(...this.zones.map((z) => z.ox + z.w)),
+      h: Math.max(...this.zones.map((z) => z.oy + z.h)),
+    };
+  }
+
+  zoneAt(x, y) {
+    return this.zones.find((z) => x >= z.ox && x < z.ox + z.w && y >= z.oy && y < z.oy + z.h) ?? null;
+  }
+
+  // posición local (la que entienden React y el servidor) ↔ global (la de la escena)
+  toLocal(x, y, zone = this.zoneAt(x, y) ?? this.zone) {
+    return { x: Math.round(x - zone.ox), y: Math.round(y - zone.oy), zona: zone.dir };
+  }
+
+  toGlobal(x, y, dir) {
+    const z = (dir && this.zoneByDir[dir]) || this.zone;
+    return { x: x + z.ox, y: y + z.oy };
+  }
+
+  // la zona donde está el héroe manda: id para el servidor, música, encuentros, punto de regreso
+  setZone(zone) {
+    this.zone = zone;
+    this.world = zone.world;
+    this.zoneDir = zone.dir;
+    this.zoneId = zone.world.zona;
+    this.zoneName = zone.world.nombre;
+    this.grassChance = zone.world.encuentroHierba;
+    this.grassGid = zone.world.gidHierba;
+    this.spawnPoint = this.toGlobal(zone.world.inicio.x, zone.world.inicio.y, zone.dir);
+    this.speedMul = zone.world.velocidad ?? (zone.world.ciudad ? CITY_SPEED : 1);
+  }
+
+  zoneBuffs() {
+    if (!(this.speedMul > 1)) return [];
+    return [{
+      id: 'paso_ciudad', name: 'Paso de la ciudad', icon: ['running-shoe', 'delapouite'],
+      desc: `+${Math.round((this.speedMul - 1) * 100)}% velocidad de movimiento mientras estés en ${this.zoneName}.`,
+    }];
+  }
+
+  emitZone() {
+    bus.emit('world-ready', {
+      zoneId: this.zoneId, zoneDir: this.zoneDir, name: this.zoneName, music: this.world.musica ?? 'pradera', city: !!this.world.ciudad,
+      zoneIds: this.zones.map((z) => z.world.zona), // zonas del mundo abierto (para las misiones)
+      buffs: this.zoneBuffs(), // bufos que da estar en esta zona (el HUD los muestra)
+    });
+  }
+
+  // cruzaste a otra zona caminando: React cambia música, sala de jugadores, recursos y misiones
+  checkZoneChange() {
+    const z = this.zoneAt(this.player.x, this.player.y);
+    if (!z || z === this.zone) return;
+    const before = this.speedMul;
+    this.setZone(z);
+    this.subzone = null;
+    this.emitZone();
+    // aviso del cambio de paso al entrar o salir de la ciudad
+    if (this.speedMul > before) {
+      this.floatLoot([{ text: `Paso de la ciudad: +${Math.round((this.speedMul - 1) * 100)}% velocidad`, color: '#9ae8ff' }]);
+      audio.sfx('mejora');
+    } else if (this.speedMul < before) this.floatLoot([{ text: 'Perdiste: Paso de la ciudad', color: '#d8cdb4' }]);
+  }
+
+  // Teletransporte dentro del continente (diligencia, volver al punto de inicio): fundido corto
+  // sin desmontar la escena. Devuelve false si la zona no está en el continente.
+  teleport(dir, x, y) {
+    if (!this.zoneByDir?.[dir] || this.teleporting) return !!this.zoneByDir?.[dir];
+    this.teleporting = true;
+    this.stopPlayer();
+    this.input.keyboard.enabled = false;
+    audio.sfx('abrir');
+    const cam = this.cameras.main;
+    cam.fadeOut(250, 10, 10, 16);
+    cam.once('camerafadeoutcomplete', () => {
+      const g = this.toGlobal(x, y, dir);
+      this.player.setPosition(g.x, g.y);
+      this.trail = [];
+      this.updateChunks(true);
+      this.checkZoneChange();
+      this.graceUntil = this.time.now + ENCOUNTER_GRACE_MS;
+      cam.fadeIn(350);
+      this.input.keyboard.enabled = true;
+      this.input.keyboard.resetKeys();
+      this.teleporting = false;
+    });
+    return true;
+  }
+
+  // Huecos del rectángulo del continente que no son de ninguna zona: paredes invisibles, para
+  // que nadie salga caminando al vacío por un borde abierto.
+  blockVoid() {
+    const t = 32;
+    const cols = Math.ceil(this.worldPx.w / t);
+    const rows = Math.ceil(this.worldPx.h / t);
+    let open = new Map(); // "x0,x1" → fila donde empezó el rectángulo
+    const flush = (key, y0, y1) => {
+      const [a, b] = key.split(',').map(Number);
+      const r = this.add.rectangle(a * t + ((b - a) * t) / 2, y0 * t + ((y1 - y0) * t) / 2, (b - a) * t, (y1 - y0) * t).setVisible(false);
+      this.blockers.add(r);
+    };
+    for (let ty = 0; ty <= rows; ty++) {
+      const runs = new Set();
+      if (ty < rows) {
+        let start = -1;
+        for (let tx = 0; tx <= cols; tx++) {
+          const empty = tx < cols && !this.zoneAt(tx * t + 1, ty * t + 1);
+          if (empty && start < 0) start = tx;
+          if (!empty && start >= 0) { runs.add(`${start},${tx}`); start = -1; }
+        }
+      }
+      const next = new Map();
+      for (const [key, y0] of open) { if (runs.has(key)) next.set(key, y0); else flush(key, y0, ty); }
+      for (const key of runs) if (!next.has(key)) next.set(key, ty);
+      open = next;
+    }
   }
 
   create() {
@@ -136,18 +316,11 @@ export default class WorldScene extends Phaser.Scene {
       const l = this.make.graphics({ x: 0, y: 0 }, false);
       l.fillStyle(0xffffff, 1).fillRect(1, 0, 2, 1).fillRect(0, 1, 4, 2).fillRect(1, 3, 2, 1).generateTexture('hoja', 4, 4).destroy();
     }
-    this.world = this.cache.json.get('mundo_zona');
-    const w = this.world;
-    this.chunkPx = { w: w.chunkWidth * w.tile, h: w.chunkHeight * w.tile };
-    this.worldPx = { w: this.chunkPx.w * w.columns, h: this.chunkPx.h * w.rows };
-    this.zoneId = w.zona;
-    this.zoneName = w.nombre;
-    this.grassChance = w.encuentroHierba;
-    this.grassGid = w.gidHierba;
-    this.gidSets = Object.fromEntries(Object.entries(w.gids ?? {}).map(([k, v]) => [k, new Set(v)]));
+    this.buildContinent();
+    this.setZone(this.zoneByDir[this.zoneDir]);
     this.lastTile = null;
-    this.spawnPoint = { ...w.inicio };
-    const start = this.startPos || this.spawnPoint;
+    // la posición guardada es local a su zona (la de antes del mundo continuo también)
+    const start = this.startPos ? this.toGlobal(this.startPos.x, this.startPos.y, this.startPos.zona ?? this.zoneDir) : this.spawnPoint;
 
     this.player = this.physics.add.sprite(start.x, start.y, 'heroe', IDLE.down).setDepth(10);
     this.player.body.setSize(16, 10).setOffset(8, 21);
@@ -156,6 +329,11 @@ export default class WorldScene extends Phaser.Scene {
       fontFamily: TAG_FONT, fontSize: '7px', fontStyle: 'bold', color: '#ffffff', stroke: '#141420', strokeThickness: 3,
     }).setOrigin(0.5, 1).setDepth(21).setResolution(TAG_RES);
     this.makeWalkAnims('heroe');
+    this.dust = this.add.particles(0, 0, 'mota_mundo', {
+      x: { min: -5, max: 5 }, y: { min: -1, max: 2 }, lifespan: 420, frequency: 70, speedY: { min: -14, max: -4 },
+      speedX: { min: -10, max: 10 }, scale: { start: 0.9, end: 0.2 }, alpha: { start: 0.55, end: 0 }, tint: [0xe8dcc0, 0xc8b898], emitting: false,
+    }).setDepth(9.4);
+    this.dust.startFollow(this.player, 0, 13);
 
     this.physics.world.setBounds(0, 0, this.worldPx.w, this.worldPx.h);
     this.cameras.main.setBounds(0, 0, this.worldPx.w, this.worldPx.h);
@@ -163,6 +341,7 @@ export default class WorldScene extends Phaser.Scene {
     this.cameras.main.setZoom(2);
     this.cameras.main.fadeIn(400);
     this.createMinimap();
+    this.minimap.ignore(this.dust);
 
     // enableCapture = false: sin esto Phaser se "come" W/A/S/D y la barra espaciadora y no se
     // podría escribir en el chat.
@@ -174,12 +353,20 @@ export default class WorldScene extends Phaser.Scene {
 
     this.blockers = this.physics.add.staticGroup();
     this.physics.add.collider(this.player, this.blockers);
+    if (this.zones.length > 1) this.blockVoid();
     this.monsters = this.physics.add.group();
     this.physics.add.overlap(this.player, this.monsters, (_p, mon) => this.startEncounter(mon));
+    // los monstruos tampoco atraviesan NPCs, recursos ni el vacío (con el mapa chocan por trozo)
+    this.physics.add.collider(this.monsters, this.blockers);
+    // casillas caminables de todo el continente: los vecinos de la ciudad buscan camino con ella
+    this.buildWalkGrid();
 
     // contenido de toda la zona que vive siempre (sale de los puntos de cada trozo)
     const all = this.allPoints();
-    this.pois = all.filter((o) => o.type === 'poi' || o.type === 'npc').map((o) => ({
+    // NPCs con horario "festival" solo aparecen el día del Festival de Aethra
+    const festival = isFestival();
+    const present = all.filter((o) => o.type !== 'npc' || propOf(o, 'horario') !== 'festival' || festival);
+    this.pois = present.filter((o) => o.type === 'poi' || o.type === 'npc' || o.type === 'pilar').map((o) => ({
       id: o.name, x: o.x + 16, y: o.y + 16,
       label: propOf(o, 'etiqueta') ?? o.name, window: propOf(o, 'ventana'), dialogue: propOf(o, 'dialogo') ?? null,
     }));
@@ -187,7 +374,14 @@ export default class WorldScene extends Phaser.Scene {
       id: o.name, x: o.x + 16, y: o.y + 16, code: propOf(o, 'monstruo'), level: propOf(o, 'nivel'), label: propOf(o, 'etiqueta') ?? o.name,
     }));
     this.encounterAreas = all.filter((o) => o.type === 'encuentro');
-    this.spawnNpcs(all.filter((o) => o.type === 'npc'));
+    this.spawnNpcs(present.filter((o) => o.type === 'npc'));
+    // salidas a zonas que todavía no están en el continente (las que sí, se cruzan caminando)
+    this.exits = all.filter((o) => o.type === 'salida' && !this.zoneByDir[propOf(o, 'destino')]).map((o) => ({
+      rect: new Phaser.Geom.Rectangle(o.x, o.y, o.width || 64, o.height || 32),
+      dest: propOf(o, 'destino'), tx: propOf(o, 'x'), ty: propOf(o, 'y'), label: propOf(o, 'etiqueta'),
+    }));
+    this.exitsArmedAt = this.time.now + 1500;
+    if (all.some((o) => ['ciudadano', 'pilar', 'cartel', 'palomas', 'gato'].includes(o.type))) this.city = new CityLife(this, all);
     this.spawnResources(all.filter((o) => o.type === 'recurso'));
     all.filter((o) => o.type === 'aspas').forEach((o) => {
       const blades = this.add.image(o.x, o.y, 'aspas').setDepth(20.2);
@@ -205,16 +399,20 @@ export default class WorldScene extends Phaser.Scene {
     this.updateChunks(true);
     // al volver del combate (la escena 'batalla' la duerme mientras tanto)
     this.events.on('wake', (_sys, data) => this.onReturnFromBattle(data?.result));
-    bus.emit('world-ready', { zoneId: this.zoneId, zoneDir: this.zoneDir, name: this.zoneName });
+    this.emitZone();
   }
 
-  // todos los puntos de la zona en coordenadas del mundo
+  // todos los puntos de todas las zonas en coordenadas globales (zone/chunk dicen de dónde son)
   allPoints() {
     const out = [];
-    for (const c of this.world.chunks) {
-      const data = this.cache.tilemap.get(`chunk_${c.cx}_${c.cy}`)?.data;
-      const layer = data?.layers.find((l) => l.name === 'puntos');
-      for (const o of layer?.objects ?? []) out.push({ ...o, x: o.x + c.cx * this.chunkPx.w, y: o.y + c.cy * this.chunkPx.h, chunk: `${c.cx}_${c.cy}` });
+    for (const z of this.zones) {
+      for (const c of z.world.chunks) {
+        const data = this.cache.tilemap.get(`chunk_${z.dir}_${c.cx}_${c.cy}`)?.data;
+        const layer = data?.layers.find((l) => l.name === 'puntos');
+        for (const o of layer?.objects ?? []) {
+          out.push({ ...o, x: o.x + z.ox + c.cx * z.chunkPx.w, y: o.y + z.oy + c.cy * z.chunkPx.h, chunk: `${z.dir}:${c.cx}_${c.cy}`, zone: z.dir });
+        }
+      }
     }
     return out;
   }
@@ -241,12 +439,21 @@ export default class WorldScene extends Phaser.Scene {
       'level-up': () => this.levelUpFx(),
       // ventana del mapa (M): todo lo que hace falta para dibujar la zona y tu posición
       'zone-map-data': (cb) => cb?.(this.zoneMapData()),
+      'ofrenda-fx': () => this.ofrendaFx(),
       // ventana Social: en qué subzona está un jugador (solo si está en esta zona)
+      // (x, y locales a esa zona; sin zona, la del héroe)
       'subzone-at': ({ x, y, zone }, cb) => {
-        if (zone && zone !== this.zoneDir) { cb?.(null); return; }
-        cb?.(this.world.subzonas?.find((sz) => x >= sz.x0 && x < sz.x1 && y >= sz.y0 && y < sz.y1)?.name ?? null);
+        const z = zone ? this.zoneByDir[zone] : this.zone;
+        if (!z) { cb?.(null); return; }
+        cb?.(z.world.subzonas?.find((sz) => x >= sz.x0 && x < sz.x1 && y >= sz.y0 && y < sz.y1)?.name ?? null);
       },
-      'hero-pos': (cb) => cb?.({ x: this.player?.x ?? 0, y: this.player?.y ?? 0, facing: this.facing, flip: this.player?.flipX }),
+      // posición local en la zona actual (lo que se manda por socket y se guarda)
+      'hero-pos': (cb) => {
+        const p = this.player ? this.toLocal(this.player.x, this.player.y, this.zone) : { x: 0, y: 0, zona: this.zoneDir };
+        cb?.({ x: p.x, y: p.y, zone: p.zona, facing: this.facing, flip: this.player?.flipX });
+      },
+      // viaje en diligencia u otro salto: sin desmontar la escena si la zona está en el continente
+      'teleport': ({ zoneDir, x, y }, cb) => cb?.(this.teleport(zoneDir, x, y)),
     };
     Object.entries(handlers).forEach(([ev, fn]) => bus.on(ev, fn));
     const unbind = () => Object.entries(handlers).forEach(([ev, fn]) => bus.off(ev, fn));
@@ -254,20 +461,22 @@ export default class WorldScene extends Phaser.Scene {
     this.events.once('destroy', unbind);
   }
 
+  // mapa (M) de la zona donde estás, en coordenadas locales de esa zona
   zoneMapData() {
-    const w = this.world;
+    const z = this.zone;
+    const w = z.world;
     return {
       dir: this.zoneDir, id: this.zoneId, name: this.zoneName, heroLevel: this.heroLevel,
       tile: w.tile, chunkWidth: w.chunkWidth, chunkHeight: w.chunkHeight, columns: w.columns, rows: w.rows,
       subzonas: w.subzonas ?? [],
-      tileset: this.textures.get(`tiles_${this.tilesetName}`).getSourceImage(),
+      tileset: this.textures.get(`tiles_${z.tileset}`).getSourceImage(),
       chunks: w.chunks.map((c) => {
-        const d = this.cache.tilemap.get(`chunk_${c.cx}_${c.cy}`)?.data;
+        const d = this.cache.tilemap.get(`chunk_${z.dir}_${c.cx}_${c.cy}`)?.data;
         const layer = (n) => d?.layers.find((l) => l.name === n)?.data ?? [];
         return { cx: c.cx, cy: c.cy, suelo: layer('suelo'), objetos: layer('objetos'), encima: layer('encima') };
       }),
-      points: this.allPoints().filter((o) => ['npc', 'poi', 'jefe'].includes(o.type)).map((o) => ({
-        type: o.type, name: o.name, x: o.x + 16, y: o.y + 16,
+      points: this.allPoints().filter((o) => o.zone === z.dir && ['npc', 'poi', 'jefe', 'salida', 'pilar'].includes(o.type)).map((o) => ({
+        type: o.type, name: o.name, x: o.x - z.ox + 16, y: o.y - z.oy + 16,
         label: propOf(o, 'nombre') ?? propOf(o, 'etiqueta') ?? o.name,
         monster: propOf(o, 'monstruo'), level: propOf(o, 'nivel'), window: propOf(o, 'ventana'), dialogue: propOf(o, 'dialogo'),
       })),
@@ -283,42 +492,61 @@ export default class WorldScene extends Phaser.Scene {
   }
 
   // ---------------------------------------------------------------- trozos
-  chunkOf(x, y) {
-    return { cx: Math.floor(x / this.chunkPx.w), cy: Math.floor(y / this.chunkPx.h) };
+  // clave del trozo que contiene un punto global: "<zona>:<cx>_<cy>" (null fuera de toda zona)
+  chunkKeyAt(x, y) {
+    const z = this.zoneAt(x, y);
+    if (!z) return null;
+    return `${z.dir}:${Math.floor((x - z.ox) / z.chunkPx.w)}_${Math.floor((y - z.oy) / z.chunkPx.h)}`;
+  }
+
+  // trozos de todas las zonas que tocan la ventana de ±r trozos alrededor de (x, y)
+  chunksAround(x, y, r) {
+    const keys = new Set();
+    for (const z of this.zones) {
+      const rx = z.chunkPx.w * r;
+      const ry = z.chunkPx.h * r;
+      const cx0 = Math.max(0, Math.floor((x - rx - z.ox) / z.chunkPx.w));
+      const cx1 = Math.min(z.world.columns - 1, Math.floor((x + rx - z.ox) / z.chunkPx.w));
+      const cy0 = Math.max(0, Math.floor((y - ry - z.oy) / z.chunkPx.h));
+      const cy1 = Math.min(z.world.rows - 1, Math.floor((y + ry - z.oy) / z.chunkPx.h));
+      for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) keys.add(`${z.dir}:${cx}_${cy}`);
+    }
+    return keys;
   }
 
   updateChunks(force = false) {
-    const { cx, cy } = this.chunkOf(this.player.x, this.player.y);
-    if (!force && this.curChunk && this.curChunk.cx === cx && this.curChunk.cy === cy) return;
-    this.curChunk = { cx, cy };
-    const wanted = new Set();
-    for (let dy = -CHUNK_RADIUS; dy <= CHUNK_RADIUS; dy++) {
-      for (let dx = -CHUNK_RADIUS; dx <= CHUNK_RADIUS; dx++) {
-        const x = cx + dx;
-        const y = cy + dy;
-        if (x >= 0 && y >= 0 && x < this.world.columns && y < this.world.rows) wanted.add(`${x}_${y}`);
-      }
-    }
-    for (const key of [...this.chunks.keys()]) if (!wanted.has(key)) this.unloadChunk(key);
+    // se recalcula cada medio trozo recorrido (los bordes de zona no caen en múltiplos de trozo)
+    const { x, y } = this.player;
+    const cell = `${Math.floor(x / 640)}_${Math.floor(y / 480)}`;
+    if (!force && cell === this.curCell) return;
+    this.curCell = cell;
+    const wanted = this.chunksAround(x, y, CHUNK_NEAR);
+    const keep = this.chunksAround(x, y, CHUNK_FAR);
+    for (const key of [...this.chunks.keys()]) if (!keep.has(key)) this.unloadChunk(key);
     for (const key of wanted) if (!this.chunks.has(key)) this.buildChunk(key);
   }
 
   buildChunk(key) {
-    const [cx, cy] = key.split('_').map(Number);
-    const map = this.make.tilemap({ key: `chunk_${key}` });
-    const tiles = map.addTilesetImage(map.tilesets[0]?.name ?? this.tilesetName, `tiles_${this.tilesetName}`);
-    const x0 = cx * this.chunkPx.w;
-    const y0 = cy * this.chunkPx.h;
+    const [dir, rest] = key.split(':');
+    const zone = this.zoneByDir[dir];
+    const [cx, cy] = rest.split('_').map(Number);
+    const map = this.make.tilemap({ key: `chunk_${dir}_${cx}_${cy}` });
+    const tiles = map.addTilesetImage(map.tilesets[0]?.name ?? zone.tileset, `tiles_${zone.tileset}`);
+    const x0 = zone.ox + cx * zone.chunkPx.w;
+    const y0 = zone.oy + cy * zone.chunkPx.h;
     const ground = map.createLayer('suelo', tiles, x0, y0);
     const objects = map.createLayer('objetos', tiles, x0, y0);
     // copas de los árboles y tejados: por encima del personaje, sin colisión
     const above = map.createLayer('encima', tiles, x0, y0)?.setDepth(20);
     ground.setCollisionByProperty({ colision: true });
     objects.setCollisionByProperty({ colision: true });
-    const edges = this.applyPassage(key, ground, objects, x0, y0);
+    const edges = this.applyPassage(zone, `chunk_${dir}_${cx}_${cy}`, ground, objects, x0, y0);
     const colliders = [this.physics.add.collider(this.player, ground), this.physics.add.collider(this.player, objects)];
     if (edges) colliders.push(this.physics.add.collider(this.player, edges));
-    const chunk = { key, cx, cy, map, ground, objects, above, colliders, edges, things: [] };
+    // los monstruos chocan con árboles, rocas, casas y bordes del mapa igual que el héroe
+    colliders.push(this.physics.add.collider(this.monsters, ground), this.physics.add.collider(this.monsters, objects));
+    if (edges) colliders.push(this.physics.add.collider(this.monsters, edges));
+    const chunk = { key, zone, cx, cy, map, ground, objects, above, colliders, edges, things: [] };
     this.chunks.set(key, chunk);
     this.spawnChunkMonsters(chunk);
     this.spawnFauna(chunk);
@@ -338,11 +566,11 @@ export default class WorldScene extends Phaser.Scene {
 
   // Paso forzado del editor: libera casillas que el tile bloquearía y cierra bordes sueltos
   // (escaleras con barandas, cornisas que solo se bajan, pasillos de una casilla…).
-  applyPassage(key, ground, objects, x0, y0) {
-    const paso = this.cache.tilemap.get(`chunk_${key}`)?.data?.paso;
+  applyPassage(zone, mapKey, ground, objects, x0, y0) {
+    const paso = this.cache.tilemap.get(mapKey)?.data?.paso;
     if (!paso || !Object.keys(paso).length) return null;
-    const cw = this.world.chunkWidth;
-    const t = this.world.tile;
+    const cw = zone.world.chunkWidth;
+    const t = zone.world.tile;
     const edges = this.physics.add.staticGroup();
     const wall = (x, y, w, h, oneWay) => {
       const r = this.add.rectangle(x + w / 2, y + h / 2, w, h).setVisible(false);
@@ -367,29 +595,172 @@ export default class WorldScene extends Phaser.Scene {
       if (m & 8) wall(px, py, EDGE, t);
     }
     // las caras de choque de los vecinos cambian cuando una casilla deja de chocar
-    ground.calculateFacesWithin(0, 0, cw, this.world.chunkHeight);
-    objects.calculateFacesWithin(0, 0, cw, this.world.chunkHeight);
+    ground.calculateFacesWithin(0, 0, cw, zone.world.chunkHeight);
+    objects.calculateFacesWithin(0, 0, cw, zone.world.chunkHeight);
     return edges;
   }
 
   // capa de suelo y tile bajo un punto del mundo (para la hierba alta y la fauna)
   groundTileAt(x, y) {
-    const { cx, cy } = this.chunkOf(x, y);
-    return this.chunks.get(`${cx}_${cy}`)?.ground.getTileAtWorldXY(x, y) ?? null;
+    const key = this.chunkKeyAt(x, y);
+    return (key && this.chunks.get(key)?.ground.getTileAtWorldXY(x, y)) || null;
+  }
+
+  // ---------------------------------------------------------------- casillas caminables
+  // Mapa de choque de todo el continente a nivel de casilla (1 = se camina), sacado de los
+  // trozos: tiles con "colision" en suelo u objetos, corregido por el paso forzado del editor.
+  // Fuera de toda zona no se camina.
+  buildWalkGrid() {
+    const T = 32;
+    this.gridW = Math.ceil(this.worldPx.w / T);
+    this.gridH = Math.ceil(this.worldPx.h / T);
+    const walk = new Uint8Array(this.gridW * this.gridH);
+    const FLIP = 0x1fffffff;
+    for (const z of this.zones) {
+      const cw = z.world.chunkWidth;
+      const ch = z.world.chunkHeight;
+      for (const c of z.world.chunks) {
+        const d = this.cache.tilemap.get(`chunk_${z.dir}_${c.cx}_${c.cy}`)?.data;
+        if (!d) continue;
+        const ts = d.tilesets?.[0];
+        const first = ts?.firstgid ?? 1;
+        const col = new Set((ts?.tiles ?? []).filter((t) => t.properties?.some((p) => p.name === 'colision' && p.value)).map((t) => t.id + first));
+        const layer = (n) => d.layers.find((l) => l.name === n)?.data ?? [];
+        const suelo = layer('suelo');
+        const obj = layer('objetos');
+        const gx0 = z.ox / T + c.cx * cw;
+        const gy0 = z.oy / T + c.cy * ch;
+        for (let k = 0; k < cw * ch; k++) {
+          const blocked = col.has((suelo[k] ?? 0) & FLIP) || col.has((obj[k] ?? 0) & FLIP);
+          walk[(gy0 + Math.floor(k / cw)) * this.gridW + gx0 + (k % cw)] = blocked ? 0 : 1;
+        }
+        for (const [idx, v] of Object.entries(d.paso ?? {})) {
+          if (!(v & (PASO_FORZADO | PASO_CORNISA))) continue;
+          const i = (gy0 + Math.floor(idx / cw)) * this.gridW + gx0 + (idx % cw);
+          walk[i] = (v & PASO_CORNISA) || (v & 15) !== 15 ? 1 : 0;
+        }
+      }
+    }
+    this.walk = walk;
+    this.pathCache = new Map();
+  }
+
+  walkable(tx, ty) {
+    return tx >= 0 && ty >= 0 && tx < this.gridW && ty < this.gridH && this.walk[ty * this.gridW + tx] === 1;
+  }
+
+  // ¿se puede ir en línea recta de una casilla a otra sin pisar nada que choque?
+  // (se mira el ancho del cuerpo, no solo la línea del centro, para no rozar esquinas)
+  clearLine(ax, ay, bx, by) {
+    const n = Math.max(Math.abs(bx - ax), Math.abs(by - ay)) * 4;
+    const R = 0.3;
+    for (let i = 1; i < n; i++) {
+      const x = ax + 0.5 + ((bx - ax) * i) / n;
+      const y = ay + 0.5 + ((by - ay) * i) / n;
+      for (const [ox, oy] of [[-R, -R], [R, -R], [-R, R], [R, R]]) {
+        if (!this.walkable(Math.floor(x + ox), Math.floor(y + oy))) return false;
+      }
+    }
+    return true;
+  }
+
+  // Camino A* (4 direcciones, suavizado) entre dos puntos del mundo, medido en los pies del
+  // personaje (feet = cuánto más abajo del centro del sprite están los pies). Devuelve los puntos
+  // por donde pasar (centros de casilla, ya en coordenadas del sprite) terminando en el destino,
+  // o null si no hay camino (entonces se va en línea recta, como antes).
+  findPath(x0, y0, x1, y1, feet = 10) {
+    if (!this.walk) return null;
+    const T = 32;
+    const sx = Math.floor(x0 / T);
+    const sy = Math.floor((y0 + feet) / T);
+    let ex = Math.floor(x1 / T);
+    let ey = Math.floor((y1 + feet) / T);
+    // punto de la ruta puesto sobre algo que choca (un banco, el borde de una fuente): se va a la
+    // casilla libre más cercana en vez de meterse dentro
+    let snapped = false;
+    if (!this.walkable(ex, ey)) {
+      for (let r = 1; r <= 3 && !snapped; r++) {
+        for (let dy = -r; dy <= r && !snapped; dy++) {
+          for (let dx = -r; dx <= r && !snapped; dx++) {
+            if (Math.max(Math.abs(dx), Math.abs(dy)) === r && this.walkable(ex + dx, ey + dy)) { ex += dx; ey += dy; snapped = true; }
+          }
+        }
+      }
+    }
+    const key = `${sx},${sy}>${ex},${ey}`;
+    if (this.pathCache.has(key)) return this.pathCache.get(key)?.map((p) => ({ ...p })) ?? null;
+    let result = null;
+    if (sx === ex && sy === ey) result = [];
+    else {
+      const W = this.gridW;
+      const start = sy * W + sx;
+      const goal = ey * W + ex;
+      const g = new Map([[start, 0]]);
+      const from = new Map();
+      const heap = [[Math.abs(ex - sx) + Math.abs(ey - sy), start]];
+      const push = (f, i) => { heap.push([f, i]); let c = heap.length - 1; while (c > 0) { const p = (c - 1) >> 1; if (heap[p][0] <= heap[c][0]) break; [heap[p], heap[c]] = [heap[c], heap[p]]; c = p; } };
+      const pop = () => { const top = heap[0]; const last = heap.pop(); if (heap.length) { heap[0] = last; let c = 0; for (;;) { const l = c * 2 + 1; const r = l + 1; let m = c; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === c) break; [heap[m], heap[c]] = [heap[c], heap[m]]; c = m; } } return top; };
+      let found = false;
+      let budget = 40000;
+      while (heap.length && budget-- > 0) {
+        const [, cur] = pop();
+        if (cur === goal) { found = true; break; }
+        const cx = cur % W;
+        const cy = (cur - cx) / W;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = cx + dx;
+          const ny = cy + dy;
+          const ni = ny * W + nx;
+          // el destino se acepta aunque el punto de la ruta haya quedado sobre algo que choca
+          if (ni !== goal && !this.walkable(nx, ny)) continue;
+          const ng = g.get(cur) + 1;
+          if (ng < (g.get(ni) ?? Infinity)) {
+            g.set(ni, ng);
+            from.set(ni, cur);
+            push(ng + Math.abs(ex - nx) + Math.abs(ey - ny), ni);
+          }
+        }
+      }
+      if (found) {
+        const cells = [];
+        for (let i = goal; i !== undefined && i !== start; i = from.get(i)) cells.push([i % W, Math.floor(i / W)]);
+        cells.reverse();
+        // suavizado: de cada punto se salta al más lejano que se ve en línea recta
+        const smooth = [];
+        let ax = sx;
+        let ay = sy;
+        for (let i = 0; i < cells.length; i++) {
+          const next = cells[i + 1];
+          if (next && this.clearLine(ax, ay, next[0], next[1])) continue;
+          smooth.push(cells[i]);
+          [ax, ay] = cells[i];
+        }
+        result = smooth.map(([tx, ty]) => ({ x: tx * T + 16, y: ty * T + 16 - feet }));
+      }
+    }
+    if (this.pathCache.size > 500) this.pathCache.clear();
+    this.pathCache.set(key, result);
+    if (!result) return null;
+    const out = result.map((p) => ({ ...p }));
+    // el último paso cae justo en el punto de la ruta (o en la casilla libre que lo reemplaza)
+    const end = snapped ? { x: ex * T + 16, y: ey * T + 16 - feet } : { x: x1, y: y1 };
+    if (out.length) out[out.length - 1] = end; else out.push(end);
+    return out;
   }
 
   // ---------------------------------------------------------------- NPCs
   // NPCs con su sprite propio, nombre, oficio y la marca de misión (! o ?)
   spawnNpcs(npcs) {
     const sprites = [...new Set(npcs.map((o) => propOf(o, 'sprite')).filter(Boolean))];
-    sprites.forEach((s) => {
+    this.loadThen(() => sprites.forEach((s) => {
       if (!this.textures.exists(`npc_${s}`)) this.load.spritesheet(`npc_${s}`, `${ASSETS}/mundo/caminar/${s}.png`, { frameWidth: 32, frameHeight: 32 });
-    });
-    this.load.once('complete', () => {
+    }), () => {
       for (const o of npcs) {
         const x = o.x + 16;
         const y = o.y + 16;
-        const npc = this.add.sprite(x, y, `npc_${propOf(o, 'sprite')}`, IDLE.down).setDepth(9);
+        // si su hoja no cargó (sprite nuevo sin exportar todavía) se ve con la del héroe
+        const tex = this.textures.exists(`npc_${propOf(o, 'sprite')}`) ? `npc_${propOf(o, 'sprite')}` : 'heroe';
+        const npc = this.add.sprite(x, y, tex, IDLE.down).setDepth(9);
         // respiración: un saltito de 1 píxel para que no parezcan estatuas
         this.tweens.add({ targets: npc, y: y - 1, duration: 900 + Math.random() * 400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
         this.blockers.add(this.add.rectangle(x, y + 8, 16, 10));
@@ -409,22 +780,42 @@ export default class WorldScene extends Phaser.Scene {
         const dot = this.add.circle(x, y, 18, 0xffd84a).setStrokeStyle(5, 0x141420).setDepth(30).setVisible(false);
         this.cameras.main.ignore(dot);
         [tag, role, mark].filter(Boolean).forEach((t) => this.minimap?.ignore(t));
-        this.npcs.set(propOf(o, 'dialogo') ?? o.name, { sprite: npc, mark, dot, name: npcName });
+        // el mismo NPC puede estar en dos zonas (Lyra en la capital y en la aldea): clave por zona
+        const id = propOf(o, 'dialogo') ?? o.name;
+        this.npcs.set(`${o.zone}:${id}`, { id, sprite: npc, mark, dot, name: npcName });
       }
       this.setNpcMarks(this.marks);
     });
-    // la carga la arranca loadMonsterSheets (una sola tanda)
   }
 
-  // marks: { ren: '!' | '?' | null } — ! hay encargos nuevos, ? hay algo para entregar
+  // Cargas de imágenes una detrás de otra: si varias partes (NPCs, vecinos de la ciudad,
+  // compañeros, otros jugadores, monstruos) piden archivos mientras el cargador ya está
+  // trabajando, Phaser puede dejarlos en cola para siempre. addFiles agrega los archivos;
+  // done corre cuando terminaron de cargar.
+  loadThen(addFiles, done) {
+    this.loadChain = (this.loadChain ?? Promise.resolve()).then(() => new Promise((resolve) => {
+      const run = () => {
+        addFiles?.();
+        this.load.once('complete', () => { try { done?.(); } finally { resolve(); } });
+        this.load.start();
+      };
+      if (this.load.isLoading()) this.load.once('complete', run); else run();
+    }));
+  }
+
+  // marks: { ren: '!' | '?' | 'gris' | null } (ver game/questGivers.js) — ? algo para entregar,
+  // ! misión que ya puedes aceptar, gris: misión para dentro de poco
   setNpcMarks(marks) {
     this.marks = marks ?? {};
-    for (const [id, n] of this.npcs) {
-      const m = this.marks[id] ?? null;
-      n.mark.setText(m ?? '');
-      n.mark.setColor(m === '?' ? '#7dff9a' : '#ffd84a');
+    const COLORS = { '?': ['#7dff9a', 0x7dff9a], '!': ['#ffd84a', 0xffd84a], gris: ['#a8a8b0', 0x8a8a94] };
+    for (const n of this.npcs.values()) {
+      const m = this.marks[n.id] ?? null;
+      const [css, hex] = COLORS[m] ?? COLORS['!'];
+      n.mark.setText(m ? (m === 'gris' ? '!' : m) : '');
+      n.mark.setColor(css);
+      n.mark.setAlpha(m === 'gris' ? 0.85 : 1);
       n.dot.setVisible(!!m);
-      n.dot.setFillStyle(m === '?' ? 0x7dff9a : 0xffd84a);
+      n.dot.setFillStyle(hex);
     }
   }
 
@@ -505,10 +896,14 @@ export default class WorldScene extends Phaser.Scene {
     if (!r.ready || this.gathering) return;
     this.gathering = true;
     this.stopPlayer();
-    // pequeño "trabajo" antes de pedirle el botín al servidor
-    this.tweens.add({ targets: r.sprite, angle: { from: -6, to: 6 }, duration: 80, yoyo: true, repeat: 3, onComplete: () => r.sprite.setAngle(0) });
-    audio.sfx(['mineral', 'tronco'].includes(r.tipo) ? 'golpe' : 'recoger');
-    this.time.delayedCall(450, () => bus.emit('gather', { id: r.id, tipo: r.tipo }));
+    // "trabajo" con barra de lanzamiento (como recolectar en WoW/FFXIV) antes de pedir el botín
+    const ms = GATHER_MS;
+    bus.emit('cast', { label: r.cfg.label, ms });
+    this.tweens.add({ targets: r.sprite, angle: { from: -6, to: 6 }, duration: 80, yoyo: true, repeat: Math.round(ms / 160) - 1, onComplete: () => r.sprite.setAngle(0) });
+    const hit = ['mineral', 'tronco'].includes(r.tipo) ? 'golpe' : 'recoger';
+    audio.sfx(hit);
+    this.time.delayedCall(ms / 2, () => audio.sfx(hit));
+    this.time.delayedCall(ms, () => bus.emit('gather', { id: r.id, tipo: r.tipo }));
   }
 
   // React avisa qué salió (o error con r.error)
@@ -542,14 +937,15 @@ export default class WorldScene extends Phaser.Scene {
     const meadow = [];
     const trees = [];
     const golden = [];
-    chunk.objects.forEachTile((t) => { if (t.index > 0 && this.gidSets.flores?.has(t.index)) flowers.push(t); });
+    const gids = chunk.zone.gidSets;
+    chunk.objects.forEachTile((t) => { if (t.index > 0 && gids.flores?.has(t.index)) flowers.push(t); });
     chunk.ground.forEachTile((t) => {
-      if (this.gidSets.flores?.has(t.index)) flowers.push(t);
-      else if (this.gidSets.prado?.has(t.index) && !chunk.objects.getTileAt(t.x, t.y)) meadow.push(t);
+      if (gids.flores?.has(t.index)) flowers.push(t);
+      else if (gids.prado?.has(t.index) && !chunk.objects.getTileAt(t.x, t.y)) meadow.push(t);
     });
     chunk.above?.forEachTile((t) => {
-      if (this.gidSets.arboles?.has(t.index)) trees.push(t);
-      if (this.gidSets.dorados?.has(t.index)) golden.push(t);
+      if (gids.arboles?.has(t.index)) trees.push(t);
+      if (gids.dorados?.has(t.index)) golden.push(t);
     });
     const pick = (list, n) => Phaser.Utils.Array.Shuffle(list.slice()).slice(0, n);
     const add = (o) => { chunk.things.push(o); this.minimap?.ignore(o); return o; };
@@ -570,6 +966,7 @@ export default class WorldScene extends Phaser.Scene {
       };
       flutter();
     }
+    if (chunk.zone.world.ciudad) return;
     // pájaros en el suelo que salen volando si te acercas
     for (const t of pick(meadow, 3)) {
       const bird = add(this.add.sprite(t.pixelX + 16, t.pixelY + 20, 'f_pajaro', 0).setDepth(9).setFlipX(Math.random() < 0.5));
@@ -654,6 +1051,22 @@ export default class WorldScene extends Phaser.Scene {
     });
   }
 
+  // ofrenda al Pilar: chispas de agua y luz sobre el héroe y el Pilar
+  ofrendaFx() {
+    const targets = [{ x: this.player.x, y: this.player.y }];
+    if (this.city?.pilar) targets.push({ x: this.city.pilar.x, y: this.city.pilar.y - 90 });
+    for (const t of targets) {
+      const p = this.add.particles(t.x, t.y, 'mota_mundo', {
+        x: { min: -16, max: 16 }, speedY: { min: -90, max: -30 }, speedX: { min: -20, max: 20 }, lifespan: 1400,
+        scale: { start: 1.3, end: 0 }, tint: [0x9ae8ff, 0xffffff, 0xffe08a], blendMode: 'ADD', emitting: false,
+      }).setDepth(24);
+      this.minimap?.ignore(p);
+      p.explode(36);
+      this.time.delayedCall(1600, () => p.destroy());
+    }
+    this.cameras.main.flash(250, 180, 230, 255);
+  }
+
   // columna de luz dorada al subir de nivel
   levelUpFx() {
     const { x, y } = this.player;
@@ -698,12 +1111,14 @@ export default class WorldScene extends Phaser.Scene {
       if (this.shade.width !== v.width + 96 || this.shade.height !== v.height + 96) this.shade.setSize(v.width + 96, v.height + 96);
       this.rain?.setPosition(v.x + v.width / 2, v.y - 20);
     });
+    const LIGHT = { fogata: [0xff9a4a, 1.4], catedral: [0xbfd8ff, 3.2], pilar: [0x9ae8ff, 2.2], farol: [0xffd890, 1] };
     this.lights2 = lights.map((o) => {
-      const fire = propOf(o, 'tipo') === 'fogata';
-      const glow = this.add.image(o.x, o.y, 'luz').setDepth(20.6).setBlendMode('ADD')
-        .setTint(fire ? 0xff9a4a : 0xffd890).setScale(fire ? 1.4 : 1).setAlpha(0);
+      const tipo = propOf(o, 'tipo') ?? 'farol';
+      const fire = tipo === 'fogata';
+      const [tint, scale] = LIGHT[tipo] ?? LIGHT.farol;
+      const glow = this.add.image(o.x, o.y, 'luz').setDepth(20.6).setBlendMode('ADD').setTint(tint).setScale(scale).setAlpha(0);
       this.minimap.ignore(glow);
-      return { glow, fire };
+      return { glow, fire, orden: propOf(o, 'orden') ?? null };
     });
     // farol del héroe de noche
     this.heroLight = this.add.image(0, 0, 'luz').setDepth(20.6).setBlendMode('ADD').setTint(0xffe0a0).setScale(1.3).setAlpha(0);
@@ -757,7 +1172,11 @@ export default class WorldScene extends Phaser.Scene {
     const c = Phaser.Display.Color.IntegerToColor(color);
     const dark = Phaser.Math.Clamp(1 - (c.red + c.green + c.blue) / (3 * 255), 0, 1) * 1.6;
     const flicker = 0.9 + Math.sin(this.time.now / 90) * 0.05 + Math.random() * 0.05;
-    for (const l of this.lights2) l.glow.setAlpha(Math.min(1, dark) * (l.fire ? flicker : 0.85));
+    for (const l of this.lights2) {
+      // los faroles numerados se van encendiendo en orden al oscurecer (la ronda del farolero)
+      const on = l.orden == null || dark > 0.12 + l.orden * 0.03;
+      l.glow.setAlpha(on ? Math.min(1, dark) * (l.fire ? flicker : 0.85) : 0);
+    }
     this.heroLight.setPosition(this.player.x, this.player.y - 6).setAlpha(Math.min(0.55, dark * 0.6));
     const night = dark > 0.35;
     this.fireflies.emitting = night && this.weather !== 'lluvia';
@@ -767,8 +1186,8 @@ export default class WorldScene extends Phaser.Scene {
 
   // ---------------------------------------------------------------- subzonas
   updateSubzone() {
-    const { x, y } = this.player;
-    const sz = this.world.subzonas.find((s) => x >= s.x0 && x < s.x1 && y >= s.y0 && y < s.y1);
+    const { x, y } = this.toLocal(this.player.x, this.player.y, this.zone);
+    const sz = this.world.subzonas?.find((s) => x >= s.x0 && x < s.x1 && y >= s.y0 && y < s.y1);
     if (sz && sz.name !== this.subzone?.name) {
       this.subzone = sz;
       bus.emit('subzone', { name: sz.name, levels: sz.levels, safe: !!sz.safe, zone: this.zoneName });
@@ -792,9 +1211,9 @@ export default class WorldScene extends Phaser.Scene {
       if (this.pet) this.pet.gap = 18 * (this.followers.length + 1);
     };
     if (!missing.length) { build(); return; }
-    missing.forEach((c) => this.load.spritesheet(`npc_${c}`, `${ASSETS}/mundo/caminar/${c}.png`, { frameWidth: 32, frameHeight: 32 }));
-    this.load.once('complete', build);
-    this.load.start();
+    this.loadThen(() => missing.forEach((c) => {
+      if (!this.textures.exists(`npc_${c}`)) this.load.spritesheet(`npc_${c}`, `${ASSETS}/mundo/caminar/${c}.png`, { frameWidth: 32, frameHeight: 32 });
+    }), build);
   }
 
   setPet(species) {
@@ -915,6 +1334,7 @@ export default class WorldScene extends Phaser.Scene {
       this.player.setPosition(this.spawnPoint.x, this.spawnPoint.y);
       this.trail = [];
       this.updateChunks(true);
+      this.checkZoneChange();
     }
   }
 
@@ -938,13 +1358,16 @@ export default class WorldScene extends Phaser.Scene {
   // ---------------------------------------------------------------- monstruos
   // Nivel mínimo de cada monstruo de la zona: los que te superan no rondan el mapa hasta que
   // tengas nivel (igual que el servidor no los mete en los encuentros de hierba).
+  // (de todas las zonas del continente que tienen monstruos)
   async loadMonsterLevels() {
-    try {
-      const list = await fetch(`${API_URL}/api/zones/${this.zoneId}/monsters`).then((r) => r.json());
-      this.minLevel = Object.fromEntries(list.map((m) => [m.code, m.min_spawn_level]));
-    } catch {
-      this.minLevel = {};
-    }
+    this.minLevel = {};
+    const withMonsters = [...new Set(this.allPoints().filter((o) => o.type === 'encuentro' || o.type === 'jefe').map((o) => this.zoneByDir[o.zone].world.zona))];
+    await Promise.all(withMonsters.map(async (id) => {
+      try {
+        const list = await fetch(`${API_URL}/api/zones/${id}/monsters`).then((r) => r.json());
+        for (const m of list) this.minLevel[m.code] = m.min_spawn_level;
+      } catch { /* sin datos: aparecen todos */ }
+    }));
   }
 
   eligibleMonsters(area, catalog) {
@@ -956,18 +1379,18 @@ export default class WorldScene extends Phaser.Scene {
   loadMonsterSheets() {
     const catalog = this.cache.json.get('enemigos').monsters;
     const codes = new Set([...this.encounterAreas.flatMap((a) => this.areaMonsters(a)), ...this.bossPoints.map((b) => b.code)]);
-    for (const code of codes) {
-      const m = catalog[code];
-      if (m && !this.textures.exists(`mon_${code}`)) {
-        this.load.spritesheet(`mon_${code}`, `${ASSETS}/sprites/combate/${m.sheet}`, { frameWidth: m.frameSize.w, frameHeight: m.frameSize.h });
+    this.loadThen(() => {
+      for (const code of codes) {
+        const m = catalog[code];
+        if (m && !this.textures.exists(`mon_${code}`)) {
+          this.load.spritesheet(`mon_${code}`, `${ASSETS}/sprites/combate/${m.sheet}`, { frameWidth: m.frameSize.w, frameHeight: m.frameSize.h });
+        }
       }
-    }
-    this.load.once('complete', () => {
+    }, () => {
       this.sheetsReady = true;
       for (const c of this.chunks.values()) this.spawnChunkMonsters(c);
       this.spawnBosses(catalog);
     });
-    this.load.start();
   }
 
   spawnChunkMonsters(chunk) {
@@ -1012,13 +1435,35 @@ export default class WorldScene extends Phaser.Scene {
     this.wander(mon);
   }
 
+  // salidas que quedan: solo hacia zonas que aún no están en el continente (etheria.json)
+  checkExits(time) {
+    if (!this.exits?.length || this.changingZone || time < this.exitsArmedAt) return;
+    const { x, y } = this.player;
+    const e = this.exits.find((ex) => Phaser.Geom.Rectangle.Contains(ex.rect, x, y + 8));
+    if (e?.dest) this.changeZone(e.dest, e.tx, e.ty);
+  }
+
+  // salto a una zona fuera del continente: fundido y React vuelve a montar la escena
+  changeZone(dest, tx, ty) {
+    if (this.changingZone) return;
+    this.changingZone = true;
+    this.stopPlayer();
+    this.input.keyboard.enabled = false;
+    audio.sfx('abrir');
+    this.cameras.main.fadeOut(350, 10, 10, 16);
+    this.cameras.main.once('camerafadeoutcomplete', () => {
+      bus.emit('zone-change', { zoneDir: dest, x: (tx ?? 0) * 32 + 16, y: (ty ?? 0) * 32 + 16 });
+    });
+  }
+
   // posición para los demás jugadores (React la manda por socket): ~7 veces por segundo y solo
   // si cambió algo
   reportPosition(time) {
     if (time - (this.lastReport ?? 0) < 140) return;
     this.lastReport = time;
     const moving = this.player.body.velocity.lengthSq() > 0;
-    const msg = { x: Math.round(this.player.x), y: Math.round(this.player.y), f: this.facing, flip: this.player.flipX, m: moving };
+    const pos = this.toLocal(this.player.x, this.player.y, this.zone);
+    const msg = { x: pos.x, y: pos.y, f: this.facing, flip: this.player.flipX, m: moving };
     const sig = `${msg.x},${msg.y},${msg.f},${msg.flip},${msg.m}`;
     if (sig === this.lastReportSig) return;
     this.lastReportSig = sig;
@@ -1026,8 +1471,12 @@ export default class WorldScene extends Phaser.Scene {
   }
 
   // niveles de la subzona que contiene el punto (la primera de la lista que lo contenga)
-  levelsAt(x, y) {
-    const sz = this.world.subzonas?.find((s) => x >= s.x0 && x < s.x1 && y >= s.y0 && y < s.y1);
+  levelsAt(gx, gy) {
+    const z = this.zoneAt(gx, gy);
+    if (!z) return null;
+    const x = gx - z.ox;
+    const y = gy - z.oy;
+    const sz = z.world.subzonas?.find((s) => x >= s.x0 && x < s.x1 && y >= s.y0 && y < s.y1);
     return sz?.levels ?? null;
   }
 
@@ -1072,7 +1521,7 @@ export default class WorldScene extends Phaser.Scene {
     this.tweens.add({ targets: mon, alpha: 0.3, yoyo: true, repeat: 3, duration: 90 });
     bus.emit('encounter', {
       kind: 'zone', code: mon.getData('code'), name: mon.getData('name'), zoneId: this.zoneId, areaLevels: this.subzone?.levels ?? null,
-      position: { x: this.player.x, y: this.player.y, zona: this.zoneDir },
+      position: this.toLocal(this.player.x, this.player.y, this.zone),
     });
   }
 
@@ -1080,7 +1529,7 @@ export default class WorldScene extends Phaser.Scene {
   checkGrassEncounter() {
     if (!this.grassChance || !this.grassGid) return;
     const tile = this.groundTileAt(this.player.x, this.player.y + 10);
-    const key = tile ? `${tile.x},${tile.y},${this.curChunk.cx},${this.curChunk.cy}` : null;
+    const key = tile ? `${tile.x},${tile.y},${this.chunkKeyAt(this.player.x, this.player.y + 10)}` : null;
     if (key === this.lastTile) return;
     this.lastTile = key;
     this.updateSubzone();
@@ -1094,7 +1543,7 @@ export default class WorldScene extends Phaser.Scene {
     this.input.keyboard.enabled = false;
     this.cameras.main.shake(250, 0.006);
     audio.sfx('encuentro');
-    bus.emit('encounter', { kind: 'zone', name: null, zoneId: this.zoneId, areaLevels: this.subzone?.levels ?? null, position: { x: this.player.x, y: this.player.y, zona: this.zoneDir } });
+    bus.emit('encounter', { kind: 'zone', name: null, zoneId: this.zoneId, areaLevels: this.subzone?.levels ?? null, position: this.toLocal(this.player.x, this.player.y, this.zone) });
   }
 
   // Desafiar a un jefe en su guarida (React pide confirmación antes de empezar)
@@ -1103,7 +1552,7 @@ export default class WorldScene extends Phaser.Scene {
     this.lastBoss = b;
     bus.emit('boss-challenge', {
       kind: 'boss', code: b.code, level: b.level, name: b.name, rank: b.rank,
-      zoneId: this.zoneId, position: { x: this.player.x, y: this.player.y, zona: this.zoneDir },
+      zoneId: this.zoneId, position: this.toLocal(this.player.x, this.player.y, this.zone),
     });
   }
 
@@ -1126,7 +1575,9 @@ export default class WorldScene extends Phaser.Scene {
     if (!this.player) return;
     if (this.shade) this.updateSky();
     this.social?.update(delta);
+    this.city?.update(delta);
     this.reportPosition(time);
+    this.checkExits(time);
     for (const m of this.monsters.getChildren()) {
       const tag = m.getData('tag');
       if (tag) tag.setPosition(m.x, m.y - m.getData('tagDy'));
@@ -1142,7 +1593,11 @@ export default class WorldScene extends Phaser.Scene {
       if (k.down.isDown || k.down2.isDown) vy += 1;
     }
     const len = Math.hypot(vx, vy) || 1;
-    this.player.setVelocity((vx / len) * SPEED, (vy / len) * SPEED);
+    const speed = SPEED * (this.speedMul ?? 1);
+    this.player.setVelocity((vx / len) * speed, (vy / len) * speed);
+    this.player.anims.timeScale = this.speedMul ?? 1; // los pasos van al ritmo de la carrera
+    // con el bufo de velocidad se levanta polvo a los pies al correr
+    if (this.dust) this.dust.emitting = !!(vx || vy) && this.speedMul > 1;
 
     if (vx || vy) {
       // la animación sigue al eje dominante; con diagonal pura gana el horizontal
@@ -1156,6 +1611,7 @@ export default class WorldScene extends Phaser.Scene {
     this.playerDot?.setPosition(this.player.x, this.player.y);
     this.updateFollowers(!!(vx || vy));
     this.updateChunks();
+    if (vx || vy) this.checkZoneChange();
     if (vx || vy) this.scareFauna();
 
     this.updatePoi();

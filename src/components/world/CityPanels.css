@@ -1,0 +1,140 @@
+/* Pilar de Aethra */
+.cp-ofrenda {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.cp-fountain {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle, #6aa8ec 0%, #2a5a9c 60%, #1a2a44 100%);
+  border: 2px solid #8a6a30;
+  box-shadow: 0 0 18px rgba(106, 168, 236, 0.4);
+}
+
+.cp-fountain img {
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+}
+
+.cp-fountain.is-blessed {
+  box-shadow: 0 0 26px rgba(255, 224, 138, 0.8);
+  animation: cp-glow 2s ease-in-out infinite;
+}
+
+.cp-fountain.is-festival {
+  border-color: #ffe08a;
+}
+
+@keyframes cp-glow {
+  50% { box-shadow: 0 0 40px rgba(255, 224, 138, 1); }
+}
+
+.cp-lore {
+  margin: 0;
+  font: italic 0.92rem 'EB Garamond', serif;
+  color: #d8ccb0;
+}
+
+.cp-festival {
+  margin: 0;
+  font: 700 0.8rem 'Cinzel', serif;
+  color: #ffe08a;
+}
+
+.cp-blessing {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 18px;
+  background: rgba(74, 58, 28, 0.45);
+  border: 1px solid #b08a3c;
+  border-radius: 6px;
+}
+
+.cp-blessing b {
+  font: 700 0.92rem 'Cinzel', serif;
+  color: #ffe08a;
+}
+
+.cp-blessing span {
+  font: 600 0.9rem 'EB Garamond', serif;
+  color: #9dffbf;
+}
+
+.cp-blessing small {
+  font: 0.8rem 'EB Garamond', serif;
+  color: #b8ab8a;
+}
+
+.cp-none {
+  margin: 0;
+  font: italic 0.86rem 'EB Garamond', serif;
+  color: #9a8e72;
+}
+
+.cp-msg {
+  margin: 0;
+  font: 600 0.86rem 'EB Garamond', serif;
+  color: #ffe08a;
+}
+
+/* Libro de visitas */
+.cp-libro-form {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.cp-libro-form textarea {
+  flex: 1;
+  resize: none;
+  padding: 6px 8px;
+  font: 0.9rem 'EB Garamond', serif;
+  color: #f0e6cc;
+  background: rgba(8, 6, 4, 0.6);
+  border: 1px solid #4a3a1c;
+  border-radius: 4px;
+}
+
+.cp-libro-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  max-height: 340px;
+  overflow-y: auto;
+  background: linear-gradient(#efe2c0, #dccb9e);
+  border: 2px solid #6b5326;
+  border-radius: 4px;
+  box-shadow: inset 0 0 20px rgba(110, 80, 30, 0.35);
+}
+
+.cp-libro-list li {
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(90, 60, 20, 0.35);
+}
+
+.cp-libro-list li:last-child {
+  border-bottom: 0;
+}
+
+.cp-libro-list p {
+  margin: 0;
+  font: italic 0.95rem 'EB Garamond', serif;
+  color: #3a2a10;
+}
+
+.cp-libro-list small {
+  font: 600 0.78rem 'EB Garamond', serif;
+  color: #6b5326;
+}
+
+.cp-libro-list .cp-none {
+  color: #6b5326;
+}

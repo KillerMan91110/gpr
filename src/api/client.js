@@ -180,6 +180,12 @@ export const api = {
     request(`/api/player/${playerId}/friends/${targetId}/accept`, { method: 'POST', token }),
   removeFriend: (playerId, targetId, token) =>
     request(`/api/player/${playerId}/friends/${targetId}`, { method: 'DELETE', token }),
+  // Aurelia: ofrenda al Pilar de Aethra, libro de visitas de la posada y diligencia
+  getOfrenda: (playerId, token) => request(`/api/player/${playerId}/world/ofrenda`, { token }),
+  makeOfrenda: (playerId, token) => request(`/api/player/${playerId}/world/ofrenda`, { method: 'POST', token }),
+  getLibro: (playerId, token) => request(`/api/player/${playerId}/world/libro`, { token }),
+  writeLibro: (playerId, text, token) => request(`/api/player/${playerId}/world/libro`, { method: 'POST', body: { text }, token }),
+  travel: (playerId, destino, token) => request(`/api/player/${playerId}/world/viaje`, { method: 'POST', body: { destino }, token }),
   // Ventana Social del mundo 2D (tecla O)
   getSocialOverview: (playerId, token) => request(`/api/player/${playerId}/social/overview`, { token }),
   setSocialStatus: (playerId, text, token) => request(`/api/player/${playerId}/social/status`, { method: 'PUT', body: { text }, token }),

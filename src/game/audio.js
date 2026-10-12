@@ -36,6 +36,25 @@ const TRACKS = {
       ) },
     ],
   },
+  // Aurelia: plaza de mercado, laúd y flauta (sol mayor, compás alegre)
+  ciudad: {
+    bpm: 108,
+    drums: 'k - h - s - h -',
+    voices: [
+      { wave: 'triangle', gain: 0.15, steps: bars(
+        'G2 . . . D3 . . .', 'E2 . . . B2 . . .', 'C3 . . . G2 . . .', 'D3 . . . A2 . D3 .',
+        'G2 . . . D3 . . .', 'C3 . . . G2 . . .', 'A2 . . . D3 . . .', 'G2 . D3 . G2 . . .',
+      ) },
+      { wave: 'square', gain: 0.022, short: true, steps: bars(
+        'G3 B3 D4 B3 G4 D4 B3 D4', 'E3 G3 B3 G3 E4 B3 G3 B3', 'C4 E4 G4 E4 C5 G4 E4 G4', 'D4 F#4 A4 F#4 D5 A4 F#4 A4',
+        'G3 B3 D4 B3 G4 D4 B3 D4', 'C4 E4 G4 E4 C5 G4 E4 G4', 'A3 C4 E4 C4 D4 F#4 A4 F#4', 'G3 B3 D4 B3 G4 - - -',
+      ) },
+      { wave: 'triangle', gain: 0.07, steps: bars(
+        'D5 . B4 . G4 . B4 D5', 'E5 . D5 B4 G4 . - -', 'E5 . G5 . E5 D5 C5 .', 'D5 . . . A4 . F#4 .',
+        'B4 . D5 . G5 . F#5 E5', 'E5 . C5 . G4 . E5 .', 'D5 . C5 B4 A4 . F#4 .', 'G4 . . . - - - -',
+      ) },
+    ],
+  },
   batalla: {
     bpm: 150,
     drums: 'k h s h k k s h',
@@ -273,6 +292,15 @@ class AudioEngine {
         break;
       case 'curar':
         ['C5', 'E5', 'G5', 'C6'].forEach((n, i) => this.tone(freq(n), t + i * 0.06, 0.25, { wave: 'sine', gain: 0.08 }));
+        break;
+      case 'monedas':
+        [0, 0.07, 0.15].forEach((d, i) => this.tone(freq(['E6', 'G6', 'C7'][i]), t + d, 0.12, { wave: 'square', gain: 0.035 }));
+        break;
+      case 'ofrenda':
+        // moneda que cae al agua y la bendición que sube
+        this.tone(freq('A6'), t, 0.08, { wave: 'square', gain: 0.04 });
+        this.burst(t + 0.12, 0.3, { gain: 0.08, filter: 'lowpass', from: 1800, to: 300 });
+        ['C5', 'E5', 'G5', 'B5', 'E6'].forEach((n, i) => this.tone(freq(n), t + 0.35 + i * 0.08, 0.5, { wave: 'sine', gain: 0.06 }));
         break;
       case 'mejora':
         ['G4', 'C5', 'E5', 'G5'].forEach((n, i) => this.tone(freq(n), t + i * 0.05, 0.18, { wave: 'triangle', gain: 0.08 }));

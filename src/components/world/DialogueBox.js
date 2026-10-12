@@ -4,7 +4,7 @@ import { DIALOGUES } from '../../game/dialogues';
 
 // Caja de diálogo estilo JRPG: retrato del NPC, el texto aparece letra por letra y abajo las
 // opciones (1-9 para elegir, Espacio/Enter para completar el texto, Esc para irse).
-export default function DialogueBox({ id, ctx, onOpenWindow, onClose }) {
+export default function DialogueBox({ id, ctx, onOpenWindow, onAction, onClose }) {
   const def = DIALOGUES[id];
   const [text, setText] = useState(() => def?.greet(ctx) ?? '');
   const [shown, setShown] = useState(0);
@@ -25,14 +25,24 @@ export default function DialogueBox({ id, ctx, onOpenWindow, onClose }) {
 
   const done = shown >= text.length;
   const { night, mark } = ctx;
-  const options = useMemo(() => (def ? def.options({ night, mark }) : []), [def, night, mark]);
+  // cualquier NPC que dé misiones (game/questGivers.js) ofrece verlas o entregarlas, aunque su
+  // diálogo no lo tenga escrito
+  const options = useMemo(() => {
+    const base = def ? def.options({ night, mark }) : [];
+    if (!mark || mark === 'gris' || base.some((o) => o.window === 'misiones_gremio')) return base;
+    const quest = mark === '?'
+      ? { label: '✔ Entregar misión', window: 'misiones' }
+      : { label: '❗ ¿Tienes trabajo para mí?', window: 'misiones_gremio' };
+    return [quest, ...base];
+  }, [def, night, mark]);
 
   const choose = useCallback((o) => {
     audio.sfx('clic');
     if (o.close) onClose();
     else if (o.window) { onOpenWindow(o.window); onClose(); }
     else if (o.next) setText(def.lines[o.next]);
-  }, [def, onClose, onOpenWindow]);
+    else if (o.action) { onAction?.(o); onClose(); }
+  }, [def, onClose, onOpenWindow, onAction]);
 
   useEffect(() => {
     const onKey = (e) => {

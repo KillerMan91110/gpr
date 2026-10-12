@@ -29,7 +29,24 @@ const OBJECT_TYPES = [
   { type: 'encuentro', label: 'Combates', hint: 'Zona donde rondan monstruos' },
   { type: 'luz', label: 'Luz', hint: 'Farol o fogata que alumbra de noche' },
   { type: 'aspas', label: 'Aspas', hint: 'Aspas de molino girando' },
+  { type: 'salida', label: 'Salida', hint: 'Franja que lleva a otra zona al pisarla (destino y casilla de llegada)' },
+  { type: 'ciudadano', label: 'Ciudadano', hint: 'Vecino que camina por una ruta, conversa (charla) o se queda quieto' },
+  { type: 'ruta', label: 'Ruta', hint: 'Punto de una ruta: mismo nombre = misma ruta, en el orden indicado' },
+  { type: 'cartel', label: 'Cartel', hint: 'Cartel colgante con ícono junto a una puerta' },
+  { type: 'pilar', label: 'Pilar', hint: 'El Pilar de Aethra (fuente animada y ofrenda)' },
+  { type: 'palomas', label: 'Palomas', hint: 'Bandada que sale volando al acercarse' },
+  { type: 'gato', label: 'Gato', hint: 'Gato que toma el sol' },
 ];
+// objetos que se editan con la lista genérica de propiedades
+const GENERIC_PROPS = {
+  salida: [['destino', 'string', 'pradera'], ['x', 'int', 0], ['y', 'int', 0], ['etiqueta', 'string', 'Salida']],
+  ciudadano: [['sprite', 'string', 'cit_1'], ['ruta', 'string', ''], ['velocidad', 'int', 32], ['horario', 'string', 'siempre'], ['charla', 'string', ''], ['mira', 'string', ''], ['frases', 'string', 'paseante'], ['nombre', 'string', ''], ['rol', 'string', '']],
+  ruta: [['orden', 'int', 0]],
+  cartel: [['icono', 'string', 'espada']],
+  pilar: [['etiqueta', 'string', 'Pilar de Aethra — Ofrenda'], ['ventana', 'string', 'ofrenda']],
+  palomas: [],
+  gato: [],
+};
 const PASO_TOOLS = [
   { id: 'auto', label: 'Auto', icon: '◌', hint: 'Lo que diga el tile (borra lo forzado)' },
   { id: 'libre', label: 'Libre', icon: '○', hint: 'Se pasa siempre, aunque el tile choque' },
@@ -577,7 +594,7 @@ export default function MapEditor() {
   };
 
   const snapPoint = (type, wx, wy) => {
-    if (TOPLEFT_TYPES.has(type) || type === 'encuentro') return { x: Math.floor(wx / TS) * TS, y: Math.floor(wy / TS) * TS };
+    if (TOPLEFT_TYPES.has(type) || type === 'encuentro' || type === 'salida') return { x: Math.floor(wx / TS) * TS, y: Math.floor(wy / TS) * TS };
     return { x: Math.floor(wx / TS) * TS + 16, y: Math.floor(wy / TS) * TS + 16 };
   };
 
@@ -595,6 +612,13 @@ export default function MapEditor() {
       case 'luz': return { ...base, name: `luz_${count('luz')}`, properties: [prop('tipo', 'string', 'farol')] };
       case 'encuentro': return { ...base, name: 'Zona de combate', width: 8 * TS, height: 6 * TS, properties: [prop('monstruos', 'string', 'LOBO_PRADERA'), prop('cantidad', 'int', 3)] };
       case 'aspas': return { ...base, name: 'aspas' };
+      case 'salida': return { ...base, name: `salida_${count('salida')}`, width: 4 * TS, height: TS, properties: GENERIC_PROPS.salida.map(([n, t, v]) => prop(n, t, v)) };
+      case 'ruta': return { ...base, name: 'ruta_nueva', properties: [prop('orden', 'int', z.puntos.filter((p) => p.type === 'ruta' && p.name === 'ruta_nueva').length)] };
+      case 'ciudadano': return { ...base, name: `ciudadano_${count('ciudadano')}`, properties: [prop('sprite', 'string', 'cit_1'), prop('frases', 'string', 'paseante')] };
+      case 'cartel': return { ...base, name: `cartel_${count('cartel')}`, properties: [prop('icono', 'string', 'espada')] };
+      case 'pilar': return { ...base, name: 'pilar', properties: GENERIC_PROPS.pilar.map(([n, t, v]) => prop(n, t, v)) };
+      case 'palomas': return { ...base, name: `palomas_${count('palomas')}` };
+      case 'gato': return { ...base, name: `gato_${count('gato')}` };
       default: return base;
     }
   };
@@ -607,7 +631,7 @@ export default function MapEditor() {
     let rectHit = null;
     for (let i = z.puntos.length - 1; i >= 0; i -= 1) {
       const p = z.puntos[i];
-      if (p.type === 'encuentro') {
+      if (p.type === 'encuentro' || p.type === 'salida') {
         const nearCorner = Math.abs(c.wx - (p.x + p.width)) * zoomK < 10 && Math.abs(c.wy - (p.y + p.height)) * zoomK < 10;
         if (nearCorner && st.current.selected === p.uid) return { p, resize: true };
         if (!rectHit && c.wx >= p.x && c.wy >= p.y && c.wx < p.x + p.width && c.wy < p.y + p.height) rectHit = { p };
@@ -750,7 +774,7 @@ export default function MapEditor() {
         const nx = d.orig.x + (c.wx - d.start.wx);
         const ny = d.orig.y + (c.wy - d.start.wy);
         if (free) { d.p.x = Math.round(nx); d.p.y = Math.round(ny); }
-        else if (TOPLEFT_TYPES.has(d.p.type) || d.p.type === 'encuentro') { d.p.x = Math.round(nx / TS) * TS; d.p.y = Math.round(ny / TS) * TS; }
+        else if (TOPLEFT_TYPES.has(d.p.type) || d.p.type === 'encuentro' || d.p.type === 'salida') { d.p.x = Math.round(nx / TS) * TS; d.p.y = Math.round(ny / TS) * TS; }
         else { const sp = snapPoint(d.p.type, nx, ny); d.p.x = sp.x; d.p.y = sp.y; }
       } else if (d.kind === 'resize') {
         d.p.width = Math.max(2 * TS, Math.round((c.wx - d.p.x) / TS) * TS);
@@ -1202,6 +1226,28 @@ export default function MapEditor() {
                     </Field>
                     <Field label="Cuántos a la vez"><input type="number" min="1" max="12" value={getProp(selPoint, 'cantidad') ?? 2} onChange={(e) => setPointProp('cantidad', 'int', parseInt(e.target.value, 10))} /></Field>
                     <p className="me-hint">Arrastra la esquina de abajo a la derecha para cambiar el tamaño. Los combates por pisar hierba alta salen del terreno «Hierba alta».</p>
+                  </>
+                )}
+                {GENERIC_PROPS[selPoint.type] && (
+                  <>
+                    {[...new Set([...GENERIC_PROPS[selPoint.type].map(([n]) => n), ...(selPoint.properties ?? []).map((q) => q.name)])].map((n) => {
+                      const def = GENERIC_PROPS[selPoint.type].find(([k]) => k === n);
+                      const type = selPoint.properties?.find((q) => q.name === n)?.type ?? def?.[1] ?? 'string';
+                      return (
+                        <Field key={n} label={n}>
+                          <input
+                            type={type === 'int' ? 'number' : 'text'}
+                            value={getProp(selPoint, n) ?? ''}
+                            placeholder={def ? String(def[2]) : ''}
+                            onChange={(e) => setPointProp(n, type, type === 'int' ? parseInt(e.target.value, 10) : e.target.value)}
+                          />
+                        </Field>
+                      );
+                    })}
+                    {selPoint.type === 'salida' && <p className="me-hint">destino = carpeta de la zona (aurelia, pradera…); x/y = casilla donde apareces allí. Arrastra la esquina para cambiar el tamaño.</p>}
+                    {selPoint.type === 'ruta' && <p className="me-hint">Los puntos con el mismo nombre forman una ruta; los ciudadanos la recorren en el orden indicado.</p>}
+                    {selPoint.type === 'ciudadano' && <p className="me-hint">sprite = hoja de caminar (cit_1…cit_15, npc_guardia…); ruta = nombre de una ruta; horario: siempre, dia, tarde, noche; charla = grupo de conversación; mira: side, sideL, up, down.</p>}
+                    {selPoint.type === 'cartel' && <p className="me-hint">icono: espada, baston, arco, daga, sol, pocion, yunque, jarra, moneda, pergamino, balanza, gema, ala, rueda, libro, cama.</p>}
                   </>
                 )}
                 {selPoint.type === 'spawn' && <p className="me-hint">Donde aparece el jugador al entrar a la zona por primera vez. Arrástralo para moverlo.</p>}

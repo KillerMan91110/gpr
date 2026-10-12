@@ -7,10 +7,9 @@
 
 export const ATLAS_ZONES = {
   capital: {
-    name: 'La Capital', levels: null, x: 268, y: 138, color: '#c9b27a', icon: ['castle', 'delapouite'],
-    description: 'La ciudad amurallada del reino: gremios, comercio y la corte. Sus campos del sur son la Pradera Dorada.',
-    route: 'Al norte de la Pradera Dorada, cruzando la Puerta Norte por el Camino Real.',
-    soon: true,
+    dir: 'aurelia', name: 'Aurelia', levels: null, x: 268, y: 138, color: '#c9b27a', icon: ['castle', 'delapouite'],
+    description: 'La Ciudad del Pilar, capital de Etheria: la catedral de Aethra, las casas de las órdenes, el mercado y la corte. Aquí empieza todo aventurero.',
+    route: 'Al norte de la Pradera Dorada, cruzando la Puerta Norte por el Camino Real. También hay diligencia desde la Aldea Espiga.',
   },
   1: {
     dir: 'pradera', x: 268, y: 238, color: '#d8b84a', icon: ['wheat', 'lorc'],
@@ -32,6 +31,7 @@ export const ATLAS_ROADS = [
 // salidas de cada zona del mundo abierto (nombre del punto en el mapa → zona a la que lleva)
 export const ZONE_EXITS = {
   pradera: { puerta_norte: 'capital', salida_este: 2 },
+  aurelia: { puerta_sur: 1 },
 };
 
 // contorno del continente (viewBox 600x400)

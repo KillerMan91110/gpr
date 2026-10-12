@@ -18,6 +18,7 @@ import Market from '../../pages/Market';
 import Crafting from '../../pages/Crafting';
 import Formation from '../../pages/Formation';
 import Pets from '../../pages/Pets';
+import Friends from '../../pages/Friends';
 
 // Pantallas clásicas que se pueden abrir dentro de una ventana del mundo. Los enlaces entre
 // ellas (p. ej. Gremio → Contratar aventureros) navegan DENTRO de la ventana en vez de sacar
@@ -39,6 +40,7 @@ const EMBED_ROUTES = [
   ['/crafting', Crafting],
   ['/formation', Formation],
   ['/pets', Pets],
+  ['/friends', Friends],
 ];
 
 // rutas que ya tienen ventana propia en el mundo: se abre esa en vez de la pantalla clásica
@@ -48,7 +50,7 @@ const NATIVE_WINDOWS = {
 };
 
 const ROOT_ROUTE = { outlet: null, matches: [], isDataRoute: false };
-const EMBED_PREFIXES = ['/guild', '/artisan-shop', '/market', '/crafting', '/formation', '/pets'];
+const EMBED_PREFIXES = ['/guild', '/artisan-shop', '/market', '/crafting', '/formation', '/pets', '/friends'];
 const isEmbeddable = (path) => EMBED_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`));
 
 export default function EmbedPanel({ id, title, icon, path, openWindow, ...props }) {

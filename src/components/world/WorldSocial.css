@@ -215,6 +215,15 @@
 .ws-toast--friend { color: #9fd6ff; border-color: #3a6a9a; }
 .ws-toast--ok { color: #ffe08a; }
 .ws-toast--error { color: #ffc0b0; border-color: #8a3a2a; }
+.ws-toast--tour {
+  max-width: 460px;
+  padding: 8px 18px;
+  text-align: center;
+  color: #b9ffcf;
+  border-color: #3f7a52;
+  border-radius: 8px;
+  animation-duration: 7s;
+}
 
 @keyframes ws-toast {
   0% { opacity: 0; transform: translateY(-8px); }

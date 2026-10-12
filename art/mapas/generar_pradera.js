@@ -476,7 +476,13 @@ const prop = (name, type, value) => ({ name, type, value });
 const points = [];
 const pt = (o) => points.push(o);
 pt({ name: 'inicio', type: 'spawn', x: px(P.spawn.x), y: px(P.spawn.y) });
-pt({ name: 'puerta_norte', type: 'poi', x: px(79), y: px(3), properties: [prop('etiqueta', 'string', 'Puerta Norte — la capital (próximamente)')] });
+// la Puerta Norte lleva a Aurelia, la capital (al tocar la franja de delante de la puerta)
+pt({ name: 'puerta_norte', type: 'salida', x: px(P.gate.x), y: px(3), width: px(4), height: px(1), properties: [
+  prop('destino', 'string', 'aurelia'), prop('x', 'int', 59), prop('y', 'int', 84), prop('etiqueta', 'string', 'Puerta Norte — Aurelia, la capital')] });
+// la diligencia de Gaspar: vuelta rápida a la capital desde la aldea
+pt({ name: 'cochero_aldea', type: 'npc', x: px(89), y: px(55), properties: [
+  prop('nombre', 'string', 'Gaspar, cochero'), prop('sprite', 'string', 'npc_cochero'), prop('dialogo', 'string', 'cochero_aldea'),
+  prop('etiqueta', 'string', 'Hablar con Gaspar')] });
 pt({ name: 'enfermeria', type: 'poi', x: px(78), y: px(51), properties: [prop('etiqueta', 'string', 'Fogata de la aldea — Enfermería'), prop('ventana', 'string', 'enfermeria')] });
 pt({ name: 'tablon', type: 'poi', x: px(84), y: px(47), properties: [prop('etiqueta', 'string', 'Tablón de encargos'), prop('ventana', 'string', 'misiones_gremio')] });
 pt({ name: 'salida_este', type: 'poi', x: px(158), y: px(50), properties: [prop('etiqueta', 'string', 'Camino a las Montañas Grises — Mapa'), prop('ventana', 'string', 'mapa')] });
@@ -489,6 +495,10 @@ pt({ name: 'mercader', type: 'npc', x: px(76), y: px(50), properties: [
 pt({ name: 'herrero', type: 'npc', x: px(84), y: px(51), properties: [
   prop('nombre', 'string', 'Goreth, herrero'), prop('sprite', 'string', 'npc_goreth'), prop('dialogo', 'string', 'goreth'),
   prop('etiqueta', 'string', 'Hablar con Goreth'), prop('ventana', 'string', 'taller')] });
+// Aldren, el Anciano Sabio: da las misiones del Titán y del Chamán (ver src/game/questGivers.js)
+pt({ name: 'anciano_sabio', type: 'npc', x: px(80), y: px(49), properties: [
+  prop('nombre', 'string', 'Aldren, anciano sabio'), prop('sprite', 'string', 'npc_anciano'), prop('dialogo', 'string', 'anciano'),
+  prop('etiqueta', 'string', 'Hablar con Aldren')] });
 pt({ name: 'guarida_capitan', type: 'jefe', x: px(P.den.x), y: px(P.den.y), properties: [
   prop('monstruo', 'string', 'CAPITAN_LOBOS'), prop('nivel', 'int', 12), prop('etiqueta', 'string', 'Desafiar al Capitán de los Lobos')] });
 pt({ name: 'corazon_pradera', type: 'jefe', x: px(P.titan.x), y: px(P.titan.y), properties: [
@@ -499,6 +509,7 @@ pt({ name: 'aspas_molino', type: 'aspas', x: px(P.mill.x) + 16, y: px(P.mill.y -
 [[76, 45, 'farol'], [85, 45, 'farol'], [76, 55, 'farol'], [85, 55, 'farol'], [78, 52, 'fogata'], [109, 37, 'fogata'],
   ...roadLamps.map(([x, y]) => [x, y, 'farol'])]
   .forEach(([x, y, tipo], i) => pt({ name: `luz_${i + 1}`, type: 'luz', x: px(x) + 16, y: px(y) + 12, properties: [prop('tipo', 'string', tipo)] }));
+placeGrid('diligencia', 3, 2, 90, 54);
 // zonas de encuentro
 encounterAreas.forEach((a) => pt({
   name: a.name, type: 'encuentro', x: px(a.x), y: px(a.y), width: px(a.w), height: px(a.h),

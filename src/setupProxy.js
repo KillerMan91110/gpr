@@ -152,6 +152,17 @@ function saveTileSettings(name, ajustes) {
 }
 
 module.exports = function editorDeMapas(app) {
+  // "modo mismo origen" (ver src/devMismoOrigen.js): /api y /socket.io van al back. No molesta al
+  // uso normal: el juego sigue hablando directo con el back salvo que se active ese modo.
+  try {
+    // eslint-disable-next-line global-require
+    const { createProxyMiddleware } = require('http-proxy-middleware');
+    const target = (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+    app.use(createProxyMiddleware(['/api', '/socket.io'], { target, changeOrigin: false, ws: true, logLevel: 'warn' }));
+  } catch (err) {
+    console.warn('[setupProxy] sin proxy al back:', err.message);
+  }
+
   app.use('/__editor', async (req, res) => {
     const send = (code, data) => { res.statusCode = code; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(data)); };
     if (!LOCAL.has(req.socket.remoteAddress)) return send(403, { error: 'El editor solo funciona desde este PC' });
