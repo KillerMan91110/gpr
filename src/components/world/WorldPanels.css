@@ -278,7 +278,8 @@
   inset: 0;
   z-index: 1;
   background-repeat: no-repeat;
-  background-size: calc(192px * 19) 192px;
+  /* 23 = cuadros de la hoja de combate (manifest.json; los 4 últimos son "walk") */
+  background-size: calc(192px * 23) 192px;
   image-rendering: pixelated;
   animation: wp-idle 0.8s steps(2) infinite;
 }
