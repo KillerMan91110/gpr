@@ -62,6 +62,12 @@ export default class WorldScene extends Phaser.Scene {
     this.crypt = null;
     this.lastGuardian = null;
     this.mythic = null;
+    // objetos que los módulos crean una sola vez (niebla del jefe mítico, huellas, esbirros, el
+    // mercader): tras el reinicio apuntarían a los de la escena anterior, ya destruidos
+    this.mythicFog = null;
+    this.mythicTrail = [];
+    this.minions = [];
+    this.wanderer = null;
     this.changingZone = false;
     this.teleporting = false;
     this.pendingGrace = 0;
