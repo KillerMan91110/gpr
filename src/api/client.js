@@ -223,6 +223,10 @@ export const api = {
   getMitico: () => request('/api/world/mitico'),
   getCazadores: () => request('/api/world/cazadores'),
   getMiticoAporte: (playerId, token) => request(`/api/player/${playerId}/coleccion/mitico/aporte`, { token }),
+  // La Cripta del Vigía (gprback/routes/cripta.js)
+  getCripta: (playerId, token) => request(`/api/player/${playerId}/world/cripta`, { token }),
+  encenderBrasero: (playerId, orden, token) => request(`/api/player/${playerId}/world/cripta/brasero`, { method: 'POST', body: { orden }, token }),
+  combateCripta: (playerId, objetivo, token) => request(`/api/player/${playerId}/world/cripta/combate`, { method: 'POST', body: { objetivo }, token }),
   enterMitico: (playerId, token) => request(`/api/player/${playerId}/coleccion/mitico/enter`, { method: 'POST', token }),
   // Ventana Social del mundo 2D (tecla O)
   getSocialOverview: (playerId, token) => request(`/api/player/${playerId}/social/overview`, { token }),

@@ -63,6 +63,13 @@ export function describeEffect(e) {
       detail: `Ataque +${e.amount} hasta el final del combate`,
     };
   }
+  if (code === 'FARO') {
+    // el Vigía de la cripta lo apuntó con su faro: si no se defiende, el rayo le quita media vida
+    return {
+      key: 'FARO', kind: 'debuff', name: 'Apuntado por el faro', short: '¡Faro!', icon: ['lighthouse', 'delapouite'], color: '#9af4ff', hex: 0x7ff8ff,
+      detail: 'El Vigía dispara su faro en su próximo turno. ¡Usa Defender para cubrirte!',
+    };
+  }
   if (code === 'DEFENDING') {
     return {
       key: 'DEFENDING', kind: 'buff', name: 'Defendiendo', short: 'Defensa', icon: ['checked-shield', 'lorc'], color: '#8fc9ff', hex: 0x8fc9ff,
@@ -138,6 +145,6 @@ export function statusesOf(p) {
 export const STATUS_ICONS = [
   ['poison-bottle', 'lorc'], ['regeneration', 'sbed'], ['burning-passion', 'lorc'], ['invisible', 'delapouite'], ['cursed-star', 'lorc'],
   ['shield-reflect', 'lorc'], ['checked-shield', 'lorc'], ['spiked-armor', 'lorc'], ['magic-shield', 'lorc'],
-  ['magic-swirl', 'lorc'], ['upgrade', 'delapouite'], ...Object.values(STATS).map((s) => s.icon),
+  ['magic-swirl', 'lorc'], ['upgrade', 'delapouite'], ['lighthouse', 'delapouite'], ...Object.values(STATS).map((s) => s.icon),
   ...Object.values(ELEMENTS).map((e) => e.icon),
 ];

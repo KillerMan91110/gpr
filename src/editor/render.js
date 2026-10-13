@@ -31,6 +31,11 @@ export const POINT_STYLE = {
   estandarte: { color: '#ff8a5a', label: 'Estandarte' },
   buzon: { color: '#7ac8ff', label: 'Buzón' },
   secreto: { color: '#ffe08a', label: 'Secreto' },
+  // La Cripta del Vigía (game/world/cripta.js)
+  guardian: { color: '#ff6a4a', label: 'Guardián' },
+  brasero: { color: '#ff9a4a', label: 'Brasero' },
+  sello: { color: '#7ff8ff', label: 'Puerta sellada' },
+  vigia: { color: '#4ae0ff', label: 'Jefe de mazmorra' },
 };
 
 const propOf = (o, name) => o.properties?.find((p) => p.name === name)?.value;

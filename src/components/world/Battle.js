@@ -177,6 +177,7 @@ async function startOrResume(encounter, token, playerId) {
   // compartida; si no, encuentro de la zona
   try {
     if (encounter.kind === 'mythic') initial = await api.enterMitico(playerId, token);
+    else if (encounter.kind === 'cripta') initial = await api.combateCripta(playerId, encounter.target, token);
     else initial = encounter.kind === 'boss' || encounter.kind === 'esbirro'
       ? await api.createCombatSession([{ code: encounter.code, level: encounter.level }], token)
       : await api.exploreZone(encounter.zoneId, token, undefined, encounter.code, encounter.areaLevels, !!encounter.group, encounter.position);
@@ -314,7 +315,7 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
           heroBaseClass,
           heroHasWeapon,
           playerId: player.id,
-          background: ZONE_BACKGROUND[encounter.zoneId] ?? 'pradera',
+          background: encounter.kind === 'cripta' || encounter.position?.zona === 'cripta' ? 'cripta' : ZONE_BACKGROUND[encounter.zoneId] ?? 'pradera',
         });
         await ready;
         if (cancelled) return;
@@ -763,6 +764,20 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
                   </span>
                 ))}
                 {result.rewards.mythic?.killed && <span className="bt-levelup">¡Derribaste al jefe mítico! El botín se reparte entre todos los cazadores.</span>}
+                {result.rewards.crypt?.guardian && (
+                  <span className="bt-bestiary">
+                    <GameIcon name="dungeon-gate" artist="delapouite" /> Cayó un guardián de la cripta ({result.rewards.crypt.guardians.length}/{result.rewards.crypt.totalGuardians})
+                    {result.rewards.crypt.doorOpen ? ': ¡la Puerta del Vigía se abre!' : ''}
+                  </span>
+                )}
+                {result.rewards.crypt?.boss && (
+                  <span className="bt-levelup">
+                    <GameIcon name="lighthouse" artist="delapouite" /> ¡El Vigía Caído se apaga!
+                    {result.rewards.crypt.chest
+                      ? ` Cofre del Vigía: +${Number(result.rewards.crypt.chest.gold).toLocaleString()} oro${result.rewards.crypt.chest.item ? ` y ${result.rewards.crypt.chest.item.name} x${result.rewards.crypt.chest.item.quantity}` : ''}.`
+                      : ' Su cofre ya lo abriste hoy: vuelve mañana por otro.'}
+                  </span>
+                )}
               </div>
             )}
             {mythicRef.current && result.status !== 'PLAYER_WON' && (() => {
@@ -770,7 +785,9 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
               const dealt = boss ? Math.max(0, mythicRef.current.startHp - boss.hp) : 0;
               return <p className="bt-mythic-note">Le quitaste <b>{dealt.toLocaleString()}</b> de vida a {mythicRef.current.name}. Tu aporte cuenta para el botín cuando caiga.</p>;
             })()}
-            {result.status === 'ENEMY_WON' && !mythicRef.current && <p>Tu grupo cayó. Despertarás en tu último refugio (el Pilar o una fogata) con la mitad de la vida, y perderás un poco de oro.</p>}
+            {result.status === 'ENEMY_WON' && !mythicRef.current && (encounter.kind === 'cripta'
+              ? <p>Tu grupo cayó. Despertarás junto al último brasero que encendiste con la mitad de la vida, y perderás un poco de oro. Los guardianes que venciste siguen vencidos.</p>
+              : <p>Tu grupo cayó. Despertarás en tu último refugio (el Pilar o una fogata) con la mitad de la vida, y perderás un poco de oro.</p>)}
             <button type="button" className="bt-continue" onClick={() => onFinish({ status: result.status, rewards: result.rewards })}>Continuar <kbd>Enter</kbd></button>
           </div>
         </div>

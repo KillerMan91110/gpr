@@ -7,7 +7,7 @@ export const PASO_FORZADO = 16;
 export const PASO_CORNISA = 32;
 // puntos cuyo x/y es la esquina de arriba a la izquierda de su casilla (el juego les suma 16)
 // (la estatua, el estandarte y el buzón también: cityLife.js los dibuja en x+16 con la base en y+32)
-export const TOPLEFT_TYPES = new Set(['npc', 'poi', 'jefe', 'spawn', 'vinculo', 'estandarte', 'buzon', 'secreto']);
+export const TOPLEFT_TYPES = new Set(['npc', 'poi', 'jefe', 'spawn', 'vinculo', 'estandarte', 'buzon', 'secreto', 'brasero', 'sello']);
 export const LAYERS = ['suelo', 'objetos', 'encima', 'terreno', 'paso'];
 const HISTORY_MAX = 200;
 

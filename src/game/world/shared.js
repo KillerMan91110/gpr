@@ -27,6 +27,8 @@ export const ENCOUNTER_GRACE_MS = 2500;
 // al volver de un combate: más respiro y los monstruos cercanos se apartan (sin esto uno pegado
 // al héroe volvía a atacar apenas terminaba la pelea, una y otra vez)
 export const POST_BATTLE_GRACE_MS = 5000;
+// al huir: 3 s sin que otro monstruo pueda empezar un combate
+export const ESCAPE_GRACE_MS = 3000;
 export const SHOO_RADIUS = 110;
 // los monstruos mucho más débiles que el héroe no se le acercan (si los tocas, igual pelean)
 export const SHY_LEVEL_GAP = 5;

@@ -12,11 +12,8 @@ import { STATUS_ICONS, statusesOf } from './statuses';
 const ASSETS = `${process.env.PUBLIC_URL}/assets`;
 const VW = 640; // tamaño "virtual" del combate (el fondo es de 640x360 en pixel art)
 const VH = 360;
-// pantalla vertical (celular): ancho virtual que se encuadra (los dos bandos con un margen) y colores
-// del cielo y la tierra del fondo para rellenar arriba y abajo
+// pantalla vertical (celular): ancho virtual que se encuadra (los dos bandos con un margen)
 const PORTRAIT_SPAN = 430;
-const SKY_COLOR = 0x4f86d6;
-const GROUND_COLOR = 0xc9a46a;
 const UNIT_SCALE = 1.7;
 
 // pies de cada combatiente; el primero es el de adelante. Los monstruos van en espejo.
@@ -29,7 +26,11 @@ const CLASS_WEAPON = { guerrero: 'espada', mago: 'baculo_arcano', arquero: 'arco
 
 const BACKGROUNDS = {
   pradera: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
+  // la Cripta del Vigía (art/sprites/mundo/crear_fondo_cripta.lua): mismas capas, bajo tierra
+  cripta: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
 };
+// colores para rellenar arriba y abajo del escenario en pantalla vertical
+const FILL_COLORS = { pradera: [0x4f86d6, 0xc9a46a], cripta: [0x0c0a16, 0x3a3650] };
 // cuánto se mueve cada capa respecto de la cámara (parallax)
 const LAYER_SCROLL = [0.05, 0.18, 0.4, 1, 1.25];
 
@@ -69,7 +70,8 @@ export default class BattleScene extends Phaser.Scene {
 
   preload() {
     BACKGROUNDS[this.background].forEach((name, i) => {
-      this.load.image(`fondo_${i}`, `${ASSETS}/combate/fondos/${this.background}/${name}.png`);
+      // la clave lleva el nombre del fondo: si no, un combate en la cripta reusaría el de la Pradera
+      this.load.image(`fondo_${this.background}_${i}`, `${ASSETS}/combate/fondos/${this.background}/${name}.png`);
     });
     this.load.json('manifest_heroes', `${ASSETS}/sprites/combate/manifest.json`);
     this.load.json('enemigos', `${ASSETS}/sprites/combate/enemigos.json`);
@@ -140,7 +142,7 @@ export default class BattleScene extends Phaser.Scene {
 
   // ---------------------------------------------------------------- escenario
   buildBackground() {
-    this.layers = BACKGROUNDS[this.background].map((_, i) => this.add.image(-40, -10, `fondo_${i}`)
+    this.layers = BACKGROUNDS[this.background].map((_, i) => this.add.image(-40, -10, `fondo_${this.background}_${i}`)
       .setOrigin(0, 0)
       .setScale((VW + 80) / VW)
       .setScrollFactor(LAYER_SCROLL[i])
@@ -196,8 +198,8 @@ export default class BattleScene extends Phaser.Scene {
       this.baseZoom = width / PORTRAIT_SPAN;
       if (!this.fillers) {
         this.fillers = [
-          this.add.rectangle(VW / 2, 0, VW * 6, 4000, SKY_COLOR).setOrigin(0.5, 1).setDepth(-200),
-          this.add.rectangle(VW / 2, VH - 14, VW * 6, 4000, GROUND_COLOR).setOrigin(0.5, 0).setDepth(-98),
+          this.add.rectangle(VW / 2, 0, VW * 6, 4000, (FILL_COLORS[this.background] ?? FILL_COLORS.pradera)[0]).setOrigin(0.5, 1).setDepth(-200),
+          this.add.rectangle(VW / 2, VH - 14, VW * 6, 4000, (FILL_COLORS[this.background] ?? FILL_COLORS.pradera)[1]).setOrigin(0.5, 0).setDepth(-98),
         ];
       }
       cam.setZoom(this.baseZoom);
@@ -1483,6 +1485,11 @@ export default class BattleScene extends Phaser.Scene {
       const targets = [u.body, u.weapon].filter(Boolean);
       const tw = this.tweens.add({ targets, alpha: { from: 0.35, to: 0.6 }, duration: 700, yoyo: true, repeat: -1 });
       return { stop: () => { tw.stop(); targets.forEach((o) => o.setAlpha(1)); } };
+    } else if (st.key === 'FARO') {
+      // mira del faro sobre el apuntado: un anillo de luz que late
+      const ring = this.add.circle(u.home.x, u.home.y - 26, 22).setStrokeStyle(2, 0x7ff8ff, 0.95).setDepth(1052).setBlendMode('ADD');
+      const tw = this.tweens.add({ targets: ring, scale: { from: 1.15, to: 0.8 }, alpha: { from: 0.4, to: 1 }, duration: 520, yoyo: true, repeat: -1 });
+      return { stop: () => { tw.stop(); ring.destroy(); } };
     } else if (st.key === 'DEFENDING') {
       const dir = u.side === 'PLAYER' ? 1 : -1;
       const shield = this.add.ellipse(u.home.x + dir * 20, u.home.y - 30, 14, 52, 0x8fc9ff, 0.22)

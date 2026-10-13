@@ -40,6 +40,11 @@ const OBJECT_TYPES = [
   { type: 'estandarte', label: 'Estandarte', hint: 'Estandarte del gremio campeón (se tiñe con su color y emblema)' },
   { type: 'buzon', label: 'Buzón', hint: 'Buzón del correo del reino (la banderita se levanta si tienes cartas)' },
   { type: 'secreto', label: 'Secreto', hint: 'Cofre escondido (se abre una vez). El nombre tiene que estar en SECRETS de gprback/lib/exploracion.js' },
+  // mazmorras (ver game/world/cripta.js y gprback/lib/cripta.js: las casillas se repiten allá)
+  { type: 'guardian', label: 'Guardián', hint: 'Guardián de mazmorra que patrulla (ruta = casillas "x,y;x,y"; vuelta = da la vuelta en vez de ir y volver). El nombre tiene que estar en GUARDIANES de gprback/lib/cripta.js' },
+  { type: 'brasero', label: 'Brasero', hint: 'Brasero de control de la mazmorra (orden 1, 2…): al encenderlo, retomas desde ahí' },
+  { type: 'sello', label: 'Puerta sellada', hint: 'Puerta de 4x2 casillas que se abre al vencer a todos los guardianes' },
+  { type: 'vigia', label: 'Jefe de mazmorra', hint: 'Jefe de la mazmorra en su estrado' },
 ];
 // objetos que se editan con la lista genérica de propiedades
 const GENERIC_PROPS = {
@@ -53,6 +58,10 @@ const GENERIC_PROPS = {
   gato: [],
   estandarte: [],
   buzon: [['etiqueta', 'string', 'Abrir el buzón'], ['ventana', 'string', 'buzon']],
+  guardian: [['monstruo', 'string', 'CRIPTA_CENTINELA'], ['ruta', 'string', '5,25;34,25'], ['vuelta', 'bool', false]],
+  brasero: [['orden', 'int', 1], ['etiqueta', 'string', 'Brasero']],
+  sello: [],
+  vigia: [['monstruo', 'string', 'CRIPTA_VIGIA'], ['etiqueta', 'string', 'El Vigía Caído']],
 };
 const PASO_TOOLS = [
   { id: 'auto', label: 'Auto', icon: '◌', hint: 'Lo que diga el tile (borra lo forzado)' },
@@ -629,6 +638,8 @@ export default function MapEditor() {
       case 'vinculo': return { ...base, name: `estatua_${count('vinculo')}`, properties: GENERIC_PROPS.vinculo.map(([n, t, v]) => prop(n, t, v)) };
       case 'estandarte': return { ...base, name: `estandarte_${count('estandarte')}` };
       case 'secreto': return { ...base, name: `secreto_${count('secreto')}` };
+      case 'guardian': case 'brasero': case 'vigia': return { ...base, name: `${type}_${count(type)}`, properties: GENERIC_PROPS[type].map(([n, t, v]) => prop(n, t, v)) };
+      case 'sello': return { ...base, name: `puerta_${count('sello')}`, width: 4 * TS, height: 2 * TS };
       case 'buzon': return { ...base, name: `buzon_${count('buzon')}`, properties: GENERIC_PROPS.buzon.map(([n, t, v]) => prop(n, t, v)) };
       default: return base;
     }
@@ -1246,12 +1257,16 @@ export default function MapEditor() {
                       const type = selPoint.properties?.find((q) => q.name === n)?.type ?? def?.[1] ?? 'string';
                       return (
                         <Field key={n} label={n}>
-                          <input
-                            type={type === 'int' ? 'number' : 'text'}
-                            value={getProp(selPoint, n) ?? ''}
-                            placeholder={def ? String(def[2]) : ''}
-                            onChange={(e) => setPointProp(n, type, type === 'int' ? parseInt(e.target.value, 10) : e.target.value)}
-                          />
+                          {type === 'bool' ? (
+                            <input type="checkbox" checked={!!getProp(selPoint, n)} onChange={(e) => setPointProp(n, type, e.target.checked)} />
+                          ) : (
+                            <input
+                              type={type === 'int' ? 'number' : 'text'}
+                              value={getProp(selPoint, n) ?? ''}
+                              placeholder={def ? String(def[2]) : ''}
+                              onChange={(e) => setPointProp(n, type, type === 'int' ? parseInt(e.target.value, 10) : e.target.value)}
+                            />
+                          )}
                         </Field>
                       );
                     })}

@@ -55,6 +55,24 @@ const TRACKS = {
       ) },
     ],
   },
+  // La Cripta del Vigía: re menor, lento, un bajo que respira y una campana lejana
+  cripta: {
+    bpm: 66,
+    voices: [
+      { wave: 'triangle', gain: 0.17, steps: bars(
+        'D2 . . . . . . .', 'A1 . . . . . . .', 'A#1 . . . . . . .', 'A1 . . . C2 . . .',
+        'D2 . . . . . . .', 'F2 . . . . . . .', 'A#1 . . . G1 . . .', 'A1 . . . . . . .',
+      ) },
+      { wave: 'sine', gain: 0.05, steps: bars(
+        'D4 . . . - - A4 .', '- - - - E4 . . .', 'F4 . . . - - D4 .', 'C#4 . . . - - - -',
+        'D4 . . . - - F4 .', 'A4 . . . G4 . F4 .', 'E4 . . . D4 . . .', 'C#4 . . . - - - -',
+      ) },
+      { wave: 'square', gain: 0.012, short: true, steps: bars(
+        'D6 - - - - - - -', '- - - - - - - -', '- - - - A5 - - -', '- - - - - - - -',
+        'D6 - - - - - - -', '- - - - - - - -', '- - - - F5 - - -', '- - E5 - - - - -',
+      ) },
+    ],
+  },
   batalla: {
     bpm: 150,
     drums: 'k h s h k k s h',

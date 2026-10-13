@@ -5,7 +5,7 @@ import { MINIMAP } from './hudLayout';
 import SocialLayer from './socialLayer';
 import StallLayer from './stallLayer';
 import CityLife, { isFestival } from './cityLife';
-import { TAG_FONT, TAG_RES, ASSETS, DEFAULT_ZONE, SPEED, CITY_SPEED, POI_RADIUS, CHUNK_NEAR, CHUNK_FAR, ENCOUNTER_GRACE_MS, POST_BATTLE_GRACE_MS, SHY_RADIUS, PASO_FORZADO, PASO_CORNISA, EDGE, WALK, IDLE, FOLLOW_GAP, PET_SPECIES, BASE_CLASSES, SKY, lerpColor, mulColor, gameHour, propOf } from './world/shared';
+import { TAG_FONT, TAG_RES, ASSETS, DEFAULT_ZONE, SPEED, CITY_SPEED, POI_RADIUS, CHUNK_NEAR, CHUNK_FAR, ENCOUNTER_GRACE_MS, POST_BATTLE_GRACE_MS, ESCAPE_GRACE_MS, SHY_RADIUS, PASO_FORZADO, PASO_CORNISA, EDGE, WALK, IDLE, FOLLOW_GAP, PET_SPECIES, BASE_CLASSES, SKY, lerpColor, mulColor, gameHour, propOf } from './world/shared';
 import { mythicMethods } from './world/mythic';
 import { walkGridMethods } from './world/walkGrid';
 import { npcsMethods } from './world/npcs';
@@ -15,6 +15,7 @@ import { refugesMethods } from './world/refuges';
 import { guideMethods } from './world/guide';
 import { exploreMethods } from './world/explore';
 import { eventsMethods } from './world/events';
+import { criptaMethods } from './world/cripta';
 
 // Mundo abierto continuo (estilo MMO): public/assets/mundo/etheria.json coloca cada zona
 // (public/assets/mundo/<zona>/mundo.json) en su lugar del continente. Todas las zonas viven en
@@ -56,6 +57,14 @@ export default class WorldScene extends Phaser.Scene {
     this.lights2 = [];
     this.subzone = null;
     this.weather = 'despejado';
+    // al saltar a una zona fuera del continente la escena se reinicia: lo de la anterior no sirve
+    this.city = null;
+    this.crypt = null;
+    this.lastGuardian = null;
+    this.mythic = null;
+    this.changingZone = false;
+    this.teleporting = false;
+    this.pendingGrace = 0;
   }
 
   preload() {
@@ -335,6 +344,11 @@ export default class WorldScene extends Phaser.Scene {
     this.createDayNight(all.filter((o) => o.type === 'luz'));
     this.buildRefuges(all);
     this.buildSecrets(all);
+    // la Cripta del Vigía: su boca en las ruinas y, dentro, guardianes, braseros, puerta y jefe
+    this.buildCrypt(all);
+    const onCryptState = (st) => this.applyCryptState(st);
+    bus.on('crypt-state', onCryptState);
+    this.events.once('shutdown', () => bus.off('crypt-state', onCryptState));
     // otros jugadores, globitos de chat, gestos y emojis
     this.social = new SocialLayer(this);
     // muñecos de venta de los jugadores (Barrio del Mercado)
@@ -343,10 +357,17 @@ export default class WorldScene extends Phaser.Scene {
     this.bindBus();
 
     this.graceUntil = this.time.now + ENCOUNTER_GRACE_MS;
+    // al saltar de zona la escena se reinicia con el teclado apagado (changeZone lo apagó): se
+    // vuelve a encender aquí, si no el héroe queda quieto hasta recargar la página
+    this.input.keyboard.enabled = true;
+    this.input.keyboard.resetKeys();
     this.loadMonsterSheets();
     this.updateChunks(true);
-    // al volver del combate (la escena 'batalla' la duerme mientras tanto)
-    this.events.on('wake', (_sys, data) => this.onReturnFromBattle(data?.result));
+    // al volver del combate (la escena 'batalla' la duerme mientras tanto). Los eventos de la
+    // escena sobreviven al reinicio: se quitan al cerrarla para no responder dos veces.
+    const onWake = (_sys, data) => this.onReturnFromBattle(data?.result);
+    this.events.on('wake', onWake);
+    this.events.once('shutdown', () => this.events.off('wake', onWake));
     this.emitZone();
   }
 
@@ -673,20 +694,22 @@ export default class WorldScene extends Phaser.Scene {
     this.shade = this.add.rectangle(0, 0, 10, 10, 0xffffff).setOrigin(0).setDepth(20.5).setBlendMode(Phaser.BlendModes.MULTIPLY);
     this.minimap.ignore(this.shade);
     // cubre lo que ve la cámara (con margen por el seguimiento suave)
-    this.events.on('postupdate', () => {
+    const cover = () => {
       const v = cam.worldView;
       this.shade.setPosition(v.x - 48, v.y - 48);
       if (this.shade.width !== v.width + 96 || this.shade.height !== v.height + 96) this.shade.setSize(v.width + 96, v.height + 96);
       this.rain?.setPosition(v.x + v.width / 2, v.y - 20);
-    });
-    const LIGHT = { fogata: [0xff9a4a, 1.4], catedral: [0xbfd8ff, 3.2], pilar: [0x9ae8ff, 2.2], farol: [0xffd890, 1] };
+    };
+    this.events.on('postupdate', cover);
+    this.events.once('shutdown', () => this.events.off('postupdate', cover));
+    const LIGHT = { fogata: [0xff9a4a, 1.4], catedral: [0xbfd8ff, 3.2], pilar: [0x9ae8ff, 2.2], farol: [0xffd890, 1], antorcha: [0xff9a4a, 0.9], faro: [0x7ff8ff, 1.7] };
     this.lights2 = lights.map((o) => {
       const tipo = propOf(o, 'tipo') ?? 'farol';
-      const fire = tipo === 'fogata';
+      const fire = tipo === 'fogata' || tipo === 'antorcha';
       const [tint, scale] = LIGHT[tipo] ?? LIGHT.farol;
       const glow = this.add.image(o.x, o.y, 'luz').setDepth(20.6).setBlendMode('ADD').setTint(tint).setScale(scale).setAlpha(0);
       this.minimap.ignore(glow);
-      return { glow, fire, orden: propOf(o, 'orden') ?? null };
+      return { glow, fire, tipo, orden: propOf(o, 'orden') ?? null };
     });
     // farol del héroe de noche
     this.heroLight = this.add.image(0, 0, 'luz').setDepth(20.6).setBlendMode('ADD').setTint(0xffe0a0).setScale(1.3).setAlpha(0);
@@ -729,6 +752,7 @@ export default class WorldScene extends Phaser.Scene {
   }
 
   updateSky() {
+    if (this.world?.interior) { this.updateIndoorSky(); return; }
     // noche eterna: mientras el jefe mítico vive, en su zona se queda la medianoche
     const frozen = this.frozenNight();
     const h = frozen ? 1 : gameHour();
@@ -884,7 +908,11 @@ export default class WorldScene extends Phaser.Scene {
 
   onReturnFromBattle(result) {
     this.encounterLock = false;
-    this.graceUntil = this.time.now + POST_BATTLE_GRACE_MS;
+    // respiro antes de otro combate (evita quedar atrapado en un bucle de peleas). El reloj de la
+    // escena estuvo parado durante el combate y salta en el próximo cuadro: el respiro se cuenta
+    // desde ahí (ver update), no desde ahora. Al huir es más corto.
+    this.graceUntil = Infinity;
+    this.pendingGrace = result === 'ESCAPED' ? ESCAPE_GRACE_MS : POST_BATTLE_GRACE_MS;
     this.shooMonsters();
     this.input.keyboard.enabled = true;
     this.input.keyboard.resetKeys();
@@ -912,11 +940,14 @@ export default class WorldScene extends Phaser.Scene {
         this.createMonster(Phaser.Utils.Array.GetRandom(list), catalog, area, chunkKey);
       });
     }
+    this.cryptAfterBattle(result);
     if (result === 'ENEMY_WON') {
-      // despiertas en tu último refugio (o en el inicio de la zona si nunca pasaste por uno)
-      const r = this.refuge && this.zoneByDir[this.refuge.zone] ? this.toGlobal(this.refuge.x, this.refuge.y, this.refuge.zone) : this.spawnPoint;
+      // despiertas en tu último refugio (o en el inicio de la zona si nunca pasaste por uno); en
+      // la cripta, en el último brasero que encendiste
+      const r = this.crypt ? this.cryptRespawn()
+        : this.refuge && this.zoneByDir[this.refuge.zone] ? this.toGlobal(this.refuge.x, this.refuge.y, this.refuge.zone) : this.spawnPoint;
       this.player.setPosition(r.x, r.y);
-      bus.emit('hero-revive', { place: this.refuge?.name ?? null });
+      bus.emit('hero-revive', { place: this.crypt ? (this.crypt.state?.respawn?.name ?? 'la entrada de la cripta') : this.refuge?.name ?? null });
       this.trail = [];
       this.updateChunks(true);
       this.checkZoneChange();
@@ -1260,6 +1291,12 @@ export default class WorldScene extends Phaser.Scene {
 
   update(time, delta) {
     if (!this.player) return;
+    if (this.pendingGrace) {
+      this.graceUntil = time + this.pendingGrace;
+      this.pendingGrace = 0;
+      // el héroe parpadea mientras dura el respiro (los monstruos no lo tocan)
+      this.tweens.add({ targets: this.player, alpha: 0.45, duration: 220, yoyo: true, repeat: Math.max(0, Math.floor((this.graceUntil - time) / 440) - 1), onComplete: () => this.player?.setAlpha(1) });
+    }
     if (this.shade) this.updateSky();
     this.social?.update(delta);
     this.city?.update(delta);
@@ -1269,6 +1306,7 @@ export default class WorldScene extends Phaser.Scene {
     this.checkRefuge(time);
     this.checkMythicTrail(time);
     this.updateExplore(time);
+    this.updateCrypt(time, delta);
     for (const m of this.monsters.getChildren()) {
       const tag = m.getData('tag');
       if (tag) tag.setPosition(m.x, m.y - m.getData('tagDy'));
@@ -1324,6 +1362,7 @@ export default class WorldScene extends Phaser.Scene {
       else if (this.nearPoi.mythic) this.challengeMythic();
       else if (this.nearPoi.resource) this.gather(this.nearPoi.resource);
       else if (this.nearPoi.secret) bus.emit('secret-open', this.nearPoi.secret);
+      else if (this.nearPoi.action) this.cryptAction(this.nearPoi);
       else bus.emit('interact', this.nearPoi);
     }
     if (vx || vy || !this.subzone) this.checkGrassEncounter();
@@ -1343,4 +1382,4 @@ export default class WorldScene extends Phaser.Scene {
 }
 
 // Partes de la escena que viven en su propio archivo (game/world/*)
-Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods);
+Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods);

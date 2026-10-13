@@ -1,0 +1,21 @@
+/* La Cripta del Vigía: avance del recorrido bajo el minimapa (mismo estilo que la guía) */
+.hud-crypt {
+  width: 250px;
+  display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; border-radius: 8px;
+  background: linear-gradient(180deg, rgba(16, 22, 34, 0.94), rgba(10, 12, 20, 0.94));
+  border: 1px solid rgba(127, 248, 255, 0.35); box-shadow: 0 0 14px rgba(127, 248, 255, 0.14);
+  pointer-events: auto;
+}
+.hud-crypt-head { display: flex; align-items: center; gap: 6px; color: #9af4ff; font: 700 0.72rem 'Cinzel', serif; letter-spacing: 0.08em; text-transform: uppercase; }
+.hud-crypt-head .game-icon { width: 16px; height: 16px; }
+.hud-crypt-row { display: flex; justify-content: space-between; gap: 6px; font-size: 0.76rem; color: var(--cream, #f2e6c8); }
+.hud-crypt-row span { display: inline-flex; align-items: center; gap: 4px; }
+.hud-crypt-row .game-icon { width: 13px; height: 13px; opacity: 0.85; }
+.hud-crypt-row .is-done { color: #9aff9a; }
+.hud-crypt p { margin: 0; font-size: 0.78rem; line-height: 1.3; color: var(--text-soft, #cbbf9f); }
+.hud-crypt small { font-size: 0.7rem; color: #9af4ff; opacity: 0.85; }
+
+@media (max-width: 760px) {
+  body.en-mundo .hud-crypt { width: 200px; padding: 6px 8px; }
+  body.en-mundo .hud-crypt p { display: none; }
+}

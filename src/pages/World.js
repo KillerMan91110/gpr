@@ -45,6 +45,7 @@ import MailPanel from '../components/world/MailPanel';
 import BestiarioPanel from '../components/world/BestiarioPanel';
 import KeysPanel from '../components/world/KeysPanel';
 import GuideTracker from '../components/world/GuideTracker';
+import { useCrypt, CryptTracker } from '../components/world/CryptHud';
 import useGuide from '../components/world/useGuide';
 import useExploration from '../components/world/useExploration';
 import TouchControls from '../components/world/TouchControls';
@@ -128,7 +129,7 @@ const POS_KEY = 'mundo_posicion_v2';
 // los aventureros empiezan en Aurelia, la capital
 const DEFAULT_ZONE_ID = 0;
 const DEFAULT_ZONE_DIR = 'aurelia';
-const ZONE_TITLES = { aurelia: ['La capital', 'Aurelia'], pradera: ['Zona 1', 'Pradera Dorada'] };
+const ZONE_TITLES = { aurelia: ['La capital', 'Aurelia'], pradera: ['Zona 1', 'Pradera Dorada'], cripta: ['Mazmorra', 'La Cripta del Vigía'] };
 // recorrido del guía Tomás por Aurelia (lugar, posición en píxeles y qué hay ahí)
 const AURELIA_TOUR = [
   { name: 'Catedral de Aethra', x: 59.5 * 32, y: 16 * 32, info: 'Aquí te curan y aquí despiertas si caes en combate.' },
@@ -402,7 +403,7 @@ export default function World() {
   }, []);
 
   useEffect(() => {
-    audio.music(battle ? (battle.kind === 'boss' || battle.kind === 'mythic' ? 'jefe' : 'batalla') : zoneInfo.music);
+    audio.music(battle ? (battle.kind === 'boss' || battle.kind === 'mythic' || battle.target === 'jefe' ? 'jefe' : 'batalla') : zoneInfo.music);
   }, [battle, zoneInfo.music]);
 
   // ---- salto de zona (diligencia, salidas a zonas fuera del continente) ----
@@ -671,6 +672,8 @@ export default function World() {
   useExploration({ player, token, worldReady, zoneDir, subzone, onChanged: loadHud });
   // calendario de eventos (fichas bajo el minimapa, avisos y el mercader en el mapa)
   const calendar = useEvents(worldReady);
+  // la Cripta del Vigía: avance del recorrido (solo dentro de la mazmorra)
+  const crypt = useCrypt({ player, token, worldReady, zoneDir, onChanged: loadHud });
   const { guide, skip: skipGuide } = useGuide({ player, token, worldReady, open, dialogue, zoneDir, onReward: onGuideReward });
   // jugador nuevo: la barra se va encendiendo con la guía (null = todo encendido)
   const unlocked = guide?.unlocked ?? null;
@@ -826,6 +829,7 @@ export default function World() {
       {!battle && (
         <div className="hud-right" style={{ top: MINIMAP.margin + MINIMAP.height + 8, right: MINIMAP.margin }}>
           <EventChips cal={calendar} onOpen={() => openWin('calendario')} />
+          <CryptTracker crypt={crypt} />
           <GuideTracker
             guide={guide}
             onSkip={skipGuide}
@@ -956,6 +960,7 @@ export default function World() {
             if (poi.boss) scene?.challengeBoss(poi.boss);
             else if (poi.mythic) scene?.challengeMythic();
             else if (poi.secret) bus.emit('secret-open', poi.secret);
+            else if (poi.action) scene?.cryptAction(poi);
             else if (poi.resource) { const r = scene?.resources.get(poi.resource.id); if (r) scene.gather(r); }
             else if (poi.dialogue) setDialogue(poi.dialogue);
             else if (poi.window) openWin(poi.window);
@@ -971,7 +976,7 @@ export default function World() {
         <div className="boss-prompt">
           <div className="boss-prompt-box">
             <small className={`boss-prompt-rank boss-prompt-rank--${bossPrompt.rank}`}>
-              {bossPrompt.rank === 'mitico' ? 'Jefe mítico' : bossPrompt.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe'}
+              {bossPrompt.rank === 'mitico' ? 'Jefe mítico' : bossPrompt.kind === 'cripta' ? 'Jefe de la mazmorra' : bossPrompt.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe'}
             </small>
             <h2>{bossPrompt.name}</h2>
             {bossPrompt.kind === 'mythic' ? (
@@ -979,6 +984,11 @@ export default function World() {
                 <p>Vida compartida: {Number(bossPrompt.hp).toLocaleString()} / {Number(bossPrompt.maxHp).toLocaleString()}</p>
                 <p className="boss-prompt-note">Cada intento le resta vida para todos. Cuando caiga, el botín se reparte según cuánto daño hiciste. Nivel mínimo {bossPrompt.level}.</p>
                 {stats && stats.level < bossPrompt.level && <p className="boss-prompt-warn">⚠ Necesitas nivel {bossPrompt.level} para enfrentarlo. Sigue cazando y vuelve.</p>}
+              </>
+            ) : bossPrompt.kind === 'cripta' ? (
+              <>
+                <p>Nivel {bossPrompt.level}</p>
+                <p className="boss-prompt-note">Cuando su faro apunte a alguien, ese héroe debe usar <b>Defender</b> en su turno o perderá media vida. Su escudo cambia de debilidad cada vez que se recupera de una rotura: mira cuál tiene.</p>
               </>
             ) : <p>Nivel {bossPrompt.level}</p>}
             {bossPrompt.kind !== 'mythic' && stats && stats.level < bossPrompt.level - 3 && (
@@ -1008,9 +1018,9 @@ export default function World() {
 
       {encounter && (
         <div className="world-encounter">
-          <div className={`world-encounter-text${encounter.kind === 'boss' || encounter.kind === 'mythic' ? ' world-encounter-text--boss' : ''}`}>
-            <small>{encounter.kind === 'retomar' ? 'Tu combate seguía abierto' : encounter.kind === 'grupo' ? '¡Combate en grupo!' : encounter.kind === 'esbirro' ? 'Esbirro de Aullaluna' : encounter.kind === 'mythic' ? 'Jefe mítico' : encounter.kind === 'boss' ? (encounter.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe') : '¡Combate!'}</small>
-            {encounter.kind === 'retomar' ? '¡Vuelves a la pelea!' : encounter.kind === 'grupo' ? `${encounter.name ?? 'Tu grupo'} necesita tu ayuda` : encounter.kind === 'boss' || encounter.kind === 'mythic' ? encounter.name : (encounter.name ? `Un ${encounter.name} te ataca` : '¡Algo se mueve entre la hierba!')}
+          <div className={`world-encounter-text${encounter.kind === 'boss' || encounter.kind === 'mythic' || encounter.target === 'jefe' ? ' world-encounter-text--boss' : ''}`}>
+            <small>{encounter.kind === 'cripta' ? (encounter.target === 'jefe' ? 'Jefe de la mazmorra' : '¡Un guardián te vio!') : encounter.kind === 'retomar' ? 'Tu combate seguía abierto' : encounter.kind === 'grupo' ? '¡Combate en grupo!' : encounter.kind === 'esbirro' ? 'Esbirro de Aullaluna' : encounter.kind === 'mythic' ? 'Jefe mítico' : encounter.kind === 'boss' ? (encounter.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe') : '¡Combate!'}</small>
+            {encounter.kind === 'cripta' ? encounter.name : encounter.kind === 'retomar' ? '¡Vuelves a la pelea!' : encounter.kind === 'grupo' ? `${encounter.name ?? 'Tu grupo'} necesita tu ayuda` : encounter.kind === 'boss' || encounter.kind === 'mythic' ? encounter.name : (encounter.name ? `Un ${encounter.name} te ataca` : '¡Algo se mueve entre la hierba!')}
           </div>
         </div>
       )}
