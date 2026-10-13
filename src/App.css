@@ -5797,3 +5797,6 @@ h1, h2, h3 {
 .admin-stats-table tbody tr:hover td {
   background: rgba(212, 175, 55, 0.1);
 }
+
+/* anuncios del juego en el chat (jefe mítico) */
+.chat-msg--anuncio .chat-body { color: #ffe08a; font-weight: 700; text-shadow: 0 0 6px rgba(255, 200, 80, 0.35); }

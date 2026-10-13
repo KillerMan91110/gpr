@@ -1,0 +1,189 @@
+/* ---- arte de la colección (coleccionArt.js) ---- */
+.col-sprite { display: inline-block; flex: none; background-repeat: no-repeat; image-rendering: pixelated; }
+.col-sprite--shadow { filter: brightness(0) opacity(0.55); }
+.col-portrait {
+  position: relative; display: inline-flex; align-items: flex-end; justify-content: center; flex: none; overflow: hidden;
+}
+.col-portrait--none { align-items: center; color: var(--text-soft); font: 700 1.4rem 'Cinzel', serif; }
+.col-card {
+  position: relative; display: inline-block; flex: none; padding: 0; border: 0; background: none; cursor: default;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.6));
+}
+button.col-card { cursor: pointer; transition: transform 0.12s; }
+button.col-card:hover:not(:disabled) { transform: translateY(-3px); }
+.col-card.is-selected { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+.col-card-frame { position: absolute; inset: 0; }
+.col-card-art { position: absolute; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
+.col-card-name {
+  position: absolute; display: flex; align-items: center; justify-content: center; overflow: hidden;
+  font: 700 0.56rem/1 'EB Garamond', serif; color: #3a2a18; letter-spacing: -0.02em; text-align: center; white-space: nowrap; text-overflow: ellipsis;
+}
+.col-card--mythic { filter: drop-shadow(0 0 6px rgba(127, 248, 255, 0.7)); }
+.col-card--legendary { filter: drop-shadow(0 0 5px rgba(200, 140, 255, 0.55)); }
+.col-card-count {
+  position: absolute; right: -4px; top: -4px; padding: 1px 5px; border-radius: 8px;
+  background: #141420; border: 1px solid var(--gold-dim); color: var(--gold-bright); font: 700 0.7rem 'EB Garamond', serif;
+}
+
+/* ---- ventana ---- */
+.bs-tabs { display: flex; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid rgba(232, 196, 106, 0.25); }
+.bs-tabs button {
+  padding: 6px 16px; border: 1px solid transparent; border-bottom: 0; border-radius: 6px 6px 0 0; background: none;
+  color: var(--text-soft); font: 700 0.85rem 'Cinzel', serif; cursor: pointer;
+}
+.bs-tabs button.is-on { color: var(--gold-bright); border-color: rgba(232, 196, 106, 0.35); background: rgba(232, 196, 106, 0.08); }
+.bs-points { color: #b9e8ff; font: 700 0.85rem 'Cinzel', serif; }
+.bs-intro { color: var(--text-soft); font-size: 0.9rem; margin: 0 0 10px; }
+.bs-locked { display: flex; align-items: center; gap: 6px; color: var(--text-soft); font-style: italic; font-size: 0.85rem; margin: 2px 0 6px; }
+.bs-locked .game-icon { width: 14px; height: 14px; background: var(--text-soft); }
+
+/* fichas */
+.bs-fichas { display: grid; grid-template-columns: 236px 1fr; gap: 14px; min-height: 420px; }
+.bs-list { display: flex; flex-direction: column; gap: 6px; }
+.bs-zone {
+  width: 100%; padding: 5px 6px; border-radius: 4px; border: 1px solid var(--gold-dim);
+  background: #1b1a26; color: var(--cream); font: 600 0.85rem 'EB Garamond', serif;
+}
+.bs-zone-count { color: var(--text-soft); }
+.bs-grid { display: grid; grid-template-columns: repeat(4, 54px); gap: 6px; max-height: 380px; overflow-y: auto; padding-right: 2px; }
+.bs-tile {
+  position: relative; width: 54px; height: 60px; padding: 2px 0 0; border-radius: 5px; cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.12); background: radial-gradient(circle at 50% 70%, #2c3050, #16151f);
+  display: flex; flex-direction: column; align-items: center;
+}
+.bs-tile:hover { border-color: var(--gold-dim); }
+.bs-tile.is-selected { border-color: var(--gold-bright); box-shadow: 0 0 8px rgba(240, 216, 120, 0.4); }
+.bs-tile.is-done { background: radial-gradient(circle at 50% 70%, #4a4020, #1c1a14); }
+.bs-tile.bs-rar-mythic { border-color: rgba(127, 248, 255, 0.5); }
+.bs-tile-bar { width: 44px; height: 3px; margin-top: auto; margin-bottom: 4px; background: rgba(0, 0, 0, 0.5); border-radius: 2px; overflow: hidden; }
+.bs-tile-bar i { display: block; height: 100%; background: linear-gradient(90deg, #6aa8ff, #b9e8ff); }
+.bs-tile.is-done .bs-tile-bar i { background: linear-gradient(90deg, #e8c050, #fff0a0); }
+.bs-tile-star { position: absolute; top: 1px; right: 3px; color: var(--gold-bright); font-size: 0.75rem; }
+.bs-tile-mythic { position: absolute; top: 2px; left: 2px; }
+
+.bs-detail { overflow-y: auto; max-height: 470px; padding-right: 4px; }
+.bs-detail--unknown { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; }
+.bs-detail h3 { margin: 0; font: 700 1.25rem 'Cinzel', serif; color: var(--cream); }
+.bs-detail h4 {
+  margin: 12px 0 6px; padding-bottom: 3px; border-bottom: 1px solid rgba(232, 196, 106, 0.2);
+  font: 700 0.8rem 'Cinzel', serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold);
+}
+.bs-detail-head { display: flex; gap: 12px; align-items: flex-end; }
+.bs-detail-head .col-portrait { border-radius: 6px; background: radial-gradient(circle at 50% 75%, #2c3050, #14131c 70%); }
+.bs-rar-mythic .bs-detail-head .col-portrait { background: radial-gradient(circle at 50% 75%, #2a5a7a, #101626 70%); box-shadow: 0 0 14px rgba(127, 248, 255, 0.35); }
+.bs-detail-head > div { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.bs-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; font-size: 0.8rem; color: var(--text-soft); }
+.bs-tags span { padding: 1px 7px; border-radius: 9px; border: 1px solid rgba(255, 255, 255, 0.15); }
+.bs-rarity--rare { color: #8ac8ff; border-color: #4a7ab0 !important; }
+.bs-rarity--miniboss { color: #ffc06a; border-color: #a8702c !important; }
+.bs-rarity--legendary { color: #d8a8ff; border-color: #7a4ab0 !important; }
+.bs-rarity--mythic { color: #c8f4ff; border-color: #5aa8e0 !important; box-shadow: 0 0 6px rgba(127, 248, 255, 0.4); }
+.bs-dominado { color: var(--gold-bright); border-color: var(--gold-dim) !important; }
+.bs-hint { color: var(--text-soft); font-size: 0.75rem; }
+.bs-desc { margin: 10px 0 0; color: var(--cream); font-style: italic; font-size: 0.9rem; }
+
+.bs-killbar { display: flex; flex-direction: column; gap: 3px; }
+.bs-killbar-track { position: relative; height: 10px; border-radius: 5px; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.1); }
+.bs-killbar-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, #4a7ad8, #b9e8ff); }
+.bs-killbar-mark {
+  position: absolute; top: -3px; width: 4px; height: 14px; margin-left: -2px; border-radius: 2px;
+  background: #3a3a50; border: 1px solid #141420;
+}
+.bs-killbar-mark.is-done { background: var(--gold-bright); }
+.bs-killbar small { color: var(--text-soft); font-size: 0.75rem; }
+
+.bs-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 12px; margin: 0; }
+.bs-stats div { display: flex; justify-content: space-between; padding: 2px 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.04); }
+.bs-stats dt { color: var(--text-soft); font-size: 0.8rem; }
+.bs-stats dd { margin: 0; color: var(--cream); font-weight: 700; }
+.bs-drops { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.bs-drops li { display: flex; align-items: baseline; gap: 8px; padding: 2px 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.04); }
+.bs-drops small { color: var(--text-soft); font-size: 0.75rem; }
+.bs-drops b { margin-left: auto; color: var(--gold-bright); }
+.bs-drop-name { color: var(--cream); }
+.bs-drop-name.rar-raro { color: var(--rarity-raro); }
+.bs-drop-name.rar-epico { color: var(--rarity-epico); }
+.bs-drop-name.rar-legendario { color: var(--rarity-legendario); }
+.bs-cardrow { display: flex; gap: 12px; align-items: center; }
+.bs-cardrow b { color: var(--gold-bright); font-family: 'Cinzel', serif; }
+.bs-cardrow p { margin: 2px 0; color: var(--cream); }
+.bs-cardrow small { color: var(--text-soft); }
+
+/* amuletos */
+.bs-charms { display: flex; flex-direction: column; gap: 8px; }
+.bs-charm {
+  display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.25);
+}
+.bs-charm .col-sprite { filter: grayscale(0.85) brightness(0.7); }
+.bs-charm.is-on { border-color: var(--gold-dim); background: rgba(232, 196, 106, 0.06); }
+.bs-charm.is-on .col-sprite { filter: drop-shadow(0 0 4px rgba(255, 220, 120, 0.5)); }
+.bs-charm-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.bs-charm-text b { color: var(--cream); font-family: 'Cinzel', serif; }
+.bs-charm-text small { color: var(--text-soft); }
+.bs-pips { display: flex; gap: 3px; }
+.bs-pips i { width: 10px; height: 10px; transform: rotate(45deg); border: 1px solid var(--gold-dim); background: #141420; }
+.bs-pips i.on { background: var(--gold-bright); }
+.bs-max { color: var(--gold-bright); font: 700 0.8rem 'Cinzel', serif; }
+
+/* cartas */
+.bs-cards { display: grid; grid-template-columns: 250px 1fr; gap: 14px; min-height: 420px; }
+.bs-cards h4 { margin: 0 0 8px; font: 700 0.8rem 'Cinzel', serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+.bs-cards h4 small { text-transform: none; letter-spacing: 0; font-family: 'EB Garamond', serif; color: var(--text-soft); }
+.bs-slots { display: flex; flex-direction: column; gap: 5px; }
+.bs-slot { position: relative; display: flex; }
+.bs-slot-pick {
+  flex: 1; display: flex; align-items: center; gap: 8px; padding: 4px 6px; text-align: left; cursor: pointer;
+  border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.25); color: inherit;
+}
+.bs-slot-pick:hover { border-color: var(--gold-dim); }
+.bs-slot.is-selected .bs-slot-pick { border-color: var(--gold-bright); box-shadow: 0 0 8px rgba(240, 216, 120, 0.35); }
+.bs-slot-empty {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex: none;
+  border: 1px dashed rgba(232, 196, 106, 0.4); border-radius: 3px; color: var(--gold-dim); font-size: 1.2rem;
+}
+.bs-slot-text { display: flex; flex-direction: column; min-width: 0; }
+.bs-slot-text b { color: var(--cream); font: 700 0.8rem 'Cinzel', serif; }
+.bs-slot-text small { color: var(--text-soft); font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bs-slot-text em { color: #b9e8ff; font-size: 0.75rem; font-style: normal; }
+.bs-slot-remove {
+  position: absolute; right: 4px; top: 4px; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+  border: 1px solid #7a3030; background: #2a1414; color: #ff9a8a; line-height: 1;
+}
+.bs-bonus { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 6px; padding: 8px; border-radius: 5px; background: rgba(90, 168, 224, 0.08); border: 1px solid rgba(90, 168, 224, 0.25); }
+.bs-bonus b { width: 100%; color: #b9e8ff; font: 700 0.75rem 'Cinzel', serif; }
+.bs-bonus span { color: var(--cream); font-size: 0.8rem; }
+.bs-bonus small { color: var(--text-soft); }
+.bs-album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 12px; max-height: 440px; overflow-y: auto; padding: 4px; }
+.bs-album-item { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.bs-album-item small { color: var(--text-soft); font-size: 0.72rem; line-height: 1.15; }
+
+/* mochila: pestaña de cartas */
+.wp-bag-tabs { display: flex; gap: 4px; margin-bottom: 6px; }
+.wp-bag-tabs button {
+  flex: 1; padding: 4px; border-radius: 4px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25); color: var(--text-soft); font: 700 0.78rem 'Cinzel', serif;
+}
+.wp-bag-tabs button.is-on { color: var(--gold-bright); border-color: var(--gold-dim); }
+.wp-slot .col-sprite { margin: auto; }
+
+@media (max-width: 720px) {
+  .bs-fichas, .bs-cards { grid-template-columns: 1fr; }
+}
+.wp-card-slot--rare { border-color: #4a7ab0; }
+.wp-card-slot--miniboss { border-color: #c4902c; }
+.wp-card-slot--legendary { border-color: #8a5ad8; box-shadow: inset 0 0 8px rgba(154, 90, 216, 0.5); }
+.wp-card-slot--mythic { border-color: #7ff8ff; box-shadow: inset 0 0 8px rgba(127, 248, 255, 0.5); }
+.wp-card-tip {
+  position: fixed; z-index: 9999; pointer-events: none; display: flex; flex-direction: column; gap: 2px; max-width: 240px;
+  padding: 8px 10px; border-radius: 5px; background: rgba(16, 15, 24, 0.97); border: 1px solid var(--gold-dim);
+}
+.wp-card-tip b { color: var(--gold-bright); font-family: 'Cinzel', serif; }
+.wp-card-tip small { color: var(--text-soft); }
+.wp-card-tip span { color: #b9e8ff; }
+.wp-card-tip em { color: var(--text-soft); font-size: 0.75rem; }
+
+.bs-slot-card {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex: none;
+  border: 1px solid var(--gold-dim); border-radius: 3px; background: rgba(0, 0, 0, 0.35);
+}

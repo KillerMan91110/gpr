@@ -230,7 +230,7 @@ export default class BattleScene extends Phaser.Scene {
     enemies.forEach((p, i) => this.spawnMonster(p, ENEMY_SLOTS[i % ENEMY_SLOTS.length], catalog[p.monster_code]));
     // jefes y minijefes (rank en enemigos.json): tienen entrada propia y barra de vida grande
     this.bosses = enemies
-      .filter((p) => ['jefe', 'miniboss'].includes(catalog[p.monster_code]?.rank))
+      .filter((p) => ['jefe', 'miniboss', 'mitico'].includes(catalog[p.monster_code]?.rank))
       .map((p) => ({ pid: p.id, name: catalog[p.monster_code].name, rank: catalog[p.monster_code].rank }));
   }
 

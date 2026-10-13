@@ -1032,3 +1032,7 @@ body.en-mundo .bgm-control { display: none; }
 @keyframes hud-cast-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 @media (max-width: 900px) { .hud-target { display: none; } }
+
+/* desafío al jefe mítico */
+.boss-prompt-rank--mitico { color: #9ae8ff !important; }
+.boss-prompt-note { max-width: 320px; margin: 4px auto 0; color: #b9d8ff; font-size: 0.85rem; }

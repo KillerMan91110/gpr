@@ -597,3 +597,17 @@ body.en-combate .chat-box-restore { display: none; }
 .bt-bossbar--fury .bt-bossbar-track { box-shadow: 0 0 12px rgba(255, 74, 58, 0.8); animation: bt-fury 0.9s ease-in-out infinite; }
 .bt-bossbar--fury .bt-bossbar-name { color: #ff9a7a; }
 @keyframes bt-fury { 50% { box-shadow: 0 0 22px rgba(255, 74, 58, 1); } }
+
+/* ---- colección: jefe mítico, cartas y bestiario en la pantalla final ---- */
+.bt-boss-intro--mitico small { color: #9ae8ff; }
+.bt-boss-intro--mitico strong { color: #e8fcff; text-shadow: 0 2px 8px #000, 0 0 28px rgba(127, 248, 255, 0.7); }
+.bt-bossbar--mitico .bt-bossbar-fill { background: linear-gradient(180deg, #c8f4ff, #5aa8e0 60%, #24406a); }
+.bt-bossbar--mitico .bt-bossbar-track { box-shadow: 0 0 14px rgba(127, 248, 255, 0.45); }
+.bt-rewards .bt-card {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
+  color: #ffe9a8; font: 700 1rem 'Cinzel', serif; animation: bt-pulse 1.2s ease-in-out infinite;
+}
+.bt-rewards .bt-card small { width: 100%; font: 600 0.8rem 'EB Garamond', serif; color: var(--cream); text-align: center; }
+.bt-card--rare .bt-card--miniboss .bt-card--legendary .bt-card--mythic .bt-rewards .bt-bestiary { display: inline-flex; align-items: center; gap: 6px; color: #b9d8ff; font-size: 0.9rem; }
+.bt-rewards .bt-bestiary .game-icon { width: 16px; height: 16px; background: #b9d8ff; }
+.bt-mythic-note { color: #c8f4ff; max-width: 360px; text-align: center; }

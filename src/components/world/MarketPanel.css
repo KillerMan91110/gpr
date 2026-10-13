@@ -1,0 +1,70 @@
+/* Mercado del mundo (MarketPanel.js) */
+.mk-bar { display: flex; gap: 6px; margin-bottom: 6px; }
+.mk-bar .wp-search { flex: 1; margin: 0; }
+.mk-select {
+  padding: 4px 6px; border-radius: 4px; border: 1px solid var(--gold-dim);
+  background: #1b1a26; color: var(--cream); font: 600 0.82rem 'EB Garamond', serif;
+}
+.mk-kinds { display: flex; gap: 4px; margin-bottom: 8px; }
+.mk-kinds button {
+  padding: 3px 10px; border-radius: 12px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25); color: var(--text-soft); font: 700 0.75rem 'Cinzel', serif;
+}
+.mk-kinds button.is-on { color: var(--gold-bright); border-color: var(--gold-dim); }
+.mk-list { display: flex; flex-direction: column; gap: 5px; max-height: 420px; overflow-y: auto; padding-right: 2px; }
+.mk-row {
+  display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08); border-left: 3px solid #6e6878; background: rgba(0, 0, 0, 0.25);
+}
+.mk-row.is-done { opacity: 0.6; }
+.mk-rar-poco_comun { border-left-color: var(--rarity-poco_comun); }
+.mk-rar-raro, .mk-rar-card-rare { border-left-color: var(--rarity-raro); }
+.mk-rar-epico, .mk-rar-card-miniboss { border-left-color: var(--rarity-epico); }
+.mk-rar-legendario, .mk-rar-card-legendary { border-left-color: var(--rarity-legendario); }
+.mk-rar-card-mythic { border-left-color: #7ff8ff; }
+.mk-icon {
+  width: 38px; height: 38px; flex: none; display: flex; align-items: center; justify-content: center;
+  border-radius: 5px; background: rgba(0, 0, 0, 0.35); font-size: 24px; color: var(--cream);
+}
+.mk-name { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.mk-name b { color: var(--cream); font: 700 0.9rem 'EB Garamond', serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mk-name small { color: var(--text-soft); font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mk-seller { font-style: italic; }
+.mk-buy { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: 260px; }
+.mk-buy small { color: var(--text-soft); font-size: 0.72rem; }
+.mk-price { display: inline-flex; align-items: center; gap: 3px; color: var(--gold-bright); font: 700 0.9rem 'EB Garamond', serif; }
+.mk-price .game-icon { font-size: 13px; }
+.mk-price--dungeon_coins { color: #c8a8ff; }
+.mk-price--cosmic_shards { color: #9ae8ff; }
+.mk-qty {
+  width: 52px; padding: 3px 4px; border-radius: 4px; text-align: center; border: 1px solid var(--gold-dim);
+  background: #1b1a26; color: var(--cream);
+}
+.mk-qty--wide { width: 90px; }
+.mk-sold { color: #9dffbf !important; }
+.mk-sell { display: grid; grid-template-columns: 1fr 230px; gap: 12px; min-height: 320px; }
+.mk-grid { grid-template-columns: repeat(7, 44px); max-height: 360px; overflow-y: auto; align-content: start; }
+.mk-grid .wp-empty { grid-column: 1 / -1; }
+.mk-form { display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.08); }
+.mk-form label { display: flex; align-items: center; gap: 6px; color: var(--text-soft); font-size: 0.82rem; }
+.mk-form-head { display: flex; gap: 8px; align-items: center; }
+.mk-form-head > span:last-child { display: flex; flex-direction: column; min-width: 0; }
+.mk-form-head b { color: var(--cream); font-family: 'Cinzel', serif; font-size: 0.85rem; }
+.mk-form-head small { color: var(--text-soft); font-size: 0.72rem; }
+.mk-history { display: flex; flex-direction: column; gap: 2px; padding: 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.04); }
+.mk-history b { color: var(--gold); font: 700 0.72rem 'Cinzel', serif; }
+.mk-history small { color: var(--text-soft); font-size: 0.72rem; }
+.mk-fee { color: var(--text-soft); font-size: 0.7rem; font-style: italic; }
+@media (max-width: 640px) { .mk-sell { grid-template-columns: 1fr; } }
+
+/* Contratar aventureros (HirePanel.js) */
+.hp-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.hp-bar small { color: var(--text-soft); }
+.hp-bar .wp-btn { display: inline-flex; align-items: center; gap: 6px; }
+.hp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; max-height: 440px; overflow-y: auto; }
+.hp-card { display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.1); }
+.hp-head { display: flex; gap: 8px; align-items: center; }
+.hp-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; margin: 0; }
+.hp-stats div { display: flex; justify-content: space-between; font-size: 0.78rem; }
+.hp-stats dt { color: var(--text-soft); }
+.hp-stats dd { margin: 0; color: var(--cream); font-weight: 700; }

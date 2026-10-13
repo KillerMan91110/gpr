@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
+import { CardIcon } from './coleccionArt';
 import GameIcon from '../GameIcon';
 import bus from '../../game/bus';
 import audio from '../../game/audio';
@@ -153,12 +154,15 @@ function Bar({ value, max, kind }) {
 // Arranque del combate: retoma uno pendiente o crea el del encuentro. Se guarda la promesa por
 // encuentro (startRequests) para que el doble montaje de React no cree dos combates.
 const startRequests = new WeakMap();
-async function startOrResume(encounter, token) {
+const BESTIARY_STAGE = { 1: 'estadísticas desbloqueadas', 2: 'botín desbloqueado', 3: '¡ficha dominada!' };
+async function startOrResume(encounter, token, playerId) {
   let initial = await api.getActiveCombatSession(token).catch(() => null);
   if (initial?.session) return { initial, resumed: true };
-  // jefe desafiado en su guarida: pelea contra ese monstruo; si no, encuentro de la zona
+  // jefe desafiado en su guarida: pelea contra ese monstruo; jefe mítico: intento contra su vida
+  // compartida; si no, encuentro de la zona
   try {
-    initial = encounter.kind === 'boss'
+    if (encounter.kind === 'mythic') initial = await api.enterMitico(playerId, token);
+    else initial = encounter.kind === 'boss' || encounter.kind === 'esbirro'
       ? await api.createCombatSession([{ code: encounter.code, level: encounter.level }], token)
       : await api.exploreZone(encounter.zoneId, token, undefined, encounter.code, encounter.areaLevels);
     return { initial, resumed: false };
@@ -185,6 +189,7 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
   const [liveLine, setLiveLine] = useState(null);
   const [liveHp, setLiveHp] = useState({});
   const lastLogId = useRef(0);
+  const mythicRef = useRef(null);
   const [, setCatalogReady] = useState(!!monsterCatalog);
   useEffect(() => { catalogPromise.then(() => setCatalogReady(true)); }, []);
 
@@ -257,7 +262,7 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
     (async () => {
       try {
         // un solo pedido por encuentro aunque React monte el combate dos veces (modo estricto)
-        if (!startRequests.has(encounter)) startRequests.set(encounter, startOrResume(encounter, token));
+        if (!startRequests.has(encounter)) startRequests.set(encounter, startOrResume(encounter, token, player.id));
         const { initial, resumed } = await startRequests.get(encounter);
         // en la escena el héroe aparece con o sin arma según lo que tenga equipado
         const equipment = await api.getPlayerEquipment(player.id, token).catch(() => []);
@@ -270,6 +275,8 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
         }
         // si se retoma un combate, no se repite su registro viejo
         lastLogId.current = resumed ? maxLogId(initial.log) : 0;
+        // jefe mítico: la barra muestra la vida compartida de toda la cacería
+        if (initial.mythic) mythicRef.current = { ...initial.mythic, startHp: initial.mythic.hp };
         setState(initial);
         setPhase('intro');
         const ready = onceBus('battle-ready');
@@ -433,7 +440,7 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
       {/* cartel de entrada del jefe */}
       {bossIntro && (
         <div className={`bt-boss-intro bt-boss-intro--${bossIntro.rank}`}>
-          <small>{bossIntro.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe'}</small>
+          <small>{bossIntro.rank === 'mitico' ? 'Jefe mítico' : bossIntro.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe'}</small>
           <strong>{bossIntro.name}</strong>
         </div>
       )}
@@ -442,14 +449,16 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
       {bosses.map((b) => {
         const p = participants.find((x) => x.id === b.pid);
         if (!p) return null;
-        const pctHp = Math.max(0, Math.min(100, (p.hp / p.max_hp) * 100));
+        const shared = b.rank === 'mitico' ? mythicRef.current : null;
+        const maxHp = shared?.maxHp ?? p.max_hp;
+        const pctHp = Math.max(0, Math.min(100, (p.hp / maxHp) * 100));
         return (
           <div key={b.pid} className={`bt-bossbar bt-bossbar--${b.rank}${(p.effects ?? []).some((x) => x.code === 'FURY') ? ' bt-bossbar--fury' : ''}`}>
             <span className="bt-bossbar-name">
               {p.element_code && <ElementIcon code={p.element_code} />}
               {b.name}
               {p.shield && <span className={`bt-shield${p.shield.broken ? ' bt-shield--broken' : ''}`}><GameIcon name={p.shield.broken ? 'cracked-shield' : 'checked-shield'} artist="lorc" /><b>{p.shield.broken ? 'ROTO' : p.shield.current}</b></span>}
-              <small>{p.hp} / {p.max_hp}</small>
+              <small>{shared ? 'Vida compartida · ' : ''}{p.hp} / {maxHp}</small>
             </span>
             <div className="bt-bossbar-track"><div className="bt-bossbar-fill" style={{ width: `${pctHp}%` }} /></div>
           </div>
@@ -614,17 +623,33 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
             </h2>
             {result.status === 'PLAYER_WON' && result.rewards && (
               <div className="bt-rewards">
-                <span><GameIcon name="sparkles" artist="delapouite" /> +{Number(result.rewards.xp ?? 0).toLocaleString()} XP</span>
-                <span className="bt-gold"><GameIcon name="two-coins" artist="delapouite" /> +{Number(result.rewards.gold ?? 0).toLocaleString()} oro</span>
+                {!result.rewards.mythic && <span><GameIcon name="sparkles" artist="delapouite" /> +{Number(result.rewards.xp ?? 0).toLocaleString()} XP</span>}
+                {!result.rewards.mythic && <span className="bt-gold"><GameIcon name="two-coins" artist="delapouite" /> +{Number(result.rewards.gold ?? 0).toLocaleString()} oro</span>}
                 {result.rewards.itemsDropped?.map((d) => (
                   <span key={`${d.itemName}-${d.quantity}`} className="bt-drop"><GameIcon name="swap-bag" artist="lorc" /> {d.itemName} x{d.quantity}</span>
                 ))}
                 {result.rewards.levelUps?.map((l) => (
                   <span key={`${l.playerId ?? l.npcId}`} className="bt-levelup">¡{l.npcName ?? player.nickname} sube a nivel {l.newLevel}!</span>
                 ))}
+                {result.rewards.cardsDropped?.map((c) => (
+                  <span key={`carta-${c.monsterId}`} className={`bt-card bt-card--${c.rarity.toLowerCase()}`}>
+                    <CardIcon rarity={c.rarity} /> ¡Carta de {c.name}! <small>{c.text}</small>
+                  </span>
+                ))}
+                {result.rewards.bestiary?.map((b) => (
+                  <span key={`best-${b.monsterId}-${b.stage}`} className="bt-bestiary">
+                    <GameIcon name="book-aura" artist="lorc" /> Bestiario · {b.name}: {BESTIARY_STAGE[b.stage]}{b.points ? ` (+${b.points} puntos)` : ''}
+                  </span>
+                ))}
+                {result.rewards.mythic?.killed && <span className="bt-levelup">¡Derribaste al jefe mítico! El botín se reparte entre todos los cazadores.</span>}
               </div>
             )}
-            {result.status === 'ENEMY_WON' && <p>Tu grupo cayó. Recupérate en la fogata del campamento.</p>}
+            {mythicRef.current && result.status !== 'PLAYER_WON' && (() => {
+              const boss = enemies.find((e) => e.monster_code?.startsWith('MITICO_'));
+              const dealt = boss ? Math.max(0, mythicRef.current.startHp - boss.hp) : 0;
+              return <p className="bt-mythic-note">Le quitaste <b>{dealt.toLocaleString()}</b> de vida a {mythicRef.current.name}. Tu aporte cuenta para el botín cuando caiga.</p>;
+            })()}
+            {result.status === 'ENEMY_WON' && !mythicRef.current && <p>Tu grupo cayó. Despertarás en tu último refugio (el Pilar o una fogata) con la mitad de la vida, y perderás un poco de oro.</p>}
             <button type="button" className="bt-continue" onClick={() => onFinish({ status: result.status, rewards: result.rewards })}>Continuar <kbd>Enter</kbd></button>
           </div>
         </div>

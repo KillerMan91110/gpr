@@ -185,7 +185,17 @@ export const api = {
   makeOfrenda: (playerId, token) => request(`/api/player/${playerId}/world/ofrenda`, { method: 'POST', token }),
   getLibro: (playerId, token) => request(`/api/player/${playerId}/world/libro`, { token }),
   writeLibro: (playerId, text, token) => request(`/api/player/${playerId}/world/libro`, { method: 'POST', body: { text }, token }),
+  revive: (playerId, token) => request(`/api/player/${playerId}/world/revivir`, { method: 'POST', token }),
   travel: (playerId, destino, token) => request(`/api/player/${playerId}/world/viaje`, { method: 'POST', body: { destino }, token }),
+  // Colección del cazador (tecla K): bestiario, amuletos, cartas y jefe mítico
+  getBestiario: (playerId, token) => request(`/api/player/${playerId}/coleccion/bestiario`, { token }),
+  buyAmuleto: (playerId, code, token) => request(`/api/player/${playerId}/coleccion/amuleto`, { method: 'POST', body: { code }, token }),
+  getCartas: (playerId, token) => request(`/api/player/${playerId}/coleccion/cartas`, { token }),
+  socketCarta: (playerId, slot, monsterId, token) => request(`/api/player/${playerId}/coleccion/cartas/engarzar`, { method: 'POST', body: { slot, monsterId }, token }),
+  unsocketCarta: (playerId, slot, token) => request(`/api/player/${playerId}/coleccion/cartas/quitar`, { method: 'POST', body: { slot }, token }),
+  getMitico: () => request('/api/world/mitico'),
+  getMiticoAporte: (playerId, token) => request(`/api/player/${playerId}/coleccion/mitico/aporte`, { token }),
+  enterMitico: (playerId, token) => request(`/api/player/${playerId}/coleccion/mitico/enter`, { method: 'POST', token }),
   // Ventana Social del mundo 2D (tecla O)
   getSocialOverview: (playerId, token) => request(`/api/player/${playerId}/social/overview`, { token }),
   setSocialStatus: (playerId, text, token) => request(`/api/player/${playerId}/social/status`, { method: 'PUT', body: { text }, token }),

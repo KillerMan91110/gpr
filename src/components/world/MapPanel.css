@@ -500,3 +500,9 @@
 .mp-status.locked {
   color: #ff9a7a;
 }
+
+/* jefe mítico suelto en la zona */
+.mp-mythic { z-index: 3; }
+.mp-mythic i { display: inline-flex; filter: drop-shadow(0 0 4px #7ff8ff); animation: mp-mythic 1.2s ease-in-out infinite; }
+.mp-mythic em { color: #c8f4ff; }
+@keyframes mp-mythic { 50% { transform: scale(1.25); } }

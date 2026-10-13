@@ -253,6 +253,32 @@ export default function ChatBox() {
     if (party?.groupId) socket.emit('chat:join', `COOP:${party.groupId}`);
   }, [socket, socketConnected, guild?.id, party?.groupId]);
 
+  // Anuncios del jefe mítico (gprback/lib/mythic.js): llegan a todos los conectados, estén o no
+  // en el mundo 2D, y quedan como una línea dorada en General (y en Cerca dentro del mundo)
+  useEffect(() => {
+    if (!socket) return undefined;
+    const announce = (text) => {
+      setMessages((prev) => {
+        const last = prev.GENERAL[prev.GENERAL.length - 1]?.id ?? 0;
+        const msg = { id: last + 0.001, body: text, kind: 'anuncio' };
+        return {
+          ...prev,
+          GENERAL: [...prev.GENERAL, msg].slice(-MAX_MESSAGES),
+          CERCA: [...prev.CERCA, { ...msg, id: localId() }].slice(-MAX_MESSAGES),
+        };
+      });
+      setUnread((prev) => ({
+        ...prev,
+        GENERAL: activeTabRef.current === 'GENERAL' && !minimizedRef.current ? prev.GENERAL : prev.GENERAL + 1,
+      }));
+    };
+    const onSpawn = (s) => announce(`☠ ¡${s.name} ha aparecido en ${s.spot}${s.zoneName ? `, en ${s.zoneName}` : ''}! La noche no terminará hasta que caiga.`);
+    const onKilled = (s) => announce(`✦ ${s.killer} derribó a ${s.name} junto a ${Math.max(0, s.hunters - 1)} cazadores más. ¡Amanece${s.zoneName ? ` en ${s.zoneName}` : ''}!`);
+    socket.on('mythic:spawn', onSpawn);
+    socket.on('mythic:killed', onKilled);
+    return () => { socket.off('mythic:spawn', onSpawn); socket.off('mythic:killed', onKilled); };
+  }, [socket]);
+
   // Mensajes en vivo: un solo listener para las 4 rooms (el payload trae `channel`),
   // sin importar cuál pestaña esté activa.
   useEffect(() => {

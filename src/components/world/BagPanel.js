@@ -5,6 +5,9 @@ import GameIcon from '../GameIcon';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
 import { iconForItem } from './itemIcons';
+import bus from '../../game/bus';
+import { CardIcon, RARITY_LABEL } from './coleccionArt';
+import './BestiarioPanel.css';
 
 const MIN_SLOTS = 48; // casillas vacías de relleno para que se vea como una mochila
 const COLUMNS = 8;
@@ -30,13 +33,21 @@ export function toTooltipItem(row) {
 
 // Mochila estilo MMO: grilla de casillas con ícono, borde por rareza y cantidad. Clic derecho
 // (o doble clic) equipa el equipo o usa el consumible.
-export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex, onActivate }) {
+export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex, onActivate, openWindow }) {
   const { player, token } = useAuth();
   const [items, setItems] = useState(null);
   const [search, setSearch] = useState('');
   const [hover, setHover] = useState(null);
   const [message, setMessage] = useState(null);
   const [busy, setBusy] = useState(false);
+  // pestaña de cartas de monstruo (se engarzan desde el Bestiario, tecla K)
+  const [tab, setTab] = useState('objetos');
+  const [cards, setCards] = useState(null);
+  const [cardHover, setCardHover] = useState(null);
+  useEffect(() => {
+    api.getCartas(player.id, token).then((r) => setCards(r.owned)).catch(() => setCards([]));
+  }, [player, token, refreshKey]);
+  const openAlbum = () => { openWindow?.('bestiario'); setTimeout(() => bus.emit('bestiario-tab', 'cartas'), 0); };
 
   const load = useCallback(() => {
     api.getPlayerInventory(player.id, token).then(setItems).catch(() => setItems([]));
@@ -109,6 +120,44 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
         </>
       )}
     >
+      <div className="wp-bag-tabs">
+        <button type="button" className={tab === 'objetos' ? 'is-on' : ''} onClick={() => setTab('objetos')}>Objetos</button>
+        <button type="button" className={tab === 'cartas' ? 'is-on' : ''} onClick={() => setTab('cartas')}>Cartas{cards?.length ? ` (${cards.reduce((n, c) => n + c.quantity, 0)})` : ''}</button>
+      </div>
+      {tab === 'cartas' ? (
+        <>
+          <div className="wp-bag-grid" style={{ gridTemplateColumns: `repeat(${COLUMNS}, 44px)` }}>
+            {Array.from({ length: Math.max(16, Math.ceil((cards?.length ?? 0) / COLUMNS) * COLUMNS) }, (_, i) => {
+              const c = cards?.[i];
+              if (!c) return <div key={`vacia-${i}`} className="wp-slot wp-slot--empty" />;
+              return (
+                <button
+                  key={c.monsterId}
+                  type="button"
+                  className={`wp-slot wp-card-slot wp-card-slot--${c.rarity.toLowerCase()}`}
+                  onMouseMove={(e) => setCardHover({ c, x: e.clientX, y: e.clientY })}
+                  onMouseLeave={() => setCardHover(null)}
+                  onDoubleClick={openAlbum}
+                  onContextMenu={(e) => { e.preventDefault(); openAlbum(); }}
+                >
+                  <CardIcon rarity={c.rarity} />
+                  {c.quantity > 1 && <span className="wp-slot-qty">{c.quantity}</span>}
+                </button>
+              );
+            })}
+          </div>
+          {cards?.length === 0 && <p className="wp-empty">Aún no tienes cartas. Los monstruos las sueltan muy de vez en cuando.</p>}
+          <button type="button" className="wp-btn" style={{ marginTop: 8, width: '100%' }} onClick={openAlbum}>Abrir el álbum y engarzar (K)</button>
+          {cardHover && (
+            <div className="wp-card-tip" style={{ left: cardHover.x + 14, top: cardHover.y + 14 }}>
+              <b>Carta de {cardHover.c.name}</b>
+              <small>{RARITY_LABEL[cardHover.c.rarity]} · {cardHover.c.label}</small>
+              <span>{cardHover.c.text}</span>
+              <em>Clic derecho: abrir el álbum para engarzarla</em>
+            </div>
+          )}
+        </>
+      ) : (<>
       <input
         className="wp-search"
         type="search"
@@ -142,6 +191,7 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
       {items === null && <p className="wp-empty">Cargando…</p>}
       {items?.length === 0 && <p className="wp-empty">Tu mochila está vacía. Derrota monstruos o visita a los artesanos.</p>}
       {hover && <ItemTooltip item={toTooltipItem(hover.it)} x={hover.x} y={hover.y} token={token} hint={hintFor(hover.it)} />}
+      </>)}
     </FloatingPanel>
   );
 }

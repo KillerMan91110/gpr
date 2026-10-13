@@ -1,0 +1,76 @@
+/* Jefe mítico: barra de vida compartida arriba al centro, rumor, aviso grande y botín */
+.mh-bar {
+  position: fixed; top: 62px; left: 50%; transform: translateX(-50%); z-index: 30;
+  display: flex; align-items: center; gap: 10px; width: min(460px, calc(100vw - 32px));
+  padding: 7px 12px; border-radius: 8px; pointer-events: none;
+  background: linear-gradient(180deg, rgba(16, 26, 44, 0.92), rgba(10, 14, 26, 0.92));
+  border: 1px solid rgba(127, 248, 255, 0.45); box-shadow: 0 0 18px rgba(127, 248, 255, 0.25);
+}
+.mh-bar-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.mh-bar-name { color: #e8fcff; font: 700 0.85rem 'Cinzel', serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mh-bar-name small { font: 600 0.75rem 'EB Garamond', serif; color: #9ac8e0; }
+.mh-bar-track { height: 9px; border-radius: 5px; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(127, 248, 255, 0.3); overflow: hidden; }
+.mh-bar-fill { height: 100%; background: linear-gradient(180deg, #c8f4ff, #5aa8e0 60%, #24406a); transition: width 0.6s; }
+.mh-bar-hp { color: #9ac8e0; font-size: 0.72rem; }
+
+.mh-rumor {
+  position: fixed; top: 62px; left: 50%; transform: translateX(-50%); z-index: 29; pointer-events: auto;
+  display: flex; align-items: center; gap: 6px; padding: 3px 12px; border-radius: 12px;
+  background: rgba(12, 16, 28, 0.8); border: 1px solid rgba(127, 248, 255, 0.25);
+  color: #9ac8e0; font: 600 0.8rem 'EB Garamond', serif; font-style: italic;
+}
+.mh-rumor.is-ready { color: #e8fcff; border-color: rgba(127, 248, 255, 0.6); animation: mh-glow 2s ease-in-out infinite; }
+@keyframes mh-glow { 50% { box-shadow: 0 0 14px rgba(127, 248, 255, 0.5); } }
+
+.mh-banner {
+  position: fixed; top: 24%; left: 50%; transform: translateX(-50%); z-index: 60; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
+  animation: mh-banner 6s ease forwards;
+}
+.mh-banner small { font: 700 0.9rem 'Cinzel', serif; letter-spacing: 0.5em; text-transform: uppercase; color: #9ae8ff; }
+.mh-banner strong { font: 900 2.2rem 'Cinzel', serif; color: #e8fcff; text-shadow: 0 2px 8px #000, 0 0 26px rgba(127, 248, 255, 0.75); }
+.mh-banner span { color: var(--cream, #f0e6cc); text-shadow: 0 1px 4px #000; font-size: 1rem; }
+.mh-banner--killed strong { color: #ffe9a8; text-shadow: 0 2px 8px #000, 0 0 24px rgba(255, 216, 74, 0.6); }
+@keyframes mh-banner {
+  0% { opacity: 0; transform: translate(-50%, 12px) scale(0.96); }
+  10%, 82% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -8px); }
+}
+
+.mh-toast {
+  position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%); z-index: 55;
+  padding: 7px 16px; border-radius: 6px; background: rgba(12, 18, 32, 0.92); border: 1px solid rgba(127, 248, 255, 0.4);
+  color: #e8fcff; font: 600 0.9rem 'EB Garamond', serif;
+}
+
+.mh-reward { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.45); }
+.mh-reward-box {
+  width: min(360px, calc(100vw - 32px)); padding: 18px 20px; border-radius: 10px; text-align: center;
+  background: linear-gradient(180deg, #16223a, #0c111e); border: 1px solid rgba(127, 248, 255, 0.55);
+  box-shadow: 0 0 30px rgba(127, 248, 255, 0.3); display: flex; flex-direction: column; gap: 8px; align-items: center;
+}
+.mh-reward-box small { color: #9ae8ff; font: 700 0.75rem 'Cinzel', serif; letter-spacing: 0.3em; text-transform: uppercase; }
+.mh-reward-box h3 { margin: 0; color: #e8fcff; font: 700 1.3rem 'Cinzel', serif; }
+.mh-reward-box p { margin: 0; color: var(--cream, #f0e6cc); }
+.mh-reward-list { display: flex; flex-direction: column; gap: 4px; color: #ffe9a8; font: 700 1rem 'Cinzel', serif; }
+.mh-reward-card { display: inline-flex; align-items: center; gap: 6px; color: #c8f4ff; }
+/* en pantallas angostas la barra baja para no tapar el retrato del héroe */
+@media (max-width: 1100px) {
+  .mh-bar, .mh-rumor { top: 150px; }
+}
+
+/* fases: marcas en la barra, luna roja y botón de rastreo */
+.mh-bar-track { position: relative; }
+.mh-bar-tick { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255, 255, 255, 0.35); }
+.mh-bar--red { border-color: rgba(255, 110, 100, 0.6); box-shadow: 0 0 18px rgba(255, 90, 80, 0.35); }
+.mh-bar--red .mh-bar-fill { background: linear-gradient(180deg, #ffc0b0, #d8504a 60%, #6a1a1a); }
+.mh-bar--red .mh-bar-name b { color: #ffd0c8; }
+.mh-track {
+  pointer-events: auto; flex: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;
+  border: 1px solid rgba(127, 248, 255, 0.55); background: rgba(127, 248, 255, 0.12); color: #e8fcff;
+  font: 700 0.75rem 'Cinzel', serif;
+}
+.mh-track:hover { background: rgba(127, 248, 255, 0.25); }
+.mh-banner--phase1 strong, .mh-banner--phase2 strong { color: #e8fcff; }
+.mh-banner--phase3 small { color: #ff9a8a; }
+.mh-banner--phase3 strong { color: #ffd0c8; text-shadow: 0 2px 8px #000, 0 0 26px rgba(255, 80, 70, 0.75); }

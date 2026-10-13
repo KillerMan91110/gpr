@@ -370,6 +370,28 @@ export default function Market() {
 
           <div className="item-grid">
             {listings?.map((l) => {
+              // cartas de monstruo (se publican desde el Mercado del mundo 2D)
+              if (l.type === 'CARD') return (
+                <div key={l.id} className="rpg-panel inventory-item">
+                  <div className="inventory-item-header">
+                    <span className="inventory-item-name">
+                      <span className="inventory-item-icon"><GameIcon name="card-joker" artist="delapouite" /></span>
+                      Carta de {l.card.name}
+                    </span>
+                    <span className="inventory-item-qty">x{l.quantity}</span>
+                  </div>
+                  <span className="hint">{l.card.text}</span>
+                  <span className="hint market-seller">Vende: {l.is_mine ? 'Tú' : l.seller_nickname}</span>
+                  <span className="market-price">{formatPrice(l.total_price, l.currency)}</span>
+                  <button
+                    className="rpg-button equipment-action"
+                    disabled={l.is_mine || busyKey === `buy-${l.id}`}
+                    onClick={() => handleBuy(l)}
+                  >
+                    {l.is_mine ? 'Tu publicación' : busyKey === `buy-${l.id}` ? 'Comprando...' : 'Comprar'}
+                  </button>
+                </div>
+              );
               if (l.type === 'PET') return (
                 <div key={l.id} className={`rpg-panel inventory-item ${rarityClass(l.pet.rarity)}`}>
                   <div className="inventory-item-header">
@@ -597,7 +619,7 @@ export default function Market() {
           {!myListings && <p className="dashboard-loading">Cargando...</p>}
           {myListings && myListings.length === 0 && <p className="hint">Todavía no publicaste nada.</p>}
           <div className="item-grid">
-            {myListings?.map((l) => (
+            {myListings?.filter((l) => l.type !== 'CARD').map((l) => (
               <div key={l.id} className={`rpg-panel inventory-item ${rarityClass(l.type === 'PET' ? l.pet.rarity : l.item.item_rarity)}`}>
                 <div className="inventory-item-header">
                   <span className="inventory-item-name">

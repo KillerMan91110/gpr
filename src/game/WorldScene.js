@@ -3,6 +3,7 @@ import bus from './bus';
 import audio from './audio';
 import { MINIMAP } from './hudLayout';
 import SocialLayer from './socialLayer';
+import { socialStore } from './socialStore';
 import CityLife, { isFestival } from './cityLife';
 
 // Mundo abierto continuo (estilo MMO): public/assets/mundo/etheria.json coloca cada zona
@@ -39,6 +40,16 @@ const CHUNK_FAR = 1.4;
 // Al entrar (o volver de un combate) los monstruos no atacan durante este tiempo, para que no
 // te enganche uno que justo pasaba por el punto donde apareces.
 const ENCOUNTER_GRACE_MS = 2500;
+// al volver de un combate: más respiro y los monstruos cercanos se apartan (sin esto uno pegado
+// al héroe volvía a atacar apenas terminaba la pelea, una y otra vez)
+const POST_BATTLE_GRACE_MS = 5000;
+const SHOO_RADIUS = 110;
+// los monstruos mucho más débiles que el héroe no se le acercan (si los tocas, igual pelean)
+const SHY_LEVEL_GAP = 5;
+const SHY_RADIUS = 150;
+// refugio: si caes, despiertas en el último Pilar o fogata que visitaste
+const REFUGE_RADIUS = 80;
+const REFUGE_KEY = 'mundo_refugio_v1';
 
 // Paso forzado por casilla (capa "paso" de cada trozo, la pinta el editor de mapas como en RPG
 // Maker). 0 = lo que diga el tile. Con PASO_FORZADO, los bits 1/2/4/8 cierran el borde de
@@ -389,6 +400,7 @@ export default class WorldScene extends Phaser.Scene {
     });
 
     this.createDayNight(all.filter((o) => o.type === 'luz'));
+    this.buildRefuges(all);
     // otros jugadores, globitos de chat, gestos y emojis
     this.social = new SocialLayer(this);
     this.createWeather();
@@ -454,6 +466,9 @@ export default class WorldScene extends Phaser.Scene {
       },
       // viaje en diligencia u otro salto: sin desmontar la escena si la zona está en el continente
       'teleport': ({ zoneDir, x, y }, cb) => cb?.(this.teleport(zoneDir, x, y)),
+      // jefe mítico de zona (components/world/MythicHunt.js): aparece, se va o muere
+      'mythic-state': (s) => this.setMythic(s?.hunt ?? null),
+      'mythic-track': (cb) => cb?.(this.trackMythic()),
     };
     Object.entries(handlers).forEach(([ev, fn]) => bus.on(ev, fn));
     const unbind = () => Object.entries(handlers).forEach(([ev, fn]) => bus.off(ev, fn));
@@ -481,7 +496,164 @@ export default class WorldScene extends Phaser.Scene {
         monster: propOf(o, 'monstruo'), level: propOf(o, 'nivel'), window: propOf(o, 'ventana'), dialogue: propOf(o, 'dialogo'),
       })),
       marks: this.marks,
+      mythic: this.mythic?.sprite && this.mythic.zoneDir === z.dir
+        ? { x: this.mythic.x - z.ox, y: this.mythic.y - z.oy, name: this.mythic.hunt.name, spot: this.mythic.hunt.spot }
+        : null,
     };
+  }
+
+  // ---------------------------------------------------------------- jefe mítico
+  // Aparece en la casilla que mandó el servidor (o la libre más cercana): grande, con aura de
+  // luna, motas de luz y su nombre. Se desafía con E como un jefe de guarida.
+  setMythic(hunt) {
+    const moved = this.mythic && hunt && this.mythic.id === hunt.id && (this.mythic.hunt.x !== hunt.x || this.mythic.hunt.y !== hunt.y);
+    if (this.mythic && (!hunt || this.mythic.id !== hunt.id || moved)) {
+      const m = this.mythic;
+      if (!moved) this.clearMinions();
+      [m.sprite, m.aura, m.glow, m.tag, m.motes, m.block].forEach((o) => o?.destroy());
+      this.pois = this.pois.filter((p) => p.id !== 'mitico');
+      if (this.nearPoi?.id === 'mitico') { this.nearPoi = null; bus.emit('poi', null); }
+      this.mythic = null;
+      // terminó la cacería: amanece de golpe (unos segundos) donde estaba la noche eterna
+      if (!hunt && this.nightZone) this.startDawn();
+    }
+    this.nightZone = hunt?.zoneDir ?? null;
+    this.redMoon = !!hunt?.redMoon;
+    if (this.mythic) {
+      this.mythic.hunt = hunt;
+      this.mythic.tag?.setColor(hunt.redMoon ? '#ffb0a0' : '#c8f4ff');
+      this.syncMinions();
+      return;
+    }
+    if (!hunt) return;
+    const z = this.zoneByDir[hunt.zoneDir];
+    const catalog = this.cache.json.get('enemigos')?.monsters;
+    const info = catalog?.[hunt.code];
+    if (!z || !info || !this.walk) return;
+    let tx = Math.floor(z.ox / 32) + hunt.x;
+    let ty = Math.floor(z.oy / 32) + hunt.y;
+    if (!this.walkable(tx, ty)) {
+      let best = null;
+      for (let r = 1; r <= 10 && !best; r++) {
+        for (let dy = -r; dy <= r && !best; dy++) {
+          for (let dx = -r; dx <= r && !best; dx++) {
+            if (Math.max(Math.abs(dx), Math.abs(dy)) === r && this.walkable(tx + dx, ty + dy)) best = [tx + dx, ty + dy];
+          }
+        }
+      }
+      if (best) [tx, ty] = best;
+    }
+    const x = tx * 32 + 16;
+    const y = ty * 32 + 16;
+    const key = `mon_${hunt.code}`;
+    this.mythic = { id: hunt.id, hunt, zoneDir: z.dir, x, y };
+    const build = () => {
+      const m = this.mythic;
+      if (!m || m.id !== hunt.id || m.sprite) return;
+      const animKey = `mon_idle_${hunt.code}`;
+      if (!this.anims.exists(animKey)) {
+        this.anims.create({ key: animKey, frames: info.animations.idle.frames.map((f) => ({ key, frame: f })), frameRate: 2, repeat: -1 });
+      }
+      m.glow = this.add.image(x, y - 10, 'luz').setDepth(8).setBlendMode('ADD').setTint(0x7ff8ff).setScale(2.4).setAlpha(0.55);
+      this.tweens.add({ targets: m.glow, alpha: 0.25, scale: 2.8, duration: 1400, yoyo: true, repeat: -1 });
+      m.aura = this.add.ellipse(x, y + 14, 78, 22, 0x7ff8ff, 0.3).setDepth(8);
+      this.tweens.add({ targets: m.aura, alpha: 0.1, scaleX: 1.2, duration: 1100, yoyo: true, repeat: -1 });
+      m.sprite = this.add.sprite(x, y, key, info.animations.idle.frames[0]).setOrigin(0.5, 0.9).setScale(1.35).setDepth(9).play(animKey);
+      m.motes = this.add.particles(x, y - 20, 'mota_mundo', {
+        x: { min: -40, max: 40 }, y: { min: -30, max: 20 }, lifespan: 1800, frequency: 140, speedY: { min: -18, max: -6 },
+        scale: { start: 0.6, end: 0 }, alpha: { start: 0.9, end: 0 }, tint: 0xc8f4ff, blendMode: 'ADD',
+      }).setDepth(9.5);
+      m.block = this.add.rectangle(x, y + 4, 44, 20);
+      this.blockers.add(m.block);
+      m.tag = this.add.text(x, y - m.sprite.displayHeight * 0.9 - 2, `MÍTICO · ${hunt.name}`, {
+        fontFamily: TAG_FONT, fontSize: '7px', fontStyle: 'bold', color: '#c8f4ff', stroke: '#141420', strokeThickness: 3,
+      }).setOrigin(0.5, 1).setDepth(21).setResolution(TAG_RES);
+      [m.glow, m.tag, m.motes].forEach((o) => this.minimap?.ignore(o));
+      if (hunt.redMoon) { m.tag.setColor('#ffb0a0'); m.glow.setTint(0xff7a7a); m.aura.setFillStyle(0xff6a5a, 0.3); }
+      this.pois.push({ id: 'mitico', x, y: y + 10, label: `Enfrentar a ${hunt.name}`, mythic: true, radius: 72 });
+      // si lo venías rastreando y se mudó, la flecha apunta al nuevo lugar
+      if (socialStore.get().track?.mythic) socialStore.setTrack({ name: hunt.name.split(',')[0], x, y, mythic: true });
+      this.syncMinions();
+    };
+    if (this.textures.exists(key)) build();
+    else this.loadThen(() => this.load.spritesheet(key, `${ASSETS}/sprites/combate/${info.sheet}`, { frameWidth: info.frameSize.w, frameHeight: info.frameSize.h }), build);
+  }
+
+  // flecha de rastreo hacia el jefe (botón "Rastrear" de la barra)
+  trackMythic() {
+    const m = this.mythic;
+    if (!m) return false;
+    socialStore.setTrack({ name: m.hunt.name.split(',')[0], x: m.x, y: m.y, mythic: true });
+    return true;
+  }
+
+  // Esbirros (lobos espectrales): desde la fase 1 rondan alrededor del jefe; cazarlos lo debilita
+  syncMinions() {
+    const m = this.mythic;
+    const want = m?.hunt?.phase >= 1 ? 6 : 0;
+    this.minions = (this.minions ?? []).filter((x) => x.active);
+    if (!want) { this.clearMinions(); return; }
+    const code = m.hunt.minionCode ?? 'LOBO_ESPECTRAL';
+    const catalog = this.cache.json.get('enemigos')?.monsters;
+    const info = catalog?.[code];
+    if (!info) return;
+    const key = `mon_${code}`;
+    const spawn = () => {
+      this.minions = (this.minions ?? []).filter((x) => x.active);
+      const area = new Phaser.Geom.Rectangle(m.x - 12 * 32, m.y - 9 * 32, 24 * 32, 18 * 32);
+      for (let i = this.minions.length; i < want; i++) {
+        let x = 0;
+        let y = 0;
+        for (let tries = 0; tries < 20; tries++) {
+          x = Phaser.Math.Between(area.x, area.right);
+          y = Phaser.Math.Between(area.y, area.bottom);
+          if (this.walkable(Math.floor(x / 32), Math.floor(y / 32)) && Phaser.Math.Distance.Between(x, y, m.x, m.y) > 96) break;
+        }
+        const animKey = `mon_idle_${code}`;
+        if (!this.anims.exists(animKey)) {
+          this.anims.create({ key: animKey, frames: info.animations.idle.frames.map((f) => ({ key, frame: f })), frameRate: 2.5, repeat: -1 });
+        }
+        const mon = this.monsters.create(x, y, key, info.animations.idle.frames[0]).setScale(0.8).setDepth(9).setAlpha(0.85);
+        mon.play(animKey);
+        mon.body.setSize(24, 16).setOffset(info.frameSize.w / 2 - 12, info.frameSize.h - 20);
+        mon.setData({ code, name: info.name, area, chunk: 'mitico', minion: true });
+        const glow = this.add.image(x, y - 6, 'luz').setDepth(8.5).setBlendMode('ADD').setTint(0x9ae8ff).setScale(0.9).setAlpha(0.35);
+        this.minimap?.ignore(glow);
+        mon.setData('glow', glow);
+        mon.once('destroy', () => glow.destroy());
+        mon.setAlpha(0);
+        this.tweens.add({ targets: mon, alpha: 0.85, duration: 900 });
+        this.wander(mon);
+        this.minions.push(mon);
+      }
+    };
+    if (this.textures.exists(key)) spawn();
+    else this.loadThen(() => this.load.spritesheet(key, `${ASSETS}/sprites/combate/${info.sheet}`, { frameWidth: info.frameSize.w, frameHeight: info.frameSize.h }), spawn);
+  }
+
+  clearMinions() {
+    (this.minions ?? []).forEach((x) => x.active && x.destroy());
+    this.minions = [];
+  }
+
+  // ¿el héroe está bajo la noche eterna del jefe mítico?
+  frozenNight() {
+    return !!this.nightZone && this.zone?.dir === this.nightZone;
+  }
+
+  startDawn() {
+    this.dawnFrom = this.shade?.fillColor ?? 0x5a64a8;
+    this.dawnUntil = this.time.now + 20000;
+  }
+
+  challengeMythic() {
+    const m = this.mythic;
+    if (!m?.sprite) return;
+    const h = m.hunt;
+    bus.emit('boss-challenge', {
+      kind: 'mythic', rank: 'mitico', code: h.code, name: h.name, level: h.minLevel, hp: h.hp, maxHp: h.maxHp,
+      zoneId: this.zoneByDir[m.zoneDir]?.world.zona ?? this.zoneId, position: this.toLocal(this.player.x, this.player.y, this.zone),
+    });
   }
 
   makeWalkAnims(key) {
@@ -1145,11 +1317,33 @@ export default class WorldScene extends Phaser.Scene {
     this.minimap.ignore(this.rain);
     this.rain.setPosition(cam.worldView.x, cam.worldView.y);
     const roll = () => {
-      const rainy = Math.random() < (this.world.clima?.lluvia ?? 0);
+      // durante la noche eterna manda la niebla, no llueve
+    const rainy = !this.frozenNight() && Math.random() < (this.world.clima?.lluvia ?? 0);
       this.setWeather(rainy ? 'lluvia' : 'despejado');
       this.time.delayedCall(Phaser.Math.Between(4, 8) * 60000, roll);
     };
     this.time.delayedCall(Phaser.Math.Between(60000, 120000), roll);
+  }
+
+  // niebla espectral de la cacería (la ven todos los de la zona, no es al azar como la lluvia)
+  setMythicFog(on) {
+    if (!this.mythicFog && on) {
+      this.mythicFog = this.add.particles(0, 0, 'luz', {
+        x: { min: -460, max: 460 }, y: { min: -320, max: 320 }, lifespan: 9000, frequency: 420,
+        speedX: { min: 4, max: 14 }, speedY: { min: -3, max: 3 }, scale: { start: 2.6, end: 3.6 },
+        alpha: { onEmit: () => 0, onUpdate: (_p, _k, t) => Math.sin(t * Math.PI) * 0.2 }, tint: 0xc8d8ff, emitting: false,
+      }).setDepth(20.8);
+      this.minimap?.ignore(this.mythicFog);
+    }
+    if (!this.mythicFog) return;
+    const v = this.cameras.main.worldView;
+    this.mythicFog.setPosition(v.centerX, v.centerY);
+    if (on !== this.mythicFog.emitting) {
+      this.mythicFog.emitting = on;
+      this.mythicFog.setParticleTint(this.redMoon ? 0xffc0b8 : 0xc8d8ff);
+      if (on && this.weather === 'lluvia') this.setWeather('despejado');
+      bus.emit('weather', on ? 'niebla' : this.weather);
+    }
   }
 
   setWeather(kind) {
@@ -1160,12 +1354,20 @@ export default class WorldScene extends Phaser.Scene {
   }
 
   updateSky() {
-    const h = gameHour();
+    // noche eterna: mientras el jefe mítico vive, en su zona se queda la medianoche
+    const frozen = this.frozenNight();
+    const h = frozen ? 1 : gameHour();
     let i = 0;
     while (i < SKY.length - 2 && SKY[i + 1][0] <= h) i++;
     const [h0, c0] = SKY[i];
     const [h1, c1] = SKY[i + 1];
     let color = lerpColor(c0, c1, (h - h0) / Math.max(0.001, h1 - h0));
+    if (frozen) color = mulColor(color, this.redMoon ? 0xffa8a0 : 0xc8d4ff);
+    // amanecer al caer el jefe: del color de la noche al del cielo de verdad
+    if (!frozen && this.dawnUntil && this.time.now < this.dawnUntil) {
+      color = lerpColor(this.dawnFrom, color, 1 - (this.dawnUntil - this.time.now) / 20000);
+    }
+    this.setMythicFog(frozen);
     if (this.weather === 'lluvia') color = mulColor(color, 0xb4bccc);
     this.shade.setFillStyle(color);
     // cuánto "de noche" es (0 de día, 1 en plena noche) para las luces
@@ -1307,7 +1509,8 @@ export default class WorldScene extends Phaser.Scene {
 
   onReturnFromBattle(result) {
     this.encounterLock = false;
-    this.graceUntil = this.time.now + ENCOUNTER_GRACE_MS;
+    this.graceUntil = this.time.now + POST_BATTLE_GRACE_MS;
+    this.shooMonsters();
     this.input.keyboard.enabled = true;
     this.input.keyboard.resetKeys();
     this.cameras.main.fadeIn(450);
@@ -1317,7 +1520,11 @@ export default class WorldScene extends Phaser.Scene {
     if (result === 'PLAYER_WON' && boss?.sprite?.active) this.hideBoss(boss);
     const mon = this.lastEncounterMon;
     this.lastEncounterMon = null;
-    if (result === 'PLAYER_WON' && mon?.active) {
+    if (result === 'PLAYER_WON' && mon?.active && mon.getData('minion')) {
+      // esbirro cazado: se deshace en niebla y otro sale un rato después
+      mon.destroy();
+      this.time.delayedCall(15000, () => this.syncMinions());
+    } else if (result === 'PLAYER_WON' && mon?.active) {
       // el derrotado desaparece y otro de la misma zona aparece un rato después
       const area = mon.getData('area');
       const chunkKey = mon.getData('chunk');
@@ -1331,7 +1538,10 @@ export default class WorldScene extends Phaser.Scene {
       });
     }
     if (result === 'ENEMY_WON') {
-      this.player.setPosition(this.spawnPoint.x, this.spawnPoint.y);
+      // despiertas en tu último refugio (o en el inicio de la zona si nunca pasaste por uno)
+      const r = this.refuge && this.zoneByDir[this.refuge.zone] ? this.toGlobal(this.refuge.x, this.refuge.y, this.refuge.zone) : this.spawnPoint;
+      this.player.setPosition(r.x, r.y);
+      bus.emit('hero-revive', { place: this.refuge?.name ?? null });
       this.trail = [];
       this.updateChunks(true);
       this.checkZoneChange();
@@ -1423,6 +1633,7 @@ export default class WorldScene extends Phaser.Scene {
     mon.setData({ code, name: info.name, area, chunk: chunkKey });
     // rango de nivel de la subzona (como en un MMO), con color según el peligro para el héroe
     const levels = this.levelsAt(area.x + area.width / 2, area.y + area.height / 2);
+    mon.setData('levels', levels);
     if (levels) {
       const tag = this.add.text(x, y, `Nv ${levels}`, {
         fontFamily: TAG_FONT, fontSize: '6px', fontStyle: 'bold', color: this.levelColor(levels), stroke: '#141420', strokeThickness: 3,
@@ -1491,10 +1702,66 @@ export default class WorldScene extends Phaser.Scene {
     return '#a0a0a0';
   }
 
+  // Aparta a los monstruos que quedaron pegados al héroe al volver de un combate
+  shooMonsters() {
+    if (!this.player) return;
+    for (const m of this.monsters.getChildren()) {
+      const d = Phaser.Math.Distance.Between(m.x, m.y, this.player.x, this.player.y);
+      if (d > SHOO_RADIUS) continue;
+      const ang = Phaser.Math.Angle.Between(this.player.x, this.player.y, m.x, m.y) || Math.random() * Math.PI * 2;
+      const nx = this.player.x + Math.cos(ang) * SHOO_RADIUS;
+      const ny = this.player.y + Math.sin(ang) * SHOO_RADIUS;
+      if (this.walkable(Math.floor(nx / 32), Math.floor((ny + 10) / 32))) m.setPosition(nx, ny);
+      m.setVelocity(Math.cos(ang) * 40, Math.sin(ang) * 40);
+    }
+  }
+
+  // ¿este monstruo es mucho más débil que el héroe? (entonces no se le acerca)
+  isShy(mon) {
+    const levels = mon.getData('levels');
+    if (!levels || mon.getData('minion')) return false;
+    const [a, b = a] = String(levels).split('-').map(Number);
+    return this.heroLevel - b >= SHY_LEVEL_GAP;
+  }
+
+  // Refugios: el Pilar de Aethra y las fogatas fuera de las ciudades
+  buildRefuges(all) {
+    this.refuges = all.filter((o) => o.type === 'pilar' || (o.type === 'luz' && propOf(o, 'tipo') === 'fogata' && !this.zoneByDir[o.zone]?.world.ciudad))
+      .map((o) => {
+        const z = this.zoneByDir[o.zone];
+        const lx = o.x - z.ox;
+        const ly = o.y - z.oy;
+        const sz = z.world.subzonas?.find((s) => s.name !== z.world.nombre && lx >= s.x0 && lx < s.x1 && ly >= s.y0 && ly < s.y1);
+        const name = o.type === 'pilar' ? 'el Pilar de Aethra' : `la fogata de ${sz?.name ?? z.world.nombre}`;
+        return { x: o.x, y: o.y + 24, zone: o.zone, name };
+      });
+    try { this.refuge = JSON.parse(localStorage.getItem(REFUGE_KEY)); } catch { this.refuge = null; }
+  }
+
+  checkRefuge(time) {
+    if (!this.refuges?.length || time < (this.nextRefugeCheck ?? 0)) return;
+    this.nextRefugeCheck = time + 500;
+    const r = this.refuges.find((q) => Phaser.Math.Distance.Between(q.x, q.y, this.player.x, this.player.y) < REFUGE_RADIUS);
+    if (!r || this.refuge?.name === r.name) return;
+    const l = this.toLocal(r.x, r.y, this.zoneByDir[r.zone]);
+    this.refuge = { name: r.name, zone: r.zone, x: l.x, y: l.y };
+    try { localStorage.setItem(REFUGE_KEY, JSON.stringify(this.refuge)); } catch { /* sin guardar */ }
+    bus.emit('social-toast', { text: `Refugio: ${r.name}. Si caes, despertarás aquí.`, kind: 'ok' });
+    audio.sfx('curar');
+  }
+
   // Deambula dentro de su zona de hierba alta; si se sale, vuelve hacia el centro.
   wander(mon) {
     if (!mon.active) return;
     const { area } = mon.data.values;
+    // los muy débiles se apartan si el héroe anda cerca (no huyen lejos de su zona)
+    if (this.player && this.isShy(mon) && Phaser.Math.Distance.Between(mon.x, mon.y, this.player.x, this.player.y) < SHY_RADIUS) {
+      const ang = Phaser.Math.Angle.Between(this.player.x, this.player.y, mon.x, mon.y);
+      mon.setVelocity(Math.cos(ang) * 34, Math.sin(ang) * 34);
+      mon.setFlipX(mon.body.velocity.x > 0);
+      this.time.delayedCall(Phaser.Math.Between(700, 1200), () => this.wander(mon));
+      return;
+    }
     const inside = Phaser.Geom.Rectangle.Contains(new Phaser.Geom.Rectangle(area.x, area.y, area.width, area.height), mon.x, mon.y);
     if (!inside) {
       this.physics.moveTo(mon, area.x + area.width / 2, area.y + area.height / 2, 30);
@@ -1519,6 +1786,13 @@ export default class WorldScene extends Phaser.Scene {
     this.cameras.main.shake(250, 0.006);
     audio.sfx('encuentro');
     this.tweens.add({ targets: mon, alpha: 0.3, yoyo: true, repeat: 3, duration: 90 });
+    if (mon.getData('minion')) {
+      bus.emit('encounter', {
+        kind: 'esbirro', code: mon.getData('code'), name: mon.getData('name'), level: Math.max(1, Math.min(15, this.heroLevel ?? 1)),
+        zoneId: this.zoneId, position: this.toLocal(this.player.x, this.player.y, this.zone),
+      });
+      return;
+    }
     bus.emit('encounter', {
       kind: 'zone', code: mon.getData('code'), name: mon.getData('name'), zoneId: this.zoneId, areaLevels: this.subzone?.levels ?? null,
       position: this.toLocal(this.player.x, this.player.y, this.zone),
@@ -1578,9 +1852,12 @@ export default class WorldScene extends Phaser.Scene {
     this.city?.update(delta);
     this.reportPosition(time);
     this.checkExits(time);
+    this.checkRefuge(time);
     for (const m of this.monsters.getChildren()) {
       const tag = m.getData('tag');
       if (tag) tag.setPosition(m.x, m.y - m.getData('tagDy'));
+      const glow = m.getData('glow');
+      if (glow) glow.setPosition(m.x, m.y - 6);
     }
     if (this.encounterLock) return;
     const k = this.keys;
@@ -1617,6 +1894,7 @@ export default class WorldScene extends Phaser.Scene {
     this.updatePoi();
     if (this.nearPoi && (Phaser.Input.Keyboard.JustDown(k.interact) || Phaser.Input.Keyboard.JustDown(k.interact2))) {
       if (this.nearPoi.boss) this.challengeBoss(this.nearPoi.boss);
+      else if (this.nearPoi.mythic) this.challengeMythic();
       else if (this.nearPoi.resource) this.gather(this.nearPoi.resource);
       else bus.emit('interact', this.nearPoi);
     }
@@ -1627,7 +1905,7 @@ export default class WorldScene extends Phaser.Scene {
     let nearest = null;
     for (const poi of this.pois) {
       if (poi.boss?.hidden || (poi.resource && !poi.resource.ready)) continue;
-      if (Phaser.Math.Distance.Between(this.player.x, this.player.y, poi.x, poi.y) < POI_RADIUS) nearest = poi;
+      if (Phaser.Math.Distance.Between(this.player.x, this.player.y, poi.x, poi.y) < (poi.radius ?? POI_RADIUS)) nearest = poi;
     }
     if (nearest !== this.nearPoi) {
       this.nearPoi = nearest;

@@ -35,6 +35,10 @@ import MapPanel from '../components/world/MapPanel';
 import WorldSocial from '../components/world/WorldSocial';
 import SocialPanel from '../components/world/SocialPanel';
 import { OfrendaPanel, LibroPanel } from '../components/world/CityPanels';
+import BestiarioPanel from '../components/world/BestiarioPanel';
+import MarketPanel from '../components/world/MarketPanel';
+import HirePanel from '../components/world/HirePanel';
+import MythicHunt from '../components/world/MythicHunt';
 import './World.css';
 
 // Ventanas del mundo. Todas son paneles flotantes que NO bloquean el mapa: se puede caminar con
@@ -48,9 +52,10 @@ const WINDOWS = {
   formacion:       { title: 'Formación',          key: 'f', icon: ['meeple-army', 'delapouite'], panel: FormationPanel,    pos: { x: 300, y: 90 } },
   mascotas:        { title: 'Mascotas',           key: 'n', icon: ['paw', 'lorc'],               panel: PetsPanel,         pos: { x: 320, y: 100 } },
   gremio:          { title: 'Gremio',             key: 'g', icon: ['castle', 'delapouite'],      panel: GuildPanel,        pos: { x: 340, y: 80 } },
-  mercado:         { title: 'Mercado',            key: 'b', icon: ['shop', 'delapouite'],        embed: '/market' },
+  mercado:         { title: 'Mercado',            key: 'b', icon: ['shop', 'delapouite'],        panel: MarketPanel,       pos: { x: 280, y: 70 } },
   mapa:            { title: 'Mapa',               key: 'm', icon: ['treasure-map', 'lorc'],      panel: MapPanel,          pos: { x: 360, y: 70 } },
   logros:          { title: 'Logros',             key: 'l', icon: ['trophy-cup', 'delapouite'],  panel: AchievementsPanel, pos: { x: 350, y: 100 } },
+  bestiario:       { title: 'Bestiario',          key: 'k', icon: ['book-aura', 'lorc'],         panel: BestiarioPanel,    pos: { x: 240, y: 70 } },
   ranking:         { title: 'Ranking',            key: 'r', icon: ['podium', 'delapouite'],      panel: RankingPanel,      pos: 'right' },
   social:          { title: 'Social',             key: 'o', icon: ['two-shadows', 'lorc'],       panel: SocialPanel,       pos: 'right' },
   // solo desde puntos del mapa (sin botón en la barra)
@@ -59,7 +64,7 @@ const WINDOWS = {
   artesanos:       { title: 'Artesanos del gremio', panel: MerchantPanel, pos: { x: 360, y: 90 } },
   taller:          { title: 'Taller del herrero',   panel: CraftingPanel, pos: { x: 330, y: 80 } },
   // servicios del gremio que siguen usando su pantalla de siempre dentro del marco
-  contratar:       { title: 'Contratar aventureros', icon: ['crossed-swords', 'lorc'],      embed: '/guild/adventurers' },
+  contratar:       { title: 'Contratar aventureros', panel: HirePanel, pos: { x: 320, y: 90 } },
   maestros:        { title: 'Maestros del gremio',   icon: ['graduate-cap', 'delapouite'],  embed: '/guild/masters' },
   quests_gremio:   { title: 'Encargos del gremio',   icon: ['scroll-unfurled', 'lorc'],     embed: '/guild/quests' },
   encantador:      { title: 'Encantador',            panel: EnchantPanel, pos: { x: 380, y: 90 } },
@@ -83,7 +88,7 @@ function defaultPosFor(w) {
   if (w.pos) return w.pos;
   return { x: 20 + Math.max(0, (window.innerWidth - Math.min(820, window.innerWidth - 40)) / 2), y: 70 };
 }
-const TOOLBAR = ['inventario', 'personaje', 'habilidades', 'misiones', 'formacion', 'mascotas', 'gremio', 'social', 'mercado', 'mapa', 'logros', 'ranking'];
+const TOOLBAR = ['inventario', 'personaje', 'habilidades', 'misiones', 'formacion', 'mascotas', 'gremio', 'social', 'mercado', 'mapa', 'bestiario', 'logros', 'ranking'];
 const KEY_TO_WINDOW = Object.fromEntries(Object.entries(WINDOWS).filter(([, w]) => w.key).map(([id, w]) => [w.key, id]));
 
 const BASE_CLASSES = ['guerrero', 'mago', 'arquero', 'picaro', 'sacerdote'];
@@ -143,6 +148,13 @@ export default function World() {
   const [battle, setBattle] = useState(null);
   const battleRef = useRef(null);
   battleRef.current = battle;
+  // dónde despiertas si caes (lo avisa la escena al volver del combate)
+  const reviveRef = useRef(null);
+  useEffect(() => {
+    const onRevive = ({ place }) => { reviveRef.current = place; };
+    bus.on('hero-revive', onRevive);
+    return () => bus.off('hero-revive', onRevive);
+  }, []);
   const [party, setParty] = useState([]);
   // ventanas abiertas, en orden de apilado (la última queda adelante y es la que cierra Esc)
   const [open, setOpen] = useState([]);
@@ -321,7 +333,7 @@ export default function World() {
   }, []);
 
   useEffect(() => {
-    audio.music(battle ? (battle.kind === 'boss' ? 'jefe' : 'batalla') : zoneInfo.music);
+    audio.music(battle ? (battle.kind === 'boss' || battle.kind === 'mythic' ? 'jefe' : 'batalla') : zoneInfo.music);
   }, [battle, zoneInfo.music]);
 
   // ---- salto de zona (diligencia, salidas a zonas fuera del continente) ----
@@ -432,10 +444,11 @@ export default function World() {
   const confirmBoss = useCallback(() => {
     const b = bossPrompt;
     if (!b) return;
+    if (b.kind === 'mythic' && stats && stats.level < b.level) return;
     setBossPrompt(null);
     gameRef.current?.scene.getScene('mundo')?.lockForBattle();
     bus.emit('encounter', b);
-  }, [bossPrompt]);
+  }, [bossPrompt, stats]);
 
   // El chat global se vuelve semitransparente dentro del mundo (ver World.css: body.en-mundo)
   useEffect(() => {
@@ -477,11 +490,23 @@ export default function World() {
       (rewards.itemsDropped ?? []).forEach((d) => lines.push({ text: `+${d.quantity} ${d.itemName}`, color: '#bfffcf' }));
       setTimeout(() => bus.emit('float-loot', lines), 500);
     }
-    if (status === 'ENEMY_WON') sessionStorage.removeItem(POS_KEY);
+    if (status === 'ENEMY_WON') {
+      sessionStorage.removeItem(POS_KEY);
+      // despiertas en tu refugio con la mitad de la vida (y pierdes un poco de oro)
+      api.revive(player.id, token)
+        .then((r) => {
+          if (!r?.revived) return;
+          const place = reviveRef.current;
+          const where = place ? `junto a ${place}` : 'en el inicio de la zona';
+          bus.emit('social-toast', { text: `Despiertas ${where}, aturdido.${r.goldLost ? ` Perdiste ${r.goldLost.toLocaleString()} de oro.` : ''}`, kind: 'tour' });
+        })
+        .catch(() => {})
+        .finally(() => loadHud());
+    }
     setBattle(null);
     loadHud();
     setRefreshKey((k) => k + 1);
-  }, [navigate, loadHud]);
+  }, [navigate, loadHud, player, token]);
 
   const bossPromptRef = useRef(null);
   bossPromptRef.current = bossPrompt;
@@ -567,6 +592,7 @@ export default function World() {
             <GameIcon name={clock.night ? 'moon' : 'sun'} artist="lorc" />
             {String(clock.hour).padStart(2, '0')}:00
             {weather === 'lluvia' && <GameIcon name="raining" artist="lorc" />}
+            {weather === 'niebla' && <GameIcon name="fog" artist="delapouite" />}
           </span>
         )}
       </div>
@@ -614,6 +640,8 @@ export default function World() {
 
       {/* otros jugadores, globitos, gestos, emojis (T) y menú al hacer clic en alguien */}
       <WorldSocial worldReady={worldReady} zoneDir={zoneDir} baseClass={baseClass} inBattle={!!battle} level={stats?.level} />
+      {/* jefe mítico de zona: aviso, barra de vida compartida y botín */}
+      <MythicHunt worldReady={worldReady} inBattle={!!battle} />
 
       {/* ---- barra de acciones con experiencia (abajo al centro) ---- */}
       <div className="hud-actionbar">
@@ -652,10 +680,11 @@ export default function World() {
       {poi && !open.includes(poi.window) && !encounter && !dialogue && (
         <button
           type="button"
-          className={`hud-context${poi.boss ? ' hud-context--boss' : ''}${poi.resource ? ' hud-context--gather' : ''}`}
+          className={`hud-context${poi.boss || poi.mythic ? ' hud-context--boss' : ''}${poi.resource ? ' hud-context--gather' : ''}`}
           onClick={() => {
             const scene = gameRef.current?.scene.getScene('mundo');
             if (poi.boss) scene?.challengeBoss(poi.boss);
+            else if (poi.mythic) scene?.challengeMythic();
             else if (poi.resource) { const r = scene?.resources.get(poi.resource.id); if (r) scene.gather(r); }
             else if (poi.dialogue) setDialogue(poi.dialogue);
             else if (poi.window) openWin(poi.window);
@@ -671,15 +700,21 @@ export default function World() {
         <div className="boss-prompt">
           <div className="boss-prompt-box">
             <small className={`boss-prompt-rank boss-prompt-rank--${bossPrompt.rank}`}>
-              {bossPrompt.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe'}
+              {bossPrompt.rank === 'mitico' ? 'Jefe mítico' : bossPrompt.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe'}
             </small>
             <h2>{bossPrompt.name}</h2>
-            <p>Nivel {bossPrompt.level}</p>
-            {stats && stats.level < bossPrompt.level - 3 && (
+            {bossPrompt.kind === 'mythic' ? (
+              <>
+                <p>Vida compartida: {Number(bossPrompt.hp).toLocaleString()} / {Number(bossPrompt.maxHp).toLocaleString()}</p>
+                <p className="boss-prompt-note">Cada intento le resta vida para todos. Cuando caiga, el botín se reparte según cuánto daño hiciste. Nivel mínimo {bossPrompt.level}.</p>
+                {stats && stats.level < bossPrompt.level && <p className="boss-prompt-warn">⚠ Necesitas nivel {bossPrompt.level} para enfrentarlo. Sigue cazando y vuelve.</p>}
+              </>
+            ) : <p>Nivel {bossPrompt.level}</p>}
+            {bossPrompt.kind !== 'mythic' && stats && stats.level < bossPrompt.level - 3 && (
               <p className="boss-prompt-warn">⚠ Es mucho más fuerte que tú (nivel {stats.level}). Ve con tu grupo completo y pociones.</p>
             )}
             <div className="boss-prompt-actions">
-              <button type="button" className="boss-prompt-go" onClick={confirmBoss}>Desafiar <kbd>Enter</kbd></button>
+              <button type="button" className="boss-prompt-go" onClick={confirmBoss} disabled={bossPrompt.kind === 'mythic' && !!stats && stats.level < bossPrompt.level}>Desafiar <kbd>Enter</kbd></button>
               <button type="button" className="boss-prompt-no" onClick={() => setBossPrompt(null)}>Ahora no <kbd>Esc</kbd></button>
             </div>
           </div>
@@ -702,9 +737,9 @@ export default function World() {
 
       {encounter && (
         <div className="world-encounter">
-          <div className={`world-encounter-text${encounter.kind === 'boss' ? ' world-encounter-text--boss' : ''}`}>
-            <small>{encounter.kind === 'boss' ? (encounter.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe') : '¡Combate!'}</small>
-            {encounter.kind === 'boss' ? encounter.name : (encounter.name ? `Un ${encounter.name} te ataca` : '¡Algo se mueve entre la hierba!')}
+          <div className={`world-encounter-text${encounter.kind === 'boss' || encounter.kind === 'mythic' ? ' world-encounter-text--boss' : ''}`}>
+            <small>{encounter.kind === 'esbirro' ? 'Esbirro de Aullaluna' : encounter.kind === 'mythic' ? 'Jefe mítico' : encounter.kind === 'boss' ? (encounter.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe') : '¡Combate!'}</small>
+            {encounter.kind === 'boss' || encounter.kind === 'mythic' ? encounter.name : (encounter.name ? `Un ${encounter.name} te ataca` : '¡Algo se mueve entre la hierba!')}
           </div>
         </div>
       )}

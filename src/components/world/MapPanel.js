@@ -5,6 +5,8 @@ import { api } from '../../api/client';
 import bus from '../../game/bus';
 import { ATLAS_ZONES, ATLAS_ROADS, ZONE_EXITS, CONTINENT_PATH } from '../../game/atlas';
 import GameIcon from '../GameIcon';
+import { MythicMark } from './coleccionArt';
+import './BestiarioPanel.css';
 import FloatingPanel from './FloatingPanel';
 import './MapPanel.css';
 
@@ -185,6 +187,11 @@ function ZoneMap({ onWorld }) {
               </span>
             );
           })}
+          {data.mythic && (
+            <span className="mp-pin mp-mythic" style={{ left: data.mythic.x * scale, top: data.mythic.y * scale }} title={`${data.mythic.name} — ${data.mythic.spot}`}>
+              <i><MythicMark scale={1} /></i><em>{data.mythic.name.split(',')[0]}</em>
+            </span>
+          )}
           {hero && (
             <span className="mp-hero" style={{ left: hero.x * scale, top: hero.y * scale }}>
               <i style={{ transform: `rotate(${facingRot}deg)` }}>▼</i>
@@ -208,6 +215,7 @@ function ZoneMap({ onWorld }) {
           <span><i className="mp-l-poi">◆</i> Lugar</span>
           <span><i className="mp-l-boss">☠</i> Jefe</span>
           <span><i className="mp-l-exit">➜</i> Salida</span>
+          {data.mythic && <span><i><MythicMark scale={1} /></i> Jefe mítico</span>}
         </div>
         <div className="mp-tools">
           <button type="button" className={zoom === 1 ? 'on' : ''} onClick={() => setZoom(1)}>Entera</button>
