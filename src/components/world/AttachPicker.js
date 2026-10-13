@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
-import GameIcon from '../GameIcon';
+import ItemIcon from './ItemIcon';
 import ItemTooltip from './ItemTooltip';
 import { iconForItem, RARITY_LABELS } from './itemIcons';
 import { CardIcon, RARITY_LABEL } from './coleccionArt';
@@ -72,14 +72,14 @@ export default function AttachPicker({ taken, onPick, refreshKey, disabled, excl
               </button>
             );
           }
-          const icon = iconForItem({ name: e.name, slot: e.slot, item_type: e.itemType });
+          const icon = iconForItem({ ...e, item_type: e.itemType });
           return (
             <button key={entryKey(e)} type="button" disabled={disabled}
               className={`wp-slot wp-rarity-${(e.rarity || 'COMUN').toLowerCase()}`}
               onClick={() => pick(false)} onContextMenu={(ev) => { ev.preventDefault(); pick(true); }}
               onMouseMove={tip} onMouseLeave={() => setHover(null)}
             >
-              <GameIcon name={icon.name} artist={icon.artist} />
+              <ItemIcon icon={icon} />
               {e.enchantLevel > 0 && <span className="wp-slot-enchant">+{e.enchantLevel}</span>}
               {e.left > 1 && <span className="wp-slot-qty">{e.left}</span>}
             </button>
@@ -112,10 +112,10 @@ export function EntryIcon({ e }) {
       </span>
     );
   }
-  const icon = iconForItem({ name: e.name, slot: e.slot, item_type: e.itemType });
+  const icon = iconForItem({ ...e, item_type: e.itemType });
   return (
     <span className={`wp-slot wp-rarity-${(e.rarity || 'COMUN').toLowerCase()} ap-mini`}>
-      <GameIcon name={icon.name} artist={icon.artist} />
+      <ItemIcon icon={icon} />
       {e.enchantLevel > 0 && <span className="wp-slot-enchant">+{e.enchantLevel}</span>}
     </span>
   );

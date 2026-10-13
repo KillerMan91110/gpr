@@ -3,6 +3,7 @@ import bus from './bus';
 import audio from './audio';
 import { ELEMENTS } from './elements';
 import { STATUS_ICONS, statusesOf } from './statuses';
+import { preloadGear, gearTexture, bodyTexture } from './battleGear';
 
 // Escena de combate estilo Octopath (2.5D): fondo en capas con parallax y desenfoque, héroes a la
 // izquierda y monstruos a la derecha en diagonal, cámara que respira y se acerca en los golpes.
@@ -85,6 +86,8 @@ export default class BattleScene extends Phaser.Scene {
         sheet(`w_${CLASS_WEAPON[cls]}`, `${ASSETS}/sprites/combate/armas/${CLASS_WEAPON[cls]}.png`, 48);
       }
     }
+    // el arma, la mano secundaria y la armadura que lleva puestos cada héroe (game/battleGear.js)
+    preloadGear(this, this.state.participants);
     // íconos de estados (los mismos de la interfaz); se achican en create para que se lean bien
     for (const [name, artist] of STATUS_ICONS) {
       if (!this.textures.exists(`ico_${name}`) && !this.textures.exists(`icos_${name}`)) {
@@ -251,6 +254,10 @@ export default class BattleScene extends Phaser.Scene {
         if (this.textures.exists(`w_${w}`)) make(`w_${w}_${tag}`, `w_${w}`, a.frames, a.durations, a.loop);
       }
     }
+    this.makeUnitAnims = (tex) => {
+      if (!this.textures.exists(tex)) return;
+      for (const [tag, a] of Object.entries(manifest.animations)) make(`${tex}_${tag}`, tex, a.frames, a.durations, a.loop);
+    };
     for (const [code, m] of Object.entries(catalog)) {
       if (!this.textures.exists(`mon_${code}`)) continue;
       for (const [tag, a] of Object.entries(m.animations)) make(`m_${code}_${tag}`, `mon_${code}`, a.frames, a.durations, a.loop);
@@ -274,13 +281,20 @@ export default class BattleScene extends Phaser.Scene {
 
   spawnHero(p, slot) {
     const cls = this.classOf(p);
-    const weaponKey = CLASS_WEAPON[cls];
-    const showWeapon = !this.isMyHero(p) || this.heroHasWeapon;
+    // equipo puesto (lo manda el servidor para los jugadores): arma y mano secundaria con el
+    // color de su set y la ropa del color de la armadura. Los compañeros NPC usan lo de su clase.
+    const gear = p.gear;
+    const weaponTex = (gear?.weapon && gearTexture(this, gear.weapon, 'weapon')) || `w_${CLASS_WEAPON[cls]}`;
+    const offhandTex = gear?.offhand ? gearTexture(this, gear.offhand, 'offhand') : null;
+    const bodyTex = gear ? bodyTexture(this, cls, gear.armor) : `b_${cls}`;
+    [weaponTex, offhandTex, bodyTex].forEach((t) => t && this.makeUnitAnims(t));
+    const showWeapon = gear ? !!gear.weapon : (!this.isMyHero(p) || this.heroHasWeapon);
     const shadow = this.shadow(slot.x, slot.y, 34);
-    const weapon = showWeapon ? this.add.sprite(slot.x, slot.y, `w_${weaponKey}`, 0).setOrigin(22 / 48, 46 / 48).setScale(UNIT_SCALE).setDepth(slot.y) : null;
-    const body = this.add.sprite(slot.x, slot.y, `b_${cls}`, 0).setOrigin(22 / 48, 46 / 48).setScale(UNIT_SCALE).setDepth(slot.y + 0.5);
+    const weapon = showWeapon && this.textures.exists(weaponTex) ? this.add.sprite(slot.x, slot.y, weaponTex, 0).setOrigin(22 / 48, 46 / 48).setScale(UNIT_SCALE).setDepth(slot.y) : null;
+    const body = this.add.sprite(slot.x, slot.y, bodyTex, 0).setOrigin(22 / 48, 46 / 48).setScale(UNIT_SCALE).setDepth(slot.y + 0.5);
+    const offhand = offhandTex ? this.add.sprite(slot.x, slot.y, offhandTex, 0).setOrigin(22 / 48, 46 / 48).setScale(UNIT_SCALE).setDepth(slot.y + 0.6) : null;
     const unit = {
-      pid: p.id, side: 'PLAYER', kind: 'hero', cls, weaponKey, body, weapon, shadow,
+      pid: p.id, side: 'PLAYER', kind: 'hero', cls, weaponTex, bodyTex, offhandTex, body, weapon, offhand, shadow,
       home: { ...slot }, alive: p.hp > 0, ranged: cls === 'arquero', maxHp: p.max_hp, name: p.name,
       elementCode: p.element_code ?? null, imbued: p.imbued_element_code ?? null, resistances: {},
     };
@@ -325,8 +339,9 @@ export default class BattleScene extends Phaser.Scene {
 
   playUnit(u, tag) {
     if (u.kind === 'hero') {
-      u.body.play(`b_${u.cls}_${tag}`, true);
-      u.weapon?.play(`w_${u.weaponKey}_${tag}`, true);
+      u.body.play(`${u.bodyTex}_${tag}`, true);
+      u.weapon?.play(`${u.weaponTex}_${tag}`, true);
+      u.offhand?.play(`${u.offhandTex}_${tag}`, true);
     } else {
       const key = `m_${u.code}_${tag}`;
       if (this.anims.exists(key)) u.body.play(key, true);
@@ -336,7 +351,7 @@ export default class BattleScene extends Phaser.Scene {
 
   // mueve cuerpo, arma y sombra juntos
   moveUnit(u, x, y, duration, ease = 'Quad.easeOut') {
-    return tween(this, { targets: [u.body, u.weapon, u.shadow].filter(Boolean), x, y, duration, ease });
+    return tween(this, { targets: [u.body, u.weapon, u.offhand, u.shadow].filter(Boolean), x, y, duration, ease });
   }
 
   // ---------------------------------------------------------------- entrada
@@ -347,11 +362,11 @@ export default class BattleScene extends Phaser.Scene {
     this.tweens.add({ targets: cam, zoom: this.baseZoom, duration: 900, ease: 'Cubic.easeOut' });
     const heroes = [...this.units.values()].filter((u) => u.kind === 'hero');
     const monsters = [...this.units.values()].filter((u) => u.kind === 'monster');
-    heroes.forEach((u) => [u.body, u.weapon, u.shadow].filter(Boolean).forEach((o) => { o.x -= 140; }));
+    heroes.forEach((u) => [u.body, u.weapon, u.offhand, u.shadow].filter(Boolean).forEach((o) => { o.x -= 140; }));
     monsters.forEach((u) => [u.body, u.shadow, u.label].forEach((o) => o.setAlpha(0)));
     heroes.forEach((u, i) => {
       this.playUnit(u, 'idle');
-      this.tweens.add({ targets: [u.body, u.weapon, u.shadow].filter(Boolean), x: `+=140`, duration: 650, delay: i * 90, ease: 'Cubic.easeOut' });
+      this.tweens.add({ targets: [u.body, u.weapon, u.offhand, u.shadow].filter(Boolean), x: `+=140`, duration: 650, delay: i * 90, ease: 'Cubic.easeOut' });
     });
     monsters.forEach((u, i) => this.tweens.add({ targets: [u.body, u.shadow, u.label], alpha: 1, duration: 500, delay: 300 + i * 120 }));
     await wait(this, 1000);
@@ -520,7 +535,7 @@ export default class BattleScene extends Phaser.Scene {
     if (log.evaded) {
       audio.sfx('esquiva');
       this.floatText(target, '¡Esquiva!', '#ffffff', 11);
-      await tween(this, { targets: [target.body, target.weapon].filter(Boolean), x: `+=${target.side === 'PLAYER' ? -12 : 12}`, duration: 90, yoyo: true });
+      await tween(this, { targets: [target.body, target.weapon, target.offhand].filter(Boolean), x: `+=${target.side === 'PLAYER' ? -12 : 12}`, duration: 90, yoyo: true });
       return;
     }
     if (log.heal) {
@@ -541,9 +556,11 @@ export default class BattleScene extends Phaser.Scene {
     this.playUnit(target, 'hurt');
     target.body.setTintFill(el ? el.light : 0xffffff);
     target.weapon?.setTintFill(0xffffff);
+    target.offhand?.setTintFill(0xffffff);
     this.time.delayedCall(weak ? 140 : 80, () => {
       target.body.clearTint();
       target.weapon?.clearTint();
+      target.offhand?.clearTint();
       if (target.stunFx) target.body.setTint(0x9aa0c8); // sigue aturdido (roto)
     });
     if (el && kind !== 'magic') this.elementEffect(target, element, 0.6);
@@ -563,7 +580,7 @@ export default class BattleScene extends Phaser.Scene {
       this.floatText(target, `${log.damage}`, color, affinity > 0 ? 12 : 15, affinity > 0 ? 'Resiste' : null, '#a8a0b8');
     }
     const dir = target.side === 'PLAYER' ? -1 : 1;
-    await tween(this, { targets: [target.body, target.weapon].filter(Boolean), x: `+=${dir * (weak ? 12 : 7)}`, duration: 70, yoyo: true });
+    await tween(this, { targets: [target.body, target.weapon, target.offhand].filter(Boolean), x: `+=${dir * (weak ? 12 : 7)}`, duration: 70, yoyo: true });
     this.drawBar(target);
     if (log.hp_after != null && log.hp_after <= 0) await this.kill(target);
     else if (target.alive) this.playUnit(target, 'idle');
@@ -685,22 +702,25 @@ export default class BattleScene extends Phaser.Scene {
     heroes.forEach((u) => {
       u.body.setFlipX(true);
       u.weapon?.setFlipX(true);
+      u.offhand?.setFlipX(true);
     });
-    await Promise.all(heroes.map((u) => tween(this, { targets: [u.body, u.weapon, u.shadow].filter(Boolean), x: '-=220', alpha: 0, duration: 650, ease: 'Quad.easeIn' })));
+    await Promise.all(heroes.map((u) => tween(this, { targets: [u.body, u.weapon, u.offhand, u.shadow].filter(Boolean), x: '-=220', alpha: 0, duration: 650, ease: 'Quad.easeIn' })));
   }
 
   // Intento de huida fallido: el héroe se da vuelta, corre un poco, tropieza y vuelve a su lugar
   async failEscape(actor) {
     if (!actor?.alive) { await wait(this, 300); return; }
-    const parts = [actor.body, actor.weapon, actor.shadow].filter(Boolean);
+    const parts = [actor.body, actor.weapon, actor.offhand, actor.shadow].filter(Boolean);
     actor.body.setFlipX(true);
     actor.weapon?.setFlipX(true);
+    actor.offhand?.setFlipX(true);
     await tween(this, { targets: parts, x: '-=46', duration: 260, ease: 'Quad.easeOut' });
     this.playUnit(actor, 'hurt');
     this.floatText(actor, '¡No pudo huir!', '#ffb4a8', 10);
     await tween(this, { targets: parts, x: '+=6', duration: 70, yoyo: true, repeat: 2 });
     actor.body.setFlipX(false);
     actor.weapon?.setFlipX(false);
+    actor.offhand?.setFlipX(false);
     await tween(this, { targets: parts, x: actor.home.x, duration: 320, ease: 'Quad.easeInOut' });
     this.playUnit(actor, 'idle');
   }
@@ -867,7 +887,7 @@ export default class BattleScene extends Phaser.Scene {
     const flip = actor.side === 'ENEMY';
     if (style.heavy) {
       // salto y golpe contra el suelo
-      const parts = [actor.body, actor.weapon].filter(Boolean);
+      const parts = [actor.body, actor.weapon, actor.offhand].filter(Boolean);
       await tween(this, { targets: parts, y: '-=34', duration: 180, ease: 'Quad.easeOut' });
       this.playUnit(actor, actor.kind === 'hero' ? 'attack_melee' : 'attack');
       await tween(this, { targets: parts, y: '+=34', duration: 110, ease: 'Quad.easeIn' });
@@ -925,7 +945,7 @@ export default class BattleScene extends Phaser.Scene {
   async fxQuake(actor, hits, element) {
     this.focusOn(actor);
     this.playUnit(actor, actor.kind === 'hero' ? 'attack_melee' : 'cast');
-    const parts = [actor.body, actor.weapon].filter(Boolean);
+    const parts = [actor.body, actor.weapon, actor.offhand].filter(Boolean);
     await tween(this, { targets: parts, y: '-=24', duration: 200, ease: 'Quad.easeOut' });
     await tween(this, { targets: parts, y: '+=24', duration: 110, ease: 'Quad.easeIn' });
     this.cameras.main.shake(600, 0.02);
@@ -1114,7 +1134,7 @@ export default class BattleScene extends Phaser.Scene {
       this.cameras.main.flash(200, 255, 240, 180);
       // vuelve a levantarse (el estado final confirma la vida)
       h.unit.alive = true;
-      this.tweens.add({ targets: [h.unit.body, h.unit.shadow, h.unit.weapon, h.unit.label].filter(Boolean), alpha: 1, duration: 400 });
+      this.tweens.add({ targets: [h.unit.body, h.unit.shadow, h.unit.weapon, h.unit.offhand, h.unit.label].filter(Boolean), alpha: 1, duration: 400 });
       h.unit.label?.setVisible(true);
       this.playUnit(h.unit, 'idle');
       if (h.log.hp_after != null) h.unit.hp = h.log.hp_after;
@@ -1222,7 +1242,7 @@ export default class BattleScene extends Phaser.Scene {
       alpha: { start: 0.85, end: 0 }, tint: [0x6a6a7a, 0x3a3a48, 0x9a9aaa], blendMode: 'NORMAL',
     }, 26);
     // se desvanece un momento; si queda invisible lo mantiene el efecto del estado (NO_DAMAGE)
-    await tween(this, { targets: [actor.body, actor.weapon].filter(Boolean), alpha: 0.3, duration: 300, yoyo: true, hold: 250 });
+    await tween(this, { targets: [actor.body, actor.weapon, actor.offhand].filter(Boolean), alpha: 0.3, duration: 300, yoyo: true, hold: 250 });
     if (actor.alive) this.playUnit(actor, 'idle');
   }
 
@@ -1482,7 +1502,7 @@ export default class BattleScene extends Phaser.Scene {
         scale: { start: 1, end: 0 }, tint: 0x7dff9a, blendMode: 'ADD',
       }).setDepth(1050), -20));
     } else if (st.key === 'NO_DAMAGE') {
-      const targets = [u.body, u.weapon].filter(Boolean);
+      const targets = [u.body, u.weapon, u.offhand].filter(Boolean);
       const tw = this.tweens.add({ targets, alpha: { from: 0.35, to: 0.6 }, duration: 700, yoyo: true, repeat: -1 });
       return { stop: () => { tw.stop(); targets.forEach((o) => o.setAlpha(1)); } };
     } else if (st.key === 'FARO') {
@@ -1533,11 +1553,13 @@ export default class BattleScene extends Phaser.Scene {
       }, 12);
       u.body.setTint(0x7be05a);
       u.weapon?.setTint(0x7be05a);
+      u.offhand?.setTint(0x7be05a);
       this.playUnit(u, 'hurt');
       this.floatText(u, `${log.damage}`, '#7be05a', 14, 'Veneno', '#9aff6a');
-      await tween(this, { targets: [u.body, u.weapon].filter(Boolean), x: `+=${u.side === 'PLAYER' ? -4 : 4}`, duration: 80, yoyo: true, repeat: 1 });
+      await tween(this, { targets: [u.body, u.weapon, u.offhand].filter(Boolean), x: `+=${u.side === 'PLAYER' ? -4 : 4}`, duration: 80, yoyo: true, repeat: 1 });
       u.body.clearTint();
       u.weapon?.clearTint();
+      u.offhand?.clearTint();
       this.drawBar(u);
       if (log.hp_after != null && log.hp_after <= 0) await this.kill(u);
       else if (u.alive) this.playUnit(u, 'idle');

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
+import ItemIcon from './ItemIcon';
 import audio from '../../game/audio';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
@@ -201,7 +202,7 @@ export default function MerchantPanel({ gold, onChanged, onClose, zIndex, onActi
                         onMouseLeave={() => setHover(null)}
                       >
                         <span className={`wp-slot wp-rarity-${rarity}`}>
-                          <GameIcon name={icon.name} artist={icon.artist} />
+                          <ItemIcon icon={icon} />
                           {it.playerOwns > 0 && <span className="wp-slot-qty">{it.playerOwns}</span>}
                         </span>
                         <span className="wp-ware-info">
@@ -248,7 +249,7 @@ export default function MerchantPanel({ gold, onChanged, onClose, zIndex, onActi
                         onMouseMove={(e) => setHover({ it, x: e.clientX, y: e.clientY })}
                         onMouseLeave={() => setHover(null)}
                       >
-                        <GameIcon name={icon.name} artist={icon.artist} />
+                        <ItemIcon icon={icon} />
                         {it.enchant_level > 0 && <span className="wp-slot-enchant">+{it.enchant_level}</span>}
                         {it.quantity > 1 && <span className="wp-slot-qty">{it.quantity}</span>}
                       </button>

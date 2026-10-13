@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
+import ItemIcon from './ItemIcon';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
 import { iconForItem, SLOT_LABELS, SLOT_PLACEHOLDER } from './itemIcons';
@@ -87,7 +88,7 @@ export default function CharacterPanel({ stats, refreshKey, onChanged, onClose, 
 
   const renderSlot = (slot) => {
     const item = bySlot[slot];
-    const icon = item ? iconForItem({ name: item.name, slot }) : SLOT_PLACEHOLDER[slot];
+    const icon = item ? iconForItem({ ...item, slot, item_type: 'EQUIPMENT' }) : SLOT_PLACEHOLDER[slot];
     const rarity = (item?.effectiveRarity || item?.rarity || '').toLowerCase();
     return (
       <button
@@ -100,7 +101,7 @@ export default function CharacterPanel({ stats, refreshKey, onChanged, onClose, 
         onContextMenu={(e) => { e.preventDefault(); unequip(slot); }}
         onDoubleClick={() => unequip(slot)}
       >
-        <GameIcon name={icon.name} artist={icon.artist} />
+        <ItemIcon icon={icon} />
         {item?.enchantLevel > 0 && <span className="wp-slot-enchant">+{item.enchantLevel}</span>}
       </button>
     );

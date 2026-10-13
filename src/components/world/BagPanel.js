@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
+import ItemIcon from './ItemIcon';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
 import { iconForItem } from './itemIcons';
@@ -202,7 +203,7 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
               onDoubleClick={() => activate(it)}
               onContextMenu={(e) => { e.preventDefault(); activate(it); }}
             >
-              <GameIcon name={icon.name} artist={icon.artist} />
+              <ItemIcon icon={icon} />
               {it.enchant_level > 0 && <span className="wp-slot-enchant">+{it.enchant_level}</span>}
               {it.quantity > 1 && <span className="wp-slot-qty">{it.quantity}</span>}
             </button>

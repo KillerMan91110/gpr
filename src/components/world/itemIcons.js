@@ -1,6 +1,9 @@
 // Ícono de cada ítem para la mochila y la ficha del personaje. La base no guarda un ícono por
 // ítem, así que se elige por palabras del nombre (y por slot/tipo como respaldo). Primera regla
-// que coincide gana: van de lo más específico a lo más general.
+// que coincide gana: van de lo más específico a lo más general. El equipo de las clases base
+// además trae su pixel art (game/gear.js).
+import { gearArt } from '../../game/gear';
+
 const I = (name, artist) => ({ name, artist });
 
 const RULES = [
@@ -72,10 +75,17 @@ const BY_TYPE = {
 
 const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
-export function iconForItem({ name, slot, item_type: itemType }) {
+// Devuelve { name, artist } de game-icons y, si es equipo de una clase base, también `art`
+// ({ shape, set }, el pixel art propio: lo dibuja components/world/ItemIcon.js). Pasa el ítem
+// entero cuando puedas: con el código y la clase el arte sale exacto.
+export function iconForItem(item) {
+  const { name, slot, item_type: itemType } = item ?? {};
   const n = normalize(name);
-  for (const [re, icon] of RULES) if (re.test(n)) return icon;
-  return BY_SLOT[slot] || BY_TYPE[itemType] || I('swap-bag', 'lorc');
+  let icon = null;
+  for (const [re, ic] of RULES) if (re.test(n)) { icon = ic; break; }
+  icon = icon || BY_SLOT[slot] || BY_TYPE[itemType] || I('swap-bag', 'lorc');
+  const art = gearArt(item);
+  return art ? { ...icon, art } : icon;
 }
 
 // Ícono "vacío" de cada casilla de equipo (silueta tenue, como en WoW)

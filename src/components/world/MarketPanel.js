@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import audio from '../../game/audio';
 import GameIcon from '../GameIcon';
+import ItemIcon from './ItemIcon';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
 import { iconForItem, RARITY_LABELS } from './itemIcons';
@@ -30,9 +31,9 @@ function describe(l) {
     return { icon: <GameIcon name="paw-print" artist="lorc" />, name: p.name, sub: `Mascota nivel ${p.level} · ${RARITY_LABELS[p.rarity] ?? p.rarity}`, rarity: (p.rarity || 'COMUN').toLowerCase() };
   }
   const it = l.item;
-  const ic = iconForItem({ name: it.name, slot: it.slot, item_type: it.item_type });
+  const ic = iconForItem({ ...it, code: it.code ?? l.item_code });
   const extra = [it.enchant_level > 0 ? `+${it.enchant_level}` : null, it.quality_tier > 0 ? `calidad ${it.quality_tier}` : null].filter(Boolean).join(' · ');
-  return { icon: <GameIcon name={ic.name} artist={ic.artist} />, name: it.name, sub: `${RARITY_LABELS[it.rarity] ?? ''}${extra ? ` · ${extra}` : ''}`, rarity: (it.rarity || 'COMUN').toLowerCase() };
+  return { icon: <ItemIcon icon={ic} />, name: it.name, sub: `${RARITY_LABELS[it.rarity] ?? ''}${extra ? ` · ${extra}` : ''}`, rarity: (it.rarity || 'COMUN').toLowerCase() };
 }
 
 function Comprar({ onMsg, gold }) {

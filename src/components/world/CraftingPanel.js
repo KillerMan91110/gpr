@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
+import ItemIcon from './ItemIcon';
 import audio from '../../game/audio';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
@@ -153,7 +154,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                       className={`wp-recipe${recipe?.code === r.code ? ' wp-recipe--sel' : ''}${r.canCraft ? '' : ' wp-recipe--missing'}`}
                       onClick={() => { setSelCode(r.code); setQty(1); setResult(null); }}
                     >
-                      <span className={`wp-slot wp-slot--sm wp-rarity-${(r.rarity || 'COMUN').toLowerCase()}`}><GameIcon name={icon.name} artist={icon.artist} /></span>
+                      <span className={`wp-slot wp-slot--sm wp-rarity-${(r.rarity || 'COMUN').toLowerCase()}`}><ItemIcon icon={icon} /></span>
                       <span className={`wp-recipe-name wp-text-${(r.rarity || 'COMUN').toLowerCase()}`}>{r.resultName}</span>
                       {r.canCraft && <span className="wp-recipe-count" title="Puedes fabricar">{n}</span>}
                     </button>
@@ -171,7 +172,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                       onMouseMove={(e) => recipe.resultItemId && setHover({ x: e.clientX, y: e.clientY })}
                       onMouseLeave={() => setHover(null)}
                     >
-                      <GameIcon name={resultIcon.name} artist={resultIcon.artist} />
+                      <ItemIcon icon={resultIcon} />
                       {recipe.resultQuantity > 1 && <span className="wp-slot-qty">{recipe.resultQuantity}</span>}
                     </span>
                     <div>
@@ -191,7 +192,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                       const ok = ing.have >= ing.need * qty;
                       return (
                         <li key={`${ing.itemId}-${i}`} className={ok ? '' : 'wp-mat--missing'}>
-                          <span className="wp-slot wp-slot--sm"><GameIcon name={icon.name} artist={icon.artist} /></span>
+                          <span className="wp-slot wp-slot--sm"><ItemIcon icon={icon} /></span>
                           <span className="wp-mat-name">{ing.itemName}</span>
                           <span className="wp-mat-count"><b>{ing.have}</b> / {ing.need * qty}</span>
                         </li>
@@ -234,7 +235,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                   className={`wp-slot wp-rarity-${(it.rarity || 'COMUN').toLowerCase()}${selItem?.inventory_id === it.inventory_id ? ' wp-slot--sel' : ''}`}
                   onClick={() => { setSelItem(it); setQty(1); setResult(null); }}
                 >
-                  <GameIcon name={icon.name} artist={icon.artist} />
+                  <ItemIcon icon={icon} />
                   {it.quantity > 1 && <span className="wp-slot-qty">{it.quantity}</span>}
                 </button>
               );
@@ -247,7 +248,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
               <>
                 <header className="wp-craft-head">
                   <span className={`wp-slot wp-slot--lg wp-rarity-${(selItem.rarity || 'COMUN').toLowerCase()}`}>
-                    <GameIcon name={iconForItem(selItem).name} artist={iconForItem(selItem).artist} />
+                    <ItemIcon icon={iconForItem(selItem)} />
                   </span>
                   <div>
                     <strong className={`wp-text-${(selItem.rarity || 'COMUN').toLowerCase()}`}>{selItem.name}</strong>

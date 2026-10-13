@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
+import ItemIcon from './ItemIcon';
 import audio from '../../game/audio';
 import FloatingPanel from './FloatingPanel';
 import { iconForItem, SLOT_LABELS } from './itemIcons';
@@ -93,11 +94,11 @@ export default function EnchantPanel({ onChanged, onClose, zIndex, onActivate, d
         <div className="wp-craft">
           <ul className="wp-recipe-list wp-recipe-list--narrow">
             {slots.map((s) => {
-              const ic = iconForItem({ name: s.itemName, slot: s.slot });
+              const ic = iconForItem({ ...s, name: s.itemName, item_type: 'EQUIPMENT' });
               return (
                 <li key={s.slot}>
                   <button type="button" className={`wp-recipe${current?.slot === s.slot ? ' wp-recipe--sel' : ''}`} onClick={() => setSelSlot(s.slot)}>
-                    <span className="wp-slot wp-slot--sm"><GameIcon name={ic.name} artist={ic.artist} /></span>
+                    <span className="wp-slot wp-slot--sm"><ItemIcon icon={ic} /></span>
                     <span className="wp-recipe-name">{s.itemName}<small className="wp-sub">{SLOT_LABELS[s.slot] ?? s.slot}</small></span>
                     <span className={`wp-enchant-lv${s.enchantLevel > 0 ? ' on' : ''}`}>+{s.enchantLevel}</span>
                   </button>
@@ -110,7 +111,7 @@ export default function EnchantPanel({ onChanged, onClose, zIndex, onActivate, d
             <section className={`wp-craft-detail wp-forge${flash ? (flash.ok ? ' wp-forge--ok' : ' wp-forge--fail') : ''}`}>
               <div className="wp-forge-item">
                 <span className="wp-slot wp-slot--lg wp-forge-slot">
-                  <GameIcon name={iconForItem({ name: current.itemName, slot: current.slot }).name} artist={iconForItem({ name: current.itemName, slot: current.slot }).artist} />
+                  <ItemIcon icon={iconForItem({ ...current, name: current.itemName, item_type: 'EQUIPMENT' })} />
                   {current.enchantLevel > 0 && <span className="wp-slot-enchant">+{current.enchantLevel}</span>}
                 </span>
                 <strong>{current.itemName}</strong>

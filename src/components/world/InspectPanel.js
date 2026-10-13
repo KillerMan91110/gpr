@@ -4,6 +4,7 @@ import { api } from '../../api/client';
 import bus from '../../game/bus';
 import audio from '../../game/audio';
 import GameIcon from '../GameIcon';
+import ItemIcon from './ItemIcon';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
 import { iconForItem, SLOT_PLACEHOLDER, SLOT_LABELS, RARITY_LABELS } from './itemIcons';
@@ -23,7 +24,7 @@ function Portrait({ classCode, className }) {
   const base = BASES.find((b) => plain(classCode).startsWith(b) || plain(className).startsWith(b));
   if (base) return <img src={`${process.env.PUBLIC_URL}/portraits/${base.charAt(0).toUpperCase()}${base.slice(1)}.png`} alt="" />;
   const icon = CLASS_ICON[classCode] ?? { name: 'person', artist: 'delapouite' };
-  return <GameIcon name={icon.name} artist={icon.artist} />;
+  return <ItemIcon icon={icon} />;
 }
 
 // Inspeccionar a otro jugador del mundo (clic en él → Inspeccionar): su equipo con íconos y
@@ -57,7 +58,7 @@ export default function InspectPanel({ args, coop, onCoopChanged, ...props }) {
         </span>
       );
     }
-    const icon = iconForItem({ name: e.itemName, slot: e.slot, item_type: 'EQUIPMENT' });
+    const icon = iconForItem({ ...e, name: e.itemName, item_type: 'EQUIPMENT' });
     const rarity = (e.rarity || 'COMUN').toLowerCase();
     return (
       <span
@@ -66,7 +67,7 @@ export default function InspectPanel({ args, coop, onCoopChanged, ...props }) {
         onMouseMove={(ev) => setHover({ e, x: ev.clientX, y: ev.clientY })}
         onMouseLeave={() => setHover(null)}
       >
-        <GameIcon name={icon.name} artist={icon.artist} />
+        <ItemIcon icon={icon} />
         {e.enchantLevel > 0 && <span className="wp-slot-enchant">+{e.enchantLevel}</span>}
       </span>
     );

@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import audio from '../../game/audio';
 import GameIcon from '../GameIcon';
+import ItemIcon from './ItemIcon';
 import QuestObjectives from '../QuestObjectives';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
@@ -194,7 +195,7 @@ export default function OrderPanel({ orden, gold, onChanged, ...props }) {
               const poor = it.buyPrice > (gold ?? 0);
               return (
                 <div key={it.id} className={`op-ware${poor ? ' op-ware--poor' : ''}`} onMouseMove={(e) => setHover({ it, x: e.clientX, y: e.clientY })} onMouseLeave={() => setHover(null)}>
-                  <span className={`wp-slot wp-rarity-${rarity}`}><GameIcon name={icon.name} artist={icon.artist} /></span>
+                  <span className={`wp-slot wp-rarity-${rarity}`}><ItemIcon icon={icon} /></span>
                   <span className="op-ware-info">
                     <span className={`wp-text-${rarity}`}>{it.name}</span>
                     <small>{RARITY_LABELS[it.rarity] ?? it.rarity}{it.requiredLevel ? ` · Nv ${it.requiredLevel}` : ''}</small>
@@ -227,7 +228,7 @@ export default function OrderPanel({ orden, gold, onChanged, ...props }) {
             return (
               <div key={`${it.item_id}-${enchant}`} className="op-ware" onMouseMove={(e) => setHover({ it, x: e.clientX, y: e.clientY })} onMouseLeave={() => setHover(null)}>
                 <span className={`wp-slot wp-rarity-${rarity}`}>
-                  <GameIcon name={icon.name} artist={icon.artist} />
+                  <ItemIcon icon={icon} />
                   {enchant > 0 && <span className="wp-slot-enchant">+{enchant}</span>}
                   {it.quantity > 1 && <span className="wp-slot-qty">{it.quantity}</span>}
                 </span>
