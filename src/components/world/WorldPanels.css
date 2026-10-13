@@ -15,6 +15,9 @@
   z-index: 25;
   display: flex;
   flex-direction: column;
+  /* nunca más grande que la pantalla: lo que no entra se desplaza dentro del cuerpo */
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 16px);
   background: linear-gradient(180deg, rgba(30, 24, 38, 0.97), rgba(16, 12, 20, 0.98));
   border: 1px solid var(--gold);
   border-radius: 8px;
@@ -78,7 +81,8 @@
 
 .wp-panel-close:hover { filter: brightness(1.25); }
 
-.wp-panel-body { padding: 10px 12px; }
+.wp-panel-body { flex: 1; min-height: 0; padding: 10px 12px; overflow: auto; overscroll-behavior: contain; }
+.wp-panel-head, .wp-panel-foot { flex: none; }
 
 .wp-panel-foot {
   display: flex;

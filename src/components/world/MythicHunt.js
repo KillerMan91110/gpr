@@ -24,6 +24,13 @@ export default function MythicHunt({ worldReady, inBattle }) {
   const [reward, setReward] = useState(null);
   const [toast, setToast] = useState(null);
   const [, tick] = useState(0);
+  // huyó y aún no encontraste su escondite: la barra no dice dónde está
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    const onHidden = (h) => setHidden(!!h.hidden);
+    bus.on('mythic-hidden', onHidden);
+    return () => bus.off('mythic-hidden', onHidden);
+  }, []);
   // los avisos que llegan en pleno combate esperan a que vuelvas al mapa
   const queue = useRef([]);
   const inBattleRef = useRef(inBattle);
@@ -95,7 +102,7 @@ export default function MythicHunt({ worldReady, inBattle }) {
         <div className={`mh-bar${hunt.redMoon ? ' mh-bar--red' : ''}`}>
           <MythicMark scale={2} />
           <div className="mh-bar-body">
-            <span className="mh-bar-name"><b>{hunt.name}</b> <small>en {hunt.spot} · se irá en {left(new Date(hunt.endsAt).getTime() - Date.now())}</small></span>
+            <span className="mh-bar-name"><b>{hunt.name}</b> <small>{hidden && hunt.from ? 'escondido: sigue sus huellas' : `en ${hunt.spot}`} · se irá en {left(new Date(hunt.endsAt).getTime() - Date.now())}</small></span>
             <div className="mh-bar-track">
               <div className="mh-bar-fill" style={{ width: `${(hunt.hp / hunt.maxHp) * 100}%` }} />
               {[75, 50, 25].map((t) => <i key={t} className="mh-bar-tick" style={{ left: `${t}%` }} />)}
@@ -143,6 +150,7 @@ export default function MythicHunt({ worldReady, inBattle }) {
               <span>+{reward.gold.toLocaleString()} oro</span>
               <span>+{reward.xp.toLocaleString()} XP</span>
               {reward.card && <span className="mh-reward-card"><CardIcon rarity="MYTHIC" /> Carta de Aullaluna</span>}
+              {reward.guildXp > 0 && <span className="mh-reward-guild">+{reward.guildXp.toLocaleString()} XP para tu gremio</span>}
               {reward.levelUp && <span>¡Subiste a nivel {reward.levelUp}!</span>}
             </div>
             <button type="button" className="wp-btn wp-btn--gold" onClick={() => setReward(null)}>¡A la caza!</button>

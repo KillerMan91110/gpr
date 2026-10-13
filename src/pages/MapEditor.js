@@ -38,6 +38,8 @@ const OBJECT_TYPES = [
   { type: 'gato', label: 'Gato', hint: 'Gato que toma el sol' },
   { type: 'vinculo', label: 'Estatua', hint: 'Estatua del Viajero: vincula la piedra de regreso (solo en ciudades grandes)' },
   { type: 'estandarte', label: 'Estandarte', hint: 'Estandarte del gremio campeón (se tiñe con su color y emblema)' },
+  { type: 'buzon', label: 'Buzón', hint: 'Buzón del correo del reino (la banderita se levanta si tienes cartas)' },
+  { type: 'secreto', label: 'Secreto', hint: 'Cofre escondido (se abre una vez). El nombre tiene que estar en SECRETS de gprback/lib/exploracion.js' },
 ];
 // objetos que se editan con la lista genérica de propiedades
 const GENERIC_PROPS = {
@@ -49,6 +51,8 @@ const GENERIC_PROPS = {
   pilar: [['etiqueta', 'string', 'Pilar de Aethra — Ofrenda'], ['ventana', 'string', 'ofrenda']],
   palomas: [],
   gato: [],
+  estandarte: [],
+  buzon: [['etiqueta', 'string', 'Abrir el buzón'], ['ventana', 'string', 'buzon']],
 };
 const PASO_TOOLS = [
   { id: 'auto', label: 'Auto', icon: '◌', hint: 'Lo que diga el tile (borra lo forzado)' },
@@ -622,6 +626,10 @@ export default function MapEditor() {
       case 'pilar': return { ...base, name: 'pilar', properties: GENERIC_PROPS.pilar.map(([n, t, v]) => prop(n, t, v)) };
       case 'palomas': return { ...base, name: `palomas_${count('palomas')}` };
       case 'gato': return { ...base, name: `gato_${count('gato')}` };
+      case 'vinculo': return { ...base, name: `estatua_${count('vinculo')}`, properties: GENERIC_PROPS.vinculo.map(([n, t, v]) => prop(n, t, v)) };
+      case 'estandarte': return { ...base, name: `estandarte_${count('estandarte')}` };
+      case 'secreto': return { ...base, name: `secreto_${count('secreto')}` };
+      case 'buzon': return { ...base, name: `buzon_${count('buzon')}`, properties: GENERIC_PROPS.buzon.map(([n, t, v]) => prop(n, t, v)) };
       default: return base;
     }
   };
@@ -1141,7 +1149,7 @@ export default function MapEditor() {
             <div className="me-addgrid">
               {OBJECT_TYPES.map((t) => (
                 <button key={t.type} type="button" className={addType === t.type ? 'on' : ''} title={t.hint} onClick={() => setAddType(addType === t.type ? null : t.type)}>
-                  <i style={{ background: POINT_STYLE[t.type].color }} />{t.label}
+                  <i style={{ background: POINT_STYLE[t.type]?.color ?? '#999' }} />{t.label}
                 </button>
               ))}
             </div>

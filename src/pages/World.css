@@ -1123,3 +1123,41 @@ body.en-mundo .coop-invite-popup { bottom: 110px; }
   .hud-party.hud-party--coop > .hud-party-member { display: none; }
 }
 .world-root--battle .hud-party.hud-party--coop { display: none; }
+
+/* ---- Guía del aventurero (GuideTracker.js): bajo el minimapa, encima de las misiones ---- */
+.hud-guide {
+  width: 250px;
+  display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; border-radius: 8px;
+  background: linear-gradient(180deg, rgba(28, 24, 14, 0.92), rgba(16, 14, 10, 0.92));
+  border: 1px solid var(--gold-dim); box-shadow: 0 0 14px rgba(255, 210, 110, 0.18);
+}
+.hud-guide-head { display: flex; align-items: center; gap: 6px; color: var(--gold-bright); font: 700 0.72rem 'Cinzel', serif; letter-spacing: 0.08em; text-transform: uppercase; }
+.hud-guide-head .game-icon { font-size: 14px; }
+.hud-guide-head small { margin-left: auto; color: var(--cream); opacity: 0.8; }
+.hud-guide strong { color: #ffe9a8; font: 700 0.95rem 'Cinzel', serif; }
+.hud-guide p { margin: 0; color: var(--cream); font: 500 0.8rem/1.3 'EB Garamond', serif; }
+.hud-guide-foot { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.hud-guide-reward { flex: 1; color: #7dff9a; font: 600 0.72rem 'EB Garamond', serif; }
+.hud-guide-foot button {
+  padding: 3px 9px; border-radius: 4px; cursor: pointer; border: 1px solid var(--gold-dim);
+  background: rgba(232, 196, 106, 0.12); color: var(--gold-bright); font: 700 0.7rem 'Cinzel', serif;
+}
+.hud-guide-foot .hud-guide-skip { border-color: transparent; background: none; color: var(--text-soft); font-weight: 600; }
+@media (max-width: 900px) { .hud-guide { width: 210px; } }
+
+/* botón de la barra recién encendido por la guía */
+.hud-slot--new { animation: hud-new 1.1s ease-in-out infinite; }
+@keyframes hud-new { 50% { box-shadow: 0 0 14px rgba(255, 216, 74, 0.9); border-color: var(--gold-bright); } }
+
+/* ---- columna derecha del HUD (World.js): eventos, guía y misiones apilados bajo el minimapa ---- */
+.hud-right {
+  position: absolute; z-index: 20; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+  max-height: calc(100% - 260px); overflow: hidden; pointer-events: none;
+}
+.hud-right > * { position: static !important; pointer-events: auto; }
+.hud-right .hud-events { pointer-events: none; }
+.hud-right .hud-tracker { pointer-events: none; }
+/* el botón de sonido va a la izquierda del minimapa, abajo (arriba están los bufos); antes tapaba
+   la columna de la derecha */
+.hud-sound { top: 120px; right: 208px; }
+@media (max-width: 599px) { .hud-sound { top: 62px; right: 132px; } }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import Phaser from 'phaser';
@@ -43,6 +43,13 @@ import StallPanel from '../components/world/StallPanel';
 import MyStallPanel from '../components/world/MyStallPanel';
 import MailPanel from '../components/world/MailPanel';
 import BestiarioPanel from '../components/world/BestiarioPanel';
+import KeysPanel from '../components/world/KeysPanel';
+import GuideTracker from '../components/world/GuideTracker';
+import useGuide from '../components/world/useGuide';
+import useExploration from '../components/world/useExploration';
+import TouchControls from '../components/world/TouchControls';
+import { useEvents, EventChips, CalendarPanel, WandererPanel } from '../components/world/EventsHud';
+import { bindings as keyBindings } from '../game/keybinds';
 import MarketPanel from '../components/world/MarketPanel';
 import HirePanel from '../components/world/HirePanel';
 import MythicHunt from '../components/world/MythicHunt';
@@ -62,6 +69,9 @@ const WINDOWS = {
   mercado:         { title: 'Mercado',            key: 'b', icon: ['shop', 'delapouite'],        panel: MarketPanel,       pos: { x: 280, y: 70 } },
   mapa:            { title: 'Mapa',               key: 'm', icon: ['treasure-map', 'lorc'],      panel: MapPanel,          pos: { x: 360, y: 70 } },
   logros:          { title: 'Logros',             key: 'l', icon: ['trophy-cup', 'delapouite'],  panel: AchievementsPanel, pos: { x: 350, y: 100 } },
+  calendario:      { title: 'Calendario de eventos', panel: CalendarPanel, pos: { x: 380, y: 90 } },
+  ambulante:       { title: 'Mercader ambulante', panel: WandererPanel,     pos: { x: 360, y: 110 } },
+  teclas:          { title: 'Atajos de teclado',  panel: KeysPanel,         pos: { x: 360, y: 100 } },
   bestiario:       { title: 'Bestiario',          key: 'k', icon: ['book-aura', 'lorc'],         panel: BestiarioPanel,    pos: { x: 240, y: 70 } },
   ranking:         { title: 'Ranking',            key: 'r', icon: ['podium', 'delapouite'],      panel: RankingPanel,      pos: 'right' },
   social:          { title: 'Social',             key: 'o', icon: ['two-shadows', 'lorc'],       panel: SocialPanel,       pos: 'right' },
@@ -104,11 +114,12 @@ function defaultPosFor(w) {
   if (w.pos) return w.pos;
   return { x: 20 + Math.max(0, (window.innerWidth - Math.min(820, window.innerWidth - 40)) / 2), y: 70 };
 }
+// en el celular la barra muestra solo estas (y la piedra); el resto va en el menú (☰)
+const QUICK = ['inventario', 'mapa', 'misiones'];
 const TOOLBAR = ['inventario', 'personaje', 'habilidades', 'misiones', 'formacion', 'mascotas', 'gremio', 'social', 'mercado', 'mapa', 'bestiario', 'logros', 'ranking'];
 // piedra de regreso: tecla y segundos que hay que quedarse quieto para usarla
 const STONE_KEY = 'v';
 const HEARTH_MS = 5000;
-const KEY_TO_WINDOW = Object.fromEntries(Object.entries(WINDOWS).filter(([, w]) => w.key).map(([id, w]) => [w.key, id]));
 
 const BASE_CLASSES = ['guerrero', 'mago', 'arquero', 'picaro', 'sacerdote'];
 // v2: la Pradera grande por trozos (las posiciones del mapa viejo ya no sirven)
@@ -621,6 +632,7 @@ export default function World() {
       game.scene.wake('mundo', { result: status });
     }
     // botín del combate flotando sobre el héroe al volver al mapa
+    if (status === 'PLAYER_WON') bus.emit('guide-event', 'combate');
     if (status === 'PLAYER_WON' && rewards) {
       const lines = [];
       if (rewards.xp) lines.push({ text: `+${Number(rewards.xp).toLocaleString()} XP`, color: '#8fc9ff' });
@@ -646,6 +658,37 @@ export default function World() {
     setRefreshKey((k) => k + 1);
   }, [navigate, loadHud, player, token]);
 
+  // Guía del aventurero: la primera hora del jugador, paso a paso (ver components/world/useGuide.js)
+  const [newSlots, setNewSlots] = useState([]);
+  const onGuideReward = useCallback((rw, st) => {
+    const fresh = st?.newPlayer ? rw.unlocks ?? [] : [];
+    const extra = fresh.length ? ` Nuevo en la barra: ${fresh.map((id) => WINDOWS[id]?.title).filter(Boolean).join(', ')}.` : '';
+    bus.emit('social-toast', { text: `✦ ${rw.title}: +${rw.gold} oro, +${rw.xp} XP.${extra}`, kind: 'tour' });
+    if (fresh.length) { setNewSlots(fresh); setTimeout(() => setNewSlots([]), 9000); }
+    loadHud();
+  }, [loadHud]);
+  // exploración: niebla del mapa, subzonas descubiertas y cofres secretos
+  useExploration({ player, token, worldReady, zoneDir, subzone, onChanged: loadHud });
+  // calendario de eventos (fichas bajo el minimapa, avisos y el mercader en el mapa)
+  const calendar = useEvents(worldReady);
+  const { guide, skip: skipGuide } = useGuide({ player, token, worldReady, open, dialogue, zoneDir, onReward: onGuideReward });
+  // jugador nuevo: la barra se va encendiendo con la guía (null = todo encendido)
+  const unlocked = guide?.unlocked ?? null;
+  const unlockedRef = useRef(unlocked);
+  unlockedRef.current = unlocked;
+  const toolbar = unlocked ? TOOLBAR.filter((id) => unlocked.includes(id)) : TOOLBAR;
+  // menú de ventanas del celular (☰): todas las de la barra en una cuadrícula
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // atajos de las ventanas (cambiables en "Atajos de teclado")
+  const [keymap, setKeymap] = useState(() => keyBindings(WINDOWS));
+  useEffect(() => {
+    const onChange = () => setKeymap(keyBindings(WINDOWS));
+    bus.on('keybinds-changed', onChange);
+    return () => bus.off('keybinds-changed', onChange);
+  }, []);
+  const keyToWindow = useMemo(() => Object.fromEntries(Object.entries(keymap).map(([id, k]) => [k, id])), [keymap]);
+
   const bossPromptRef = useRef(null);
   bossPromptRef.current = bossPrompt;
   const dialogueRef = useRef(null);
@@ -668,12 +711,13 @@ export default function World() {
         return;
       }
       if (e.key.toLowerCase() === STONE_KEY) { e.preventDefault(); castStone(); return; }
-      const id = KEY_TO_WINDOW[e.key.toLowerCase()];
+      const id = keyToWindow[e.key.toLowerCase()];
+      if (id && unlockedRef.current && TOOLBAR.includes(id) && !unlockedRef.current.includes(id)) return; // aún apagada
       if (id) { e.preventDefault(); toggleWindow(id); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [toggleWindow, confirmBoss, castStone]);
+  }, [toggleWindow, confirmBoss, castStone, keyToWindow]);
 
   const heroMember = party.find((m) => m.isHero);
   const companions = party.filter((m) => !m.isHero);
@@ -776,7 +820,20 @@ export default function World() {
         </div>
       )}
       {!battle && <SoundControl />}
-      {!battle && <QuestTracker active={quests.active} continentZoneIds={continentZoneIds} onOpen={() => openWin('misiones')} />}
+      {/* celular / tablet: joystick para moverse */}
+      <TouchControls hidden={!!battle || !!dialogue || !worldReady} />
+      {/* columna derecha bajo el minimapa: eventos, guía y misiones apilados (sin pisarse) */}
+      {!battle && (
+        <div className="hud-right" style={{ top: MINIMAP.margin + MINIMAP.height + 8, right: MINIMAP.margin }}>
+          <EventChips cal={calendar} onOpen={() => openWin('calendario')} />
+          <GuideTracker
+            guide={guide}
+            onSkip={skipGuide}
+            onToast={(text) => bus.emit('social-toast', { text, kind: 'tour' })}
+          />
+          <QuestTracker active={quests.active} continentZoneIds={continentZoneIds} onOpen={() => openWin('misiones')} />
+        </div>
+      )}
 
       {/* ---- conversación con un NPC ---- */}
       {dialogue && (
@@ -809,18 +866,19 @@ export default function World() {
           </div>
         )}
         <div className="hud-slots">
-          {TOOLBAR.map((id) => {
+          {toolbar.map((id) => {
             const w = WINDOWS[id];
+            const k = (keymap[id] ?? w.key ?? '').toUpperCase();
             return (
               <button
                 key={id}
                 type="button"
-                className={`hud-slot${open.includes(id) ? ' hud-slot--active' : ''}`}
-                aria-label={`${w.title} (${w.key.toUpperCase()})`}
+                className={`hud-slot${open.includes(id) ? ' hud-slot--active' : ''}${newSlots.includes(id) ? ' hud-slot--new' : ''}${QUICK.includes(id) ? ' hud-slot--quick' : ''}`}
+                aria-label={`${w.title} (${k})`}
                 onClick={() => toggleWindow(id)}
               >
                 <GameIcon name={w.icon[0]} artist={w.icon[1]} />
-                <kbd>{w.key.toUpperCase()}</kbd>
+                <kbd>{k}</kbd>
                 <span className="hud-tooltip">{w.title}</span>
               </button>
             );
@@ -842,13 +900,51 @@ export default function World() {
               {piedraLeft > 0 && <small> · lista en {Math.ceil(piedraLeft / 60000)} min</small>}
             </span>
           </button>
+          {/* celular: todas las ventanas en una cuadrícula */}
+          <button
+            type="button"
+            className={`hud-slot hud-slot--menu${menuOpen ? ' hud-slot--active' : ''}${newSlots.some((id) => !QUICK.includes(id)) ? ' hud-slot--new' : ''}`}
+            aria-label="Menú"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <span className="hud-menu-icon" aria-hidden="true">☰</span>
+          </button>
           <span className="hud-slots-sep" />
+          <button type="button" className={`hud-slot hud-slot--teclas${open.includes('teclas') ? ' hud-slot--active' : ''}`} aria-label="Atajos de teclado" onClick={() => toggleWindow('teclas')}>
+            <GameIcon name="keyboard" artist="delapouite" />
+            <span className="hud-tooltip">Atajos de teclado</span>
+          </button>
           <button type="button" className="hud-slot" aria-label="Salir del mundo" onClick={() => navigate('/')}>
             <GameIcon name="house" artist="delapouite" />
             <span className="hud-tooltip">Salir del mundo</span>
           </button>
         </div>
       </div>
+
+      {menuOpen && (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+        <div className="hud-menu-sheet" onClick={() => setMenuOpen(false)}>
+          <div className="hud-menu-grid" role="menu" aria-label="Ventanas">
+            {toolbar.map((id) => (
+              <button
+                key={id}
+                type="button"
+                role="menuitem"
+                className={`hud-menu-item${open.includes(id) ? ' is-open' : ''}${newSlots.includes(id) ? ' is-new' : ''}`}
+                onClick={() => toggleWindow(id)}
+              >
+                <GameIcon name={WINDOWS[id].icon[0]} artist={WINDOWS[id].icon[1]} />
+                <span>{WINDOWS[id].title}</span>
+              </button>
+            ))}
+            <button type="button" role="menuitem" className="hud-menu-item" onClick={() => navigate('/')}>
+              <GameIcon name="house" artist="delapouite" />
+              <span>Salir del mundo</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ---- acción contextual (abajo a la derecha) ---- */}
       {poi && !open.includes(poi.window) && !encounter && !dialogue && (
@@ -859,6 +955,7 @@ export default function World() {
             const scene = gameRef.current?.scene.getScene('mundo');
             if (poi.boss) scene?.challengeBoss(poi.boss);
             else if (poi.mythic) scene?.challengeMythic();
+            else if (poi.secret) bus.emit('secret-open', poi.secret);
             else if (poi.resource) { const r = scene?.resources.get(poi.resource.id); if (r) scene.gather(r); }
             else if (poi.dialogue) setDialogue(poi.dialogue);
             else if (poi.window) openWin(poi.window);
@@ -944,7 +1041,7 @@ export default function World() {
                 coop={coop}
                 onCoopChanged={loadCoop}
                 piedra={piedra}
-                onPiedra={setPiedra}
+                onPiedra={(r) => { setPiedra(r); bus.emit('guide-event', 'piedra'); }}
                 onUseStone={castStone}
                 stats={stats}
                 party={party}
@@ -955,6 +1052,7 @@ export default function World() {
                 giver={id === 'misiones_gremio' ? questGiver : undefined}
                 onClearGiver={() => setQuestGiver(null)}
                 continentZoneIds={continentZoneIds}
+                windows={WINDOWS}
               />
             );
           })}

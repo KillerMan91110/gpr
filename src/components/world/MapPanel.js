@@ -60,6 +60,16 @@ function renderZone(data) {
   return cv;
 }
 
+// ¿ese punto (px del mundo, locales a la zona) ya está explorado? (sin datos: todo visible)
+function seenAt(ex, x, y) {
+  if (!ex) return true;
+  const cx = Math.floor(x / 32 / ex.cell);
+  const cy = Math.floor(y / 32 / ex.cell);
+  if (cx < 0 || cy < 0 || cx >= ex.cols || cy >= ex.rows) return false;
+  const i = cy * ex.cols + cx;
+  return !!(ex.bits[i >> 3] & (1 << (i & 7)));
+}
+
 // subzona que manda en cada punto (la primera de la lista que lo contenga, como en el juego)
 const subzoneAt = (subs, x, y) => subs.find((s) => x >= s.x0 && x < s.x1 && y >= s.y0 && y < s.y1);
 
@@ -69,6 +79,7 @@ function ZoneMap({ onWorld, orden }) {
   const [zoom, setZoom] = useState(1);
   const [hover, setHover] = useState(null);
   const canvasRef = useRef(null);
+  const fogRef = useRef(null);
   const scrollRef = useRef(null);
   const centered = useRef(false);
 
@@ -92,6 +103,28 @@ function ZoneMap({ onWorld, orden }) {
     cv.height = image.height;
     cv.getContext('2d').drawImage(image, 0, 0);
   }, [image]);
+
+  // niebla: un píxel por cuadro sin explorar (el CSS la estira y la desenfoca)
+  const ex = data?.explored ?? null;
+  const exploredPct = useMemo(() => {
+    if (!ex) return null;
+    let n = 0;
+    for (let i = 0; i < ex.cols * ex.rows; i++) if (ex.bits[i >> 3] & (1 << (i & 7))) n++;
+    return Math.round((n / (ex.cols * ex.rows)) * 100);
+  }, [ex]);
+  useEffect(() => {
+    const cv = fogRef.current;
+    if (!cv || !ex) return;
+    cv.width = ex.cols;
+    cv.height = ex.rows;
+    const g = cv.getContext('2d');
+    const img = g.createImageData(ex.cols, ex.rows);
+    for (let i = 0; i < ex.cols * ex.rows; i++) {
+      const seen = ex.bits[i >> 3] & (1 << (i & 7));
+      img.data.set(seen ? [0, 0, 0, 0] : [26, 20, 12, 255], i * 4);
+    }
+    g.putImageData(img, 0, 0);
+  }, [ex, image]);
 
   // al abrir (y al cambiar el zoom) la vista se centra en el héroe
   useEffect(() => {
@@ -151,13 +184,14 @@ function ZoneMap({ onWorld, orden }) {
       <div className="mp-scroll" ref={scrollRef}>
         <div className="mp-map" style={{ width: W * PX * zoom, height: H * PX * zoom }} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
           <canvas ref={canvasRef} className="mp-canvas" />
-          {placed.map(({ s, lx, ly }) => (
+          {ex && <canvas ref={fogRef} className="mp-fog" />}
+          {placed.filter(({ lx, ly }) => seenAt(ex, lx / scale, ly / scale)).map(({ s, lx, ly }) => (
             <span key={s.name} className="mp-sub" style={{ left: lx, top: ly }}>
               <b>{s.name}</b>
               <small style={{ color: s.safe ? '#9dffbf' : levelColor(s.levels, data.heroLevel) }}>{s.safe ? 'Zona segura' : `Nv ${s.levels}`}</small>
             </span>
           ))}
-          {data.points.map((p) => {
+          {data.points.filter((p) => seenAt(ex, p.x, p.y)).map((p) => {
             const exit = exits[p.name];
             if ((p.type === 'poi' || p.type === 'salida') && exit != null) {
               const dest = ATLAS_ZONES[exit];
@@ -238,6 +272,7 @@ function ZoneMap({ onWorld, orden }) {
           <span><i className="mp-l-poi">◆</i> Lugar</span>
           <span><i className="mp-l-boss">☠</i> Jefe</span>
           <span><i className="mp-l-exit">➜</i> Salida</span>
+          {exploredPct != null && <span className="mp-explored" title="Camina para descubrir el mapa">🗺 {exploredPct}% explorado</span>}
           {data.points.some((p) => p.type === 'buzon') && <span><i className="mp-l-poi">✉</i> Buzón</span>}
           {data.points.some((p) => p.type === 'vinculo') && <span><img className="mp-l-img" src={`${process.env.PUBLIC_URL}/assets/mundo/vinculo/piedra_regreso.png`} alt="" /> Estatua</span>}
           {data.mythic && <span><i><MythicMark scale={1} /></i> Jefe mítico</span>}

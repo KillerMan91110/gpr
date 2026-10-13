@@ -3,6 +3,8 @@ import './WorldPanels.css';
 import './WorldWindows.css';
 
 const STORAGE_PREFIX = 'mundo_panel_';
+// mismo corte que WorldMobile.css: por debajo, las ventanas van a todo el ancho
+const NARROW = 760;
 
 function loadPos(id, fallback) {
   try {
@@ -25,7 +27,8 @@ export default function FloatingPanel({ id, title, icon, defaultPos, width, onCl
   useLayoutEffect(() => {
     const fit = () => {
       const el = ref.current;
-      if (!el) return;
+      // en pantallas angostas la ventana ocupa el ancho (WorldMobile.css): no se toca ni se guarda
+      if (!el || window.innerWidth <= NARROW) return;
       const maxX = Math.max(0, window.innerWidth - el.offsetWidth - 8);
       const maxY = Math.max(0, window.innerHeight - Math.min(el.offsetHeight, window.innerHeight) - 8);
       setPos((p) => {
@@ -36,10 +39,14 @@ export default function FloatingPanel({ id, title, icon, defaultPos, width, onCl
     };
     fit();
     window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
+    // si el contenido crece (otra pestaña, una lista que carga), que siga entrando en pantalla
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(fit) : null;
+    if (ro && ref.current) ro.observe(ref.current);
+    return () => { window.removeEventListener('resize', fit); ro?.disconnect(); };
   }, []);
 
   useEffect(() => {
+    if (window.innerWidth <= NARROW) return;
     try { localStorage.setItem(STORAGE_PREFIX + id, JSON.stringify(pos)); } catch { /* storage no disponible */ }
   }, [id, pos]);
 

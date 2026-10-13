@@ -220,6 +220,31 @@ function Cartas({ onMsg }) {
   );
 }
 
+// Ranking semanal de cazadores de jefes míticos (los primeros llevan título)
+function Cazadores() {
+  const { player } = useAuth();
+  const [list, setList] = useState(null);
+  useEffect(() => { api.getCazadores().then(setList).catch(() => setList([])); }, []);
+  if (!list) return <p className="wp-empty">Cargando…</p>;
+  return (
+    <div className="bs-hunters">
+      <p className="bs-intro">Daño a los jefes míticos en los últimos 7 días. El primero es <b>Cazador de Lunas</b>; el segundo y el tercero, <b>Rastreadores Espectrales</b>.</p>
+      {!list.length && <p className="wp-empty">Nadie ha cazado un jefe mítico esta semana. ¡Sé el primero!</p>}
+      {list.map((h) => (
+        <div key={h.id} className={`bs-hunter${h.rank <= 3 ? ` bs-hunter--${h.rank}` : ''}${h.id === player.id ? ' is-me' : ''}`}>
+          <span className="bs-hunter-rank">{h.rank}</span>
+          <span className="bs-hunter-name"><b>{h.nickname}</b><small>{h.title} · nivel {h.level}</small></span>
+          <span className="bs-hunter-stats">
+            <b>{h.damage.toLocaleString()}</b><small>daño</small>
+          </span>
+          <span className="bs-hunter-stats"><b>{h.hunts}</b><small>cacerías</small></span>
+          <span className="bs-hunter-stats"><b>{h.final_blows}</b><small>golpes finales</small></span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function BestiarioPanel(props) {
   const { player, token } = useAuth();
   const [tab, setTab] = useState('fichas');
@@ -270,7 +295,7 @@ export default function BestiarioPanel(props) {
       )}
     >
       <div className="bs-tabs" role="tablist">
-        {[['fichas', 'Fichas'], ['amuletos', 'Amuletos'], ['cartas', 'Cartas']].map(([id, label]) => (
+        {[['fichas', 'Fichas'], ['amuletos', 'Amuletos'], ['cartas', 'Cartas'], ['cazadores', 'Cazadores']].map(([id, label]) => (
           <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? 'is-on' : ''} onClick={() => setTab(id)}>{label}</button>
         ))}
       </div>
@@ -278,6 +303,7 @@ export default function BestiarioPanel(props) {
       {data && tab === 'fichas' && <Fichas data={data} />}
       {data && tab === 'amuletos' && <Amuletos data={data} onBuy={buy} busy={busy} />}
       {tab === 'cartas' && <Cartas onMsg={onMsg} />}
+      {tab === 'cazadores' && <Cazadores />}
     </FloatingPanel>
   );
 }

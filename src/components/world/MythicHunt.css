@@ -74,3 +74,5 @@
 .mh-banner--phase1 strong, .mh-banner--phase2 strong { color: #e8fcff; }
 .mh-banner--phase3 small { color: #ff9a8a; }
 .mh-banner--phase3 strong { color: #ffd0c8; text-shadow: 0 2px 8px #000, 0 0 26px rgba(255, 80, 70, 0.75); }
+
+.mh-reward-guild { color: #b9e8ff; font-size: 0.9rem; }

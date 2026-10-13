@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getActiveCombat, isCombatInProgress } from '../utils/activeCombat';
 import GameIcon from './GameIcon';
@@ -94,6 +95,9 @@ const STORAGE_PREFIX = 'tutorialSeen_';
 // se despliega) directamente no se muestra esa carga, para no taparle la pantalla de combate.
 export default function TutorialTour() {
   const { player, isAuthenticated } = useAuth();
+  const { pathname } = useLocation();
+  // en el mundo 2D enseña la guía del aventurero (components/world/GuideTracker.js)
+  const inWorld = pathname.startsWith('/mundo');
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
 
@@ -123,7 +127,7 @@ export default function TutorialTour() {
     setStep((s) => s + 1);
   }
 
-  if (!visible) return null;
+  if (!visible || inWorld) return null;
 
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;

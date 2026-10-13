@@ -12,6 +12,11 @@ import { STATUS_ICONS, statusesOf } from './statuses';
 const ASSETS = `${process.env.PUBLIC_URL}/assets`;
 const VW = 640; // tamaño "virtual" del combate (el fondo es de 640x360 en pixel art)
 const VH = 360;
+// pantalla vertical (celular): ancho virtual que se encuadra (los dos bandos con un margen) y colores
+// del cielo y la tierra del fondo para rellenar arriba y abajo
+const PORTRAIT_SPAN = 430;
+const SKY_COLOR = 0x4f86d6;
+const GROUND_COLOR = 0xc9a46a;
 const UNIT_SCALE = 1.7;
 
 // pies de cada combatiente; el primero es el de adelante. Los monstruos van en espejo.
@@ -184,9 +189,26 @@ export default class BattleScene extends Phaser.Scene {
   fitCamera() {
     const cam = this.cameras.main;
     const { width, height } = this.scale.gameSize;
-    this.baseZoom = Math.max(width / VW, height / VH);
-    cam.setZoom(this.baseZoom);
-    cam.centerOn(VW / 2, VH / 2);
+    if (width / height < 1) {
+      // celular en vertical: cubrir el alto dejaba fuera a los dos bandos (héroes a la izquierda,
+      // monstruos a la derecha). Se encuadra a lo ancho lo que ocupa la pelea y arriba y abajo
+      // del escenario se rellena con el cielo y la tierra del fondo.
+      this.baseZoom = width / PORTRAIT_SPAN;
+      if (!this.fillers) {
+        this.fillers = [
+          this.add.rectangle(VW / 2, 0, VW * 6, 4000, SKY_COLOR).setOrigin(0.5, 1).setDepth(-200),
+          this.add.rectangle(VW / 2, VH - 14, VW * 6, 4000, GROUND_COLOR).setOrigin(0.5, 0).setDepth(-98),
+        ];
+      }
+      cam.setZoom(this.baseZoom);
+      cam.centerOn(VW / 2, VH * 0.66);
+    } else {
+      this.fillers?.forEach((f) => f.destroy());
+      this.fillers = null;
+      this.baseZoom = Math.max(width / VW, height / VH);
+      cam.setZoom(this.baseZoom);
+      cam.centerOn(VW / 2, VH / 2);
+    }
     // Una capa con scrollFactor f se dibuja corrida scrollX*(1-f) respecto de una normal: se
     // compensa con la posición base de la cámara para que todas calcen en el encuadre inicial y
     // solo se separen cuando la cámara se mueve (eso es el parallax).

@@ -193,3 +193,21 @@ button.col-card:hover:not(:disabled) { transform: translateY(-3px); }
 .wp-slot.wp-slot--piedra { border-color: #4ab4e8; box-shadow: inset 0 0 10px rgba(74, 180, 232, 0.45); }
 .wp-slot--piedra.is-cd img { filter: grayscale(0.7) brightness(0.75); }
 .wp-stone-tip b { color: #9ae8ff; }
+
+/* ranking semanal de cazadores */
+.bs-hunters { display: flex; flex-direction: column; gap: 6px; }
+.bs-hunter {
+  display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.25);
+}
+.bs-hunter.is-me { border-color: var(--gold-dim); }
+.bs-hunter-rank { width: 26px; height: 26px; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #23222f; color: var(--cream); font: 700 0.85rem 'Cinzel', serif; }
+.bs-hunter--1 .bs-hunter-rank { background: #c8f4ff; color: #14202c; box-shadow: 0 0 10px rgba(127, 248, 255, 0.6); }
+.bs-hunter--2 .bs-hunter-rank, .bs-hunter--3 .bs-hunter-rank { background: #5aa8e0; color: #0c1626; }
+.bs-hunter-name { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.bs-hunter-name b { color: var(--cream); font-family: 'Cinzel', serif; }
+.bs-hunter-name small { color: #9ac8e0; font-size: 0.75rem; }
+.bs-hunter--1 .bs-hunter-name small { color: #e8fcff; }
+.bs-hunter-stats { display: flex; flex-direction: column; align-items: center; min-width: 58px; }
+.bs-hunter-stats b { color: var(--gold-bright); }
+.bs-hunter-stats small { color: var(--text-soft); font-size: 0.68rem; }

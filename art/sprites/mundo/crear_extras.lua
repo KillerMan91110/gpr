@@ -146,7 +146,10 @@ local function drawBack(st, step)
   if st.head == "hood" then
     G.rect(8,3+bob,23,18+bob,st.hood); G.rect(9,4+bob,22,6+bob,st.hoodL); G.rect(10,18+bob,21,24+bob,st.hood)
   elseif st.head == "long" then
-    G.rect(9,4+bob,22,17+bob,st.hair); G.rect(8,7+bob,23,23+bob,st.hair); G.rect(10,20+bob,21,24+bob,st.hairD)
+    G.rect(9,4+bob,22,17+bob,st.hair); G.rect(8,7+bob,23,21+bob,st.hair)
+    G.rect(9,22+bob,22,22+bob,st.hair); G.rect(10,23+bob,21,23+bob,st.hair); G.rect(12,24+bob,19,24+bob,st.hair); G.rect(14,25+bob,17,25+bob,st.hair)
+    for _, x in ipairs({11, 15, 19}) do G.rect(x,12+bob,x,21+bob,st.hairD) end
+    G.rect(13,23+bob,13,24+bob,st.hairD); G.rect(18,23+bob,18,24+bob,st.hairD)
     G.px(12,6+bob,st.hairL); G.px(18,7+bob,st.hairL)
   else
     G.rect(10,5+bob,21,17+bob,"F"); G.rect(9,9+bob,10,15+bob,"f"); G.rect(21,9+bob,22,15+bob,"f"); G.px(13,7+bob,"W")

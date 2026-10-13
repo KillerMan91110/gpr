@@ -628,3 +628,43 @@ body.en-combate .chat-box-restore { display: none; }
 /* caíste en un combate de grupo que sigue */
 .bt-fallen .bt-commands-head { color: #ff9a8a; }
 .bt-fallen--small { min-width: 0; opacity: 0.85; }
+
+/* ---- combate en teléfono: menú y tarjetas más angostos, nada se sale de la pantalla ---- */
+@media (max-width: 760px) {
+  .bt-commands { left: 8px; bottom: 8px; width: 46vw; padding: 6px; }
+  .bt-party { right: 8px; bottom: 8px; width: 48vw; gap: 4px; }
+  .bt-enemies { right: 8px; max-width: 60vw; }
+  .bt-banner { right: 8px; max-width: calc(100vw - 16px); font-size: 0.8rem; }
+  .bt-bossbar { width: calc(100vw - 16px); left: 8px; transform: none; }
+  .bt-result-box { width: calc(100vw - 24px); }
+  .bt-boss-intro strong { font-size: 1.6rem; }
+}
+@media (max-height: 520px) {
+  .bt-commands { bottom: 6px; gap: 2px; }
+  .bt-party { bottom: 6px; }
+}
+
+/* ---- combate en celular vertical: tu grupo arriba a la izquierda y los enemigos arriba a la
+   derecha (como en el escenario), el menú abajo a la izquierda y lo que pasa abajo a la derecha ---- */
+@media (max-width: 600px) and (orientation: portrait) {
+  .bt-turns { top: 8px; left: 8px; transform: scale(0.85); transform-origin: top left; }
+  .bt-party, .bt-enemies, .bt-commands, .bt-banner { box-sizing: border-box; }
+  .bt-party { top: 62px; bottom: auto; left: 8px; right: auto; width: calc(50vw - 12px); gap: 4px; }
+  .bt-enemies { top: 62px; right: 8px; width: calc(50vw - 12px); max-width: none; }
+  .bt-commands { left: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); width: calc(50vw - 12px); }
+  .bt-banner {
+    top: auto; bottom: calc(8px + env(safe-area-inset-bottom)); left: auto; right: 8px; transform: none;
+    width: calc(50vw - 12px); min-width: 0; max-width: none; flex-wrap: wrap; gap: 4px; padding: 6px 10px; font-size: 0.78rem;
+  }
+  /* tarjeta de héroe compacta: cara, nombre arriba y las dos barras con su número debajo */
+  .bt-hero { grid-template-columns: 26px minmax(0, 1fr) auto; grid-template-rows: auto auto auto; column-gap: 5px; padding: 4px 6px; }
+  .bt-hero > :nth-child(1) { grid-row: 1 / 4; grid-column: 1; width: 26px; height: 26px; }
+  .bt-hero > :nth-child(2) { grid-row: 1; grid-column: 2 / 4; flex-direction: row; flex-wrap: wrap; gap: 4px; font-size: 0.74rem; }
+  .bt-hero > :nth-child(2) small { display: none; }
+  .bt-hero > :nth-child(3) { grid-row: 2; grid-column: 3; font-size: 0.7rem; }
+  .bt-hero > :nth-child(4) { grid-row: 2; grid-column: 2; }
+  .bt-hero > :nth-child(5) { grid-row: 3; grid-column: 3; font-size: 0.7rem; }
+  .bt-hero > :nth-child(6) { grid-row: 3; grid-column: 2; }
+  .bt-hero-nums small { display: none; }
+  .bt-hero--active { transform: none; }
+}

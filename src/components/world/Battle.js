@@ -179,7 +179,7 @@ async function startOrResume(encounter, token, playerId) {
     if (encounter.kind === 'mythic') initial = await api.enterMitico(playerId, token);
     else initial = encounter.kind === 'boss' || encounter.kind === 'esbirro'
       ? await api.createCombatSession([{ code: encounter.code, level: encounter.level }], token)
-      : await api.exploreZone(encounter.zoneId, token, undefined, encounter.code, encounter.areaLevels, !!encounter.group);
+      : await api.exploreZone(encounter.zoneId, token, undefined, encounter.code, encounter.areaLevels, !!encounter.group, encounter.position);
     return { initial, resumed: false };
   } catch (err) {
     // otra pestaña ya creó el combate: retomarlo

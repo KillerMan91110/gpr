@@ -1,0 +1,172 @@
+/* =====================================================================================
+   Mundo 2D en celular y tablet: joystick, botones grandes y el HUD acomodado a pantallas
+   chicas. body.tactil lo pone TouchControls.js en pantallas táctiles.
+   ===================================================================================== */
+
+/* ---- joystick (abajo a la izquierda, sobre la barra de acciones) ---- */
+.tc-stick {
+  position: fixed; left: 18px; bottom: 120px; z-index: 40; width: 124px; height: 124px;
+  display: grid; place-items: center; border-radius: 50%; touch-action: none; user-select: none;
+  background: radial-gradient(circle, rgba(30, 24, 38, 0.55), rgba(16, 12, 20, 0.35) 70%);
+  border: 2px solid rgba(232, 196, 106, 0.4); box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.35);
+}
+.tc-stick.is-on { border-color: rgba(255, 216, 74, 0.8); }
+.tc-knob {
+  width: 54px; height: 54px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 40% 35%, #fff0a0, #c89a3a 60%, #6a4a14);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6), inset 0 0 0 2px rgba(0, 0, 0, 0.35);
+}
+
+/* en táctil todo lo que se toca es más grande */
+body.tactil .hud-context { bottom: 124px; right: 14px; padding: 12px 22px 12px 12px; transform: scale(1.12); transform-origin: right bottom; }
+body.tactil .hud-context-key { width: 40px; height: 40px; }
+/* el chat no compite con el joystick: va arriba a la izquierda, bajo el retrato */
+body.tactil.en-mundo .chat-box { bottom: auto; top: 104px; left: 8px; width: min(300px, 70vw); max-height: 42vh; }
+body.tactil.en-mundo .chat-box-restore { bottom: auto; top: 104px; left: 8px; }
+
+/* ---- menú de ventanas (☰): solo en el celular ---- */
+/* (con más peso que .hud-slot de World.css, que se carga después) */
+.hud-slots .hud-slot--menu { display: none; }
+.hud-menu-icon { font-size: 22px; line-height: 1; color: var(--gold-bright); }
+.hud-menu-sheet {
+  position: fixed; inset: 0; z-index: 45; display: flex; align-items: flex-end; justify-content: center;
+  padding: 0 8px calc(84px + env(safe-area-inset-bottom)); background: rgba(6, 4, 10, 0.55);
+}
+.hud-menu-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: min(420px, 100%); padding: 10px;
+  border-radius: 10px; border: 1px solid var(--gold); background: linear-gradient(180deg, rgba(30, 24, 38, 0.98), rgba(16, 12, 20, 0.98));
+  box-shadow: 0 0 0 2px #000, 0 12px 30px rgba(0, 0, 0, 0.7); animation: wp-panel-in 0.15s ease-out;
+}
+.hud-menu-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px; min-height: 64px;
+  border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 8px; background: rgba(0, 0, 0, 0.3);
+  color: var(--cream); font: 600 0.7rem/1.1 'EB Garamond', serif; text-align: center; cursor: pointer;
+}
+.hud-menu-item .game-icon { font-size: 24px; color: var(--gold-bright); }
+.hud-menu-item.is-open { border-color: var(--gold-bright); background: rgba(74, 58, 28, 0.55); }
+.hud-menu-item.is-new { animation: hud-new 1.1s ease-in-out infinite; }
+
+/* ---- teléfonos (vertical) ---- */
+@media (max-width: 600px) {
+  /* barra: solo los botones rápidos, la piedra y el menú (☰); todo el resto va en el menú */
+  body.en-mundo .hud-actionbar { left: 6px; right: 6px; transform: none; bottom: calc(6px + env(safe-area-inset-bottom)); }
+  body.en-mundo .hud-slots { justify-content: space-around; margin: 0 4px; overflow: visible; }
+  body.en-mundo .hud-slots > .hud-slot:not(.hud-slot--quick):not(.hud-slot--piedra):not(.hud-slot--menu),
+  body.en-mundo .hud-slots-sep { display: none; }
+  body.en-mundo .hud-slots .hud-slot--menu { display: grid; }
+  body.en-mundo .hud-slot { width: 48px; height: 48px; flex: none; }
+  body.en-mundo .hud-slot kbd, body.en-mundo .hud-tooltip { display: none; }
+  body.en-mundo .hud-xp { margin: 0 6px; }
+
+  /* arriba: retrato a la izquierda, minimapa a la derecha; debajo, chat y sonido a la izquierda y
+     la columna de eventos/guía/misiones a la derecha */
+  body.en-mundo .hud-unit { transform: scale(0.82); transform-origin: top left; }
+  body.en-mundo .hud-sound { top: 104px; right: auto; left: 96px; }
+  body.en-mundo .hud-sound-pop { right: auto; left: 42px; }
+  body.en-mundo .hud-right { max-width: 58vw; max-height: calc(100% - 330px); }
+  body.en-mundo .hud-guide { width: 200px; padding: 6px 8px; }
+  body.en-mundo .hud-guide p { font-size: 0.74rem; }
+  body.en-mundo .hud-buffs { display: none; }
+
+  /* el jefe mítico, abajo, justo encima de la barra (arriba compite con el minimapa) */
+  body.en-mundo .mh-bar, body.en-mundo .mh-rumor { top: auto; bottom: calc(86px + env(safe-area-inset-bottom)); width: calc(100vw - 16px); }
+  body.en-mundo .mh-banner strong { font-size: 1.5rem; }
+
+  /* ventanas: a todo el ancho, debajo del HUD de arriba y sin tapar la barra */
+  body.en-mundo .wp-panel {
+    left: 6px !important; right: 6px; width: auto !important; top: 104px !important;
+    max-height: calc(100dvh - 104px - 86px - env(safe-area-inset-bottom)); overflow: hidden;
+  }
+  body.en-mundo .wp-panel-head { cursor: default; }
+
+  /* diálogos y avisos */
+  body.en-mundo .dlg { bottom: calc(86px + env(safe-area-inset-bottom)); left: 6px; right: 6px; width: auto; }
+  body.en-mundo .dlg-portrait { width: 84px; height: 84px; margin-right: -10px; }
+  body.en-mundo .boss-prompt-box { width: calc(100vw - 24px); }
+  body.en-mundo .hud-zone-title { font-size: 1.4rem; }
+  body.en-mundo .ws-toasts { left: 8px; right: 8px; width: auto; }
+  body.tactil .hud-context { bottom: calc(150px + env(safe-area-inset-bottom)); }
+  body.en-mundo .tc-stick { bottom: calc(150px + env(safe-area-inset-bottom)); }
+
+  /* contenido de las ventanas: lo que iba en dos columnas va en una (lista arriba, detalle abajo) */
+  body.en-mundo .wp-panel-body { padding: 8px; }
+  body.en-mundo .wp-split { grid-template-columns: 1fr; }
+  body.en-mundo .wp-char, body.en-mundo .wp-pets, body.en-mundo .pu-setup { flex-direction: column; align-items: stretch; }
+  body.en-mundo .wp-char-stats { width: auto; }
+  body.en-mundo .wp-party { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+  body.en-mundo .wp-party-card { min-width: 0; overflow: hidden; }
+  body.en-mundo .wp-ach-grid { grid-template-columns: 1fr; }
+  body.en-mundo .wp-pet-show { margin: 0 auto; }
+  body.en-mundo .wp-cat-bar { flex-wrap: wrap; }
+  body.en-mundo .wp-search { width: 100%; }
+  body.en-mundo .wp-bag-grid { grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)) !important; }
+  body.en-mundo .wp-bag-grid .wp-slot { width: auto; aspect-ratio: 1; }
+  /* filas de pestañas que no caben: se deslizan de lado */
+  body.en-mundo .bs-tabs, body.en-mundo .wp-panel-body > .wp-tabs {
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+  }
+  body.en-mundo .bs-tabs::-webkit-scrollbar, body.en-mundo .wp-panel-body > .wp-tabs::-webkit-scrollbar { display: none; }
+  body.en-mundo .bs-tabs button, body.en-mundo .wp-panel-body > .wp-tabs .wp-tab { flex: none; padding-left: 10px; padding-right: 10px; }
+  body.en-mundo .wp-panel-foot { flex-wrap: wrap; gap: 6px; }
+  body.en-mundo .wp-panel-foot .wp-tabs { flex-wrap: wrap; }
+  body.en-mundo .wp-panel-foot .wp-foot-note { flex-basis: 100%; margin-left: 0; }
+  body.en-mundo .wp-craft { flex-direction: column; }
+  body.en-mundo .wp-craft-detail { width: auto; }
+  /* comercio, muñecos y correo */
+  body.en-mundo .tp-panes, body.en-mundo .tp-confirm-cols { grid-template-columns: 1fr; }
+  body.en-mundo .tp-swap { justify-self: center; transform: rotate(90deg); }
+  body.en-mundo .pu-buy, body.en-mundo .pu-ware--edit { flex-wrap: wrap; }
+  body.en-mundo .pu-buy .wp-btn { margin-left: 0; flex: 1; }
+  body.en-mundo .ml-from { width: 84px; }
+  body.en-mundo .ml-row small { display: none; }
+}
+
+/* ---- tablet / pantalla mediana: ventanas a todo el ancho y barra deslizable ---- */
+@media (min-width: 601px) and (max-width: 760px) {
+  body.en-mundo .wp-panel {
+    left: 6px !important; right: 6px; width: auto !important; top: 54px !important;
+    max-height: calc(100dvh - 150px); overflow: hidden;
+  }
+  body.en-mundo .wp-panel-head { cursor: default; }
+  body.en-mundo .hud-actionbar { left: 6px; right: 6px; transform: none; bottom: 6px; }
+  body.en-mundo .hud-slots { overflow-x: auto; overflow-y: hidden; justify-content: flex-start; margin: 0 6px; scrollbar-width: none; }
+  body.en-mundo .hud-slots::-webkit-scrollbar { display: none; }
+  body.en-mundo .hud-slot { flex: none; }
+  body.en-mundo .hud-tooltip { display: none; }
+  body.en-mundo .hud-unit { transform: scale(0.88); transform-origin: top left; }
+  body.en-mundo .dlg { bottom: 70px; }
+}
+
+/* ---- pantallas de laptop: la barra centrada pisaba el chat (abajo a la izquierda); va a la derecha ---- */
+@media (min-width: 761px) and (max-width: 1600px) and (min-height: 521px) {
+  body.en-mundo .hud-actionbar { left: auto; right: 16px; transform: none; }
+}
+@media (min-width: 761px) and (max-width: 1180px) and (min-height: 521px) {
+  body.en-mundo .hud-slot { width: 36px; height: 36px; font-size: 18px; }
+  body.en-mundo .hud-slots { gap: 3px; }
+}
+
+/* sin teclado (táctil): no hay atajos que mostrar ni cambiar */
+body.tactil .hud-slot--teclas, body.tactil .hud-slot kbd { display: none; }
+
+/* ---- celular en horizontal (poca altura) ---- */
+@media (max-height: 520px) {
+  body.en-mundo .wp-panel { top: 8px !important; max-height: calc(100dvh - 72px); overflow: hidden; }
+  body.en-mundo .hud-actionbar { bottom: 4px; left: auto; right: 8px; transform: none; width: auto; }
+  body.en-mundo .hud-xp { display: none; }
+  body.en-mundo .hud-slots > .hud-slot:not(.hud-slot--quick):not(.hud-slot--piedra):not(.hud-slot--menu),
+  body.en-mundo .hud-slots-sep { display: none; }
+  body.en-mundo .hud-slots .hud-slot--menu { display: grid; }
+  body.en-mundo .hud-slot { width: 40px; height: 40px; font-size: 18px; }
+  body.en-mundo .hud-slot kbd, body.en-mundo .hud-tooltip { display: none; }
+  body.en-mundo .hud-menu-sheet { padding-bottom: 54px; }
+  body.en-mundo .hud-menu-grid { grid-template-columns: repeat(6, 1fr); width: min(600px, 100%); }
+  body.en-mundo .tc-stick { bottom: 14px; width: 108px; height: 108px; }
+  body.tactil .hud-context { bottom: 58px; }
+  body.en-mundo .hud-guide { display: none; }
+  body.en-mundo .hud-right { max-height: calc(100% - 160px); }
+  body.en-mundo .mh-bar, body.en-mundo .mh-rumor { top: 8px; bottom: auto; width: min(420px, calc(100vw - 360px)); }
+  body.en-mundo .dlg { bottom: 50px; }
+  body.en-mundo .dlg-portrait { width: 72px; height: 72px; }
+  body.tactil.en-mundo .chat-box { top: 96px; max-height: calc(100dvh - 160px); }
+}

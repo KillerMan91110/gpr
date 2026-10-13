@@ -89,7 +89,8 @@ export default function ChatBox() {
   const location = useLocation();
 
   const [activeTab, setActiveTab] = useState('GENERAL');
-  const [minimized, setMinimized] = useState(false);
+  // en pantallas táctiles chicas el chat empieza plegado (no tapa el juego)
+  const [minimized, setMinimized] = useState(() => typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches && window.innerWidth < 900);
   const [party, setParty] = useState(null);
   const [guild, setGuild] = useState(null);
   const [messages, setMessages] = useState({ CERCA: [], GENERAL: [], TRADE: [], PARTY: [], GUILD: [] });

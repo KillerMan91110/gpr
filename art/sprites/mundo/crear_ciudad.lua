@@ -107,7 +107,7 @@ local function headFront(G, st, bob)
   if s == "casco" then G.rect(8,3+bob,23,10+bob,"S"); G.rect(8,3+bob,23,4+bob,"W"); G.rect(7,8+bob,9,15+bob,"s"); G.rect(22,8+bob,24,15+bob,"s"); G.rect(15,0+bob,16,3+bob,st.hat or "R") end
   if s == "mago" then
     G.rect(9,4+bob,22,9+bob,h); G.rect(8,7+bob,9,20+bob,h); G.rect(22,7+bob,23,20+bob,h)
-    G.rect(5,6+bob,26,7+bob,st.hat); for y=0,6 do G.rect(11+y//2,-1+y+bob,20-y//2,-1+y+bob,st.hat) end; G.px(16,0+bob,"go")
+    G.rect(5,6+bob,26,7+bob,st.hat); for y=0,5 do G.rect(15-y,y+bob,16+y,y+bob,st.hat) end; G.px(15,0+bob,"go"); G.px(16,0+bob,"go")
   end
   if st.beard then G.rect(10,15+bob,21,19+bob,st.beard); G.rect(12,20+bob,19,20+bob,st.beard); G.rect(14,21+bob,17,22+bob,st.beard); G.rect(14,15+bob,17,15+bob,"R") end
   if st.race == "elfo" then G.rect(6,10+bob,8,11+bob,"F"); G.px(5,9+bob,"F"); G.rect(23,10+bob,25,11+bob,"F"); G.px(26,9+bob,"F") end
@@ -120,14 +120,19 @@ end
 local function headBack(G, st, bob)
   local h, s = st.hair, st.style
   if s == "calvo" then G.rect(10,5+bob,21,17+bob,"F"); G.rect(9,9+bob,10,15+bob,"f"); G.rect(10,12+bob,21,15+bob,h)
-  elseif s == "largo" or s == "mago" then G.rect(9,4+bob,22,17+bob,h); G.rect(8,7+bob,23,23+bob,h); G.rect(10,20+bob,21,24+bob,st.hairD or h)
+  elseif s == "largo" or s == "mago" then
+    G.rect(9,4+bob,22,17+bob,h); G.rect(8,7+bob,23,21+bob,h)
+    G.rect(9,22+bob,22,22+bob,h); G.rect(10,23+bob,21,23+bob,h); G.rect(12,24+bob,19,24+bob,h); G.rect(14,25+bob,17,25+bob,h)
+    local hd = st.hairD or h
+    for _, x in ipairs({11, 15, 19}) do G.rect(x,12+bob,x,21+bob,hd) end
+    G.rect(13,23+bob,13,24+bob,hd); G.rect(18,23+bob,18,24+bob,hd)
   elseif s == "capucha" then G.rect(8,3+bob,23,18+bob,h); G.rect(10,18+bob,21,23+bob,h)
   else G.rect(9,4+bob,22,16+bob,h); G.rect(8,7+bob,23,14+bob,h); G.rect(10,17+bob,21,17+bob,"f") end
   if s == "mono" then G.ellipse(15.5,3+bob,4,3,h) end
   if s == "gorra" then G.rect(8,3+bob,23,8+bob,st.hat) end
   if s == "sombrero" then G.rect(5,6+bob,26,7+bob,st.hat); G.rect(9,1+bob,22,6+bob,st.hat) end
   if s == "casco" then G.rect(8,3+bob,23,13+bob,"S"); G.rect(15,0+bob,16,3+bob,st.hat or "R") end
-  if s == "mago" then G.rect(5,6+bob,26,7+bob,st.hat); for y=0,6 do G.rect(11+y//2,-1+y+bob,20-y//2,-1+y+bob,st.hat) end end
+  if s == "mago" then G.rect(5,6+bob,26,7+bob,st.hat); for y=0,5 do G.rect(15-y,y+bob,16+y,y+bob,st.hat) end end
   if st.race == "elfo" then G.rect(6,10+bob,8,11+bob,"F"); G.rect(23,10+bob,25,11+bob,"F") end
   if st.race == "felino" then for i=0,3 do G.rect(10,1+i+bob,12,1+i+bob,st.ears or h); G.rect(19,1+i+bob,21,1+i+bob,st.ears or h) end end
 end
@@ -191,7 +196,7 @@ local function sideView(G, st, step, bob)
   if s == "gorra" then G.rect(8,3+bob,21,7+bob,st.hat); G.rect(20,7+bob,24,8+bob,st.hatD or st.hat) end
   if s == "sombrero" then G.rect(4,6+bob,26,7+bob,st.hat); G.rect(9,1+bob,21,6+bob,st.hat); if st.pluma then G.rect(9,-2+bob,10,4+bob,st.pluma) end end
   if s == "casco" then G.rect(8,3+bob,21,10+bob,"S"); G.rect(8,3+bob,21,4+bob,"W"); G.rect(9,0+bob,11,3+bob,st.hat or "R") end
-  if s == "mago" then G.rect(4,6+bob,25,7+bob,st.hat); for y=0,6 do G.rect(10+y//2,-1+y+bob,19-y//2,-1+y+bob,st.hat) end end
+  if s == "mago" then G.rect(4,6+bob,25,7+bob,st.hat); for y=0,5 do G.rect(14-y,y+bob,15+y,y+bob,st.hat) end; G.px(16,1+bob,st.hat) end
   if st.beard then G.rect(17,15+bob,22,20+bob,st.beard); G.rect(18,21+bob,21,22+bob,st.beard) end
   if st.race == "elfo" then G.rect(11,9+bob,12,11+bob,"F"); G.px(10,8+bob,"F") end
   if st.race == "felino" then for i=0,3 do G.rect(11+i//2,1+i+bob,13,1+i+bob,st.ears or h) end; G.px(23,15+bob,"W") end
@@ -256,6 +261,7 @@ local CITIZENS = {
   npc_heraldo   = {race="humano", style="sombrero", hat="go", hatD="god", pluma="Cb", hair="B", top="Cb", topD="m", topL="Mh", pants="Cw", boots="b", tabard="Cw"},
   -- maestros de las órdenes
   npc_maestro_guerrero = {race="humano", style="casco", hat="R", hair="b", beard="b", top="A", topD="a", topL="Ah", pants="a", boots="A", belt="b", tabard="Cr"},
+  -- (el pelo bajo el sombrero, la cara pareja y el retrato los retoca arreglar_npcs.lua: correrlo después)
   npc_maestra_maga     = {race="elfo", style="mago", hat="Cp", hair="Hs", hairD="Hg", top="Cp", topD="v", topL="Vh", robe=true, trim="go", skin=P, skinD=Pd},
   npc_maestra_arquera  = {race="elfo", style="capucha", hair="Cg", hairD="Gh", top="Cg", topD="g", topL="Gh", pants="b", boots="B", belt="b", vest="N"},
   npc_maestro_picaro   = {race="felino", style="corto", hair="Hd", ears="Hd", top="L", topD="l", topL="Lh", pants="l", boots="L", belt="b", neck="V", skin=D, skinD=Dd},
@@ -273,7 +279,7 @@ local CITIZENS = {
   cit_8  = {race="felino", style="corto", hair="Hg", ears="Hg", top="Cn", topD="b", topL="N", pants="Hd", boots="b", skin=D, skinD=Dd},
   cit_9  = {race="humano", style="largo", hair="Hd", hairD="K", top="Cp", topD="v", robe=true, trim="go", neck="go"},
   cit_10 = {race="humano", style="corto", hair="Y", top="Cb", topD="m", topL="Mh", pants="Cw", boots="b", belt="go", vest="go"},
-  cit_11 = {race="humano", style="calvo", hair="b", top="Cn", topD="b", robe=true, trim="b", skin=N, skinD=Nd},
+  cit_11 = {race="humano", style="calvo", hair="b", top="Cw", topD="T", topL="m1", robe=true, trim="Cn", neck="Cn", belt="Cn", skin=N, skinD=Nd},
   cit_12 = {race="humano", style="gorra", hat="Cb", hair="b", beard="Hg", top="Cw", topD="T", pants="Cb", boots="b"},
   cit_13 = {race="humano", style="mono", hair="Hd", top="Co", topD="ad", robe=true, trim="go", skin=N, skinD=Nd},
   cit_14 = {race="humano", style="corto", hair="Hd", top="Cg", topD="g", pants="b", boots="b", vest="Cn", skin=N, skinD=Nd},
@@ -313,7 +319,7 @@ local function portrait(st)
   if st.style == "gorra" then G.ellipse(32,14,17,7,st.hat); G.rect(14,16,50,19,st.hatD or st.hat) end
   if st.style == "sombrero" then G.rect(6,16,58,19,st.hat); G.rect(18,4,46,16,st.hat); G.rect(18,14,46,15,st.hatD or "b"); if st.pluma then G.rect(44,-2,47,12,st.pluma) end end
   if st.style == "casco" then G.ellipse(32,18,18,11,"S"); G.rect(14,18,50,22,"s"); G.rect(30,2,34,10,st.hat or "R"); G.rect(30,22,34,34,"s") end
-  if st.style == "mago" then G.rect(6,14,58,17,st.hat); for y=0,14 do G.rect(22+y//2,y,42-y//2,y,st.hat) end; G.px(32,1,"go") end
+  if st.style == "mago" then G.rect(6,14,58,17,st.hat); for y=0,14 do G.rect(31-(y*10)//14,y,32+(y*10)//14,y,st.hat) end; G.px(31,1,"go"); G.px(32,1,"go") end
   if st.beard then G.ellipse(32,47,15,9,st.beard); G.rect(18,36,22,46,st.beard); G.rect(42,36,46,46,st.beard); G.rect(26,39,38,41,st.beard); G.rect(30,43,34,44,"R") end
   return G
 end

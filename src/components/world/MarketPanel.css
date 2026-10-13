@@ -68,3 +68,15 @@
 .hp-stats div { display: flex; justify-content: space-between; font-size: 0.78rem; }
 .hp-stats dt { color: var(--text-soft); }
 .hp-stats dd { margin: 0; color: var(--cream); font-weight: 700; }
+
+/* Atajos de teclado (KeysPanel.js) */
+.kb-list { display: flex; flex-direction: column; gap: 4px; }
+.kb-row { display: flex; align-items: center; gap: 10px; padding: 4px 6px; border-radius: 5px; background: rgba(0, 0, 0, 0.22); }
+.kb-row .game-icon { font-size: 18px; color: var(--gold); }
+.kb-row span { flex: 1; color: var(--cream); }
+.kb-key {
+  min-width: 46px; padding: 4px 10px; border-radius: 5px; cursor: pointer; text-align: center;
+  border: 1px solid var(--gold-dim); border-bottom-width: 3px; background: #1b1a26; color: var(--gold-bright); font: 700 0.85rem 'Cinzel', serif;
+}
+.kb-key.is-waiting { min-width: 130px; color: #9ae8ff; border-color: #5aa8e0; animation: mh-glow 1.4s ease-in-out infinite; }
+.kb-note { margin: 10px 0 0; color: var(--text-soft); font-size: 0.75rem; }

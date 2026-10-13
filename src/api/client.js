@@ -122,8 +122,9 @@ export const api = {
   gatherWorldNode: (playerId, nodeId, token) => request(`/api/player/${playerId}/world/nodes/${nodeId}/gather`, { method: 'POST', token }),
   // areaLevels: rango de niveles de la subzona del mundo 2D donde empezó el combate ("3-6")
   // worldGroup: en el mundo 2D el servidor suma a los compañeros de grupo que estén cerca
-  exploreZone: (zoneId, token, coopPartnerIds, leadMonsterCode, areaLevels, worldGroup = false) => {
+  exploreZone: (zoneId, token, coopPartnerIds, leadMonsterCode, areaLevels, worldGroup = false, worldPos = null) => {
     const body = {};
+    if (worldPos) body.worldPos = worldPos;
     if (coopPartnerIds?.length) body.coopPartnerIds = coopPartnerIds;
     if (worldGroup) body.worldGroup = true;
     if (leadMonsterCode) body.leadMonsterCode = leadMonsterCode;
@@ -189,6 +190,16 @@ export const api = {
   makeOfrenda: (playerId, token) => request(`/api/player/${playerId}/world/ofrenda`, { method: 'POST', token }),
   getLibro: (playerId, token) => request(`/api/player/${playerId}/world/libro`, { token }),
   writeLibro: (playerId, text, token) => request(`/api/player/${playerId}/world/libro`, { method: 'POST', body: { text }, token }),
+  getEventos: () => request('/api/world/eventos'),
+  getAmbulante: (playerId, token) => request(`/api/player/${playerId}/world/ambulante`, { token }),
+  comprarAmbulante: (playerId, oferta, token) => request(`/api/player/${playerId}/world/ambulante/comprar`, { method: 'POST', body: { oferta }, token }),
+  getMapa: (playerId, token) => request(`/api/player/${playerId}/world/mapa`, { token }),
+  guardarCeldas: (playerId, zona, celdas, token) => request(`/api/player/${playerId}/world/mapa/celdas`, { method: 'POST', body: { zona, celdas }, token }),
+  descubrirSubzona: (playerId, zona, subzona, token) => request(`/api/player/${playerId}/world/mapa/descubrir`, { method: 'POST', body: { zona, subzona }, token }),
+  abrirSecreto: (playerId, id, token) => request(`/api/player/${playerId}/world/secreto`, { method: 'POST', body: { id }, token }),
+  getGuia: (playerId, token) => request(`/api/player/${playerId}/world/guia`, { token }),
+  avanzarGuia: (playerId, paso, token) => request(`/api/player/${playerId}/world/guia/avanzar`, { method: 'POST', body: { paso }, token }),
+  saltarGuia: (playerId, token) => request(`/api/player/${playerId}/world/guia/saltar`, { method: 'POST', token }),
   revive: (playerId, token) => request(`/api/player/${playerId}/world/revivir`, { method: 'POST', token }),
   travel: (playerId, destino, token) => request(`/api/player/${playerId}/world/viaje`, { method: 'POST', body: { destino }, token }),
   getPiedra: (playerId, token) => request(`/api/player/${playerId}/world/piedra`, { token }),
@@ -210,6 +221,7 @@ export const api = {
   socketCarta: (playerId, slot, monsterId, token) => request(`/api/player/${playerId}/coleccion/cartas/engarzar`, { method: 'POST', body: { slot, monsterId }, token }),
   unsocketCarta: (playerId, slot, token) => request(`/api/player/${playerId}/coleccion/cartas/quitar`, { method: 'POST', body: { slot }, token }),
   getMitico: () => request('/api/world/mitico'),
+  getCazadores: () => request('/api/world/cazadores'),
   getMiticoAporte: (playerId, token) => request(`/api/player/${playerId}/coleccion/mitico/aporte`, { token }),
   enterMitico: (playerId, token) => request(`/api/player/${playerId}/coleccion/mitico/enter`, { method: 'POST', token }),
   // Ventana Social del mundo 2D (tecla O)

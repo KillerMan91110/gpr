@@ -349,6 +349,10 @@ class AudioEngine {
       case 'abrir':
         this.burst(t, 0.12, { gain: 0.08, filter: 'bandpass', from: 800, to: 2400, q: 1.5 });
         break;
+      // aviso suave (invitaciones, misiones compartidas, alguien te busca)
+      case 'mision':
+        ['G5', 'C6', 'E6'].forEach((n, i) => this.tone(freq(n), t + i * 0.09, 0.22, { wave: 'triangle', gain: 0.07 }));
+        break;
       case 'cerrar':
         this.burst(t, 0.1, { gain: 0.07, filter: 'bandpass', from: 2400, to: 700, q: 1.5 });
         break;

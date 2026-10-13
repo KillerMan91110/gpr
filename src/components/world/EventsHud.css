@@ -1,0 +1,29 @@
+/* Calendario de eventos (EventsHud.js) */
+.hud-events { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; pointer-events: none; }
+.hud-event {
+  pointer-events: auto; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 12px;
+  background: rgba(16, 14, 22, 0.88); border: 1px solid var(--gold-dim); color: var(--cream); font: 600 0.75rem 'EB Garamond', serif;
+}
+.hud-event .game-icon { font-size: 14px; color: var(--gold-bright); }
+.hud-event small { color: var(--text-soft); }
+.hud-event--noche_caza { border-color: #8a7aff; box-shadow: 0 0 10px rgba(138, 122, 255, 0.35); }
+.hud-event--noche_caza .game-icon { color: #c8b0ff; }
+.hud-event--mercader .game-icon { color: #ffd890; }
+.ev-cal h4 { margin: 4px 0 6px; color: var(--gold); font: 700 0.75rem 'Cinzel', serif; letter-spacing: 0.1em; text-transform: uppercase; }
+.ev-day > small { display: block; margin: 8px 0 3px; color: var(--gold-bright); font: 700 0.78rem 'Cinzel', serif; }
+.ev-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; margin-bottom: 4px; border-radius: 6px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.07); }
+.ev-row.is-now { border-color: var(--gold-dim); background: rgba(232, 196, 106, 0.08); }
+.ev-row .game-icon { font-size: 20px; color: var(--gold-bright); flex: none; }
+.ev-row span { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.ev-row b { color: var(--cream); font-family: 'Cinzel', serif; font-size: 0.85rem; }
+.ev-row small { color: var(--text-soft); font-size: 0.75rem; }
+.ev-row em { color: #9ae8ff; font-size: 0.75rem; font-style: normal; white-space: nowrap; }
+.ev-shop-head { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.ev-shop-head img { width: 64px; height: 64px; image-rendering: pixelated; border-radius: 6px; border: 1px solid var(--gold-dim); }
+.ev-shop-head p { margin: 0; color: var(--cream); font-style: italic; font-size: 0.9rem; }
+.ev-offer { display: flex; align-items: center; gap: 10px; padding: 6px 8px; margin-bottom: 5px; border-radius: 6px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.08); }
+.ev-offer-text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.ev-offer-text b { color: var(--cream); }
+.ev-offer-text small { color: var(--text-soft); font-size: 0.75rem; }
+.ev-offer-buy { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.ev-offer-buy em { color: var(--gold-bright); font-style: normal; font-weight: 700; display: inline-flex; gap: 3px; align-items: center; }

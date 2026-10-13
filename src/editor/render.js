@@ -27,6 +27,10 @@ export const POINT_STYLE = {
   palomas: { color: '#d8dce4', label: 'Palomas' },
   gato: { color: '#e07a3a', label: 'Gato' },
   aspas: { color: '#e0e0e0', label: 'Aspas' },
+  vinculo: { color: '#f0e6a0', label: 'Estatua' },
+  estandarte: { color: '#ff8a5a', label: 'Estandarte' },
+  buzon: { color: '#7ac8ff', label: 'Buzón' },
+  secreto: { color: '#ffe08a', label: 'Secreto' },
 };
 
 const propOf = (o, name) => o.properties?.find((p) => p.name === name)?.value;
