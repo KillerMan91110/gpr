@@ -15,19 +15,21 @@ const ASSETS = `${process.env.PUBLIC_URL}/assets/mundo`;
 // Las cinco órdenes de Aurelia: cada una enseña a su clase base (classId) en su casa del Barrio
 // de las Órdenes. Solo se abren hablando con su maestro: hay que ir a la ciudad a aprender.
 export const ORDENES = {
-  guerrero: { classId: 1, casa: 'Cuartel del Acero', maestro: 'Sir Aldric', retrato: 'maestro_guerrero', pos: [12, 44], frase: '«Un guerrero se forja con disciplina y acero.»' },
-  mago: { classId: 2, casa: 'Torre Arcana', maestro: 'Isolde', retrato: 'maestra_maga', pos: [20, 44], frase: '«El conocimiento, como el fuego, quema al imprudente.»' },
-  arquero: { classId: 3, casa: 'Campo del Halcón', maestro: 'Sylwen', retrato: 'maestra_arquera', pos: [26, 44], frase: '«Respira, apunta, suelta. Lo demás es ruido.»' },
-  picaro: { classId: 4, casa: 'La Sombra Callada', maestro: 'Nox', retrato: 'maestro_picaro', pos: [24, 60], frase: '«No me viste. No estoy aquí. Pero ya que preguntas…»' },
-  sacerdote: { classId: 5, casa: 'Capilla de la Luz', maestro: 'Padre Anselm', retrato: 'sumo_sacerdote', pos: [68, 15], frase: '«Curar es más difícil que herir.»' },
+  guerrero: { dialogo: 'aldric', classId: 1, casa: 'Cuartel del Acero', maestro: 'Sir Aldric', retrato: 'maestro_guerrero', pos: [12, 44], frase: '«Un guerrero se forja con disciplina y acero.»' },
+  mago: { dialogo: 'isolde', classId: 2, casa: 'Torre Arcana', maestro: 'Isolde', retrato: 'maestra_maga', pos: [20, 44], frase: '«El conocimiento, como el fuego, quema al imprudente.»' },
+  arquero: { dialogo: 'sylwen', classId: 3, casa: 'Campo del Halcón', maestro: 'Sylwen', retrato: 'maestra_arquera', pos: [26, 44], frase: '«Respira, apunta, suelta. Lo demás es ruido.»' },
+  picaro: { dialogo: 'nox', classId: 4, casa: 'La Sombra Callada', maestro: 'Nox', retrato: 'maestro_picaro', pos: [24, 60], frase: '«No me viste. No estoy aquí. Pero ya que preguntas…»' },
+  sacerdote: { dialogo: 'anselm', classId: 5, casa: 'Capilla de la Luz', maestro: 'Padre Anselm', retrato: 'sumo_sacerdote', pos: [68, 15], frase: '«Curar es más difícil que herir.»' },
 };
 // (pos = casilla del maestro en Aurelia, para guiarte hasta él con la flecha)
+// tu orden según tu clase base (las evolucionadas empiezan con el nombre de la base)
+const plain = (t) => (t ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+export const ordenDe = (stats) => {
+  const code = plain(stats?.classChain?.[0]?.code ?? stats?.class?.code);
+  return Object.keys(ORDENES).find((o) => code.startsWith(o)) ?? null;
+};
 // emblema de la orden (hecho en Aseprite, art/sprites/mundo/crear_vinculo.lua)
 export const emblemaDe = (orden) => `${ASSETS}/vinculo/orden_${orden}.png`;
-
-// precio de venta: la mitad del de compra si alguna orden lo vende; si no, según la rareza
-// (mismo cálculo que routes/players.js en guild/shop/sell)
-const SELL_BY_RARITY = { COMUN: 20, POCO_COMUN: 50, RARO: 120, EPICO: 300, LEGENDARIO: 700 };
 
 function Coins({ value }) {
   return <span className="wp-coins"><GameIcon name="two-coins" artist="delapouite" /> {Number(value ?? 0).toLocaleString()}</span>;
@@ -221,7 +223,7 @@ export default function OrderPanel({ orden, gold, onChanged, ...props }) {
             const icon = iconForItem(it);
             const rarity = (it.rarity || 'COMUN').toLowerCase();
             const enchant = it.enchant_level ?? 0;
-            const price = it.buy_price != null ? Math.round(it.buy_price / 2) : (SELL_BY_RARITY[it.rarity] ?? 10);
+            const price = it.sell_master ?? 10; // lo calcula el back (lib/npcSell.js)
             return (
               <div key={`${it.item_id}-${enchant}`} className="op-ware" onMouseMove={(e) => setHover({ it, x: e.clientX, y: e.clientY })} onMouseLeave={() => setHover(null)}>
                 <span className={`wp-slot wp-rarity-${rarity}`}>

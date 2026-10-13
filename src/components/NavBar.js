@@ -56,6 +56,7 @@ const ADMIN_CATEGORY = {
     { to: '/admin/monsters', label: 'Monstruos', gameIcon: { name: 'cog', artist: 'lorc' } },
     { to: '/admin/items', label: 'Equipo', gameIcon: { name: 'pointy-sword', artist: 'lorc' } },
     { to: '/admin/stats', label: 'Visor Stats', gameIcon: { name: 'chart', artist: 'delapouite' } },
+    { to: '/admin/economia', label: 'Economía', gameIcon: { name: 'two-coins', artist: 'delapouite' } },
   ],
 };
 

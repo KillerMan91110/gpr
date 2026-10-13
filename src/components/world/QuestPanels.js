@@ -6,6 +6,7 @@ import FloatingPanel from './FloatingPanel';
 import { questsOfGiver } from '../../game/questGivers';
 import { DIALOGUES } from '../../game/dialogues';
 import audio from '../../game/audio';
+import bus from '../../game/bus';
 
 const objectivesDone = (q) => (q.objectives ?? []).every((o) => (o.current_count ?? 0) >= o.target_count);
 
@@ -82,11 +83,19 @@ export function QuestLogPanel({ onChanged, ...props }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useMessage();
 
+  // con grupo de jugadores se puede compartir una misión activa (ver coop.js share-quest)
+  const [inGroup, setInGroup] = useState(false);
   const load = useCallback(() => {
     api.getActiveQuests(player.id, token).then(setActive).catch(() => setActive([]));
     api.getCompletedQuests(player.id, token).then(setCompleted).catch(() => setCompleted([]));
+    api.getCoopParty(player.id, token).then((g) => setInGroup(!!g?.members?.length)).catch(() => setInGroup(false));
   }, [player, token]);
   useEffect(() => { load(); }, [load]);
+  // un compañero te compartió una misión y la aceptaste
+  useEffect(() => {
+    bus.on('quests-changed', load);
+    return () => bus.off('quests-changed', load);
+  }, [load]);
 
   const list = tab === 'curso' ? (active ?? []) : completed;
   const current = list.find((q) => q.id === selected) ?? list[0];
@@ -143,6 +152,22 @@ export function QuestLogPanel({ onChanged, ...props }) {
                 <button type="button" className="wp-btn wp-btn--gold" disabled={busy || !objectivesDone(current)} onClick={() => run(() => api.completeQuest(player.id, current.id, token), `¡${current.name} completada!`)}>
                   Entregar
                 </button>
+                {inGroup && (
+                  <button
+                    type="button"
+                    className="wp-btn"
+                    disabled={busy}
+                    title="Tus compañeros de grupo reciben la misión; lo que cacen juntos cuenta para todos"
+                    onClick={async () => {
+                      try {
+                        const r = await api.shareQuestWithGroup(player.id, current.id, token);
+                        setMessage({ ok: true, text: r.sentTo ? `Compartiste «${current.name}» con tu grupo` : 'Todos en tu grupo ya la tienen' });
+                      } catch (err) { setMessage({ ok: false, text: err.message }); }
+                    }}
+                  >
+                    Compartir con el grupo
+                  </button>
+                )}
                 <button type="button" className="wp-btn wp-btn--danger" disabled={busy} onClick={() => run(() => api.abandonQuest(player.id, current.id, token), `Abandonaste ${current.name}`)}>
                   Abandonar
                 </button>

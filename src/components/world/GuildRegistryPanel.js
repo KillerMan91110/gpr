@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import audio from '../../game/audio';
+import bus from '../../game/bus';
 import GameIcon from '../GameIcon';
 import FloatingPanel from './FloatingPanel';
 import './GuildPanel.css';
@@ -43,6 +44,7 @@ export default function GuildRegistryPanel({ id, tab: startTab = 'unirse', gold,
       after?.(r);
       await loadMine();
       onChanged?.();
+      bus.emit('guild-changed');
     } catch (err) {
       audio.sfx('error');
       setMessage({ ok: false, text: err.message });

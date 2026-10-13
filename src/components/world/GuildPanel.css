@@ -352,3 +352,27 @@
 .gh-poor {
   color: #ff9a8a !important;
 }
+
+/* encargos semanales del gremio */
+.gh-contract-title {
+  font: 700 0.88rem 'Cinzel', serif;
+  color: var(--gold-bright) !important;
+  text-align: left !important;
+}
+
+.gh-contract-bar {
+  margin-top: 4px;
+  height: 14px;
+}
+
+.gh-contract.is-done {
+  border-color: rgba(125, 255, 154, 0.45);
+}
+
+.gh-contract.is-done .gh-contract-bar > div {
+  background: linear-gradient(90deg, #2f8a4a, #7dff9a);
+}
+
+.gh-contract.is-done small {
+  color: #9dffbf;
+}

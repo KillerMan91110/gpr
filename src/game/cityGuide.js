@@ -14,8 +14,11 @@ export const LUGARES = {
   durin: { zona: 'aurelia', x: 100, y: 44, name: 'Durin · Banco Real' },
   tablon_aurelia: { zona: 'aurelia', x: 56, y: 37, name: 'Tablón de encargos · Plaza del Pilar' },
   fogata_aldea: { zona: 'pradera', x: 78, y: 51, name: 'Fogata de la Aldea Espiga' },
-  lyra_aldea: { zona: 'pradera', x: 76, y: 50, name: 'Lyra · Aldea Espiga' },
+  mirna: { zona: 'pradera', x: 76, y: 50, name: 'Mirna · Aldea Espiga' },
   goreth: { zona: 'pradera', x: 84, y: 51, name: 'Goreth · Aldea Espiga' },
+  buzon_aurelia: { zona: 'aurelia', x: 67, y: 45, name: 'Buzón · Plaza del Pilar' },
+  buzon_aldea: { zona: 'pradera', x: 73, y: 50, name: 'Buzón · Aldea Espiga' },
+  titiritero: { zona: 'aurelia', x: 86, y: 52, name: 'Pip · Barrio del Mercado' },
   tablon_aldea: { zona: 'pradera', x: 84, y: 47, name: 'Tablón de encargos · Aldea Espiga' },
 };
 
@@ -24,8 +27,10 @@ export const SERVICIOS = [
   { id: 'contratar', icon: ['crossed-swords', 'lorc'], title: 'Contratar', desc: 'Recluta aventureros para tu grupo.', lugares: ['oswin'] },
   { id: 'enfermeria', icon: ['healing', 'delapouite'], title: 'Enfermería', desc: 'Recupera vida y maná.', lugares: ['elenya', 'fogata_aldea'] },
   { id: 'encantador', icon: ['magic-swirl', 'lorc'], title: 'Encantador', desc: 'Mejora tu equipo con piedras.', lugares: ['aelin', 'goreth'] },
-  { id: 'artesanos', icon: ['shop', 'delapouite'], title: 'Artesanos', desc: 'Materiales y venta de botín.', lugares: ['lyra_aurelia', 'lyra_aldea'] },
+  { id: 'artesanos', icon: ['shop', 'delapouite'], title: 'Artesanos', desc: 'Materiales y venta de botín.', lugares: ['lyra_aurelia', 'mirna'] },
   { id: 'taller', icon: ['anvil', 'lorc'], title: 'Taller', desc: 'Fabrica y desmantela equipo.', lugares: ['brokk', 'goreth'] },
+  { id: 'correo', icon: ['mailbox', 'delapouite'], title: 'Correo', desc: 'Manda y recoge oro, objetos y cartas.', lugares: ['buzon_aurelia', 'buzon_aldea'] },
+  { id: 'puestos', icon: ['matryoshka-dolls', 'delapouite'], title: 'Muñecos de venta', desc: 'Pip vende el muñeco que atiende tu puesto.', lugares: ['titiritero'] },
   { id: 'tablon', icon: ['scroll-unfurled', 'lorc'], title: 'Encargos', desc: 'Misiones del tablón.', lugares: ['tablon_aurelia', 'tablon_aldea'] },
 ];
 

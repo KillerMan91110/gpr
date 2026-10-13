@@ -506,3 +506,29 @@
 .mp-mythic i { display: inline-flex; filter: drop-shadow(0 0 4px #7ff8ff); animation: mp-mythic 1.2s ease-in-out infinite; }
 .mp-mythic em { color: #c8f4ff; }
 @keyframes mp-mythic { 50% { transform: scale(1.25); } }
+
+/* Estatua del Viajero y el maestro de tu orden */
+.mp-vinculo img,
+.mp-maestro img {
+  width: 18px;
+  height: 18px;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 2px #000) drop-shadow(0 0 4px rgba(154, 232, 255, 0.6));
+}
+
+.mp-maestro img {
+  filter: drop-shadow(0 0 2px #000) drop-shadow(0 0 4px rgba(255, 216, 74, 0.7));
+}
+
+.mp-vinculo em { color: #9ae8ff; }
+.mp-maestro em { color: #ffe08a; }
+
+.mp-l-img {
+  width: 12px;
+  height: 12px;
+  image-rendering: pixelated;
+  vertical-align: middle;
+}
+
+/* buzón del correo */
+.mp-buzon i { color: #9ac4ff; font-style: normal; }

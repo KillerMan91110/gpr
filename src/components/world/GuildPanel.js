@@ -6,7 +6,7 @@ import bus from '../../game/bus';
 import { guiar, SERVICIOS, LUGARES } from '../../game/cityGuide';
 import GameIcon from '../GameIcon';
 import FloatingPanel from './FloatingPanel';
-import { ORDENES, emblemaDe } from './OrderPanel';
+import { ORDENES, emblemaDe, ordenDe } from './OrderPanel';
 import './GuildPanel.css';
 
 const ROLE_LABEL = { LEADER: 'Líder', OFFICER: 'Oficial', MEMBER: 'Miembro' };
@@ -41,8 +41,15 @@ function describeActivity(e) {
     case 'LEVEL_UP': return `¡El gremio subió a nivel ${meta.newLevel ?? '?'}!`;
     case 'DONATION': return `${actor} donó ${Number(meta.amount ?? 0).toLocaleString()} de oro al banco.`;
     case 'SHOP_PURCHASE': return `${actor} compró un objeto de la tienda para ${target}.`;
+    case 'CONTRACT': return `Encargo cumplido: «${meta.titulo ?? 'encargo'}» (+${meta.xp ?? 0} XP para el gremio).`;
+    case 'CONTRACT_ALL': return `¡El gremio cumplió los tres encargos de la semana! (+${meta.xp ?? 0} XP)`;
     default: return `${actor} hizo algo en el gremio.`;
   }
+}
+
+function daysLeft(date) {
+  const h = Math.max(0, Math.ceil((new Date(date).getTime() - Date.now()) / 3600000));
+  return h >= 48 ? `${Math.floor(h / 24)} días` : h >= 24 ? '1 día' : `${h} h`;
 }
 
 function ago(date) {
@@ -55,7 +62,6 @@ function ago(date) {
   return `hace ${Math.floor(h / 24)} d`;
 }
 const isOnline = (d) => !!d && Date.now() - new Date(d).getTime() < ONLINE_MS;
-const plain = (s) => (s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 // Ventana del gremio (G). Con gremio es tu sala: miembros, banco, registro y gestión. Sin gremio
 // explica que hay que ir al Registro de Gremios de Aurelia (Oswin). Los servicios de la ciudad
@@ -69,6 +75,7 @@ export default function GuildPanel({ onClose, zIndex, onActivate, defaultPos, op
   const [bank, setBank] = useState(null);
   const [shop, setShop] = useState(null);
   const [masters, setMasters] = useState(null);
+  const [contracts, setContracts] = useState(null);
   const [message, setMessage] = useState(null);
   const [busy, setBusy] = useState(null);
   const [confirm, setConfirm] = useState(null); // acción peligrosa esperando confirmación
@@ -93,12 +100,14 @@ export default function GuildPanel({ onClose, zIndex, onActivate, defaultPos, op
 
   const loadExtras = useCallback(async (g) => {
     if (!g) return;
-    const [act, mas] = await Promise.all([
+    const [act, mas, con] = await Promise.all([
       api.getGuildActivity(token, g.id).catch(() => []),
       api.getGuildMasters(token, g.id).catch(() => []),
+      api.getGuildContracts(token, g.id).catch(() => null),
     ]);
     setActivity(act);
     setMasters(mas);
+    setContracts(con);
     if (g.level >= 2) {
       const [b, s] = await Promise.all([api.getGuildBank(token, g.id).catch(() => null), api.getGuildBankShop(token, g.id).catch(() => [])]);
       setBank(b);
@@ -124,6 +133,7 @@ export default function GuildPanel({ onClose, zIndex, onActivate, defaultPos, op
       const g = await loadGuild();
       await loadExtras(g);
       onChanged?.();
+      bus.emit('guild-changed');
       return true;
     } catch (err) {
       audio.sfx('error');
@@ -135,9 +145,7 @@ export default function GuildPanel({ onClose, zIndex, onActivate, defaultPos, op
     }
   };
 
-  // tu orden según tu clase base (las evolucionadas empiezan con el nombre de la base)
-  const classCode = plain(stats?.classChain?.[0]?.code ?? stats?.class?.code);
-  const orden = Object.keys(ORDENES).find((o) => classCode.startsWith(o)) ?? null;
+  const orden = ordenDe(stats);
   const goTo = (lugares, info) => { guiar(lugares, info); onClose?.(); };
   // el maestro de tu orden (ver OrderPanel): la flecha apunta delante de él
   const goToOrder = () => {
@@ -204,7 +212,8 @@ export default function GuildPanel({ onClose, zIndex, onActivate, defaultPos, op
   const myId = String(player?.id);
   const xpPct = g && g.xpToNextLevel > 0 ? Math.min(100, Math.round((g.xp / g.xpToNextLevel) * 100)) : 100;
   const donatedToday = bank?.myLastDonationAt && Date.now() - new Date(bank.myLastDonationAt).getTime() < DEPOSIT_COOLDOWN_MS;
-  const tabs = [['sala', 'Sala'], ['miembros', `Miembros${requests.length ? ` (${requests.length}!)` : ''}`], ['banco', 'Banco'], ['registro', 'Registro'], ['ciudad', 'Ciudad']];
+  const contractsDone = contracts?.encargos.filter((c) => c.done).length ?? 0;
+  const tabs = [['sala', 'Sala'], ['encargos', `Encargos${contracts ? ` ${contractsDone}/${contracts.encargos.length}` : ''}`], ['miembros', `Miembros${requests.length ? ` (${requests.length}!)` : ''}`], ['banco', 'Banco'], ['registro', 'Registro'], ['ciudad', 'Ciudad']];
 
   return (
     <FloatingPanel
@@ -334,6 +343,31 @@ export default function GuildPanel({ onClose, zIndex, onActivate, defaultPos, op
                   </span>
                 ) : <button type="button" className="wp-btn gh-btn-danger" onClick={() => setConfirm('salir')}>Salir del gremio</button>}
               </section>
+            </div>
+          )}
+
+          {tab === 'encargos' && (
+            <div className="gh-scroll">
+              {!contracts && <p className="gh-note">Cargando los encargos de la semana…</p>}
+              {contracts && (
+                <>
+                  <p className="gh-note">
+                    Encargos de esta semana: se cumplen jugando (combates, recolección, donaciones) entre todos los miembros.
+                    Cada uno da +{contracts.xpPorEncargo} XP al gremio, y completar los tres, +{contracts.xpBono} más.
+                    Se renuevan en {daysLeft(contracts.endsAt)}.
+                  </p>
+                  {contracts.encargos.map((c) => (
+                    <section key={c.code} className={`gh-card gh-contract${c.done ? ' is-done' : ''}`}>
+                      <div className="gh-row"><b className="gh-contract-title">{c.titulo}</b><small>{c.done ? '✓ Cumplido' : `+${contracts.xpPorEncargo} XP`}</small></div>
+                      <span className="gh-note">{c.texto}</span>
+                      <div className="gh-xp gh-contract-bar"><div style={{ width: `${Math.min(100, (c.progress / c.target) * 100)}%` }} /><span>{c.progress.toLocaleString()} / {c.target.toLocaleString()}</span></div>
+                    </section>
+                  ))}
+                  <section className={`gh-card gh-contract${contracts.bonoCobrado ? ' is-done' : ''}`}>
+                    <div className="gh-row"><b className="gh-contract-title">Los tres de la semana</b><small>{contracts.bonoCobrado ? '✓ Cobrado' : `+${contracts.xpBono} XP`}</small></div>
+                  </section>
+                </>
+              )}
             </div>
           )}
 

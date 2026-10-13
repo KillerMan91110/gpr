@@ -15,6 +15,7 @@ const VH = 360;
 const UNIT_SCALE = 1.7;
 
 // pies de cada combatiente; el primero es el de adelante. Los monstruos van en espejo.
+// como mucho 3 por lado (3 jugadores, o 1 jugador y sus 2 compañeros, o 2 jugadores y uno)
 const HERO_SLOTS = [{ x: 212, y: 296 }, { x: 160, y: 270 }, { x: 150, y: 326 }];
 const ENEMY_SLOTS = HERO_SLOTS.map((s) => ({ x: VW - s.x, y: s.y }));
 
@@ -39,6 +40,8 @@ export default class BattleScene extends Phaser.Scene {
   init(data) {
     this.state = data.state;
     this.heroBaseClass = data.heroBaseClass || 'guerrero';
+    // en un combate en grupo hay varios héroes: solo el tuyo usa tu clase y tu arma equipada
+    this.myPlayerId = data.playerId ?? null;
     this.heroHasWeapon = data.heroHasWeapon !== false;
     this.background = data.background || 'pradera';
     this.units = new Map();
@@ -46,8 +49,15 @@ export default class BattleScene extends Phaser.Scene {
     this.targeting = null;
   }
 
+  isMyHero(p) {
+    return !!p.player_id && !p.npc_id && (this.myPlayerId == null || p.player_id === this.myPlayerId);
+  }
+
   classOf(p) {
-    if (p.player_id && !p.npc_id) return this.heroBaseClass;
+    if (this.isMyHero(p)) return this.heroBaseClass;
+    // compañeros de grupo y contratados: su clase base real (las evoluciones usan la de su base)
+    const base = normalize(p.base_class_code);
+    if (BASE_CLASSES.includes(base)) return base;
     const n = normalize(p.class_name);
     return BASE_CLASSES.find((c) => n.startsWith(c)) || 'guerrero';
   }
@@ -241,8 +251,7 @@ export default class BattleScene extends Phaser.Scene {
   spawnHero(p, slot) {
     const cls = this.classOf(p);
     const weaponKey = CLASS_WEAPON[cls];
-    const isHero = p.player_id && !p.npc_id;
-    const showWeapon = !isHero || this.heroHasWeapon;
+    const showWeapon = !this.isMyHero(p) || this.heroHasWeapon;
     const shadow = this.shadow(slot.x, slot.y, 34);
     const weapon = showWeapon ? this.add.sprite(slot.x, slot.y, `w_${weaponKey}`, 0).setOrigin(22 / 48, 46 / 48).setScale(UNIT_SCALE).setDepth(slot.y) : null;
     const body = this.add.sprite(slot.x, slot.y, `b_${cls}`, 0).setOrigin(22 / 48, 46 / 48).setScale(UNIT_SCALE).setDepth(slot.y + 0.5);
@@ -428,7 +437,9 @@ export default class BattleScene extends Phaser.Scene {
         }
         break;
       case 'ESCAPE':
-        await this.escape();
+        // si la huida falla el combate sigue: nadie se va de la pantalla
+        if (log.success === false) await this.failEscape(actor);
+        else await this.escape();
         break;
       default:
         if (target && (log.damage || log.heal)) await this.impact(target, log);
@@ -652,6 +663,22 @@ export default class BattleScene extends Phaser.Scene {
       u.weapon?.setFlipX(true);
     });
     await Promise.all(heroes.map((u) => tween(this, { targets: [u.body, u.weapon, u.shadow].filter(Boolean), x: '-=220', alpha: 0, duration: 650, ease: 'Quad.easeIn' })));
+  }
+
+  // Intento de huida fallido: el héroe se da vuelta, corre un poco, tropieza y vuelve a su lugar
+  async failEscape(actor) {
+    if (!actor?.alive) { await wait(this, 300); return; }
+    const parts = [actor.body, actor.weapon, actor.shadow].filter(Boolean);
+    actor.body.setFlipX(true);
+    actor.weapon?.setFlipX(true);
+    await tween(this, { targets: parts, x: '-=46', duration: 260, ease: 'Quad.easeOut' });
+    this.playUnit(actor, 'hurt');
+    this.floatText(actor, '¡No pudo huir!', '#ffb4a8', 10);
+    await tween(this, { targets: parts, x: '+=6', duration: 70, yoyo: true, repeat: 2 });
+    actor.body.setFlipX(false);
+    actor.weapon?.setFlipX(false);
+    await tween(this, { targets: parts, x: actor.home.x, duration: 320, ease: 'Quad.easeInOut' });
+    this.playUnit(actor, 'idle');
   }
 
   endBattle(status) {

@@ -1,0 +1,193 @@
+/* Inspeccionar a otro jugador */
+.ip {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ip-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(74, 58, 28, 0.5), rgba(20, 20, 32, 0.2));
+}
+
+.ip-portrait {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  background: #1e2238;
+  font-size: 28px;
+  color: var(--gold-bright);
+}
+
+.ip-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ip-who {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ip-who strong {
+  font: 700 1.05rem 'Cinzel', serif;
+  color: var(--gold-bright);
+}
+
+.ip-who small {
+  color: var(--text-soft);
+}
+
+.ip-who em {
+  font: italic 0.85rem 'EB Garamond', serif;
+  color: var(--cream);
+}
+
+.ip-guild {
+  --ip-guild: #a8e0a0;
+  font: italic 0.85rem 'EB Garamond', serif;
+  color: var(--ip-guild);
+}
+
+.ip-guild b {
+  font-style: normal;
+}
+
+.ip-guild--none {
+  color: var(--text-soft);
+}
+
+.ip-body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+}
+
+.ip-doll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ip-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ip-figure {
+  width: 96px;
+  height: 160px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 6px;
+  background: radial-gradient(circle at 50% 40%, #2e2440, #0f0c15 75%);
+  font-size: 48px;
+  color: var(--gold-bright);
+}
+
+.ip-figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+}
+
+.ip-slot {
+  cursor: default;
+}
+
+.ip-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ip-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.ip-stats div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3px 0;
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 4px;
+  background: rgba(20, 20, 32, 0.4);
+}
+
+.ip-stats span {
+  font: 700 0.62rem 'Cinzel', serif;
+  color: var(--text-soft);
+}
+
+.ip-stats b {
+  color: var(--cream);
+  font-size: 0.88rem;
+}
+
+.ip-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.84rem;
+  color: var(--cream);
+}
+
+.ip-facts .game-icon,
+.ip-facts img {
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+}
+
+.ip-commends {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.84rem;
+  color: var(--cream);
+}
+
+.ip-bond {
+  color: #ff9ac0;
+}
+
+.ip-companions h5 {
+  margin: 0 0 4px;
+  font: 700 0.8rem 'Cinzel', serif;
+  color: var(--gold-bright);
+}
+
+.ip-companions div {
+  font-size: 0.84rem;
+  color: var(--cream);
+}
+
+.ip-companions small {
+  color: var(--text-soft);
+}
+
+.ip-in-group {
+  color: #7dffd8;
+  cursor: default;
+}

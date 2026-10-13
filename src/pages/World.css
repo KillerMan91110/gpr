@@ -1068,3 +1068,58 @@ body.en-mundo .bgm-control { display: none; }
 }
 
 .hud-slot--cd kbd { z-index: 1; }
+
+/* conversando con un NPC: el chat se aparta para no tapar el diálogo */
+body.en-mundo .chat-box,
+body.en-mundo .chat-box-restore { transition: opacity 0.2s, background 0.2s, border-color 0.2s; }
+body.en-dialogo .chat-box,
+body.en-dialogo .chat-box-restore { opacity: 0; pointer-events: none; }
+
+/* grupo: en el mundo la barra clásica del grupo se reemplaza por los marcos del HUD; la
+   invitación sube para no tapar el botón de acción */
+body.en-mundo .coop-bar { display: none; }
+body.en-mundo .coop-invite-popup { bottom: 110px; }
+
+/* jugadores de tu grupo (co-op) sobre los compañeros contratados */
+.hud-coop {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(125, 255, 216, 0.25);
+}
+
+.hud-coop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: 700 0.68rem 'Cinzel', serif;
+  color: #7dffd8;
+  text-shadow: 0 1px 2px #000;
+}
+
+.hud-coop-head button {
+  padding: 0 6px;
+  font: 600 0.62rem 'Cinzel', serif;
+  color: #ffb4a8;
+  background: rgba(10, 10, 18, 0.6);
+  border: 1px solid #8a2a2a;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.hud-coop-member {
+  cursor: pointer;
+}
+
+.hud-coop-member .hud-party-name {
+  color: #7dffd8;
+}
+
+/* en pantallas angostas los contratados se ocultan, pero tu grupo de jugadores se sigue viendo */
+@media (max-width: 900px) {
+  .hud-party.hud-party--coop { display: flex; }
+  .hud-party.hud-party--coop > .hud-party-member { display: none; }
+}
+.world-root--battle .hud-party.hud-party--coop { display: none; }

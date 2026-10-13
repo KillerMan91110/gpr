@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useSocket } from '../../context/SocketContext';
 import { api } from '../../api/client';
 import { CardIcon } from './coleccionArt';
 import GameIcon from '../GameIcon';
@@ -10,6 +11,18 @@ import { statusesOf } from '../../game/statuses';
 import './Battle.css';
 
 const ZONE_BACKGROUND = { 1: 'pradera' };
+// combate en grupo: a partir de cuándo se puede saltar el turno de un compañero que no responde
+// (el servidor exige lo mismo, ver IDLE_TURN_MS en routes/combat.js) y cada cuánto se pregunta
+// por el estado mientras actúa otro (por si se pierde un aviso del socket)
+const IDLE_SKIP_MS = 30 * 1000;
+const COOP_POLL_MS = 3000;
+
+// ¿este combatiente lo manejas tú? (tu héroe o tus compañeros contratados)
+function isMine(p, playerId) {
+  if (p.player_id != null) return p.player_id === playerId;
+  if (p.owner_player_id != null) return p.owner_player_id === playerId;
+  return true;
+}
 
 // Ícono de elemento con su color (y el nombre al pasar el ratón)
 function ElementIcon({ code, dim, title }) {
@@ -158,13 +171,15 @@ const BESTIARY_STAGE = { 1: 'estadísticas desbloqueadas', 2: 'botín desbloquea
 async function startOrResume(encounter, token, playerId) {
   let initial = await api.getActiveCombatSession(token).catch(() => null);
   if (initial?.session) return { initial, resumed: true };
+  // combate de un compañero de grupo: ya existe; si no está, terminó antes de que llegaras
+  if (encounter.kind === 'grupo' || encounter.kind === 'retomar') throw new Error('Ese combate ya terminó.');
   // jefe desafiado en su guarida: pelea contra ese monstruo; jefe mítico: intento contra su vida
   // compartida; si no, encuentro de la zona
   try {
     if (encounter.kind === 'mythic') initial = await api.enterMitico(playerId, token);
     else initial = encounter.kind === 'boss' || encounter.kind === 'esbirro'
       ? await api.createCombatSession([{ code: encounter.code, level: encounter.level }], token)
-      : await api.exploreZone(encounter.zoneId, token, undefined, encounter.code, encounter.areaLevels);
+      : await api.exploreZone(encounter.zoneId, token, undefined, encounter.code, encounter.areaLevels, !!encounter.group);
     return { initial, resumed: false };
   } catch (err) {
     // otra pestaña ya creó el combate: retomarlo
@@ -176,6 +191,7 @@ async function startOrResume(encounter, token, playerId) {
 
 export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
   const { player, token } = useAuth();
+  const { socket } = useSocket() ?? {};
   const [state, setState] = useState(null);
   const [phase, setPhase] = useState('loading'); // loading | intro | command | target | busy | end | error
   const [menu, setMenu] = useState(null); // null | 'skills' | 'items'
@@ -222,7 +238,17 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
   const participants = (state?.participants ?? []).map((p) => (liveHp[p.id] != null ? { ...p, hp: liveHp[p.id] } : p));
   const heroes = participants.filter((p) => p.side === 'PLAYER');
   const enemies = participants.filter((p) => p.side === 'ENEMY');
-  const actor = participants.find((p) => p.id === state?.nextActorId && p.side === 'PLAYER');
+  const turnActor = participants.find((p) => p.id === state?.nextActorId && p.side === 'PLAYER');
+  // en grupo solo eliges por tus personajes; el turno de un compañero se espera
+  const actor = turnActor && isMine(turnActor, player.id) ? turnActor : null;
+  const waitingFor = phase === 'command' && turnActor && !actor ? turnActor : null;
+  const ownerOf = (p) => (p?.player_id != null ? p : participants.find((h) => h.player_id != null && h.player_id === p?.owner_player_id));
+  const isCoop = new Set(participants.filter((p) => p.player_id != null).map((p) => p.player_id)).size > 1;
+  // en grupo: si cayeron todos tus personajes pero tus compañeros siguen, puedes mirar o volver
+  // a tu refugio (el servidor te saca de la pelea sin castigo)
+  const mine = participants.filter((p) => p.side === 'PLAYER' && isMine(p, player.id));
+  const iFell = isCoop && phase !== 'end' && phase !== 'loading' && mine.length > 0 && mine.every((p) => p.hp <= 0);
+  const [watching, setWatching] = useState(false);
   const lastLine = state?.log?.length ? state.log[state.log.length - 1].description : null;
 
   // ---- reproducir entradas nuevas del registro en la escena ----
@@ -237,7 +263,9 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
     await Promise.race([done, limit]);
   }, []);
 
+  const lastChangeAt = useRef(Date.now());
   const afterTurn = useCallback((next) => {
+    lastChangeAt.current = Date.now();
     setState(next);
     setLiveHp({});
     const status = next.session?.status;
@@ -285,6 +313,7 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
           state: initial,
           heroBaseClass,
           heroHasWeapon,
+          playerId: player.id,
           background: ZONE_BACKGROUND[encounter.zoneId] ?? 'pradera',
         });
         await ready;
@@ -329,6 +358,66 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
       sending.current = false;
     }
   }, [actor, state, token, play, afterTurn]);
+
+  // ---- combate en grupo: lo que hacen los compañeros llega por socket (y por consulta, por
+  // si se pierde algún aviso); se reproduce en orden, nunca encima de una acción propia ----
+  const syncing = useRef(false);
+  const queued = useRef(null);
+  const applyRemote = useCallback(async (next) => {
+    if (!next?.session || next.session.id !== state?.session?.id) return;
+    if (maxLogId(next.log) <= lastLogId.current && next.session.status === state?.session?.status) return;
+    if (sending.current || syncing.current) { queued.current = next; return; }
+    syncing.current = true;
+    try {
+      setPhase('busy');
+      await play(next);
+      afterTurn(next);
+    } finally {
+      syncing.current = false;
+      const q = queued.current;
+      queued.current = null;
+      if (q) applyRemote(q);
+    }
+  }, [state, play, afterTurn]);
+  const sessionId = state?.session?.id;
+  useEffect(() => {
+    if (!socket || !sessionId || !isCoop) return undefined;
+    socket.emit('combat:join', sessionId);
+    const onUpdate = (next) => applyRemote(next);
+    socket.on('combat:update', onUpdate);
+    return () => socket.off('combat:update', onUpdate);
+  }, [socket, sessionId, isCoop, applyRemote]);
+  const waitingId = waitingFor?.id;
+  useEffect(() => {
+    if (!waitingId || !sessionId) return undefined;
+    const t = setInterval(() => {
+      api.getCombatSession(sessionId, token).then(applyRemote).catch(() => {});
+    }, COOP_POLL_MS);
+    return () => clearInterval(t);
+  }, [waitingId, sessionId, token, applyRemote]);
+  // el compañero no responde: pasados IDLE_SKIP_MS se puede hacer que se defienda
+  const [, setIdleTick] = useState(0);
+  useEffect(() => {
+    if (!waitingId) return undefined;
+    const t = setInterval(() => setIdleTick((n) => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [waitingId]);
+  const idleLeft = waitingFor ? Math.max(0, IDLE_SKIP_MS - (Date.now() - lastChangeAt.current)) : 0;
+  const skipIdle = useCallback(async () => {
+    if (!waitingFor || sending.current) return;
+    sending.current = true;
+    setPhase('busy');
+    try {
+      const next = await api.sendCombatAction(state.session.id, { participantId: waitingFor.id, action: 'DEFEND', skipIdle: true }, token);
+      await play(next);
+      afterTurn(next);
+    } catch (err) {
+      setMessage(err.message);
+      setPhase('command');
+    } finally {
+      sending.current = false;
+    }
+  }, [waitingFor, state, token, play, afterTurn]);
 
   // ---- elegir objetivo (clic en la escena o en las listas) ----
   const startTargeting = useCallback((p) => {
@@ -529,6 +618,38 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
               <Bar value={h.mana ?? 0} max={h.max_mana ?? 0} kind="mp" />
             </button>
           ))}
+        </div>
+      )}
+
+      {/* combate en grupo: caíste pero tu grupo sigue */}
+      {iFell && (
+        <div className={`bt-commands bt-waiting bt-fallen${watching ? ' bt-fallen--small' : ''}`}>
+          <div className="bt-commands-head">{watching ? 'Mirando…' : 'Caíste'}</div>
+          {!watching && <p>Tu grupo sigue peleando. Puedes mirar cómo termina o volver a tu refugio.</p>}
+          {!watching && <button type="button" className="bt-cmd" onClick={() => setWatching(true)}><GameIcon name="eye-target" artist="delapouite" /> Seguir mirando</button>}
+          <button
+            type="button"
+            className="bt-cmd"
+            onClick={async () => {
+              try {
+                await api.leaveFallenCombat(state.session.id, token);
+                onFinish({ status: 'ENEMY_WON' });
+              } catch (err) { setMessage(err.message); }
+            }}
+          >
+            <GameIcon name="campfire" artist="lorc" /> Volver a mi refugio
+          </button>
+        </div>
+      )}
+
+      {/* combate en grupo: turno de un compañero */}
+      {waitingFor && !iFell && (
+        <div className="bt-commands bt-waiting">
+          <div className="bt-commands-head">Turno de {waitingFor.name}</div>
+          <p>{waitingFor.player_id != null ? 'Tu compañero está eligiendo qué hacer…' : `Juega ${ownerOf(waitingFor)?.name ?? 'tu compañero'}…`}</p>
+          {idleLeft > 0
+            ? <small>Si no responde, en {Math.ceil(idleLeft / 1000)} s podrás saltar su turno.</small>
+            : <button type="button" className="bt-cmd" onClick={skipIdle}><GameIcon name="hourglass" artist="lorc" /> Saltar su turno (se defiende)</button>}
         </div>
       )}
 

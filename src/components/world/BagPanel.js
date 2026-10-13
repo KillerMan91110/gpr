@@ -81,6 +81,11 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
     setHover(null);
     try {
       setBusy(true);
+      if (it.code === 'MUNECO_DE_VENTA') {
+        // el muñeco de venta no se "usa": abre la ventana para armar el puesto
+        openWindow?.('mi_puesto');
+        return;
+      }
       if (it.item_type === 'EQUIPMENT') {
         await api.equipItem(player.id, it.item_id, it.enchant_level, it.quality_tier, token);
         setMessage({ ok: true, text: `Equipaste ${it.name}` });
@@ -100,6 +105,7 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
   };
 
   const hintFor = (it) => {
+    if (it.code === 'MUNECO_DE_VENTA') return 'Clic derecho: armar tu puesto';
     if (it.item_type === 'EQUIPMENT') return 'Clic derecho: equipar';
     if (it.item_type === 'CONSUMABLE' && !NO_GENERIC_USE.has(it.code)) return 'Clic derecho: usar';
     return null;

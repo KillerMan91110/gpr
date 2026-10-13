@@ -4,6 +4,7 @@ import audio from './audio';
 import { MINIMAP } from './hudLayout';
 import SocialLayer from './socialLayer';
 import { socialStore } from './socialStore';
+import StallLayer from './stallLayer';
 import CityLife, { isFestival } from './cityLife';
 
 // Mundo abierto continuo (estilo MMO): public/assets/mundo/etheria.json coloca cada zona
@@ -65,6 +66,8 @@ const IDLE = { down: 0, up: 3, side: 6 };
 // NPCs fuera de las ciudades: radio del paseo (casillas), velocidad (px/s) y a qué distancia se
 // detienen para mirar al héroe
 const NPC_STROLL_TILES = 2;
+// seguir a otro jugador: a qué distancia se queda detrás de él
+const FOLLOW_GAP = 40;
 const NPC_STROLL_SPEED = 22;
 const NPC_NOTICE_RADIUS = 80;
 
@@ -162,6 +165,7 @@ export default class WorldScene extends Phaser.Scene {
     this.load.image('aspas', `${ASSETS}/mundo/aspas.png`);
     SocialLayer.preload(this);
     CityLife.preload(this);
+    StallLayer.preload(this);
     this.load.json('enemigos', `${ASSETS}/sprites/combate/enemigos.json`);
   }
 
@@ -344,6 +348,10 @@ export default class WorldScene extends Phaser.Scene {
     this.nameTag = this.add.text(start.x, start.y - 22, this.heroName, {
       fontFamily: TAG_FONT, fontSize: '7px', fontStyle: 'bold', color: '#ffffff', stroke: '#141420', strokeThickness: 3,
     }).setOrigin(0.5, 1).setDepth(21).setResolution(TAG_RES);
+    // tu gremio bajo tu nombre, igual que lo ven los demás (lo manda WorldSocial al entrar o cambiar)
+    this.guildTag = this.add.text(start.x, start.y - 14, '', {
+      fontFamily: "'EB Garamond', Georgia, serif", fontSize: '7px', fontStyle: 'italic', color: '#a8e0a0', stroke: '#141420', strokeThickness: 3,
+    }).setOrigin(0.5, 1).setDepth(21).setResolution(TAG_RES);
     this.makeWalkAnims('heroe');
     this.dust = this.add.particles(0, 0, 'mota_mundo', {
       x: { min: -5, max: 5 }, y: { min: -1, max: 2 }, lifespan: 420, frequency: 70, speedY: { min: -14, max: -4 },
@@ -382,7 +390,7 @@ export default class WorldScene extends Phaser.Scene {
     // NPCs con horario "festival" solo aparecen el día del Festival de Aethra
     const festival = isFestival();
     const present = all.filter((o) => o.type !== 'npc' || propOf(o, 'horario') !== 'festival' || festival);
-    this.pois = present.filter((o) => ['poi', 'npc', 'pilar', 'vinculo'].includes(o.type)).map((o) => ({
+    this.pois = present.filter((o) => ['poi', 'npc', 'pilar', 'vinculo', 'buzon'].includes(o.type)).map((o) => ({
       id: o.name, x: o.x + 16, y: o.y + 16,
       label: propOf(o, 'etiqueta') ?? o.name, window: propOf(o, 'ventana'), dialogue: propOf(o, 'dialogo') ?? null,
     }));
@@ -397,7 +405,7 @@ export default class WorldScene extends Phaser.Scene {
       dest: propOf(o, 'destino'), tx: propOf(o, 'x'), ty: propOf(o, 'y'), label: propOf(o, 'etiqueta'),
     }));
     this.exitsArmedAt = this.time.now + 1500;
-    if (all.some((o) => ['ciudadano', 'pilar', 'cartel', 'palomas', 'gato', 'vinculo'].includes(o.type))) this.city = new CityLife(this, all);
+    if (all.some((o) => ['ciudadano', 'pilar', 'cartel', 'palomas', 'gato', 'vinculo', 'estandarte', 'buzon'].includes(o.type))) this.city = new CityLife(this, all);
     this.spawnResources(all.filter((o) => o.type === 'recurso'));
     all.filter((o) => o.type === 'aspas').forEach((o) => {
       const blades = this.add.image(o.x, o.y, 'aspas').setDepth(20.2);
@@ -408,6 +416,8 @@ export default class WorldScene extends Phaser.Scene {
     this.buildRefuges(all);
     // otros jugadores, globitos de chat, gestos y emojis
     this.social = new SocialLayer(this);
+    // muñecos de venta de los jugadores (Barrio del Mercado)
+    this.stalls = new StallLayer(this);
     this.createWeather();
     this.bindBus();
 
@@ -474,6 +484,11 @@ export default class WorldScene extends Phaser.Scene {
       // piedra de regreso: React pide empezar a canalizarla (cb dice si se pudo)
       'hearth-start': ({ ms }, cb) => cb?.(this.startHearth(ms)),
       'hearth-arrive': () => this.hearthArriveFx(),
+      // grupo: seguir a otro jugador y entrar al combate que empezó un compañero
+      'follow-player': (t) => this.startFollow(t),
+      // (ojo: sin callback, cb?.(...) ni siquiera evalúa el argumento: se llama aparte)
+      'coop-battle-join': (b, cb) => { const ok = this.joinGroupBattle(b); cb?.(ok); },
+      'my-guild': (g) => this.guildTag?.setText(g ? `‹${g.name}›` : '').setColor(g?.color || '#a8e0a0'),
       // jefe mítico de zona (components/world/MythicHunt.js): aparece, se va o muere
       'mythic-state': (s) => this.setMythic(s?.hunt ?? null),
       'mythic-track': (cb) => cb?.(this.trackMythic()),
@@ -498,7 +513,7 @@ export default class WorldScene extends Phaser.Scene {
         const layer = (n) => d?.layers.find((l) => l.name === n)?.data ?? [];
         return { cx: c.cx, cy: c.cy, suelo: layer('suelo'), objetos: layer('objetos'), encima: layer('encima') };
       }),
-      points: this.allPoints().filter((o) => o.zone === z.dir && ['npc', 'poi', 'jefe', 'salida', 'pilar', 'vinculo'].includes(o.type)).map((o) => ({
+      points: this.allPoints().filter((o) => o.zone === z.dir && ['npc', 'poi', 'jefe', 'salida', 'pilar', 'vinculo', 'buzon'].includes(o.type)).map((o) => ({
         type: o.type, name: o.name, x: o.x - z.ox + 16, y: o.y - z.oy + 16,
         label: propOf(o, 'nombre') ?? propOf(o, 'etiqueta') ?? o.name,
         monster: propOf(o, 'monstruo'), level: propOf(o, 'nivel'), window: propOf(o, 'ventana'), dialogue: propOf(o, 'dialogo'),
@@ -958,7 +973,7 @@ export default class WorldScene extends Phaser.Scene {
         const dot = this.add.circle(x, y, 18, 0xffd84a).setStrokeStyle(5, 0x141420).setDepth(30).setVisible(false);
         this.cameras.main.ignore(dot);
         [tag, role, mark].filter(Boolean).forEach((t) => this.minimap?.ignore(t));
-        // el mismo NPC puede estar en dos zonas (Lyra en la capital y en la aldea): clave por zona
+        // el mismo NPC puede estar en dos zonas (Gaspar en la capital y en la aldea): clave por zona
         const id = propOf(o, 'dialogo') ?? o.name;
         // Paseo: fuera de las ciudades dan unos pasos alrededor de su puesto (casillas de radio,
         // "pasea" en el mapa lo cambia; 0 = quieto). En la ciudad se quedan en su tienda o su casa.
@@ -1653,6 +1668,7 @@ export default class WorldScene extends Phaser.Scene {
     this.minimap.setBackgroundColor(0x1a2416);
     this.minimap.startFollow(this.player);
     this.minimap.ignore(this.nameTag);
+    this.minimap.ignore(this.guildTag);
     // punto del jugador: grande para que se vea al zoom del minimapa, invisible en la cámara principal
     this.playerDot = this.add.circle(this.player.x, this.player.y, 14, 0xffe066).setStrokeStyle(5, 0x141420).setDepth(30);
     this.cameras.main.ignore(this.playerDot);
@@ -1873,6 +1889,60 @@ export default class WorldScene extends Phaser.Scene {
     this.time.delayedCall(Phaser.Math.Between(1200, 2800), () => this.wander(mon));
   }
 
+  // Un compañero de grupo cercano chocó con monstruos: entras a su combate (mismo aviso que un
+  // encuentro propio). Devuelve false si ya estabas en otro.
+  joinGroupBattle(b) {
+    if (this.encounterLock || !this.player) return false;
+    this.encounterLock = true;
+    this.stopFollow();
+    if (this.hearthing) this.stopHearth('combate');
+    this.stopPlayer();
+    this.monsters.setVelocity(0, 0);
+    this.input.keyboard.enabled = false;
+    this.cameras.main.shake(250, 0.006);
+    audio.sfx('encuentro');
+    bus.emit('encounter', {
+      kind: b.kind ?? 'grupo', name: b.leaderName, zoneId: b.zoneId, sessionId: b.sessionId,
+      position: this.toLocal(this.player.x, this.player.y, this.zone),
+    });
+    return true;
+  }
+
+  // ---------------------------------------------------------------- seguir a otro jugador
+  // Como "seguir" en un MMO: tu héroe camina detrás de él (buscando el camino) hasta que tocas
+  // una tecla de movimiento o lo pierdes de vista.
+  startFollow(t) {
+    if (!t?.id) return;
+    this.following = { id: t.id, name: t.name, path: null, pathAt: 0 };
+  }
+
+  stopFollow(reason) {
+    if (!this.following) return;
+    const name = this.following.name;
+    this.following = null;
+    if (reason === 'perdido') bus.emit('social-toast', { text: `Perdiste de vista a ${name}.`, kind: 'error' });
+  }
+
+  // dirección hacia la que caminar para seguir (0,0 si ya está pegado)
+  followStep(time) {
+    const f = this.following;
+    const o = this.social?.others.get(f.id);
+    if (!o) { this.stopFollow('perdido'); return { x: 0, y: 0 }; }
+    const tx = o.sprite.x;
+    const ty = o.sprite.y;
+    if (Phaser.Math.Distance.Between(this.player.x, this.player.y, tx, ty) < FOLLOW_GAP) { f.path = null; return { x: 0, y: 0 }; }
+    if (!f.path?.length || time - f.pathAt > 700) {
+      f.path = this.findPath(this.player.x, this.player.y, tx, ty) ?? [{ x: tx, y: ty }];
+      f.pathAt = time;
+    }
+    while (f.path.length && Phaser.Math.Distance.Between(this.player.x, this.player.y, f.path[0].x, f.path[0].y) < 6) f.path.shift();
+    const next = f.path[0] ?? { x: tx, y: ty };
+    const dx = next.x - this.player.x;
+    const dy = next.y - this.player.y;
+    const len = Math.hypot(dx, dy) || 1;
+    return { x: dx / len, y: dy / len };
+  }
+
   startEncounter(mon) {
     if (this.encounterLock || this.time.now < this.graceUntil) return;
     this.encounterLock = true;
@@ -2009,6 +2079,11 @@ export default class WorldScene extends Phaser.Scene {
       if (k.up.isDown || k.up2.isDown) vy -= 1;
       if (k.down.isDown || k.down2.isDown) vy += 1;
     }
+    // siguiendo a otro jugador: tocar una tecla de movimiento lo corta
+    if (this.following) {
+      if (vx || vy) this.stopFollow();
+      else if (this.input.keyboard.enabled && !this.gathering) ({ x: vx, y: vy } = this.followStep(time));
+    }
     const len = Math.hypot(vx, vy) || 1;
     const speed = SPEED * (this.speedMul ?? 1);
     this.player.setVelocity((vx / len) * speed, (vy / len) * speed);
@@ -2025,7 +2100,8 @@ export default class WorldScene extends Phaser.Scene {
     } else if (this.player.anims.isPlaying) {
       this.stopPlayer();
     }
-    this.nameTag.setPosition(this.player.x, this.player.y - 14);
+    this.nameTag.setPosition(this.player.x, this.player.y - (this.guildTag.text ? 22 : 14));
+    this.guildTag.setPosition(this.player.x, this.player.y - 14);
     this.playerDot?.setPosition(this.player.x, this.player.y);
     this.updateFollowers(!!(vx || vy));
     this.updateChunks();

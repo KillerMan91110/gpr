@@ -54,7 +54,7 @@ export const DIALOGUES = {
     role: 'Mercader',
     portrait: PORTRAIT('lyra'),
     ambient: [
-      '¡Hierbas frescas! ¡Esencias de la capital!',
+      '¡Esencias y especias de todo el reino!',
       '¡Compro pieles y colmillos, buen precio!',
       'Pociones para el camino, aventurero.',
       'Hoy llegó una caravana del norte…',
@@ -69,6 +69,60 @@ export const DIALOGUES = {
     ],
     lines: {
       recolectar: 'Las matas con flores esconden Hierba Mágica; en Robleviejo hay setas y troncos de roble, y en lo alto de los árboles, nidos con plumas… y a veces un huevo. Las rocas con vetas azules tienen hierro, y junto al lago crecen flores que brillan. Dicen que en los rincones de la pradera hay cofres olvidados y restos de aventureros que no volvieron. Lo que tú recojas no se lo quitas a nadie: la pradera da para todos.',
+    },
+  },
+  // Pip: titiritero del Barrio del Mercado. Vende los muñecos de venta (gprback/lib/puestos.js)
+  pip: {
+    name: 'Pip',
+    role: 'Titiritero',
+    portrait: PORTRAIT('pip'),
+    ambient: [
+      '¡Muñecos que venden solos! ¡Pasen y vean!',
+      'Mi osito vendió tres espadas mientras yo almorzaba.',
+      '¿Cansado de gritar precios? ¡Que lo haga un muñeco!',
+      'Hilos de seda, ojos de botón, corazón de comerciante.',
+    ],
+    greet: ({ night }) => (night
+      ? pick(['Shh… los muñecos duermen, pero yo no. ¿Quieres uno?', 'De noche cosen mejor los ojitos. ¿Te llevas un muñeco?'])
+      : pick(['¡Hola, hola! ¿Tienes cosas que vender y poco tiempo? Mis muñecos atienden tu puesto por ti.', '¡Bienvenido al taller de Pip! Cada muñeco que hago es un vendedor incansable.'])),
+    options: () => [
+      { label: 'Comprar un Muñeco de Venta (200 de oro)', action: 'muneco' },
+      { label: '¿Cómo funcionan?', next: 'como' },
+      { label: 'Ver mi muñeco', window: 'mi_puesto' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      como: 'Fácil: usas el muñeco desde tu mochila aquí, en el Barrio del Mercado, le pones un cartel y le das lo que quieras vender con su precio. Se sienta en su manta y vende por ti un día entero, aunque te vayas a cazar o te desconectes. Cada venta te paga al momento, menos una pequeña comisión del mercado. Cuando lo recoges, o se le acaba el día, lo que no vendió te llega por correo al buzón de la Plaza del Pilar.',
+    },
+  },
+  // Mirna: la comerciante de la Aldea Espiga (Lyra atiende en la capital). Vende lo que traen los
+  // artesanos y compra el botín; da los encargos de la "Comerciante de la Aldea" (questGivers.js)
+  mirna: {
+    name: 'Mirna',
+    role: 'Comerciante',
+    portrait: PORTRAIT('mirna'),
+    ambient: [
+      '¡Hierbas de la pradera, recién cortadas!',
+      '¡Compro pieles y colmillos, buen precio!',
+      'Pan de Espiga y pociones para el camino.',
+      'Mi cesta pesa más que mi suegra, y eso es decir mucho.',
+    ],
+    greet: ({ night, mark }) => {
+      if (mark === '?') return '¡Lo conseguiste! Pasa, pasa, que te pago lo prometido.';
+      if (mark === '!') return 'Ay, qué bien que pasas. Necesito unas manos fuertes para un encargo.';
+      return night
+        ? pick(['¿Tan tarde? Bueno, la tienda de una aldea nunca cierra del todo.', 'Los grillos y yo, siempre despiertos. ¿Qué buscas?'])
+        : pick(['¡Bienvenido a la Aldea Espiga! Tengo hierbas, pociones y lo que traen los artesanos de la capital.', 'Si traes botín de tus cacerías, te lo compro. Palabra de Mirna.']);
+    },
+    options: () => [
+      { label: 'Comerciar', window: 'artesanos' },
+      { label: '¿Qué vale la pena recolectar?', next: 'recolectar' },
+      { label: '¿Conoces a Lyra?', next: 'lyra' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      recolectar: 'Las matas con flores esconden Hierba Mágica; en Robleviejo hay setas y troncos de roble, y en lo alto de los árboles, nidos con plumas… y a veces un huevo. Las rocas con vetas azules tienen hierro, y junto al lago crecen flores que brillan. Dicen que en los rincones de la pradera hay cofres olvidados y restos de aventureros que no volvieron.',
+      lyra: '¿La mercader de la capital? Es mi prima. Ella se quedó con la tienda grande del Barrio del Mercado y yo con la de la aldea, que huele mejor. Si vas a Aurelia, salúdala de mi parte.',
     },
   },
   goreth: {

@@ -7,8 +7,6 @@ import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
 import { iconForItem, RARITY_LABELS } from './itemIcons';
 
-// Mismo precio fijo por rareza que paga el back al vender (SELL_BY_RARITY en routes/players.js)
-const SELL_BY_RARITY = { COMUN: 25, POCO_COMUN: 75, RARO: 200, EPICO: 600, LEGENDARIO: 2500 };
 
 const ARTISAN_ICON = {
   alquimista: ['fizzing-flask', 'lorc'],
@@ -79,7 +77,7 @@ export default function MerchantPanel({ gold, onChanged, onClose, zIndex, onActi
   const shown = stock.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE);
 
   const sellable = useMemo(
-    () => (inventory ?? []).filter((i) => i.quantity > 0 && SELL_BY_RARITY[i.rarity]),
+    () => (inventory ?? []).filter((i) => i.quantity > 0 && i.sell_artisan),
     [inventory],
   );
 
@@ -273,7 +271,7 @@ export default function MerchantPanel({ gold, onChanged, onClose, zIndex, onActi
                   <QtyStepper value={qty} max={tab === 'buy' ? maxBuy : maxSell} onChange={setQty} />
                   <span className="wp-deal-total">
                     {tab === 'buy' ? 'Total' : 'Recibes'}
-                    <Coins value={(tab === 'buy' ? selected.price : SELL_BY_RARITY[selected.rarity]) * qty} />
+                    <Coins value={(tab === 'buy' ? selected.price : selected.sell_artisan) * qty} />
                   </span>
                   {tab === 'buy'
                     ? <button type="button" className="wp-btn wp-btn--gold" disabled={busy || selected.price * qty > (gold ?? 0)} onClick={buy}>Comprar</button>

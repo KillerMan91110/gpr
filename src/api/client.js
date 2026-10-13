@@ -121,9 +121,11 @@ export const api = {
   getWorldNodes: (playerId, zoneId, token) => request(`/api/player/${playerId}/world/nodes?zone=${zoneId}`, { token }),
   gatherWorldNode: (playerId, nodeId, token) => request(`/api/player/${playerId}/world/nodes/${nodeId}/gather`, { method: 'POST', token }),
   // areaLevels: rango de niveles de la subzona del mundo 2D donde empezó el combate ("3-6")
-  exploreZone: (zoneId, token, coopPartnerIds, leadMonsterCode, areaLevels) => {
+  // worldGroup: en el mundo 2D el servidor suma a los compañeros de grupo que estén cerca
+  exploreZone: (zoneId, token, coopPartnerIds, leadMonsterCode, areaLevels, worldGroup = false) => {
     const body = {};
     if (coopPartnerIds?.length) body.coopPartnerIds = coopPartnerIds;
+    if (worldGroup) body.worldGroup = true;
     if (leadMonsterCode) body.leadMonsterCode = leadMonsterCode;
     if (areaLevels) body.areaLevels = String(areaLevels);
     return request(`/api/combat/zones/${zoneId}/explore`, {
@@ -141,6 +143,8 @@ export const api = {
   sendCombatAction: (sessionId, payload, token) =>
     request(`/api/combat/sessions/${sessionId}/action`, { method: 'POST', body: payload, token }),
   getCombatSession: (sessionId, token) => request(`/api/combat/sessions/${sessionId}`, { token }),
+  // caíste en un combate de grupo que sigue: sales de él y despiertas en tu refugio
+  leaveFallenCombat: (sessionId, token) => request(`/api/combat/sessions/${sessionId}/leave-fallen`, { method: 'POST', token }),
   getActiveCombatSession: (token) => request('/api/combat/sessions/active', { token }),
   // Party / NPCs
   getNpcStats: (playerId, npcId, token) => request(`/api/player/${playerId}/npcs/${npcId}`, { token }),
@@ -188,6 +192,15 @@ export const api = {
   revive: (playerId, token) => request(`/api/player/${playerId}/world/revivir`, { method: 'POST', token }),
   travel: (playerId, destino, token) => request(`/api/player/${playerId}/world/viaje`, { method: 'POST', body: { destino }, token }),
   getPiedra: (playerId, token) => request(`/api/player/${playerId}/world/piedra`, { token }),
+  // muñecos de venta (puestos de jugador en el Barrio del Mercado de Aurelia)
+  getPuestos: (playerId, zona, token) => request(`/api/player/${playerId}/puestos?zona=${zona}`, { token }),
+  getMiPuesto: (playerId, token) => request(`/api/player/${playerId}/puestos/mio`, { token }),
+  getPuesto: (playerId, stallId, token) => request(`/api/player/${playerId}/puestos/${stallId}`, { token }),
+  abrirPuesto: (playerId, body, token) => request(`/api/player/${playerId}/puestos`, { method: 'POST', body, token }),
+  cerrarPuesto: (playerId, token) => request(`/api/player/${playerId}/puestos/cerrar`, { method: 'POST', token }),
+  comprarEnPuesto: (playerId, stallId, entryId, quantity, token) =>
+    request(`/api/player/${playerId}/puestos/${stallId}/comprar`, { method: 'POST', body: { entryId, quantity }, token }),
+  comprarMuneco: (playerId, token) => request(`/api/player/${playerId}/puestos/muneco/comprar`, { method: 'POST', token }),
   vincularPiedra: (playerId, vinculo, token) => request(`/api/player/${playerId}/world/piedra/vincular`, { method: 'POST', body: { vinculo }, token }),
   usarPiedra: (playerId, token) => request(`/api/player/${playerId}/world/piedra/usar`, { method: 'POST', token }),
   // Colección del cazador (tecla K): bestiario, amuletos, cartas y jefe mítico
@@ -242,6 +255,8 @@ export const api = {
     request(`/api/player/${playerId}/coop/ready`, { method: 'POST', body: { zoneId }, token }),
   cancelCoopReady: (playerId, token) => request(`/api/player/${playerId}/coop/ready`, { method: 'DELETE', token }),
   getCoopReadyStatus: (playerId, token) => request(`/api/player/${playerId}/coop/ready-status`, { token }),
+  shareQuestWithGroup: (playerId, questId, token) =>
+    request(`/api/player/${playerId}/coop/share-quest`, { method: 'POST', body: { questId }, token }),
   getCoopMessages: (playerId, afterId, token) =>
     request(`/api/player/${playerId}/coop/messages${afterId ? `?afterId=${afterId}` : ''}`, { token }),
   sendCoopMessage: (playerId, body, token) =>
@@ -277,6 +292,7 @@ export const api = {
   getGuildActivity: (token, guildId, limit) =>
     request(`/api/guilds/${guildId}/activity${limit ? `?limit=${limit}` : ''}`, { token }),
   getGuildBank: (token, guildId) => request(`/api/guilds/${guildId}/bank`, { token }),
+  getGuildContracts: (token, guildId) => request(`/api/guilds/${guildId}/contracts`, { token }),
   depositGuildBank: (token, guildId, amount) =>
     request(`/api/guilds/${guildId}/bank/deposit`, { method: 'POST', body: { amount }, token }),
   getGuildBankShop: (token, guildId) => request(`/api/guilds/${guildId}/shop`, { token }),
@@ -347,6 +363,7 @@ export const api = {
     request(`/api/admin/monsters/${monsterId}/scalings/${level}`, { method: 'PUT', body, token }),
   deleteAdminMonsterScaling: (monsterId, level, token) =>
     request(`/api/admin/monsters/${monsterId}/scalings/${level}`, { method: 'DELETE', token }),
+  getAdminEconomia: (token, dias = 14) => request(`/api/admin/economia?dias=${dias}`, { token }),
   getAdminItems: (token, slot) => request(`/api/admin/items${slot ? `?slot=${slot}` : ''}`, { token }),
   updateAdminItem: (itemId, body, token) =>
     request(`/api/admin/items/${itemId}`, { method: 'PATCH', body, token }),

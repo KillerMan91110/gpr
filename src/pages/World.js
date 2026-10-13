@@ -37,6 +37,11 @@ import SocialPanel from '../components/world/SocialPanel';
 import { OfrendaPanel, LibroPanel, VinculoPanel } from '../components/world/CityPanels';
 import OrderPanel from '../components/world/OrderPanel';
 import GuildRegistryPanel from '../components/world/GuildRegistryPanel';
+import InspectPanel from '../components/world/InspectPanel';
+import TradePanel from '../components/world/TradePanel';
+import StallPanel from '../components/world/StallPanel';
+import MyStallPanel from '../components/world/MyStallPanel';
+import MailPanel from '../components/world/MailPanel';
 import BestiarioPanel from '../components/world/BestiarioPanel';
 import MarketPanel from '../components/world/MarketPanel';
 import HirePanel from '../components/world/HirePanel';
@@ -73,8 +78,15 @@ const WINDOWS = {
   crear_gremio:    { title: 'Registro de Gremios',   panel: GuildRegistryPanel, pos: { x: 340, y: 80 }, props: { tab: 'fundar' } },
   // maestro de evolución que trajo un miembro al gremio (la ruta llega al abrirla, ver openWin)
   maestro_gremio:  { title: 'Maestro del gremio',    icon: ['wizard-face', 'delapouite'],   embed: '/guild/my/masters' },
-  // buzón de cartas entre amigos (desde la ventana Social)
-  buzon:           { title: 'Buzón',                 icon: ['mailbox', 'delapouite'],       embed: '/friends' },
+  // inspeccionar a otro jugador (clic en él → Inspeccionar; el jugador llega al abrirla)
+  inspeccionar:    { title: 'Inspeccionar',          panel: InspectPanel, pos: { x: 300, y: 80 } },
+  // comercio directo con otro jugador (se abre cuando los dos aceptan; el estado llega en args)
+  comercio:        { title: 'Comercio',              panel: TradePanel, pos: { x: 260, y: 70 } },
+  // correo del reino (buzones de la Plaza del Pilar y la Aldea Espiga, o desde la ventana Social)
+  buzon:           { title: 'Correo',                panel: MailPanel, pos: { x: 340, y: 90 } },
+  // muñecos de venta: el de otro jugador (clic en el muñeco) y el tuyo (usar el muñeco de la mochila)
+  puesto:          { title: 'Puesto',                panel: StallPanel, pos: { x: 320, y: 90 } },
+  mi_puesto:       { title: 'Mi muñeco de venta',    panel: MyStallPanel, pos: { x: 300, y: 70 } },
   // Aurelia: el Pilar de Aethra, el libro de visitas de la posada y la Estatua del Viajero
   ofrenda:         { title: 'Pilar de Aethra',       panel: OfrendaPanel, pos: { x: 380, y: 120 } },
   libro:           { title: 'Libro de visitas',      panel: LibroPanel,   pos: { x: 360, y: 100 } },
@@ -208,11 +220,31 @@ export default function World() {
   const [weather, setWeather] = useState('despejado');
 
   // ---- datos del HUD ----
+  // grupo de jugadores (co-op): con quién vas; se pide con el HUD y al momento cuando el
+  // servidor avisa que el grupo cambió
+  const [coop, setCoop] = useState(null);
+  const coopRef = useRef(null);
+  coopRef.current = coop;
+  const loadCoop = useCallback(() => {
+    if (!player || !token) return;
+    api.getCoopParty(player.id, token).then(setCoop).catch(() => {});
+  }, [player, token]);
+
   const loadHud = useCallback(() => {
     if (!player || !token) return;
     api.getPlayerStats(player.id, token).then(setStats).catch(() => {});
     api.getParty(player.id, token).then((p) => setParty(p.members ?? [])).catch(() => {});
-  }, [player, token]);
+    loadCoop();
+  }, [player, token, loadCoop]);
+  useEffect(() => {
+    bus.on('coop-changed', loadCoop);
+    return () => bus.off('coop-changed', loadCoop);
+  }, [loadCoop]);
+  // la escena pinta distinto a los de tu grupo
+  const coopIds = (coop?.members ?? []).map((m) => m.id).join(',');
+  useEffect(() => {
+    if (worldReady) bus.emit('party-ids', coopIds ? coopIds.split(',').map(Number) : []);
+  }, [worldReady, coopIds]);
 
   useEffect(() => {
     loadHud();
@@ -225,6 +257,11 @@ export default function World() {
     loadHud();
     setRefreshKey((k) => k + 1);
   }, [loadHud]);
+  // avisos de fuera de las ventanas (una venta de tu muñeco, por ejemplo)
+  useEffect(() => {
+    bus.on('inventory-changed', onInventoryChanged);
+    return () => bus.off('inventory-changed', onInventoryChanged);
+  }, [onInventoryChanged]);
 
   // ---- ventanas ----
   const toggleWindow = useCallback((id) => {
@@ -296,21 +333,30 @@ export default function World() {
       if (p?.dialogue) setDialogue(p.dialogue);
       else if (p?.window) {
         if (p.window === 'misiones_gremio') setQuestGiver(null); // el tablón muestra todas
-        openWin(p.window);
+        openWin(p.window, p.args);
       }
     };
     const onEncounter = (e) => {
+      // en grupo, el servidor suma a los compañeros que estén cerca (ver combat.js worldGroup)
+      if (e.kind === 'zone') e = { ...e, group: !!coopRef.current?.members?.length };
       setEncounter(e);
       sessionStorage.setItem(POS_KEY, JSON.stringify(e.position));
       // tras el aviso "¡Combate!" entra la escena de batalla (sin cambiar de página)
       setTimeout(() => { setEncounter(null); setBattle(e); }, 1300);
     };
     const onBossChallenge = (b) => setBossPrompt(b);
+    // un compañero de grupo empezó un combate cerca: entras con él (si estás libre)
+    const onCoopBattle = (b) => { if (!battleRef.current) bus.emit('coop-battle-join', b); };
+    // ventanas que piden abrir otras partes (p. ej. Inspeccionar desde el menú de un jugador)
+    const onOpenWindow = ({ id, args }) => openWin(id, args);
+    bus.on('coop-battle', onCoopBattle);
+    bus.on('open-window', onOpenWindow);
     bus.on('poi', onPoi);
     bus.on('interact', onInteract);
     bus.on('encounter', onEncounter);
     bus.on('boss-challenge', onBossChallenge);
     return () => {
+      bus.off('coop-battle', onCoopBattle); bus.off('open-window', onOpenWindow);
       bus.off('poi', onPoi); bus.off('interact', onInteract); bus.off('encounter', onEncounter); bus.off('boss-challenge', onBossChallenge);
     };
   }, [navigate, openWin]);
@@ -375,6 +421,18 @@ export default function World() {
     if (o.action === 'tour') {
       bus.emit('social-tour', AURELIA_TOUR);
       bus.emit('social-toast', { text: 'Tomás: «¡Sígueme! La flecha verde te lleva a cada lugar.»', kind: 'tour' });
+    } else if (o.action === 'muneco') {
+      // Pip el titiritero vende el muñeco de venta
+      try {
+        const r = await api.comprarMuneco(player.id, token);
+        audio.sfx('monedas');
+        bus.emit('social-toast', { text: `🧸 ${r.message} Úsalo desde la mochila en el Barrio del Mercado.`, kind: 'ok' });
+        loadHud();
+        setRefreshKey((k) => k + 1);
+      } catch (err) {
+        audio.sfx('error');
+        bus.emit('social-toast', { text: err.message, kind: 'error' });
+      }
     } else if (o.action === 'viaje') {
       try {
         const r = await api.travel(player.id, o.destino, token);
@@ -482,6 +540,26 @@ export default function World() {
       .then(([active, available]) => setQuests({ active, available }))
       .catch(() => {});
   }, [player, token, refreshKey, stats?.level]);
+  // Al entrar al mundo: si quedó un combate abierto (recargaste la página, se cortó la conexión
+  // o un compañero sigue peleando el combate de tu grupo) se retoma en vez de dejarte "afuera"
+  // pero atrapado en él (el servidor no te dejaría empezar otro ni sumarte al de tu grupo).
+  const resumeChecked = useRef(false);
+  useEffect(() => {
+    if (!worldReady || !player || resumeChecked.current) return;
+    resumeChecked.current = true;
+    api.getActiveCombatSession(token).then((s) => {
+      if (s?.session && s.session.status === 'IN_PROGRESS' && !battleRef.current) {
+        bus.emit('coop-battle-join', { kind: 'retomar', zoneId, leaderName: null });
+      }
+    }).catch(() => {});
+  }, [worldReady, player, token, zoneId]);
+
+  // aceptaste una misión que te compartió tu grupo: se recargan el rastreador y las marcas
+  useEffect(() => {
+    const onQuests = () => setRefreshKey((k) => k + 1);
+    bus.on('quests-changed', onQuests);
+    return () => bus.off('quests-changed', onQuests);
+  }, []);
   useEffect(() => {
     setNpcMarks(questMarks({ ...quests, level: stats?.level ?? 1, continentZoneIds }));
   }, [quests, stats?.level, continentZoneIds]);
@@ -629,9 +707,27 @@ export default function World() {
         </div>
       )}
 
-      {/* ---- compañeros del grupo ---- */}
-      {companions.length > 0 && (
-        <div className="hud-party">
+      {/* ---- compañeros del grupo (tus contratados) y jugadores de tu grupo ---- */}
+      {(companions.length > 0 || coop?.members?.length > 0) && (
+        <div className={`hud-party${coop?.members?.length ? ' hud-party--coop' : ''}`}>
+          {coop?.members?.length > 0 && (
+            <div className="hud-coop">
+              <div className="hud-coop-head">
+                <span>⚔ Grupo{coop.isLeader ? ' · eres líder' : ''}</span>
+                <button type="button" title="Salir del grupo" onClick={async () => { await api.leaveCoopParty(player.id, token).catch(() => {}); loadCoop(); window.dispatchEvent(new Event('coop-refresh')); }}>Salir</button>
+              </div>
+              {coop.members.map((m) => (
+                <div className="hud-party-member hud-coop-member" key={`coop-${m.id}`} title="Clic: opciones" onClick={(e) => bus.emit('player-menu', { id: m.id, name: m.nickname, level: m.level, x: e.clientX, y: e.clientY })}>
+                  <div className="hud-party-icon"><Portrait code={m.class_code} small /></div>
+                  <div className="hud-party-body">
+                    <div className="hud-party-name">{m.nickname} <small>Nv. {m.level}</small></div>
+                    <Bar value={m.hp} max={m.max_hp} kind="hp" thin />
+                    <Bar value={m.mana} max={m.max_mana} kind="mp" thin />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {companions.map((m) => (
             <div className="hud-party-member" key={m.slot}>
               <div className="hud-party-icon"><Portrait code={m.classCode} small /></div>
@@ -700,7 +796,7 @@ export default function World() {
       {levelUp && <LevelUpBanner {...levelUp} onDone={() => setLevelUp(null)} />}
 
       {/* otros jugadores, globitos, gestos, emojis (T) y menú al hacer clic en alguien */}
-      <WorldSocial worldReady={worldReady} zoneDir={zoneDir} baseClass={baseClass} inBattle={!!battle} level={stats?.level} />
+      <WorldSocial worldReady={worldReady} zoneDir={zoneDir} baseClass={baseClass} inBattle={!!battle} level={stats?.level} coop={coop} onCoopChanged={loadCoop} />
       {/* jefe mítico de zona: aviso, barra de vida compartida y botín */}
       <MythicHunt worldReady={worldReady} inBattle={!!battle} />
 
@@ -816,8 +912,8 @@ export default function World() {
       {encounter && (
         <div className="world-encounter">
           <div className={`world-encounter-text${encounter.kind === 'boss' || encounter.kind === 'mythic' ? ' world-encounter-text--boss' : ''}`}>
-            <small>{encounter.kind === 'esbirro' ? 'Esbirro de Aullaluna' : encounter.kind === 'mythic' ? 'Jefe mítico' : encounter.kind === 'boss' ? (encounter.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe') : '¡Combate!'}</small>
-            {encounter.kind === 'boss' || encounter.kind === 'mythic' ? encounter.name : (encounter.name ? `Un ${encounter.name} te ataca` : '¡Algo se mueve entre la hierba!')}
+            <small>{encounter.kind === 'retomar' ? 'Tu combate seguía abierto' : encounter.kind === 'grupo' ? '¡Combate en grupo!' : encounter.kind === 'esbirro' ? 'Esbirro de Aullaluna' : encounter.kind === 'mythic' ? 'Jefe mítico' : encounter.kind === 'boss' ? (encounter.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe') : '¡Combate!'}</small>
+            {encounter.kind === 'retomar' ? '¡Vuelves a la pelea!' : encounter.kind === 'grupo' ? `${encounter.name ?? 'Tu grupo'} necesita tu ayuda` : encounter.kind === 'boss' || encounter.kind === 'mythic' ? encounter.name : (encounter.name ? `Un ${encounter.name} te ataca` : '¡Algo se mueve entre la hierba!')}
           </div>
         </div>
       )}
@@ -844,6 +940,9 @@ export default function World() {
                 key={id}
                 {...common}
                 {...w.props}
+                args={winArgs[id]}
+                coop={coop}
+                onCoopChanged={loadCoop}
                 piedra={piedra}
                 onPiedra={setPiedra}
                 onUseStone={castStone}

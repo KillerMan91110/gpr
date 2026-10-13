@@ -37,6 +37,7 @@ const OBJECT_TYPES = [
   { type: 'palomas', label: 'Palomas', hint: 'Bandada que sale volando al acercarse' },
   { type: 'gato', label: 'Gato', hint: 'Gato que toma el sol' },
   { type: 'vinculo', label: 'Estatua', hint: 'Estatua del Viajero: vincula la piedra de regreso (solo en ciudades grandes)' },
+  { type: 'estandarte', label: 'Estandarte', hint: 'Estandarte del gremio campeón (se tiñe con su color y emblema)' },
 ];
 // objetos que se editan con la lista genérica de propiedades
 const GENERIC_PROPS = {

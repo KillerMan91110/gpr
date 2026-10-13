@@ -12,7 +12,7 @@
 
 export const QUEST_GIVERS = {
   'Guardabosque Local': 'ren',
-  'Comerciante de la Aldea': 'lyra',
+  'Comerciante de la Aldea': 'mirna', // Mirna, en la plaza de la Aldea Espiga
   'Anciano Sabio': 'anciano', // Aldren, junto a la fogata de la Aldea Espiga
   'Comandante Aldric': 'aldric', // Sir Aldric, maestro de armas (Barrio de las Órdenes, Aurelia)
 };

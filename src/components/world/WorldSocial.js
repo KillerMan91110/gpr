@@ -5,12 +5,12 @@ import { api } from '../../api/client';
 import bus from '../../game/bus';
 import audio from '../../game/audio';
 import { socialStore } from '../../game/socialStore';
-import PlayerInspectModal from '../PlayerInspectModal';
 import './WorldSocial.css';
 
 // Lo social del mundo 2D del lado de React: entra a la zona por socket y reparte a la escena lo
 // que hacen los demás (posiciones, globitos, gestos, emojis, estados); avisa si estás en
 // combate o ausente; avisos de amigos; menú al hacer clic en otro jugador y ruleta de emojis (T).
+// Grupo: avisos por socket (invitación, cambios del grupo, combate del grupo, misión compartida).
 
 export const EMOJIS = ['❤️', '😂', '👍', '❗', '❓', '💤', '😮', '😡'];
 export const COMMENDS = [
@@ -23,13 +23,14 @@ const FRIEND_TOAST_COOLDOWN = 60 * 1000;
 
 const isTyping = (el) => !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 
-export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, level }) {
+export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, level, coop, onCoopChanged }) {
   const { player, token } = useAuth();
   const { socket, connected } = useSocket();
   const [menu, setMenu] = useState(null);
   const [card, setCard] = useState(null);
   const [menuNote, setMenuNote] = useState('');
-  const [inspect, setInspect] = useState(null);
+  const [shared, setShared] = useState(null); // misión que te ofrece un compañero de grupo
+  const [tradeAsk, setTradeAsk] = useState(null); // alguien quiere comerciar contigo
   const [wheel, setWheel] = useState(false);
   const [toasts, setToasts] = useState([]);
   const lastActive = useRef(Date.now());
@@ -57,6 +58,7 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
       socket.emit('world:enter', { zone: zoneDir, x: p.x, y: p.y, facing: p.facing, flip: p.flip, cls: baseClass }, (r) => {
         if (!r?.ok) return;
         bus.emit('others-roster', { me: player.id, list: r.roster });
+        bus.emit('my-guild', r.me?.guild ?? null);
         if (socialStore.get().lfg) socket.emit('world:lfg', true);
       });
     });
@@ -75,12 +77,16 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
       bus.emit('others-roster', { me: player.id, list: [] });
       toast('Entraste al mundo desde otra pestaña: aquí los demás ya no te ven', 'error');
     };
+    // se unió, salió o fundó un gremio: el servidor recarga sus datos y todos ven la etiqueta nueva
+    const onGuildChanged = () => socket.emit('world:refresh', null, (r) => { if (r?.ok) bus.emit('my-guild', r.me?.guild ?? null); });
     socket.on('world:replaced', onReplaced);
+    bus.on('guild-changed', onGuildChanged);
     bus.on('hero-moved', onMove);
     bus.on('social-lfg', onLfg);
     return () => {
       fns.forEach(([ev, fn]) => socket.off(ev, fn));
       socket.off('world:replaced', onReplaced);
+      bus.off('guild-changed', onGuildChanged);
       bus.off('hero-moved', onMove);
       bus.off('social-lfg', onLfg);
       socket.emit('world:leave');
@@ -118,6 +124,129 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
       socket.off('world:whisper', onWhisper);
     };
   }, [socket, player]);
+
+  // ---- grupo: avisos por socket ----
+  useEffect(() => {
+    if (!socket) return undefined;
+    const refresh = () => { window.dispatchEvent(new Event('coop-refresh')); bus.emit('coop-changed'); };
+    const onInvite = (inv) => {
+      toast(`⚔ ${inv.leader?.nickname ?? 'Alguien'} te invita a su grupo`, 'friend');
+      audio.sfx('abrir');
+      refresh();
+    };
+    // un compañero chocó con monstruos cerca de ti: entras a su combate
+    const onBattle = (b) => bus.emit('coop-battle', b);
+    const onQuestShare = (q) => { setShared(q); audio.sfx('mision'); };
+    // tu grupo entró en combate sin ti (estabas lejos o en otra pelea)
+    const onMissed = (m) => toast(m.why === 'ocupado'
+      ? `${m.leaderName ?? 'Tu grupo'} entró en otro combate mientras peleabas.`
+      : `${m.leaderName ?? 'Tu grupo'} entró en combate, pero estás demasiado lejos para ayudar.`, 'info');
+    socket.on('coop:battle-missed', onMissed);
+    socket.on('coop:invite', onInvite);
+    socket.on('coop:changed', refresh);
+    socket.on('coop:battle', onBattle);
+    socket.on('coop:quest-share', onQuestShare);
+    return () => {
+      socket.off('coop:invite', onInvite);
+      socket.off('coop:changed', refresh);
+      socket.off('coop:battle', onBattle);
+      socket.off('coop:quest-share', onQuestShare);
+      socket.off('coop:battle-missed', onMissed);
+    };
+  }, [socket]);
+
+  // ---- muñecos de venta: la escena los dibuja con la lista que le mandamos ----
+  // (todo el continente se ve a la vez, así que se piden los de las zonas con mercado)
+  useEffect(() => {
+    if (!worldReady || !player) return undefined;
+    let alive = true;
+    const zonas = ['aurelia'];
+    const load = (zona) => api.getPuestos(player.id, zona, token)
+      .then((r) => { if (alive) bus.emit('stalls-state', { zone: zona, puestos: r.puestos }); })
+      .catch(() => {});
+    zonas.forEach(load);
+    const onChanged = (c) => { if (zonas.includes(c?.zone)) load(c.zone); };
+    // alguien le compró a tu muñeco: te llega el oro al momento
+    const onSold = (s) => {
+      toast(`🧸 ${s.buyer ?? 'Alguien'} le compró ${s.quantity}x ${s.name} a tu muñeco (+${Number(s.earned).toLocaleString()} de oro)`, 'ok');
+      audio.sfx('monedas');
+      bus.emit('inventory-changed');
+    };
+    socket?.on('stalls:changed', onChanged);
+    socket?.on('stall:sold', onSold);
+    return () => {
+      alive = false;
+      socket?.off('stalls:changed', onChanged);
+      socket?.off('stall:sold', onSold);
+    };
+  }, [worldReady, player, token, socket]);
+
+  // ---- correo: cartas sin leer (la banderita del buzón y el aviso) ----
+  useEffect(() => {
+    if (!player) return undefined;
+    const refresh = () => api.getUnreadCount(player.id, token)
+      .then((r) => bus.emit('mail-unread', r.unreadMessages ?? 0)).catch(() => {});
+    const onMail = (m) => {
+      toast(`✉ ${m?.from ? `Carta de ${m.from}` : 'Te llegó una carta'}${m?.attach ? ' con cosas para recoger' : ''}. Léela en un buzón o en Social.`, 'friend');
+      audio.sfx('mision');
+      refresh();
+    };
+    if (worldReady) refresh();
+    socket?.on('mail:new', onMail);
+    bus.on('mail-refresh', refresh);
+    return () => {
+      socket?.off('mail:new', onMail);
+      bus.off('mail-refresh', refresh);
+    };
+  }, [player, token, socket, worldReady]);
+
+  // ---- comercio: solicitudes y apertura de la ventana ----
+  useEffect(() => {
+    if (!socket) return undefined;
+    const onRequested = ({ from }) => { setTradeAsk(from); audio.sfx('abrir'); };
+    const onDeclined = ({ by }) => toast(`${by} no quiso comerciar ahora.`, 'info');
+    const onOpen = (t) => { setTradeAsk(null); bus.emit('open-window', { id: 'comercio', args: { trade: t } }); audio.sfx('abrir'); };
+    socket.on('trade:requested', onRequested);
+    socket.on('trade:declined', onDeclined);
+    socket.on('trade:open', onOpen);
+    return () => {
+      socket.off('trade:requested', onRequested);
+      socket.off('trade:declined', onDeclined);
+      socket.off('trade:open', onOpen);
+    };
+  }, [socket]);
+
+  // la solicitud caduca sola (el servidor la olvida a los 30 s)
+  useEffect(() => {
+    if (!tradeAsk) return undefined;
+    const t = setTimeout(() => setTradeAsk(null), 30000);
+    return () => clearTimeout(t);
+  }, [tradeAsk]);
+
+  const answerTrade = (accept) => {
+    const from = tradeAsk;
+    setTradeAsk(null);
+    socket?.emit('trade:respond', { from: from.id, accept }, (r) => { if (r?.error) { toast(r.error, 'error'); audio.sfx('error'); } });
+  };
+
+  const askTrade = () => {
+    const to = menu;
+    setMenu(null);
+    socket?.emit('trade:request', { to: to.id }, (r) => {
+      if (r?.error) { toast(r.error, 'error'); audio.sfx('error'); } else toast(`Le pediste a ${to.name} comerciar. Esperando respuesta…`, 'info');
+    });
+  };
+
+  const acceptShared = async () => {
+    const q = shared;
+    setShared(null);
+    try {
+      await api.acceptQuest(player.id, q.questId, token);
+      toast(`Aceptaste «${q.questName}». Lo que cacen juntos cuenta para los dos.`, 'ok');
+      audio.sfx('mision');
+      bus.emit('quests-changed');
+    } catch (err) { toast(err.message, 'error'); audio.sfx('error'); }
+  };
 
   // subió de nivel (o cambió de gremio / amigos): los demás ven el número nuevo
   useEffect(() => {
@@ -177,6 +306,8 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
   };
   const reloadCard = () => api.getPlayerCard(player.id, menu.id, token).then(setCard).catch(() => {});
   const isFriend = card?.friendship === 'ACCEPTED';
+  // ¿ya está en tu grupo? entonces no se le invita: se ve que está contigo (y el líder puede expulsarlo)
+  const inMyGroup = !!menu && !!coop?.members?.some((m) => m.id === menu.id);
 
   // ---- ruleta de emojis (T) ----
   useEffect(() => {
@@ -213,9 +344,21 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
             )}
           </div>
           <button type="button" onClick={() => { bus.emit('chat-prefill', `/s ${menu.name} `); setMenu(null); }}>💬 Susurrar</button>
-          <button type="button" disabled={card && !isFriend} title={card && !isFriend ? 'Primero tienen que ser amigos' : ''} onClick={() => act(() => api.sendCoopInvite(player.id, menu.id, token), 'Invitación al grupo enviada')}>⚔ Invitar al grupo</button>
-          <button type="button" onClick={() => { setInspect(menu.id); setMenu(null); }}>🛡 Ver equipo</button>
-          <button type="button" onClick={() => { socialStore.setTrack({ id: menu.id, name: menu.name }); setMenu(null); toast(`Siguiendo el rastro de ${menu.name}`, 'info'); }}>➜ Seguir rastro</button>
+          {inMyGroup ? (
+            <>
+              <p className="ws-menu-note ws-menu-group">⚔ En tu grupo</p>
+              {coop?.isLeader && (
+                <button type="button" onClick={() => act(() => api.kickCoopMember(player.id, menu.id, token), `${menu.name} ya no está en tu grupo`, () => { onCoopChanged?.(); window.dispatchEvent(new Event('coop-refresh')); })}>✖ Expulsar del grupo</button>
+              )}
+            </>
+          ) : (
+            <button type="button" onClick={() => act(() => api.sendCoopInvite(player.id, menu.id, token), 'Invitación al grupo enviada')}>⚔ Invitar al grupo</button>
+          )}
+          <button type="button" onClick={() => { bus.emit('open-window', { id: 'inspeccionar', args: { targetId: menu.id, name: menu.name } }); setMenu(null); }}>🛡 Inspeccionar</button>
+          <button type="button" onClick={askTrade}>🤝 Comerciar</button>
+          <button type="button" onClick={() => { bus.emit('open-window', { id: 'buzon', args: { to: menu.name } }); setMenu(null); }}>✉ Escribir carta</button>
+          <button type="button" onClick={() => { bus.emit('follow-player', { id: menu.id, name: menu.name }); setMenu(null); toast(`Sigues a ${menu.name}. Muévete para dejar de seguirlo.`, 'info'); }}>👣 Seguir</button>
+          <button type="button" onClick={() => { socialStore.setTrack({ id: menu.id, name: menu.name }); setMenu(null); toast(`Siguiendo el rastro de ${menu.name}`, 'info'); }}>➜ Rastro</button>
           {!isFriend && card?.direction !== 'sent' && (
             <button type="button" onClick={() => act(() => api.sendFriendRequest(player.id, menu.id, token), card?.direction === 'received' ? '¡Ahora son amigos!' : 'Solicitud de amistad enviada', reloadCard)}>
               ★ {card?.direction === 'received' ? 'Aceptar su solicitud' : 'Agregar amigo'}
@@ -255,7 +398,28 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
         {toasts.map((t) => <div key={t.id} className={`ws-toast ws-toast--${t.kind}`}>{t.text}</div>)}
       </div>
 
-      {inspect && <PlayerInspectModal player={player} token={token} targetId={inspect} onClose={() => setInspect(null)} />}
+      {tradeAsk && (
+        <div className="ws-share ws-trade-ask" role="dialog" aria-label="Solicitud de comercio">
+          <img src={`${process.env.PUBLIC_URL}/assets/mundo/comercio.png`} alt="" />
+          <p><b>{tradeAsk.name}</b> quiere comerciar contigo.</p>
+          <span>
+            <button type="button" className="wp-btn wp-btn--gold" onClick={() => answerTrade(true)}>Aceptar</button>
+            <button type="button" className="wp-btn" onClick={() => answerTrade(false)}>Rechazar</button>
+          </span>
+        </div>
+      )}
+
+      {shared && (
+        <div className="ws-share" role="dialog" aria-label="Misión compartida">
+          <p><b>{shared.fromName}</b> comparte una misión contigo:</p>
+          <strong>«{shared.questName}»</strong>
+          <small>Si la aceptas, lo que cacen juntos cuenta para los dos.</small>
+          <span>
+            <button type="button" className="wp-btn wp-btn--gold" onClick={acceptShared}>Aceptar</button>
+            <button type="button" className="wp-btn" onClick={() => setShared(null)}>Ahora no</button>
+          </span>
+        </div>
+      )}
     </>
   );
 }

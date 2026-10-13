@@ -8,6 +8,7 @@ import GameIcon from '../GameIcon';
 import { MythicMark } from './coleccionArt';
 import './BestiarioPanel.css';
 import FloatingPanel from './FloatingPanel';
+import { ORDENES, emblemaDe, ordenDe } from './OrderPanel';
 import './MapPanel.css';
 
 // Mapa (M). Pestaña "Zona": el mapa entero de la zona donde estás (como el minimapa, pero
@@ -62,7 +63,7 @@ function renderZone(data) {
 // subzona que manda en cada punto (la primera de la lista que lo contenga, como en el juego)
 const subzoneAt = (subs, x, y) => subs.find((s) => x >= s.x0 && x < s.x1 && y >= s.y0 && y < s.y1);
 
-function ZoneMap({ onWorld }) {
+function ZoneMap({ onWorld, orden }) {
   const [data, setData] = useState(null);
   const [hero, setHero] = useState(null);
   const [zoom, setZoom] = useState(1);
@@ -166,11 +167,33 @@ function ZoneMap({ onWorld }) {
                 </span>
               );
             }
+            // Estatua del Viajero (piedra de regreso) y el maestro de tu orden, con su propio ícono
+            if (p.type === 'vinculo') {
+              return (
+                <span key={p.name} className="mp-pin mp-vinculo" style={{ left: p.x * scale, top: p.y * scale }} title={p.label}>
+                  <img src={`${process.env.PUBLIC_URL}/assets/mundo/vinculo/piedra_regreso.png`} alt="" /><em>Estatua del Viajero</em>
+                </span>
+              );
+            }
+            if (p.type === 'npc' && orden && p.dialogue === ORDENES[orden].dialogo) {
+              return (
+                <span key={p.name} className="mp-pin mp-maestro" style={{ left: p.x * scale, top: p.y * scale }} title={p.label}>
+                  <img src={emblemaDe(orden)} alt="" /><em>Tu maestro</em>
+                </span>
+              );
+            }
             if (p.type === 'npc') {
               const mark = data.marks?.[p.dialogue];
               return (
                 <span key={p.name} className={`mp-pin mp-npc${mark ? ` mp-npc--${mark === '?' ? 'entrega' : mark === 'gris' ? 'gris' : 'mision'}` : ''}`} style={{ left: p.x * scale, top: p.y * scale }} title={p.label}>
                   <i>{mark === 'gris' ? '!' : (mark || '●')}</i>{zoom > 1 && <em>{String(p.label).split(',')[0]}</em>}
+                </span>
+              );
+            }
+            if (p.type === 'buzon') {
+              return (
+                <span key={p.name} className="mp-pin mp-poi mp-buzon" style={{ left: p.x * scale, top: p.y * scale }} title="Buzón del correo">
+                  <i>✉</i>{zoom > 1 && <em>Buzón</em>}
                 </span>
               );
             }
@@ -215,6 +238,8 @@ function ZoneMap({ onWorld }) {
           <span><i className="mp-l-poi">◆</i> Lugar</span>
           <span><i className="mp-l-boss">☠</i> Jefe</span>
           <span><i className="mp-l-exit">➜</i> Salida</span>
+          {data.points.some((p) => p.type === 'buzon') && <span><i className="mp-l-poi">✉</i> Buzón</span>}
+          {data.points.some((p) => p.type === 'vinculo') && <span><img className="mp-l-img" src={`${process.env.PUBLIC_URL}/assets/mundo/vinculo/piedra_regreso.png`} alt="" /> Estatua</span>}
           {data.mythic && <span><i><MythicMark scale={1} /></i> Jefe mítico</span>}
         </div>
         <div className="mp-tools">
@@ -331,6 +356,7 @@ function WorldAtlas({ currentZoneId, onZone }) {
 }
 
 export default function MapPanel(props) {
+  const orden = ordenDe(props.stats);
   const [tab, setTab] = useState('zona');
   const [zone, setZone] = useState({ id: 1, name: 'Zona' });
   // en Aurelia (zona 0) el "Estás aquí" del mapa del mundo es la capital
@@ -341,7 +367,7 @@ export default function MapPanel(props) {
         <button type="button" className={tab === 'zona' ? 'on' : ''} onClick={() => setTab('zona')}>{zone.name}</button>
         <button type="button" className={tab === 'mundo' ? 'on' : ''} onClick={() => setTab('mundo')}><GameIcon name="world" artist="lorc" /> Mundo</button>
       </div>
-      {tab === 'zona' ? <ZoneMap onWorld={() => setTab('mundo')} /> : <WorldAtlas currentZoneId={zone.id} onZone={() => setTab('zona')} />}
+      {tab === 'zona' ? <ZoneMap onWorld={() => setTab('mundo')} orden={orden} /> : <WorldAtlas currentZoneId={zone.id} onZone={() => setTab('zona')} />}
     </FloatingPanel>
   );
 }

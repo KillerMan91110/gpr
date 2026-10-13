@@ -29,6 +29,7 @@ const RULES = [
   [/pocion de vida|vida/, I('health-potion', 'delapouite')],
   [/mana/, I('potion-ball', 'lorc')],
   [/huevo/, I('egg-clutch', 'lorc')],
+  [/muneco/, I('matryoshka-dolls', 'delapouite')],
   [/pergamino|receta/, I('scroll-unfurled', 'lorc')],
   [/piedra de encantamiento|runa/, I('rune-stone', 'lorc')],
   [/cristal/, I('crystal-growth', 'lorc')],

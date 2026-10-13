@@ -5,6 +5,11 @@ import { DIALOGUES } from '../../game/dialogues';
 // Caja de diálogo estilo JRPG: retrato del NPC, el texto aparece letra por letra y abajo las
 // opciones (1-9 para elegir, Espacio/Enter para completar el texto, Esc para irse).
 export default function DialogueBox({ id, ctx, onOpenWindow, onAction, onClose }) {
+  // mientras se conversa, el chat global se aparta para no tapar el cuadro de diálogo
+  useEffect(() => {
+    document.body.classList.add('en-dialogo');
+    return () => document.body.classList.remove('en-dialogo');
+  }, []);
   const def = DIALOGUES[id];
   const [text, setText] = useState(() => def?.greet(ctx) ?? '');
   const [shown, setShown] = useState(0);

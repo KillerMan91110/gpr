@@ -611,3 +611,20 @@ body.en-combate .chat-box-restore { display: none; }
 .bt-card--rare .bt-card--miniboss .bt-card--legendary .bt-card--mythic .bt-rewards .bt-bestiary { display: inline-flex; align-items: center; gap: 6px; color: #b9d8ff; font-size: 0.9rem; }
 .bt-rewards .bt-bestiary .game-icon { width: 16px; height: 16px; background: #b9d8ff; }
 .bt-mythic-note { color: #c8f4ff; max-width: 360px; text-align: center; }
+
+/* combate en grupo: esperando el turno de un compañero */
+.bt-waiting p {
+  margin: 4px 0;
+  font: italic 0.9rem 'EB Garamond', serif;
+  color: #e8dcb8;
+}
+
+.bt-waiting small {
+  display: block;
+  color: #b8ac90;
+  font-size: 0.78rem;
+}
+
+/* caíste en un combate de grupo que sigue */
+.bt-fallen .bt-commands-head { color: #ff9a8a; }
+.bt-fallen--small { min-width: 0; opacity: 0.85; }

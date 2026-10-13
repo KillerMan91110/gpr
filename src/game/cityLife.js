@@ -11,6 +11,8 @@ import { gameHour } from './WorldScene';
 //  palomas    bandada que picotea y sale volando si te acercas
 //  gato       gato que toma el sol y a veces da un paseo
 //  vinculo    Estatua del Viajero: ahí se vincula la piedra de regreso (solo en ciudades grandes)
+//  estandarte estandarte del gremio campeón (el de más nivel), teñido con su color y su emblema
+//  buzon      buzón del correo (también punto de interés); levanta la banderita si tienes cartas
 // Los globitos de lo que dicen los pinta socialLayer (clave "cit:<nombre>").
 
 const ASSETS = `${process.env.PUBLIC_URL}/assets`;
@@ -29,6 +31,9 @@ export default class CityLife {
     if (!scene.textures.exists('carteles')) scene.load.spritesheet('carteles', `${ASSETS}/mundo/carteles.png`, { frameWidth: 24, frameHeight: 24 });
     if (!scene.textures.exists('f_paloma')) scene.load.spritesheet('f_paloma', `${ASSETS}/mundo/fauna/paloma.png`, { frameWidth: 16, frameHeight: 16 });
     if (!scene.textures.exists('f_gato')) scene.load.spritesheet('f_gato', `${ASSETS}/mundo/fauna/gato.png`, { frameWidth: 16, frameHeight: 16 });
+    if (!scene.textures.exists('estandarte_asta')) scene.load.image('estandarte_asta', `${ASSETS}/mundo/estandarte/estandarte_asta.png`);
+    if (!scene.textures.exists('estandarte_tela')) scene.load.spritesheet('estandarte_tela', `${ASSETS}/mundo/estandarte/estandarte_tela.png`, { frameWidth: 32, frameHeight: 64 });
+    if (!scene.textures.exists('buzon')) scene.load.spritesheet('buzon', `${ASSETS}/mundo/puestos/buzon.png`, { frameWidth: 32, frameHeight: 48 });
     if (!scene.textures.exists('estatua_vinculo')) scene.load.spritesheet('estatua_vinculo', `${ASSETS}/mundo/vinculo/estatua_vinculo.png`, { frameWidth: 48, frameHeight: 96 });
   }
 
@@ -52,6 +57,11 @@ export default class CityLife {
     of('palomas').forEach((o) => this.makeFlock(o));
     of('gato').forEach((o) => this.makeCat(o));
     of('vinculo').forEach((o) => this.makeStatue(o));
+    of('estandarte').forEach((o) => this.makeBanner(o));
+    this.mailboxes = of('buzon').map((o) => this.makeMailbox(o));
+    this.onMail = (n) => this.mailboxes.forEach((b) => b.setFrame(n > 0 ? 1 : 0));
+    bus.on('mail-unread', this.onMail);
+    scene.events.once('shutdown', () => bus.off('mail-unread', this.onMail));
 
     // hojas de caminar de los ciudadanos (se cargan una vez para todos)
     const citizens = of('ciudadano');
@@ -93,6 +103,58 @@ export default class CityLife {
     const base = o.y + 32;
     s.add.sprite(x, base, 'estatua_vinculo', 0).setOrigin(0.5, 1).setDepth(9.5 + base / 100000).play('estatua_brillo');
     s.blockers.add(s.add.rectangle(x, base - 12, 40, 22));
+  }
+
+  // Buzón del correo: la banderita se levanta cuando tienes cartas sin leer
+  makeMailbox(o) {
+    const s = this.scene;
+    const x = o.x + 16;
+    const base = o.y + 32;
+    const box = s.add.sprite(x, base, 'buzon', 0).setOrigin(0.5, 1).setDepth(9.5 + base / 100000);
+    s.blockers.add(s.add.rectangle(x, base - 4, 16, 8));
+    return box;
+  }
+
+  // Estandarte del gremio campeón: la tela se tiñe con su color y lleva su emblema; se actualiza
+  // cada pocos minutos con el ranking de gremios (si sube otro, cambia el estandarte)
+  makeBanner(o) {
+    const s = this.scene;
+    if (!s.anims.exists('estandarte_ondea')) s.anims.create({ key: 'estandarte_ondea', frames: s.anims.generateFrameNumbers('estandarte_tela', { start: 0, end: 3 }), frameRate: 5, repeat: -1 });
+    const x = o.x + 16;
+    const base = o.y + 32;
+    const depth = 9.5 + base / 100000;
+    s.add.image(x, base, 'estandarte_asta').setOrigin(0.5, 1).setDepth(depth);
+    const tela = s.add.sprite(x, base, 'estandarte_tela', 0).setOrigin(0.5, 1).setDepth(depth + 0.00001).play('estandarte_ondea');
+    const emblem = s.add.text(x, base - 36, '', { fontSize: '13px' }).setOrigin(0.5).setDepth(depth + 0.00002).setResolution(4);
+    const label = s.add.text(x, base - 66, '', {
+      fontFamily: TAG_FONT, fontSize: '6px', fontStyle: 'bold', color: '#ffe9a8', stroke: '#141420', strokeThickness: 3, align: 'center',
+    }).setOrigin(0.5, 1).setDepth(21).setResolution(4);
+    s.minimap?.ignore([emblem, label]);
+    s.blockers.add(s.add.rectangle(x, base - 4, 14, 8));
+    this.banner = { tela, emblem, label };
+    this.loadBanner();
+    this.bannerTimer = s.time.addEvent({ delay: 300000, loop: true, callback: () => this.loadBanner() });
+  }
+
+  async loadBanner() {
+    const b = this.banner;
+    if (!b) return;
+    let top = null;
+    try {
+      const list = await fetch(`${API_URL}/api/leaderboard/guilds`).then((r) => r.json());
+      top = Array.isArray(list) ? list[0] : null;
+    } catch { /* se queda como estaba */ return; }
+    if (!b.tela.active) return;
+    if (top) {
+      const color = /^#[0-9a-f]{6}$/i.test(top.color ?? '') ? parseInt(top.color.slice(1), 16) : 0xd4af37;
+      b.tela.setTint(color);
+      b.emblem.setText(top.emblem || '⚜');
+      b.label.setText(`Gremio campeón\n‹${top.name}› · Nv ${top.level}`);
+    } else {
+      b.tela.setTint(0x8a8478);
+      b.emblem.setText('');
+      b.label.setText('Ningún gremio\nalzó su estandarte');
+    }
   }
 
   makeSign(o) {

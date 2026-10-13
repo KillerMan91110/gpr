@@ -41,6 +41,7 @@ import DailyEvent from './pages/DailyEvent';
 import AdminMonsters from './pages/AdminMonsters';
 import AdminItems from './pages/AdminItems';
 import AdminStatsViewer from './pages/AdminStatsViewer';
+import AdminEconomia from './pages/AdminEconomia';
 import World from './pages/World';
 import MapEditor from './pages/MapEditor';
 import CoopBar from './components/CoopBar';
@@ -97,6 +98,7 @@ function App() {
               <Route path="/admin/monsters" element={<ProtectedRoute><AdminMonsters /></ProtectedRoute>} />
               <Route path="/admin/items" element={<ProtectedRoute><AdminItems /></ProtectedRoute>} />
               <Route path="/admin/stats" element={<ProtectedRoute><AdminStatsViewer /></ProtectedRoute>} />
+              <Route path="/admin/economia" element={<ProtectedRoute><AdminEconomia /></ProtectedRoute>} />
               {/* editor de mapas: solo en desarrollo (guarda a través de src/setupProxy.js) */}
               {process.env.NODE_ENV !== 'production' && <Route path="/editor" element={<MapEditor />} />}
               <Route path="*" element={<NotFound />} />

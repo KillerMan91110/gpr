@@ -40,6 +40,15 @@ export default function CoopBar() {
 
   useEffect(() => () => clearTimeout(penaltyPopupTimer.current), []);
 
+  // avisos por socket (invitación nueva, alguien entró o salió del grupo): se vuelve a
+  // preguntar al momento en vez de esperar la próxima vuelta del polling
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const onRefresh = () => setTick((t) => t + 1);
+    window.addEventListener('coop-refresh', onRefresh);
+    return () => window.removeEventListener('coop-refresh', onRefresh);
+  }, []);
+
   useEffect(() => {
     if (!isAuthenticated || !player) {
       setParty(null);
@@ -55,7 +64,7 @@ export default function CoopBar() {
     pollParty();
     partyPollRef.current = setInterval(pollParty, 6000);
     return () => clearInterval(partyPollRef.current);
-  }, [isAuthenticated, player, token]);
+  }, [isAuthenticated, player, token, tick]);
 
   useEffect(() => {
     if (!isAuthenticated || !player || party) {
@@ -73,7 +82,7 @@ export default function CoopBar() {
     pollInvite();
     invitePollRef.current = setInterval(pollInvite, 3000);
     return () => clearInterval(invitePollRef.current);
-  }, [isAuthenticated, player, token, party]);
+  }, [isAuthenticated, player, token, party, tick]);
 
   // Ready-check: si tu compañero ya marcó "listo" para una zona y tú no, se muestra acá
   // (en cualquier pantalla) sin necesidad de entrar a esa zona para verlo.

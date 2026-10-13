@@ -231,3 +231,44 @@
   85% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+/* misión compartida por un compañero de grupo */
+.ws-share {
+  position: fixed;
+  left: 50%;
+  top: 110px;
+  transform: translateX(-50%);
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 340px;
+  padding: 12px 16px;
+  text-align: center;
+  background: rgba(16, 15, 24, 0.96);
+  border: 1px solid var(--gold, #d4af37);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  color: #e8dcb8;
+  animation: ws-share-in 0.25s ease-out;
+}
+
+.ws-share p { margin: 0; font-size: 0.86rem; }
+.ws-share strong { font: 700 0.95rem 'Cinzel', serif; color: #ffe08a; }
+.ws-share small { color: #b8ac90; font-size: 0.78rem; }
+.ws-share span { display: flex; gap: 8px; margin-top: 4px; }
+
+@keyframes ws-share-in {
+  from { opacity: 0; transform: translate(-50%, -8px); }
+}
+
+.ws-menu-group { color: #7dffd8 !important; font-weight: 700; }
+
+/* solicitud de comercio */
+.ws-trade-ask img {
+  width: 32px;
+  height: 32px;
+  align-self: center;
+  image-rendering: pixelated;
+}

@@ -14,7 +14,9 @@ const TEXT_FONT = "'EB Garamond', Georgia, serif";
 const RES = 4;
 const IDLE = { down: 0, up: 3, side: 6 };
 const GESTURES = ['saludar', 'bailar', 'reir', 'sentarse', 'aplaudir']; // frames de gestos.png
-const STATE_ICON = { combate: '⚔', ausente: '💤' };
+// en combate se muestra el globito animado de espadas (globo_combate, hecho en Aseprite) en vez
+// de un ícono
+const STATE_ICON = { ausente: '💤' };
 const NPC_CHAT_MS = [14000, 26000];
 const MEET_RADIUS = 10 * 32; // a esta distancia cuenta como "te cruzaste" (lista de recientes)
 const FOUND_RADIUS = 3 * 32; // rastro: llegaste
@@ -39,6 +41,7 @@ export default class SocialLayer {
 
   static preload(scene) {
     scene.load.spritesheet('gestos', `${ASSETS}/mundo/gestos.png`, { frameWidth: 16, frameHeight: 16 });
+    scene.load.spritesheet('globo_combate', `${ASSETS}/mundo/globo_combate.png`, { frameWidth: 24, frameHeight: 24 });
   }
 
   ensureTextures() {
@@ -70,6 +73,8 @@ export default class SocialLayer {
       'other-lfg': ({ id, on }) => { const o = this.others.get(id); if (o) { o.lfg = on; this.setState(id, o.state); } },
       'social-lfg': (on) => this.heroFlag.setText(on ? '⚑' : ''),
       'social-track': (t) => { this.track = t; if (!t) this.trackBox.setVisible(false); },
+      // compañeros de grupo: nombre celeste y punto verde en el minimapa
+      'party-ids': (ids) => this.setParty(ids),
     };
     Object.entries(handlers).forEach(([ev, fn]) => bus.on(ev, fn));
     const unbind = () => Object.entries(handlers).forEach(([ev, fn]) => bus.off(ev, fn));
@@ -147,17 +152,29 @@ export default class SocialLayer {
       [name, guild, stateIcon].forEach((t) => s.minimap?.ignore(t));
       const o = { id: p.id, cls: p.cls, info: p, lfg: !!p.lfg, sprite, name, guild, stateIcon, dot, tx: p.x, ty: p.y, f: p.f, flip: p.flip, m: p.m, state: null };
       this.others.set(p.id, o);
+      this.paintParty(o);
       this.setState(p.id, p.state);
     };
     if (s.textures.exists(key)) build();
     else s.loadThen(() => { if (!s.textures.exists(key)) s.load.spritesheet(key, `${ASSETS}/mundo/caminar/${p.cls}.png`, { frameWidth: 32, frameHeight: 32 }); }, build);
   }
 
+  setParty(ids) {
+    this.partyIds = new Set(ids ?? []);
+    for (const o of this.others.values()) this.paintParty(o);
+  }
+
+  paintParty(o) {
+    const inParty = this.partyIds?.has(o.id);
+    o.name.setColor(inParty ? '#7dffd8' : '#9fd6ff');
+    o.dot.setFillStyle(inParty ? 0x7dff9a : 0x6fc3ff);
+  }
+
   remove(id) {
     const o = this.others.get(id);
     if (!o) return;
     this.clearBubble(`p:${id}`);
-    [o.sprite, o.name, o.guild, o.stateIcon, o.dot].forEach((x) => { this.scene.tweens.killTweensOf(x); x.destroy(); });
+    [o.sprite, o.name, o.guild, o.stateIcon, o.dot, o.fightBubble].filter(Boolean).forEach((x) => { this.scene.tweens.killTweensOf(x); x.destroy(); });
     this.others.delete(id);
   }
 
@@ -172,8 +189,22 @@ export default class SocialLayer {
     const o = this.others.get(id);
     if (!o) return;
     o.state = state ?? null;
-    o.stateIcon.setText(STATE_ICON[o.state] ?? (o.lfg ? '⚑' : '')).setColor(o.lfg && !o.state ? '#ffd84a' : '#ffffff');
+    o.stateIcon.setText(STATE_ICON[o.state] ?? (o.lfg && !o.state ? '⚑' : '')).setColor(o.lfg && !o.state ? '#ffd84a' : '#ffffff');
     o.sprite.setAlpha(o.state === 'combate' ? 0.55 : 1);
+    // globito de espadas sobre la cabeza mientras pelea (solo o en grupo); se quita al terminar
+    if (o.state === 'combate' && !o.fightBubble) {
+      const s = this.scene;
+      if (!s.anims.exists('globo_combate')) {
+        s.anims.create({ key: 'globo_combate', frames: s.anims.generateFrameNumbers('globo_combate', { start: 0, end: 3 }), frameRate: 6, repeat: -1 });
+      }
+      o.fightBubble = s.add.sprite(o.sprite.x, o.sprite.y, 'globo_combate', 0).setOrigin(0.5, 1).setDepth(22).play('globo_combate');
+      s.minimap?.ignore(o.fightBubble);
+      s.tweens.add({ targets: o.fightBubble, scale: { from: 0, to: 1 }, duration: 220, ease: 'Back.easeOut' });
+    } else if (o.state !== 'combate' && o.fightBubble) {
+      const b = o.fightBubble;
+      o.fightBubble = null;
+      this.scene.tweens.add({ targets: b, scale: 0, duration: 160, onComplete: () => b.destroy() });
+    }
   }
 
   // ------------------------------------------------------------------ globitos
@@ -379,6 +410,7 @@ export default class SocialLayer {
       o.name.setPosition(sp.x, sp.y - (o.guild.text ? 22 : 14));
       o.guild.setPosition(sp.x, sp.y - 14);
       o.stateIcon.setPosition(sp.x + o.name.width / 2 + 1, o.name.y + 1);
+      o.fightBubble?.setPosition(sp.x, o.name.y - 9);
       o.dot.setPosition(sp.x, sp.y);
     }
     // te cruzaste con alguien: queda en "Recientes" de la ventana Social
