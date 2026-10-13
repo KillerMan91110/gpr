@@ -141,3 +141,25 @@ export function iconCell(art) {
   const c = Math.max(0, SETS.indexOf(art.set));
   return r < 0 ? null : { x: c * 32, y: r * 32 };
 }
+
+// ---------------------------------------------------------------- objetos sin forma de equipo
+// Pociones, elixires, comidas que curan y accesorios (art/sprites/combate/crear_objetos.lua):
+// atlas de una fila, 32x32, en el orden de OBJETOS. Se reconocen por el nombre.
+export const OBJETOS = ['pocion_vida_menor', 'pocion_vida_mayor', 'pocion_mana_menor', 'pocion_mana_mayor',
+  'elixir_regeneracion', 'esencia_restauradora', 'estofado_lobo', 'sopa_goblin', 'guiso_troll',
+  'amuleto_pradera', 'collar_pradera', 'brazalete_pradera', 'anillo_pradera', 'amuleto_capitan', 'anillo_fuerza', 'amuleto_brujo'];
+const OBJETO_BY_NAME = {
+  'pocion de vida menor': 'pocion_vida_menor', 'pocion de vida mayor': 'pocion_vida_mayor',
+  'pocion de mana menor': 'pocion_mana_menor', 'pocion de mana mayor': 'pocion_mana_mayor',
+  'elixir de regeneracion': 'elixir_regeneracion', 'esencia restauradora': 'esencia_restauradora',
+  'estofado de lobo': 'estofado_lobo', 'sopa de goblin': 'sopa_goblin', 'guiso de troll': 'guiso_troll',
+  'amuleto de pradera': 'amuleto_pradera', 'collar de pradera': 'collar_pradera', 'brazalete de pradera': 'brazalete_pradera',
+  'anillo de pradera': 'anillo_pradera', 'amuleto del capitan': 'amuleto_capitan', 'anillo de fuerza menor': 'anillo_fuerza',
+  'amuleto del brujo': 'amuleto_brujo',
+};
+
+// índice en el atlas de objetos, o null
+export function objetoArt(item) {
+  const key = OBJETO_BY_NAME[normalize(item?.name ?? item?.item_name ?? item?.itemName).trim()];
+  return key ? OBJETOS.indexOf(key) : null;
+}

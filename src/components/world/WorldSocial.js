@@ -23,7 +23,7 @@ const FRIEND_TOAST_COOLDOWN = 60 * 1000;
 
 const isTyping = (el) => !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 
-export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, level, coop, onCoopChanged }) {
+export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, watching, level, coop, onCoopChanged }) {
   const { player, token } = useAuth();
   const { socket, connected } = useSocket();
   const [menu, setMenu] = useState(null);
@@ -140,8 +140,13 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
     // tu grupo entró en combate sin ti (estabas lejos o en otra pelea)
     const onMissed = (m) => toast(m.why === 'ocupado'
       ? `${m.leaderName ?? 'Tu grupo'} entró en otro combate mientras peleabas.`
-      : `${m.leaderName ?? 'Tu grupo'} entró en combate, pero estás demasiado lejos para ayudar.`, 'info');
+      : m.why === 'observando'
+      ? `${m.leaderName ?? 'Tu grupo'} entró en combate mientras mirabas otra pelea.`
+      : `${m.leaderName ?? 'Tu grupo'} entró en combate lejos de ti.`, 'info');
     socket.on('coop:battle-missed', onMissed);
+    // alguien del grupo se conectó o se desconectó: se recarga la lista del grupo (gris si no está)
+    const onPresence = () => bus.emit('coop-changed');
+    socket.on('coop:presence', onPresence);
     socket.on('coop:invite', onInvite);
     socket.on('coop:changed', refresh);
     socket.on('coop:battle', onBattle);
@@ -152,6 +157,7 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
       socket.off('coop:battle', onBattle);
       socket.off('coop:quest-share', onQuestShare);
       socket.off('coop:battle-missed', onMissed);
+      socket.off('coop:presence', onPresence);
     };
   }, [socket]);
 
@@ -237,6 +243,18 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
     });
   };
 
+  // ---- refuerzos: acercarte a un compañero de grupo que pelea y unirte a su batalla (su menú) ----
+  const joinAllyBattle = async (ally) => {
+    setMenu(null);
+    try {
+      const st = await api.reinforceCombat(ally.leaderId, token);
+      bus.emit('coop-battle-join', { kind: 'refuerzo', sessionId: st.session?.id, leaderName: ally.leaderName }, (ok) => {
+        // el mapa estaba ocupado (otro aviso): el combate queda guardado y se retoma al volver
+        if (!ok) toast('Te uniste a la batalla: entrarás en cuanto termines lo que estás haciendo.', 'info');
+      });
+    } catch (err) { toast(err.message, 'error'); audio.sfx('error'); }
+  };
+
   const acceptShared = async () => {
     const q = shared;
     setShared(null);
@@ -253,13 +271,13 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
     if (socket && connected && level) socket.emit('world:refresh');
   }, [level, socket, connected]);
 
-  // ---- estados: en combate / ausente (3 min sin hacer nada) ----
+  // ---- estados: en combate / mirando un combate / ausente (3 min sin hacer nada) ----
   useEffect(() => {
     if (!socket || !connected) return undefined;
     const send = () => {
       const idle = Date.now() - lastActive.current > AFK_MS;
       afk.current = idle;
-      socket.emit('world:state', { state: inBattle ? 'combate' : idle ? 'ausente' : null });
+      socket.emit('world:state', { state: watching ? 'observando' : inBattle ? 'combate' : idle ? 'ausente' : null });
     };
     send();
     const onActivity = () => {
@@ -274,11 +292,12 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
       window.removeEventListener('keydown', onActivity);
       window.removeEventListener('mousedown', onActivity);
     };
-  }, [socket, connected, inBattle]);
+  }, [socket, connected, inBattle, watching]);
 
   // ---- clic en otro jugador (o en un nombre de la ventana Social) ----
   useEffect(() => {
     const onMenu = (m) => {
+      if (m.state === undefined) bus.emit('player-state', m.id, (state) => { m = { ...m, state }; });
       setMenu(m);
       setCard(null);
       setMenuNote('');
@@ -353,6 +372,26 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
             </>
           ) : (
             <button type="button" onClick={() => act(() => api.sendCoopInvite(player.id, menu.id, token), 'Invitación al grupo enviada')}>⚔ Invitar al grupo</button>
+          )}
+          {menu.state === 'combate' && inMyGroup && (
+            <button type="button" onClick={() => joinAllyBattle({ leaderId: menu.id, leaderName: menu.name })}>⚔ Unirse a la batalla</button>
+          )}
+          {menu.state === 'combate' && (
+            <button
+              type="button"
+              onClick={async () => {
+                setMenu(null);
+                try {
+                  // se pide antes de salir del mapa: si ya terminó, te enteras sin moverte
+                  const initial = await api.watchCombat(menu.id, token);
+                  bus.emit('spectate-start', { targetId: menu.id, name: menu.name, initial }, (ok) => {
+                    if (!ok) toast('Ahora no puedes mirar otro combate.', 'error');
+                  });
+                } catch (err) { toast(err.message, 'error'); audio.sfx('error'); }
+              }}
+            >
+              👁 Ver combate
+            </button>
           )}
           <button type="button" onClick={() => { bus.emit('open-window', { id: 'inspeccionar', args: { targetId: menu.id, name: menu.name } }); setMenu(null); }}>🛡 Inspeccionar</button>
           <button type="button" onClick={askTrade}>🤝 Comerciar</button>

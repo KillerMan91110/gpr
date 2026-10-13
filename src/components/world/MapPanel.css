@@ -540,3 +540,53 @@
 }
 .mp-map { overflow: hidden; }
 .mp-explored { color: #ffe08a; font-weight: 700; }
+
+/* ---- compañeros de grupo en el mapa de la zona ---- */
+.mp-ally {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.mp-ally i {
+  position: absolute;
+  left: -7px;
+  top: -8px;
+  width: 14px;
+  text-align: center;
+  font-style: normal;
+  font-size: 13px;
+  line-height: 16px;
+  color: #7dff9a;
+  text-shadow: 0 0 2px #000, 0 0 4px #000;
+}
+.mp-ally em {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font: 700 10px 'Cinzel', serif;
+  font-style: normal;
+  color: #c8ffd4;
+  text-shadow: 0 0 2px #000, 0 1px 3px #000;
+}
+.mp-ally::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  top: -9px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #7dff9a;
+  animation: mp-pulse 1.4s ease-out infinite;
+}
+.mp-ally--fight i { color: #ff8a7a; }
+.mp-ally--fight::before { border-color: #ff6a5a; }
+.mp-l-ally { color: #7dff9a; }
+.mp-away { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 2px 0 4px; font-size: 0.8rem; color: #d8c8a0; }
+.mp-ally--up em { top: auto; bottom: 8px; }
+.mp-away--off { color: #8a8a92; }
+.mp-away--off .mp-l-ally { color: #8a8a92; }

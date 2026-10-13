@@ -442,6 +442,11 @@ local FRAMES = {
   {hx=24,hy=23, ang="fwd",     u=5, lean=2,  ko=2},
   {hx=21,hy=4,  ang="up",      u=0, lean=0},
   {hx=21,hy=4,  ang="up",      u=0, lean=0,  jump=-2},
+  -- caminar
+  {hx=26,hy=16, ang="up",      u=0, lean=1},
+  {hx=25,hy=16, ang="up",      u=1, lean=1},
+  {hx=23,hy=16, ang="up",      u=0, lean=1},
+  {hx=25,hy=16, ang="up",      u=1, lean=1},
 }
 local DIRS = {up={0,-1}, upfwd={1,-1}, fwd={1,0}, downfwd={1,1}, upback={-1,-1}}
 local function handPoint(P) return OX + P.lean + P.hx, OY + P.u + (P.jump or 0) + P.hy end

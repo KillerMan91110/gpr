@@ -1117,6 +1117,13 @@ body.en-mundo .coop-invite-popup { bottom: 110px; }
   color: #7dffd8;
 }
 
+/* compañero de grupo desconectado: retrato, nombre y barras en gris */
+.hud-coop-member--off { opacity: 0.75; }
+.hud-coop-member--off .hud-party-icon,
+.hud-coop-member--off .hud-party-body > :not(.hud-party-name) { filter: grayscale(1) brightness(0.75); }
+.hud-coop-member--off .hud-party-name { color: #9a9aa4; }
+.hud-coop-member--off .hud-party-name small { color: #b0b0b8; font-style: italic; }
+
 /* en pantallas angostas los contratados se ocultan, pero tu grupo de jugadores se sigue viendo */
 @media (max-width: 900px) {
   .hud-party.hud-party--coop { display: flex; }

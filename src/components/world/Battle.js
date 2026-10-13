@@ -4,6 +4,8 @@ import { useSocket } from '../../context/SocketContext';
 import { api } from '../../api/client';
 import { CardIcon } from './coleccionArt';
 import GameIcon from '../GameIcon';
+import ItemIcon from './ItemIcon';
+import { iconForItem } from './itemIcons';
 import bus from '../../game/bus';
 import audio from '../../game/audio';
 import { ELEMENTS, splitResistances } from '../../game/elements';
@@ -169,10 +171,13 @@ function Bar({ value, max, kind }) {
 const startRequests = new WeakMap();
 const BESTIARY_STAGE = { 1: 'estadísticas desbloqueadas', 2: 'botín desbloqueado', 3: '¡ficha dominada!' };
 async function startOrResume(encounter, token, playerId) {
+  // modo espectador: solo se mira el combate de otro jugador (el menú ya lo pidió para ver si
+  // seguía abierto); se muestra desde ahora, sin repetir lo que ya pasó
+  if (encounter.kind === 'espectar') return { initial: encounter.initial ?? await api.watchCombat(encounter.targetId, token), resumed: true };
   let initial = await api.getActiveCombatSession(token).catch(() => null);
   if (initial?.session) return { initial, resumed: true };
   // combate de un compañero de grupo: ya existe; si no está, terminó antes de que llegaras
-  if (encounter.kind === 'grupo' || encounter.kind === 'retomar') throw new Error('Ese combate ya terminó.');
+  if (encounter.kind === 'grupo' || encounter.kind === 'retomar' || encounter.kind === 'refuerzo') throw new Error('Ese combate ya terminó.');
   // jefe desafiado en su guarida: pelea contra ese monstruo; jefe mítico: intento contra su vida
   // compartida; si no, encuentro de la zona
   try {
@@ -213,6 +218,9 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
   // jefes de este combate (los anuncia la escena): cartel de entrada y barra de vida grande
   const [bosses, setBosses] = useState([]);
   const [bossIntro, setBossIntro] = useState(null);
+  // refuerzos: un compañero de grupo que estaba lejos se une a tu combate ya empezado
+  const [reinforce, setReinforce] = useState(null);
+  const announced = useRef(new Set()); // refuerzos ya anunciados (el aviso llega por socket y por consulta)
   useEffect(() => {
     const onBosses = (list) => {
       setBosses(list);
@@ -240,9 +248,11 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
   const heroes = participants.filter((p) => p.side === 'PLAYER');
   const enemies = participants.filter((p) => p.side === 'ENEMY');
   const turnActor = participants.find((p) => p.id === state?.nextActorId && p.side === 'PLAYER');
+  // modo espectador: no eliges nada, solo miras (y puedes dejar de mirar cuando quieras)
+  const spectating = encounter.kind === 'espectar';
   // en grupo solo eliges por tus personajes; el turno de un compañero se espera
   const actor = turnActor && isMine(turnActor, player.id) ? turnActor : null;
-  const waitingFor = phase === 'command' && turnActor && !actor ? turnActor : null;
+  const waitingFor = phase === 'command' && turnActor && !actor && !spectating ? turnActor : null;
   const ownerOf = (p) => (p?.player_id != null ? p : participants.find((h) => h.player_id != null && h.player_id === p?.owner_player_id));
   const isCoop = new Set(participants.filter((p) => p.player_id != null).map((p) => p.player_id)).size > 1;
   // en grupo: si cayeron todos tus personajes pero tus compañeros siguen, puedes mirar o volver
@@ -366,7 +376,17 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
   const queued = useRef(null);
   const applyRemote = useCallback(async (next) => {
     if (!next?.session || next.session.id !== state?.session?.id) return;
-    if (maxLogId(next.log) <= lastLogId.current && next.session.status === state?.session?.status) return;
+    // héroes que llegan a mitad de la pelea (refuerzos; las invocaciones no cuentan)
+    const known = new Set((state?.participants ?? []).map((p) => p.id));
+    const newcomers = (next.participants ?? []).filter((p) => p.side === 'PLAYER' && !p.is_summon && p.player_id != null && !known.has(p.id));
+    if (!newcomers.length && maxLogId(next.log) <= lastLogId.current && next.session.status === state?.session?.status) return;
+    const arriving = newcomers.filter((p) => p.player_id !== player.id && !announced.current.has(p.id));
+    arriving.forEach((p) => announced.current.add(p.id));
+    if (arriving.length) {
+      setReinforce({ names: arriving.map((p) => p.name), key: Date.now() });
+      audio.sfx('mision');
+      setTimeout(() => setReinforce(null), 3400);
+    }
     if (sending.current || syncing.current) { queued.current = next; return; }
     syncing.current = true;
     try {
@@ -379,15 +399,32 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
       queued.current = null;
       if (q) applyRemote(q);
     }
-  }, [state, play, afterTurn]);
+  }, [state, play, afterTurn, player]);
   const sessionId = state?.session?.id;
   useEffect(() => {
-    if (!socket || !sessionId || !isCoop) return undefined;
+    // (también peleando solo: un compañero de grupo puede llegar como refuerzo)
+    if (!socket || !sessionId) return undefined;
     socket.emit('combat:join', sessionId);
     const onUpdate = (next) => applyRemote(next);
     socket.on('combat:update', onUpdate);
     return () => socket.off('combat:update', onUpdate);
-  }, [socket, sessionId, isCoop, applyRemote]);
+  }, [socket, sessionId, applyRemote]);
+  // espectador: además del socket, se pregunta cada pocos segundos (por si se pierde un aviso o
+  // el combate termina sin uno, p. ej. si el jugador huye o se desconecta)
+  useEffect(() => {
+    if (!spectating || !sessionId || phase === 'end' || phase === 'error') return undefined;
+    const t = setInterval(() => {
+      api.watchSession(sessionId, token).then(applyRemote).catch(() => {});
+    }, COOP_POLL_MS);
+    return () => clearInterval(t);
+  }, [spectating, sessionId, phase, token, applyRemote]);
+  // espectador: cuando el combate que mirabas termina (gane o pierda), vuelves solo al mundo
+  const stopWatching = useCallback(() => onFinish({ status: 'SPECTATE' }), [onFinish]);
+  useEffect(() => {
+    if (!spectating || phase !== 'end') return undefined;
+    const t = setTimeout(stopWatching, 3500);
+    return () => clearTimeout(t);
+  }, [spectating, phase, stopWatching]);
   const waitingId = waitingFor?.id;
   useEffect(() => {
     if (!waitingId || !sessionId) return undefined;
@@ -493,6 +530,10 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
     const onKey = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (phase === 'target' && e.key === 'Escape') { cancelTargeting(); return; }
+      if (spectating) {
+        if (e.key === 'Escape' || (phase === 'end' && (e.key === 'Enter' || e.key === ' '))) { e.preventDefault(); stopWatching(); }
+        return;
+      }
       if (phase === 'end' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onFinish({ status: result?.status, rewards: result?.rewards }); return; }
       if (phase !== 'command') return;
       if (e.key === 'Escape') setMenu(null);
@@ -528,6 +569,15 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
       )}
 
       {/* cartel de entrada del jefe */}
+      {/* refuerzos: cartel rojo de evento mientras el compañero entra caminando */}
+      {reinforce && (
+        <div className="bt-reinforce" key={reinforce.key}>
+          <small>¡Evento!</small>
+          <strong>¡Tus refuerzos están llegando!</strong>
+          <span>{reinforce.names.join(' y ')} se une a la batalla</span>
+        </div>
+      )}
+
       {bossIntro && (
         <div className={`bt-boss-intro bt-boss-intro--${bossIntro.rank}`}>
           <small>{bossIntro.rank === 'mitico' ? 'Jefe mítico' : bossIntro.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe'}</small>
@@ -643,6 +693,15 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
         </div>
       )}
 
+      {/* modo espectador: miras el combate de otro jugador */}
+      {spectating && phase !== 'end' && phase !== 'error' && (
+        <div className="bt-commands bt-waiting">
+          <div className="bt-commands-head"><GameIcon name="eye-target" artist="delapouite" /> Observando</div>
+          <p>Miras el combate de {encounter.name ?? 'otro aventurero'}.{turnActor ? ` Turno de ${turnActor.name}.` : ''}</p>
+          <button type="button" className="bt-cmd" onClick={stopWatching}><GameIcon name="exit-door" artist="delapouite" /> Dejar de mirar <kbd>Esc</kbd></button>
+        </div>
+      )}
+
       {/* combate en grupo: turno de un compañero */}
       {waitingFor && !iFell && (
         <div className="bt-commands bt-waiting">
@@ -708,7 +767,7 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
               {items?.length === 0 && <p className="bt-empty">Sin consumibles</p>}
               {items?.map((it) => (
                 <button key={it.inventory_id} type="button" className="bt-sub" onClick={() => pickItem(it)}>
-                  <span>{it.name}</span>
+                  <span className="bt-sub-name"><ItemIcon icon={iconForItem({ ...it, item_type: 'CONSUMABLE' })} />{it.name}</span>
                   <small>x{it.quantity}</small>
                 </button>
               ))}
@@ -728,14 +787,30 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
       {phase === 'error' && (
         <div className="bt-result">
           <div className="bt-result-box">
-            <h2>No se pudo iniciar el combate</h2>
+            <h2>{spectating ? 'No se puede mirar ese combate' : 'No se pudo iniciar el combate'}</h2>
             <p>{message}</p>
             <button type="button" className="bt-continue" onClick={() => onFinish({ status: 'ERROR' })}>Volver al mapa</button>
           </div>
         </div>
       )}
 
-      {phase === 'end' && result && (
+      {phase === 'end' && result && spectating && (
+        <div className={`bt-result bt-result--${result.status}`}>
+          <div className="bt-result-box">
+            <h2>Terminó el combate</h2>
+            <p>
+              {result.status === 'PLAYER_WON' && `¡${encounter.name ?? 'El aventurero'} ganó la pelea!`}
+              {result.status === 'ENEMY_WON' && `${encounter.name ?? 'El aventurero'} cayó en la pelea.`}
+              {result.status === 'ESCAPED' && `${encounter.name ?? 'El aventurero'} escapó del combate.`}
+              {!['PLAYER_WON', 'ENEMY_WON', 'ESCAPED'].includes(result.status) && 'El combate se cerró.'}
+            </p>
+            <p><small>Vuelves al mundo…</small></p>
+            <button type="button" className="bt-continue" onClick={stopWatching}>Volver ya <kbd>Enter</kbd></button>
+          </div>
+        </div>
+      )}
+
+      {phase === 'end' && result && !spectating && (
         <div className={`bt-result bt-result--${result.status}`}>
           <div className="bt-result-box">
             <h2>

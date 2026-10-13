@@ -385,8 +385,8 @@ export default function CoopBar() {
                 <span className="coop-bar-partner">
                   {m.nickname}
                   <span
-                    className={`coop-bar-status-dot ${isOnline(m.last_seen_at) ? 'coop-bar-status-dot--online' : 'coop-bar-status-dot--offline'}`}
-                    title={isOnline(m.last_seen_at) ? 'Conectado' : 'Desconectado'}
+                    className={`coop-bar-status-dot ${(m.online ?? isOnline(m.last_seen_at)) ? 'coop-bar-status-dot--online' : 'coop-bar-status-dot--offline'}`}
+                    title={(m.online ?? isOnline(m.last_seen_at)) ? 'Conectado' : 'Desconectado'}
                   >
                     ●
                   </span>

@@ -19,7 +19,8 @@ const UNIT_SCALE = 1.7;
 
 // pies de cada combatiente; el primero es el de adelante. Los monstruos van en espejo.
 // como mucho 3 por lado (3 jugadores, o 1 jugador y sus 2 compañeros, o 2 jugadores y uno)
-const HERO_SLOTS = [{ x: 212, y: 296 }, { x: 160, y: 270 }, { x: 150, y: 326 }];
+// el cuarto puesto es para un refuerzo que llega a mitad de la pelea
+const HERO_SLOTS = [{ x: 212, y: 296 }, { x: 160, y: 270 }, { x: 150, y: 326 }, { x: 104, y: 298 }];
 const ENEMY_SLOTS = HERO_SLOTS.map((s) => ({ x: VW - s.x, y: s.y }));
 
 const BASE_CLASSES = ['guerrero', 'mago', 'arquero', 'picaro', 'sacerdote'];
@@ -396,11 +397,47 @@ export default class BattleScene extends Phaser.Scene {
     await wait(this, 620);
   }
 
+  // ---------------------------------------------------------------- refuerzos
+  // Un compañero de grupo llega a mitad del combate: se cargan sus hojas (clase y equipo) y su
+  // héroe entra caminando desde la izquierda hasta su puesto.
+  async reinforce(p) {
+    const cls = this.classOf(p);
+    const sheet = (key, url) => {
+      if (!this.textures.exists(key)) this.load.spritesheet(key, url, { frameWidth: 48, frameHeight: 48 });
+    };
+    sheet(`b_${cls}`, `${ASSETS}/sprites/combate/clases/${cls}.png`);
+    sheet(`w_${CLASS_WEAPON[cls]}`, `${ASSETS}/sprites/combate/armas/${CLASS_WEAPON[cls]}.png`);
+    preloadGear(this, [p]);
+    if (this.load.list.size > 0) {
+      await new Promise((resolve) => { this.load.once('complete', resolve); this.load.start(); });
+    }
+    const heroes = [...this.units.values()].filter((u) => u.kind === 'hero');
+    const slot = HERO_SLOTS[heroes.length % HERO_SLOTS.length];
+    this.spawnHero(p, slot);
+    const u = this.units.get(p.id);
+    if (!u) return;
+    const parts = [u.body, u.weapon, u.offhand, u.shadow].filter(Boolean);
+    parts.forEach((o) => { o.x -= 260; });
+    this.playUnit(u, this.anims.exists(`${u.bodyTex}_walk`) ? 'walk' : 'idle');
+    await tween(this, { targets: parts, x: `+=260`, duration: 1500, ease: 'Linear' });
+    this.playUnit(u, u.alive ? 'idle' : 'ko');
+  }
+
   // ---------------------------------------------------------------- registro de combate
   async playLogs(logs, participants, ctx = {}) {
     // vida final de cada uno: sirve para repartir el resultado de las habilidades de área
     this.finalHp = Object.fromEntries((participants ?? []).map((p) => [p.id, p.hp]));
     try {
+      // refuerzos que no estaban: entran caminando antes de seguir con el registro
+      for (const p of participants ?? []) {
+        if (p.side !== 'PLAYER' || p.is_summon || p.player_id == null || this.units.has(p.id)) continue;
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          await this.reinforce(p);
+        } catch (err) {
+          console.error('[batalla] no se pudo sumar al refuerzo', p, err);
+        }
+      }
       for (const log of logs) {
         try {
           // eslint-disable-next-line no-await-in-loop

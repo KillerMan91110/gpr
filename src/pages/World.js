@@ -472,6 +472,12 @@ export default function World() {
   const piedraLeft = piedra?.readyAt ? Math.max(0, new Date(piedra.readyAt).getTime() - Date.now()) : 0;
   const castStone = useCallback(() => {
     if (battleRef.current || !piedra) return;
+    // la piedra del aventurero nuevo llega sin vincular: primero hay que pasar por la estatua
+    if (!piedra.vinculo) {
+      audio.sfx('error');
+      bus.emit('social-toast', { text: `Tu piedra todavía no está vinculada. Vincúlala en la Estatua del Viajero de ${piedra.estatua?.nombre ?? 'Aurelia'} (${piedra.estatua?.lugar ?? 'la Plaza del Pilar'}).`, kind: 'error' });
+      return;
+    }
     const left = piedra.readyAt ? new Date(piedra.readyAt).getTime() - Date.now() : 0;
     if (left > 0) {
       audio.sfx('error');
@@ -764,10 +770,11 @@ export default function World() {
                 <button type="button" title="Salir del grupo" onClick={async () => { await api.leaveCoopParty(player.id, token).catch(() => {}); loadCoop(); window.dispatchEvent(new Event('coop-refresh')); }}>Salir</button>
               </div>
               {coop.members.map((m) => (
-                <div className="hud-party-member hud-coop-member" key={`coop-${m.id}`} title="Clic: opciones" onClick={(e) => bus.emit('player-menu', { id: m.id, name: m.nickname, level: m.level, x: e.clientX, y: e.clientY })}>
+                // desconectado: todo en gris y la palabra "Desconectado" en vez del nivel
+                <div className={`hud-party-member hud-coop-member${m.online === false ? ' hud-coop-member--off' : ''}`} key={`coop-${m.id}`} title={m.online === false ? `${m.nickname} está desconectado` : 'Clic: opciones'} onClick={(e) => bus.emit('player-menu', { id: m.id, name: m.nickname, level: m.level, x: e.clientX, y: e.clientY })}>
                   <div className="hud-party-icon"><Portrait code={m.class_code} small /></div>
                   <div className="hud-party-body">
-                    <div className="hud-party-name">{m.nickname} <small>Nv. {m.level}</small></div>
+                    <div className="hud-party-name">{m.nickname} <small>{m.online === false ? 'Desconectado' : `Nv. ${m.level}`}</small></div>
                     <Bar value={m.hp} max={m.max_hp} kind="hp" thin />
                     <Bar value={m.mana} max={m.max_mana} kind="mp" thin />
                   </div>
@@ -857,7 +864,7 @@ export default function World() {
       {levelUp && <LevelUpBanner {...levelUp} onDone={() => setLevelUp(null)} />}
 
       {/* otros jugadores, globitos, gestos, emojis (T) y menú al hacer clic en alguien */}
-      <WorldSocial worldReady={worldReady} zoneDir={zoneDir} baseClass={baseClass} inBattle={!!battle} level={stats?.level} coop={coop} onCoopChanged={loadCoop} />
+      <WorldSocial worldReady={worldReady} zoneDir={zoneDir} baseClass={baseClass} inBattle={!!battle} watching={battle?.kind === 'espectar'} level={stats?.level} coop={coop} onCoopChanged={loadCoop} />
       {/* jefe mítico de zona: aviso, barra de vida compartida y botín */}
       <MythicHunt worldReady={worldReady} inBattle={!!battle} />
 
@@ -900,7 +907,7 @@ export default function World() {
             {piedraLeft > 0 && <span className="hud-slot-cd">{Math.ceil(piedraLeft / 60000)}m</span>}
             <kbd>{STONE_KEY.toUpperCase()}</kbd>
             <span className="hud-tooltip">
-              Piedra de regreso{piedra ? ` · ${piedra.nombre}` : ''}
+              Piedra de regreso{piedra ? ` · ${piedra.nombre ?? 'sin vincular'}` : ''}
               {piedraLeft > 0 && <small> · lista en {Math.ceil(piedraLeft / 60000)} min</small>}
             </span>
           </button>
@@ -1019,8 +1026,8 @@ export default function World() {
       {encounter && (
         <div className="world-encounter">
           <div className={`world-encounter-text${encounter.kind === 'boss' || encounter.kind === 'mythic' || encounter.target === 'jefe' ? ' world-encounter-text--boss' : ''}`}>
-            <small>{encounter.kind === 'cripta' ? (encounter.target === 'jefe' ? 'Jefe de la mazmorra' : '¡Un guardián te vio!') : encounter.kind === 'retomar' ? 'Tu combate seguía abierto' : encounter.kind === 'grupo' ? '¡Combate en grupo!' : encounter.kind === 'esbirro' ? 'Esbirro de Aullaluna' : encounter.kind === 'mythic' ? 'Jefe mítico' : encounter.kind === 'boss' ? (encounter.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe') : '¡Combate!'}</small>
-            {encounter.kind === 'cripta' ? encounter.name : encounter.kind === 'retomar' ? '¡Vuelves a la pelea!' : encounter.kind === 'grupo' ? `${encounter.name ?? 'Tu grupo'} necesita tu ayuda` : encounter.kind === 'boss' || encounter.kind === 'mythic' ? encounter.name : (encounter.name ? `Un ${encounter.name} te ataca` : '¡Algo se mueve entre la hierba!')}
+            <small>{encounter.kind === 'refuerzo' ? '¡Refuerzos!' : encounter.kind === 'espectar' ? 'Modo espectador' : encounter.kind === 'cripta' ? (encounter.target === 'jefe' ? 'Jefe de la mazmorra' : '¡Un guardián te vio!') : encounter.kind === 'retomar' ? 'Tu combate seguía abierto' : encounter.kind === 'grupo' ? '¡Combate en grupo!' : encounter.kind === 'esbirro' ? 'Esbirro de Aullaluna' : encounter.kind === 'mythic' ? 'Jefe mítico' : encounter.kind === 'boss' ? (encounter.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe') : '¡Combate!'}</small>
+            {encounter.kind === 'refuerzo' ? `Corres a ayudar a ${encounter.name}` : encounter.kind === 'espectar' ? `Miras el combate de ${encounter.name}` : encounter.kind === 'cripta' ? encounter.name : encounter.kind === 'retomar' ? '¡Vuelves a la pelea!' : encounter.kind === 'grupo' ? `${encounter.name ?? 'Tu grupo'} necesita tu ayuda` : encounter.kind === 'boss' || encounter.kind === 'mythic' ? encounter.name : (encounter.name ? `Un ${encounter.name} te ataca` : '¡Algo se mueve entre la hierba!')}
           </div>
         </div>
       )}

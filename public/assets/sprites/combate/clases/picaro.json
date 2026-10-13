@@ -169,6 +169,42 @@
     "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
     "sourceSize": { "w": 48, "h": 48 },
     "duration": 300
+   },
+   {
+    "filename": "picaro (cuerpo) 19.aseprite",
+    "frame": { "x": 912, "y": 0, "w": 48, "h": 48 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+    "sourceSize": { "w": 48, "h": 48 },
+    "duration": 150
+   },
+   {
+    "filename": "picaro (cuerpo) 20.aseprite",
+    "frame": { "x": 960, "y": 0, "w": 48, "h": 48 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+    "sourceSize": { "w": 48, "h": 48 },
+    "duration": 110
+   },
+   {
+    "filename": "picaro (cuerpo) 21.aseprite",
+    "frame": { "x": 1008, "y": 0, "w": 48, "h": 48 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+    "sourceSize": { "w": 48, "h": 48 },
+    "duration": 150
+   },
+   {
+    "filename": "picaro (cuerpo) 22.aseprite",
+    "frame": { "x": 1056, "y": 0, "w": 48, "h": 48 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 48, "h": 48 },
+    "sourceSize": { "w": 48, "h": 48 },
+    "duration": 110
    }
  ],
  "meta": {
@@ -176,7 +212,7 @@
   "version": "1.3.15.5-dev",
   "image": "picaro.png",
   "format": "RGBA8888",
-  "size": { "w": 912, "h": 48 },
+  "size": { "w": 1104, "h": 48 },
   "scale": "1",
   "frameTags": [
    { "name": "idle", "from": 0, "to": 1, "direction": "forward", "color": "#000000ff" },
@@ -186,7 +222,8 @@
    { "name": "hurt", "from": 12, "to": 13, "direction": "forward", "color": "#000000ff" },
    { "name": "defend", "from": 14, "to": 14, "direction": "forward", "color": "#000000ff" },
    { "name": "ko", "from": 15, "to": 16, "direction": "forward", "color": "#000000ff" },
-   { "name": "victory", "from": 17, "to": 18, "direction": "forward", "color": "#000000ff" }
+   { "name": "victory", "from": 17, "to": 18, "direction": "forward", "color": "#000000ff" },
+   { "name": "walk", "from": 19, "to": 22, "direction": "forward", "color": "#000000ff" }
   ]
  }
 }

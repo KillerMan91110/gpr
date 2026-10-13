@@ -73,9 +73,11 @@ function seenAt(ex, x, y) {
 // subzona que manda en cada punto (la primera de la lista que lo contenga, como en el juego)
 const subzoneAt = (subs, x, y) => subs.find((s) => x >= s.x0 && x < s.x1 && y >= s.y0 && y < s.y1);
 
-function ZoneMap({ onWorld, orden }) {
+function ZoneMap({ onWorld, orden, coop }) {
   const [data, setData] = useState(null);
   const [hero, setHero] = useState(null);
+  // compañeros de grupo en esta zona (se mueven en vivo, como tu flecha)
+  const [allies, setAllies] = useState([]);
   const [zoom, setZoom] = useState(1);
   const [hover, setHover] = useState(null);
   const canvasRef = useRef(null);
@@ -85,7 +87,10 @@ function ZoneMap({ onWorld, orden }) {
 
   useEffect(() => {
     bus.emit('zone-map-data', (d) => setData(d));
-    const tick = () => bus.emit('hero-pos', (p) => setHero(p));
+    const tick = () => {
+      bus.emit('hero-pos', (p) => setHero(p));
+      bus.emit('party-positions', (list) => setAllies(list ?? []));
+    };
     tick();
     const t = setInterval(tick, 250);
     return () => clearInterval(t);
@@ -249,6 +254,12 @@ function ZoneMap({ onWorld, orden }) {
               <i><MythicMark scale={1} /></i><em>{data.mythic.name.split(',')[0]}</em>
             </span>
           )}
+          {allies.map((a, i) => (
+            // si otro compañero está pegado, su nombre va arriba para que no se pisen
+            <span key={a.id} className={`mp-ally${a.state === 'combate' ? ' mp-ally--fight' : ''}${allies.slice(0, i).some((o) => Math.hypot((o.x - a.x) * scale, (o.y - a.y) * scale) < 60) ? ' mp-ally--up' : ''}`} style={{ left: a.x * scale, top: a.y * scale }} title={a.state === 'combate' ? `${a.name}: en combate` : a.name}>
+              <i>{a.state === 'combate' ? '⚔' : '●'}</i><em>{a.name}</em>
+            </span>
+          ))}
           {hero && (
             <span className="mp-hero" style={{ left: hero.x * scale, top: hero.y * scale }}>
               <i style={{ transform: `rotate(${facingRot}deg)` }}>▼</i>
@@ -268,6 +279,7 @@ function ZoneMap({ onWorld, orden }) {
       <div className="mp-bar">
         <div className="mp-legend">
           <span><i className="mp-l-hero">▼</i> Tú</span>
+          {coop?.members?.length > 0 && <span><i className="mp-l-ally">●</i> Grupo</span>}
           <span><i className="mp-l-npc">●</i> NPC</span>
           <span><i className="mp-l-poi">◆</i> Lugar</span>
           <span><i className="mp-l-boss">☠</i> Jefe</span>
@@ -277,6 +289,14 @@ function ZoneMap({ onWorld, orden }) {
           {data.points.some((p) => p.type === 'vinculo') && <span><img className="mp-l-img" src={`${process.env.PUBLIC_URL}/assets/mundo/vinculo/piedra_regreso.png`} alt="" /> Estatua</span>}
           {data.mythic && <span><i><MythicMark scale={1} /></i> Jefe mítico</span>}
         </div>
+        {/* compañeros de grupo que no andan por esta zona */}
+        {(coop?.members ?? []).filter((m) => !allies.some((a) => a.id === m.id)).length > 0 && (
+          <div className="mp-away">
+            {(coop?.members ?? []).filter((m) => !allies.some((a) => a.id === m.id)).map((m) => (
+              <span key={m.id} className={m.online === false ? 'mp-away--off' : ''}><i className="mp-l-ally">●</i> {m.nickname}: {m.online === false ? 'desconectado' : 'en otra zona'}</span>
+            ))}
+          </div>
+        )}
         <div className="mp-tools">
           <button type="button" className={zoom === 1 ? 'on' : ''} onClick={() => setZoom(1)}>Entera</button>
           <button type="button" className={zoom === 2 ? 'on' : ''} onClick={() => setZoom(2)}>Cerca</button>
@@ -402,7 +422,7 @@ export default function MapPanel(props) {
         <button type="button" className={tab === 'zona' ? 'on' : ''} onClick={() => setTab('zona')}>{zone.name}</button>
         <button type="button" className={tab === 'mundo' ? 'on' : ''} onClick={() => setTab('mundo')}><GameIcon name="world" artist="lorc" /> Mundo</button>
       </div>
-      {tab === 'zona' ? <ZoneMap onWorld={() => setTab('mundo')} orden={orden} /> : <WorldAtlas currentZoneId={zone.id} onZone={() => setTab('zona')} />}
+      {tab === 'zona' ? <ZoneMap onWorld={() => setTab('mundo')} orden={orden} coop={props.coop} /> : <WorldAtlas currentZoneId={zone.id} onZone={() => setTab('zona')} />}
     </FloatingPanel>
   );
 }

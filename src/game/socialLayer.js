@@ -14,9 +14,15 @@ const TEXT_FONT = "'EB Garamond', Georgia, serif";
 const RES = 4;
 const IDLE = { down: 0, up: 3, side: 6 };
 const GESTURES = ['saludar', 'bailar', 'reir', 'sentarse', 'aplaudir']; // frames de gestos.png
-// en combate se muestra el globito animado de espadas (globo_combate, hecho en Aseprite) en vez
-// de un ícono
+// en combate se muestra el globito animado de espadas (globo_combate) y mirando el combate de
+// otro, el de un ojo que parpadea (globo_observando); los dos hechos en Aseprite
 const STATE_ICON = { ausente: '💤' };
+const STATE_BUBBLE = { combate: 'globo_combate', observando: 'globo_observando' };
+const BUBBLE_ANIM = {
+  globo_combate: { frameRate: 6 },
+  // abierto un buen rato y un parpadeo rápido
+  globo_observando: { durations: [1200, 70, 120, 70] },
+};
 const NPC_CHAT_MS = [14000, 26000];
 const MEET_RADIUS = 10 * 32; // a esta distancia cuenta como "te cruzaste" (lista de recientes)
 const FOUND_RADIUS = 3 * 32; // rastro: llegaste
@@ -27,6 +33,8 @@ export default class SocialLayer {
     this.myId = null;
     this.others = new Map(); // id → { sprite, name, guild, stateIcon, dot, tx, ty, f, flip, m, cls, state }
     this.bubbles = new Map(); // clave de entidad → { box, typing, timer }
+    // estado que llegó antes de que su sprite terminara de cargar (se aplica al crearlo)
+    this.pendingState = new Map();
     this.met = new Set();
     this.track = socialStore.get().track;
     this.ensureTextures();
@@ -42,6 +50,7 @@ export default class SocialLayer {
   static preload(scene) {
     scene.load.spritesheet('gestos', `${ASSETS}/mundo/gestos.png`, { frameWidth: 16, frameHeight: 16 });
     scene.load.spritesheet('globo_combate', `${ASSETS}/mundo/globo_combate.png`, { frameWidth: 24, frameHeight: 24 });
+    scene.load.spritesheet('globo_observando', `${ASSETS}/mundo/globo_observando.png`, { frameWidth: 24, frameHeight: 24 });
   }
 
   ensureTextures() {
@@ -75,6 +84,20 @@ export default class SocialLayer {
       'social-track': (t) => { this.track = t; if (!t) this.trackBox.setVisible(false); },
       // compañeros de grupo: nombre celeste y punto verde en el minimapa
       'party-ids': (ids) => this.setParty(ids),
+      // estado de otro jugador (menú abierto desde la lista del grupo)
+      'player-state': (id, cb) => cb?.(this.others.get(id)?.state ?? null),
+      // mapa (M): dónde están tus compañeros de grupo que andan por esta zona (x, y locales)
+      'party-positions': (cb) => {
+        const s = this.scene;
+        const out = [];
+        for (const o of this.others.values()) {
+          if (!this.partyIds?.has(o.id) || !s.zone) continue;
+          if (s.zoneAt && s.zoneAt(o.tx, o.ty) !== s.zone) continue;
+          const p = s.toLocal(o.tx, o.ty, s.zone);
+          out.push({ id: o.id, name: o.info?.name ?? '', state: o.state, x: p.x, y: p.y });
+        }
+        cb?.(out);
+      },
     };
     Object.entries(handlers).forEach(([ev, fn]) => bus.on(ev, fn));
     const unbind = () => Object.entries(handlers).forEach(([ev, fn]) => bus.off(ev, fn));
@@ -137,7 +160,8 @@ export default class SocialLayer {
       sprite.setInteractive({ useHandCursor: true, pixelPerfect: false });
       sprite.on('pointerdown', (pointer) => {
         const ev = pointer.event;
-        bus.emit('player-menu', { id: p.id, name: p.name, level: p.level, guild: p.guild, x: ev.clientX, y: ev.clientY });
+        // el estado (en combate…) deja ofrecer "Ver combate" en el menú
+        bus.emit('player-menu', { id: p.id, name: p.name, level: p.level, guild: p.guild, state: this.others.get(p.id)?.state ?? null, x: ev.clientX, y: ev.clientY });
       });
       const name = s.add.text(p.x, p.y - 22, `${p.name}  ${p.level}`, {
         fontFamily: TAG_FONT, fontSize: '7px', fontStyle: 'bold', color: '#9fd6ff', stroke: '#141420', strokeThickness: 3,
@@ -153,7 +177,8 @@ export default class SocialLayer {
       const o = { id: p.id, cls: p.cls, info: p, lfg: !!p.lfg, sprite, name, guild, stateIcon, dot, tx: p.x, ty: p.y, f: p.f, flip: p.flip, m: p.m, state: null };
       this.others.set(p.id, o);
       this.paintParty(o);
-      this.setState(p.id, p.state);
+      this.setState(p.id, this.pendingState.has(p.id) ? this.pendingState.get(p.id) : p.state);
+      this.pendingState.delete(p.id);
     };
     if (s.textures.exists(key)) build();
     else s.loadThen(() => { if (!s.textures.exists(key)) s.load.spritesheet(key, `${ASSETS}/mundo/caminar/${p.cls}.png`, { frameWidth: 32, frameHeight: 32 }); }, build);
@@ -171,6 +196,7 @@ export default class SocialLayer {
   }
 
   remove(id) {
+    this.pendingState.delete(id);
     const o = this.others.get(id);
     if (!o) return;
     this.clearBubble(`p:${id}`);
@@ -187,23 +213,30 @@ export default class SocialLayer {
 
   setState(id, state) {
     const o = this.others.get(id);
-    if (!o) return;
+    if (!o) { this.pendingState.set(id, state ?? null); return; }
     o.state = state ?? null;
     o.stateIcon.setText(STATE_ICON[o.state] ?? (o.lfg && !o.state ? '⚑' : '')).setColor(o.lfg && !o.state ? '#ffd84a' : '#ffffff');
-    o.sprite.setAlpha(o.state === 'combate' ? 0.55 : 1);
-    // globito de espadas sobre la cabeza mientras pelea (solo o en grupo); se quita al terminar
-    if (o.state === 'combate' && !o.fightBubble) {
-      const s = this.scene;
-      if (!s.anims.exists('globo_combate')) {
-        s.anims.create({ key: 'globo_combate', frames: s.anims.generateFrameNumbers('globo_combate', { start: 0, end: 3 }), frameRate: 6, repeat: -1 });
-      }
-      o.fightBubble = s.add.sprite(o.sprite.x, o.sprite.y, 'globo_combate', 0).setOrigin(0.5, 1).setDepth(22).play('globo_combate');
-      s.minimap?.ignore(o.fightBubble);
-      s.tweens.add({ targets: o.fightBubble, scale: { from: 0, to: 1 }, duration: 220, ease: 'Back.easeOut' });
-    } else if (o.state !== 'combate' && o.fightBubble) {
+    // peleando o mirando una pelea: translúcido (los monstruos no lo tocan)
+    o.sprite.setAlpha(STATE_BUBBLE[o.state] ? 0.55 : 1);
+    // globito sobre la cabeza: espadas mientras pelea (solo o en grupo), un ojo mientras mira el
+    // combate de otro; se quita al terminar
+    const key = STATE_BUBBLE[o.state] ?? null;
+    if (o.fightBubble && o.fightBubble.texture.key !== key) {
       const b = o.fightBubble;
       o.fightBubble = null;
       this.scene.tweens.add({ targets: b, scale: 0, duration: 160, onComplete: () => b.destroy() });
+    }
+    if (key && !o.fightBubble) {
+      const s = this.scene;
+      if (!s.anims.exists(key)) {
+        const { frameRate, durations } = BUBBLE_ANIM[key];
+        const frames = s.anims.generateFrameNumbers(key, { start: 0, end: 3 });
+        if (durations) frames.forEach((f, i) => { f.duration = durations[i]; });
+        s.anims.create({ key, frames, frameRate: frameRate ?? 1000, repeat: -1 });
+      }
+      o.fightBubble = s.add.sprite(o.sprite.x, o.sprite.y, key, 0).setOrigin(0.5, 1).setDepth(22).play(key);
+      s.minimap?.ignore(o.fightBubble);
+      s.tweens.add({ targets: o.fightBubble, scale: { from: 0, to: 1 }, duration: 220, ease: 'Back.easeOut' });
     }
   }
 

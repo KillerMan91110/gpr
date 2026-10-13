@@ -136,8 +136,10 @@ export function VinculoPanel({ vinculo, piedra, onPiedra, ...props }) {
         {piedra && (
           <div className="cp-blessing cp-piedra">
             <b>Piedra de regreso</b>
-            <span>Vinculada a {piedra.nombre} ({piedra.lugar})</span>
-            <small>{waiting ? `Recargando: lista en ${left(new Date(piedra.readyAt).getTime() - Date.now())}` : 'Lista para usar · tecla V'}</small>
+            {piedra.vinculo
+              ? <span>Vinculada a {piedra.nombre} ({piedra.lugar})</span>
+              : <span>Todavía no está vinculada: vincúlala aquí para poder usarla.</span>}
+            {piedra.vinculo && <small>{waiting ? `Recargando: lista en ${left(new Date(piedra.readyAt).getTime() - Date.now())}` : 'Lista para usar · tecla V'}</small>}
           </div>
         )}
         <button type="button" className="wp-btn wp-btn--gold" disabled={busy || !piedra || here} onClick={bind}>

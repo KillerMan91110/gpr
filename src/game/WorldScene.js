@@ -436,6 +436,8 @@ export default class WorldScene extends Phaser.Scene {
       'follow-player': (t) => this.startFollow(t),
       // (ojo: sin callback, cb?.(...) ni siquiera evalúa el argumento: se llama aparte)
       'coop-battle-join': (b, cb) => { const ok = this.joinGroupBattle(b); cb?.(ok); },
+      // modo espectador: mirar el combate de otro jugador (menú del jugador → "Ver combate")
+      'spectate-start': (t, cb) => { const ok = this.startSpectate(t); cb?.(ok); },
       'my-guild': (g) => this.guildTag?.setText(g ? `‹${g.name}›` : '').setColor(g?.color || '#a8e0a0'),
       // jefe mítico de zona (components/world/MythicHunt.js): aparece, se va o muere
       'mythic-state': (s) => this.setMythic(s?.hunt ?? null),
@@ -1143,7 +1145,26 @@ export default class WorldScene extends Phaser.Scene {
     this.cameras.main.shake(250, 0.006);
     audio.sfx('encuentro');
     bus.emit('encounter', {
-      kind: b.kind ?? 'grupo', name: b.leaderName, zoneId: b.zoneId, sessionId: b.sessionId,
+      kind: b.kind ?? 'grupo', name: b.leaderName, zoneId: b.zoneId ?? this.zoneId, sessionId: b.sessionId,
+      position: this.toLocal(this.player.x, this.player.y, this.zone),
+    });
+    return true;
+  }
+
+  // Modo espectador: miras el combate de otro jugador (ver components/world/Battle.js). Tu héroe
+  // se queda quieto en el mapa (los demás lo ven translúcido y con un globito con un ojo) y al
+  // volver los monstruos de alrededor se apartan, como después de cualquier combate.
+  startSpectate(t) {
+    if (this.encounterLock || !this.player || !t?.targetId) return false;
+    this.encounterLock = true;
+    this.stopFollow();
+    if (this.hearthing) this.stopHearth('combate');
+    this.stopPlayer();
+    this.monsters.setVelocity(0, 0);
+    this.input.keyboard.enabled = false;
+    audio.sfx('abrir');
+    bus.emit('encounter', {
+      kind: 'espectar', targetId: t.targetId, name: t.name, initial: t.initial, zoneId: this.zoneId,
       position: this.toLocal(this.player.x, this.player.y, this.zone),
     });
     return true;

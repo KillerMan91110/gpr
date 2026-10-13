@@ -25,7 +25,8 @@ for _,e in ipairs(ORDER) do C[e[1]] = hex(e[2]) end
 
 -- ---------- Poses (compartidas por todas las clases) ----------
 -- hx,hy: centro de la mano (coordenadas del torso). ang: hacia donde apunta el arma.
--- u: bajar el torso, lean: inclinar el torso, legs: stand/lunge/kneel, jump: subir todo.
+-- u: bajar el torso, lean: inclinar el torso, legs: stand/lunge/kneel/walkA/walkB, jump: subir todo.
+-- walk va al final: así los cuadros de antes no cambian de número.
 local FRAMES = {
   {tag="idle",         hx=25,hy=16, ang="up",      u=0, lean=0,  legs="stand", dur=400},
   {tag="idle",         hx=25,hy=16, ang="up",      u=1, lean=0,  legs="stand", dur=400},
@@ -46,9 +47,14 @@ local FRAMES = {
   {tag="ko",           hx=24,hy=23, ang="fwd",     u=5, lean=2,  legs="kneel", dur=1000, pain=true, headDown=1},
   {tag="victory",      hx=21,hy=4,  ang="up",      u=0, lean=0,  legs="stand", dur=300},
   {tag="victory",      hx=21,hy=4,  ang="up",      u=0, lean=0,  legs="stand", dur=300, jump=-2},
+  -- caminar (entrar al combate como refuerzo): paso, pie juntos, otro paso, pies juntos
+  {tag="walk",         hx=26,hy=16, ang="up",      u=0, lean=1,  legs="walkA", dur=150},
+  {tag="walk",         hx=25,hy=16, ang="up",      u=1, lean=1,  legs="stand", dur=110},
+  {tag="walk",         hx=23,hy=16, ang="up",      u=0, lean=1,  legs="walkB", dur=150},
+  {tag="walk",         hx=25,hy=16, ang="up",      u=1, lean=1,  legs="stand", dur=110},
 }
-local TAGS = {"idle","attack_melee","attack_bow","cast","hurt","defend","ko","victory"}
-local LOOP = {idle=true, victory=true, defend=true}
+local TAGS = {"idle","attack_melee","attack_bow","cast","hurt","defend","ko","victory","walk"}
+local LOOP = {idle=true, victory=true, defend=true, walk=true}
 local DIRS = {up={0,-1}, upfwd={1,-1}, fwd={1,0}, downfwd={1,1}, upback={-1,-1}}
 
 -- ---------- Lienzo ----------
@@ -95,6 +101,14 @@ local function legs(L, P, pants, pantsD, boot, bootD)
   if P.legs == "lunge" then
     L.rect(10,22,12,27,pantsD); L.rect(9,28,12,29,bootD)
     L.rect(15,22,17,23,pants); L.rect(16,24,18,27,pants); L.rect(16,28,20,29,boot); L.rect(16,29,20,29,bootD)
+  elseif P.legs == "walkA" then
+    -- pierna de atrás estirada hacia atrás, la de adelante dando el paso
+    L.rect(11,22,13,25,pantsD); L.rect(9,26,11,27,pantsD); L.rect(7,28,10,29,bootD)
+    L.rect(15,22,17,25,pants); L.rect(16,26,18,27,pants); L.rect(16,28,20,29,boot); L.rect(16,29,20,29,bootD)
+  elseif P.legs == "walkB" then
+    -- al revés: la de atrás adelanta y la de adelante queda atrás
+    L.rect(12,22,14,25,pantsD); L.rect(14,26,16,27,pantsD); L.rect(14,28,18,29,bootD)
+    L.rect(14,22,16,24,pants); L.rect(12,25,14,27,pants); L.rect(10,28,14,29,boot); L.rect(10,29,14,29,bootD)
   elseif P.legs == "kneel" then
     L.rect(11,23,13,26,pantsD); L.rect(7,27,13,28,pantsD); L.rect(5,28,7,29,bootD)
     L.rect(15,23,19,25,pants); L.rect(18,26,20,27,pants); L.rect(18,28,22,29,boot); L.rect(18,29,22,29,bootD)
@@ -111,7 +125,9 @@ local function robe(L, P, main, shade, trim)
   end
   L.rect(8,28,20,28,trim)
   if P.legs == "stand" then L.rect(12,29,14,29,"b"); L.rect(16,29,18,29,"b")
-  elseif P.legs == "lunge" then L.rect(11,29,13,29,"b"); L.rect(17,29,20,29,"b") end
+  elseif P.legs == "lunge" then L.rect(11,29,13,29,"b"); L.rect(17,29,20,29,"b")
+  elseif P.legs == "walkA" then L.rect(9,29,11,29,"b"); L.rect(17,29,20,29,"b")
+  elseif P.legs == "walkB" then L.rect(10,29,12,29,"b"); L.rect(15,29,18,29,"b") end
 end
 
 -- Brazo delantero: del hombro (18,13) a la mano, con grosor; la mano es un puño de 3x3.

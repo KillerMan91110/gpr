@@ -2,7 +2,7 @@
 // ítem, así que se elige por palabras del nombre (y por slot/tipo como respaldo). Primera regla
 // que coincide gana: van de lo más específico a lo más general. El equipo de las clases base
 // además trae su pixel art (game/gear.js).
-import { gearArt } from '../../game/gear';
+import { gearArt, objetoArt } from '../../game/gear';
 
 const I = (name, artist) => ({ name, artist });
 
@@ -85,7 +85,10 @@ export function iconForItem(item) {
   for (const [re, ic] of RULES) if (re.test(n)) { icon = ic; break; }
   icon = icon || BY_SLOT[slot] || BY_TYPE[itemType] || I('swap-bag', 'lorc');
   const art = gearArt(item);
-  return art ? { ...icon, art } : icon;
+  if (art) return { ...icon, art };
+  // pociones, comidas que curan y accesorios con pixel art propio
+  const objeto = objetoArt(item);
+  return objeto != null ? { ...icon, objeto } : icon;
 }
 
 // Ícono "vacío" de cada casilla de equipo (silueta tenue, como en WoW)

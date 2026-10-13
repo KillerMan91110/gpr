@@ -668,3 +668,39 @@ body.en-combate .chat-box-restore { display: none; }
   .bt-hero-nums small { display: none; }
   .bt-hero--active { transform: none; }
 }
+
+/* ---- refuerzos: un compañero de grupo llega a mitad del combate ---- */
+.bt-reinforce {
+  position: absolute;
+  top: 64px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 0 12px;
+  background: linear-gradient(90deg, transparent, rgba(120, 10, 14, 0.92) 18%, rgba(120, 10, 14, 0.92) 82%, transparent);
+  border-top: 2px solid #ff5a4a;
+  border-bottom: 2px solid #ff5a4a;
+  animation: bt-reinforce 3.4s ease forwards;
+  pointer-events: none;
+  z-index: 30;
+}
+.bt-reinforce small { font: 700 0.7rem 'Cinzel', serif; letter-spacing: 0.5em; text-transform: uppercase; color: #ffd84a; }
+.bt-reinforce strong { font: 900 1.7rem 'Cinzel', serif; letter-spacing: 0.04em; color: #fff0e8; text-shadow: 0 2px 6px #000, 0 0 18px rgba(255, 60, 40, 0.8); text-align: center; }
+.bt-reinforce span { font: italic 1rem 'EB Garamond', Georgia, serif; color: #ffd0c8; }
+
+@keyframes bt-reinforce {
+  0% { opacity: 0; transform: translateY(-14px) scaleY(0.4); }
+  10% { opacity: 1; transform: none; }
+  16%, 28% { background-color: rgba(255, 60, 40, 0.25); }
+  22% { background-color: transparent; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (max-width: 600px) {
+  .bt-reinforce strong { font-size: 1.15rem; }
+  .bt-reinforce span { font-size: 0.85rem; }
+}

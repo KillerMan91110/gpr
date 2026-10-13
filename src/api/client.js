@@ -144,6 +144,11 @@ export const api = {
   sendCombatAction: (sessionId, payload, token) =>
     request(`/api/combat/sessions/${sessionId}/action`, { method: 'POST', body: payload, token }),
   getCombatSession: (sessionId, token) => request(`/api/combat/sessions/${sessionId}`, { token }),
+  // modo espectador: el combate abierto de otro jugador y, mientras lo miras, su estado
+  // refuerzos: entrar al combate ya empezado de un compañero de grupo
+  reinforceCombat: (targetId, token) => request(`/api/combat/reinforce/${targetId}`, { method: 'POST', token }),
+  watchCombat: (targetId, token) => request(`/api/combat/watch/${targetId}`, { token }),
+  watchSession: (sessionId, token) => request(`/api/combat/watch/session/${sessionId}`, { token }),
   // caíste en un combate de grupo que sigue: sales de él y despiertas en tu refugio
   leaveFallenCombat: (sessionId, token) => request(`/api/combat/sessions/${sessionId}/leave-fallen`, { method: 'POST', token }),
   getActiveCombatSession: (token) => request('/api/combat/sessions/active', { token }),

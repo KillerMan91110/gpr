@@ -217,7 +217,9 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
         <div className="wp-card-tip wp-stone-tip" style={{ left: Math.min(stoneHover.x + 14, window.innerWidth - 260), top: stoneHover.y + 14 }}>
           <b>Piedra de regreso</b>
           <small>Objeto de viaje · no se vende ni se pierde</small>
-          <span>Te devuelve junto a la Estatua del Viajero de {piedra?.nombre ?? 'Aurelia'}. Quédate quieto unos segundos para usarla.</span>
+          {piedra && !piedra.vinculo
+            ? <span>Todavía no está vinculada. Vincúlala en la Estatua del Viajero de {piedra.estatua?.nombre ?? 'Aurelia'} ({piedra.estatua?.lugar ?? 'la Plaza del Pilar'}) para poder usarla.</span>
+            : <span>Te devuelve junto a la Estatua del Viajero de {piedra?.nombre ?? 'Aurelia'}. Quédate quieto unos segundos para usarla.</span>}
           <span>{stoneLeft ? `Recargando: lista en ${Math.ceil(stoneLeft / 60000)} min.` : `Lista. Recarga de ${piedra?.recargaMin ?? 20} min.`}</span>
           <em>Clic derecho o tecla V: usar</em>
         </div>
