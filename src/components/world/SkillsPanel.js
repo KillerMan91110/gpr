@@ -8,7 +8,7 @@ import { STAT_LABELS } from './itemIcons';
 const I = (name, artist) => ({ name, artist });
 
 // Ícono por tipo de skill (la base no guarda uno propio)
-function skillIcon(s) {
+export function skillIcon(s) {
   const n = (s.name || '').toLowerCase();
   if (s.skillType === 'CURACION') return I('heart-plus', 'zeromancer');
   if (s.skillType === 'PASIVA') return /escudo|defensa|piel|armadura/.test(n) ? I('checked-shield', 'lorc') : I('aura', 'lorc');
@@ -25,11 +25,11 @@ function skillIcon(s) {
   return I('sword-brandish', 'delapouite');
 }
 
-const TYPE_LABEL = {
+export const TYPE_LABEL = {
   ATAQUE: 'Ataque', PASIVA: 'Pasiva', BUFF: 'Mejora', DEBUFF: 'Debilitación', ESTADO_ALTERADO: 'Estado alterado',
   ESPECIAL: 'Especial', CURACION: 'Curación',
 };
-const TARGET_LABEL = { SELF: 'Uno mismo', ENEMY: 'Un enemigo', ALL_ENEMIES: 'Todos los enemigos', ALLY: 'Un aliado', ALL_ALLIES: 'Todo el grupo' };
+export const TARGET_LABEL = { SELF: 'Uno mismo', ENEMY: 'Un enemigo', ALL_ENEMIES: 'Todos los enemigos', ALLY: 'Un aliado', ALL_ALLIES: 'Todo el grupo' };
 const LEARN_LABEL = { LEVEL: 'Se aprende al nivel', GOLD: 'Se compra al maestro', QUEST: 'Recompensa de misión', ITEM: 'Se aprende con un objeto' };
 
 function effectText(e) {

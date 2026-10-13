@@ -1036,3 +1036,35 @@ body.en-mundo .bgm-control { display: none; }
 /* desafío al jefe mítico */
 .boss-prompt-rank--mitico { color: #9ae8ff !important; }
 .boss-prompt-note { max-width: 320px; margin: 4px auto 0; color: #b9d8ff; font-size: 0.85rem; }
+
+/* Piedra de regreso en la barra de acciones (arte propio en píxeles) */
+.hud-slot--piedra img {
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+}
+
+.hud-slot--cd::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background: conic-gradient(rgba(5, 5, 12, 0.72) calc(var(--cd) * 360deg), transparent 0);
+  pointer-events: none;
+}
+
+.hud-slot--cd img {
+  filter: grayscale(0.7) brightness(0.8);
+}
+
+.hud-slot-cd {
+  position: absolute;
+  z-index: 1;
+  bottom: 1px;
+  right: 3px;
+  font: 700 10px 'Cinzel', serif;
+  color: #9ae8ff;
+  text-shadow: 0 1px 1px #000, 0 0 2px #000;
+}
+
+.hud-slot--cd kbd { z-index: 1; }

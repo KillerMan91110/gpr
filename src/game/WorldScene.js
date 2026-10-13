@@ -62,6 +62,11 @@ const EDGE = 4; // grosor de los bordes cerrados
 // Frames de la hoja de caminar (ver art/sprites/mundo/crear_mundo.lua): 0-2 abajo, 3-5 arriba, 6-8 lado
 const WALK = { down: [1, 0, 2, 0], up: [4, 3, 5, 3], side: [7, 6, 8, 6] };
 const IDLE = { down: 0, up: 3, side: 6 };
+// NPCs fuera de las ciudades: radio del paseo (casillas), velocidad (px/s) y a qué distancia se
+// detienen para mirar al héroe
+const NPC_STROLL_TILES = 2;
+const NPC_STROLL_SPEED = 22;
+const NPC_NOTICE_RADIUS = 80;
 
 // recursos (art/sprites/mundo/crear_extras.lua): hoja y [lleno, agotado] por tipo
 const RESOURCES = {
@@ -377,7 +382,7 @@ export default class WorldScene extends Phaser.Scene {
     // NPCs con horario "festival" solo aparecen el día del Festival de Aethra
     const festival = isFestival();
     const present = all.filter((o) => o.type !== 'npc' || propOf(o, 'horario') !== 'festival' || festival);
-    this.pois = present.filter((o) => o.type === 'poi' || o.type === 'npc' || o.type === 'pilar').map((o) => ({
+    this.pois = present.filter((o) => ['poi', 'npc', 'pilar', 'vinculo'].includes(o.type)).map((o) => ({
       id: o.name, x: o.x + 16, y: o.y + 16,
       label: propOf(o, 'etiqueta') ?? o.name, window: propOf(o, 'ventana'), dialogue: propOf(o, 'dialogo') ?? null,
     }));
@@ -392,7 +397,7 @@ export default class WorldScene extends Phaser.Scene {
       dest: propOf(o, 'destino'), tx: propOf(o, 'x'), ty: propOf(o, 'y'), label: propOf(o, 'etiqueta'),
     }));
     this.exitsArmedAt = this.time.now + 1500;
-    if (all.some((o) => ['ciudadano', 'pilar', 'cartel', 'palomas', 'gato'].includes(o.type))) this.city = new CityLife(this, all);
+    if (all.some((o) => ['ciudadano', 'pilar', 'cartel', 'palomas', 'gato', 'vinculo'].includes(o.type))) this.city = new CityLife(this, all);
     this.spawnResources(all.filter((o) => o.type === 'recurso'));
     all.filter((o) => o.type === 'aspas').forEach((o) => {
       const blades = this.add.image(o.x, o.y, 'aspas').setDepth(20.2);
@@ -466,6 +471,9 @@ export default class WorldScene extends Phaser.Scene {
       },
       // viaje en diligencia u otro salto: sin desmontar la escena si la zona está en el continente
       'teleport': ({ zoneDir, x, y }, cb) => cb?.(this.teleport(zoneDir, x, y)),
+      // piedra de regreso: React pide empezar a canalizarla (cb dice si se pudo)
+      'hearth-start': ({ ms }, cb) => cb?.(this.startHearth(ms)),
+      'hearth-arrive': () => this.hearthArriveFx(),
       // jefe mítico de zona (components/world/MythicHunt.js): aparece, se va o muere
       'mythic-state': (s) => this.setMythic(s?.hunt ?? null),
       'mythic-track': (cb) => cb?.(this.trackMythic()),
@@ -490,7 +498,7 @@ export default class WorldScene extends Phaser.Scene {
         const layer = (n) => d?.layers.find((l) => l.name === n)?.data ?? [];
         return { cx: c.cx, cy: c.cy, suelo: layer('suelo'), objetos: layer('objetos'), encima: layer('encima') };
       }),
-      points: this.allPoints().filter((o) => o.zone === z.dir && ['npc', 'poi', 'jefe', 'salida', 'pilar'].includes(o.type)).map((o) => ({
+      points: this.allPoints().filter((o) => o.zone === z.dir && ['npc', 'poi', 'jefe', 'salida', 'pilar', 'vinculo'].includes(o.type)).map((o) => ({
         type: o.type, name: o.name, x: o.x - z.ox + 16, y: o.y - z.oy + 16,
         label: propOf(o, 'nombre') ?? propOf(o, 'etiqueta') ?? o.name,
         monster: propOf(o, 'monstruo'), level: propOf(o, 'nivel'), window: propOf(o, 'ventana'), dialogue: propOf(o, 'dialogo'),
@@ -933,9 +941,8 @@ export default class WorldScene extends Phaser.Scene {
         // si su hoja no cargó (sprite nuevo sin exportar todavía) se ve con la del héroe
         const tex = this.textures.exists(`npc_${propOf(o, 'sprite')}`) ? `npc_${propOf(o, 'sprite')}` : 'heroe';
         const npc = this.add.sprite(x, y, tex, IDLE.down).setDepth(9);
-        // respiración: un saltito de 1 píxel para que no parezcan estatuas
-        this.tweens.add({ targets: npc, y: y - 1, duration: 900 + Math.random() * 400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-        this.blockers.add(this.add.rectangle(x, y + 8, 16, 10));
+        const blocker = this.add.rectangle(x, y + 8, 16, 10);
+        this.blockers.add(blocker);
         // "Lyra, mercader" → nombre arriba y oficio debajo entre ‹ ›, como en un MMO
         const [npcName, npcRole] = String(propOf(o, 'nombre') ?? o.name).split(/,\s*/);
         const role = npcRole && this.add.text(x, y - 17, `‹${npcRole.charAt(0).toUpperCase()}${npcRole.slice(1)}›`, {
@@ -947,17 +954,107 @@ export default class WorldScene extends Phaser.Scene {
         const mark = this.add.text(x, tag.y - 8, '', {
           fontFamily: TAG_FONT, fontSize: '11px', fontStyle: 'bold', color: '#ffd84a', stroke: '#141420', strokeThickness: 3,
         }).setOrigin(0.5, 1).setDepth(21).setResolution(TAG_RES);
-        this.tweens.add({ targets: mark, y: mark.y - 2, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
         // punto en el minimapa (solo se ve si tiene una misión)
         const dot = this.add.circle(x, y, 18, 0xffd84a).setStrokeStyle(5, 0x141420).setDepth(30).setVisible(false);
         this.cameras.main.ignore(dot);
         [tag, role, mark].filter(Boolean).forEach((t) => this.minimap?.ignore(t));
         // el mismo NPC puede estar en dos zonas (Lyra en la capital y en la aldea): clave por zona
         const id = propOf(o, 'dialogo') ?? o.name;
-        this.npcs.set(`${o.zone}:${id}`, { id, sprite: npc, mark, dot, name: npcName });
+        // Paseo: fuera de las ciudades dan unos pasos alrededor de su puesto (casillas de radio,
+        // "pasea" en el mapa lo cambia; 0 = quieto). En la ciudad se quedan en su tienda o su casa.
+        const ciudad = !!this.zoneByDir[o.zone]?.world.ciudad;
+        const radius = Number(propOf(o, 'pasea') ?? (ciudad ? 0 : NPC_STROLL_TILES)) * 32;
+        if (tex !== 'heroe') this.makeWalkAnims(tex);
+        const poi = this.pois.find((q) => q.id === o.name && q.x === x && q.y === y) ?? null;
+        this.npcs.set(`${o.zone}:${id}`, {
+          id, sprite: npc, mark, dot, name: npcName, tag, role, blocker, poi, tex,
+          home: { x, y }, pos: { x, y }, radius, dir: 'down', target: null,
+          wait: Phaser.Math.Between(1000, 6000), phase: Math.random() * Math.PI * 2,
+        });
       }
       this.setNpcMarks(this.marks);
     });
+  }
+
+  // Los NPCs con paseo caminan despacio entre casillas libres cerca de su puesto y nunca se alejan
+  // más de su radio. Si el héroe se acerca se detienen y lo miran (así es fácil hablarles).
+  // Todos respiran (1 px) cuando están quietos.
+  updateNpcs(time, delta) {
+    if (!this.npcs.size || !this.player) return;
+    for (const n of this.npcs.values()) {
+      const sp = n.sprite;
+      const hero = Phaser.Math.Distance.Between(n.pos.x, n.pos.y, this.player.x, this.player.y);
+      let moving = false;
+      if (hero < NPC_NOTICE_RADIUS) {
+        // atento al héroe: deja lo que hacía y se gira hacia él
+        n.target = null;
+        const dx = this.player.x - n.pos.x;
+        const dy = this.player.y - n.pos.y;
+        n.dir = Math.abs(dx) > Math.abs(dy) ? 'side' : (dy < 0 ? 'up' : 'down');
+        sp.setFlipX(n.dir === 'side' && dx < 0);
+      } else if (n.radius > 0 && n.target) {
+        const dx = n.target.x - n.pos.x;
+        const dy = n.target.y - n.pos.y;
+        const dist = Math.hypot(dx, dy);
+        const step = (NPC_STROLL_SPEED * delta) / 1000;
+        if (dist <= step) {
+          n.pos = { ...n.target };
+          n.target = null;
+          n.wait = Phaser.Math.Between(2500, 8000);
+        } else {
+          n.pos = { x: n.pos.x + (dx / dist) * step, y: n.pos.y + (dy / dist) * step };
+          n.dir = Math.abs(dx) > Math.abs(dy) ? 'side' : (dy < 0 ? 'up' : 'down');
+          sp.setFlipX(n.dir === 'side' && dx < 0);
+          moving = true;
+        }
+      } else if (n.radius > 0) {
+        n.wait -= delta;
+        if (n.wait <= 0) {
+          n.target = this.npcStrollTarget(n);
+          n.wait = n.target ? 0 : Phaser.Math.Between(2000, 5000);
+        }
+      }
+      if (moving) {
+        if (n.tex !== 'heroe') sp.anims.play(`walk_${n.tex}_${n.dir}`, true);
+      } else if (sp.anims.isPlaying || sp.frame.name !== IDLE[n.dir]) {
+        sp.anims.stop();
+        sp.setFrame(IDLE[n.dir]);
+      }
+      // quieto respira; caminando ya se mueve con los pasos
+      const breath = moving ? 0 : Math.round((Math.sin(time / 520 + n.phase) - 1) / 2);
+      sp.setPosition(n.pos.x, n.pos.y + breath).setDepth(9 + n.pos.y / 100000);
+      // lo que acompaña al NPC: nombre, oficio, marca de misión, punto del minimapa, choque y "E"
+      const bob = Math.round(Math.sin(time / 300 + n.phase) * 1.5);
+      n.role?.setPosition(n.pos.x, n.pos.y - 17);
+      n.tag.setPosition(n.pos.x, n.role ? n.pos.y - 25 : n.pos.y - 17);
+      n.mark.setPosition(n.pos.x, n.tag.y - 8 + bob);
+      n.dot.setPosition(n.pos.x, n.pos.y);
+      if (n.blocker.x !== n.pos.x || n.blocker.y !== n.pos.y + 8) {
+        n.blocker.setPosition(n.pos.x, n.pos.y + 8);
+        n.blocker.body?.updateFromGameObject();
+        if (n.poi) { n.poi.x = n.pos.x; n.poi.y = n.pos.y; }
+      }
+    }
+  }
+
+  // casilla libre al azar dentro del radio del NPC, a la que se llega en línea recta
+  npcStrollTarget(n) {
+    const T = 32;
+    const r = Math.floor(n.radius / T);
+    const hx = Math.floor(n.home.x / T);
+    const hy = Math.floor(n.home.y / T);
+    const cx = Math.floor(n.pos.x / T);
+    const cy = Math.floor(n.pos.y / T);
+    for (let tries = 0; tries < 8; tries++) {
+      const tx = hx + Phaser.Math.Between(-r, r);
+      const ty = hy + Phaser.Math.Between(-r, r);
+      if ((tx === cx && ty === cy) || !this.walkable(tx, ty)) continue;
+      if (!this.clearLine(cx, cy, tx, ty)) continue;
+      // que no se suban encima de otro NPC
+      const busy = [...this.npcs.values()].some((m) => m !== n && Math.hypot(m.pos.x - (tx * T + 16), m.pos.y - (ty * T + 16)) < T);
+      if (!busy) return { x: tx * T + 16, y: ty * T + 16 };
+    }
+    return null;
   }
 
   // Cargas de imágenes una detrás de otra: si varias partes (NPCs, vecinos de la ciudad,
@@ -1845,11 +1942,54 @@ export default class WorldScene extends Phaser.Scene {
     this.player.setFrame(IDLE[this.facing]);
   }
 
+  // ---------------------------------------------------------------- piedra de regreso
+  // Se canaliza unos segundos quieto, envuelto en motas de agua. Moverse o que te ataquen la
+  // corta (como la piedra de hogar de WoW): así no sirve para escapar de un combate.
+  startHearth(ms) {
+    if (this.hearthing || this.gathering || this.teleporting || this.encounterLock || !this.player) return false;
+    this.stopPlayer();
+    const fx = this.add.particles(this.player.x, this.player.y + 6, 'mota_mundo', {
+      speedY: { min: -60, max: -25 }, speedX: { min: -12, max: 12 }, lifespan: 900, frequency: 45,
+      scale: { start: 1.1, end: 0 }, tint: [0x9ae8ff, 0xe8fcff, 0x4ab4e8], blendMode: 'ADD',
+      emitZone: { type: 'edge', source: new Phaser.Geom.Ellipse(0, 0, 30, 12), quantity: 24 },
+    }).setDepth(12);
+    this.hearthing = { until: this.time.now + ms, fx };
+    return true;
+  }
+
+  stopHearth(reason) {
+    const h = this.hearthing;
+    if (!h) return;
+    this.hearthing = null;
+    h.fx.stop();
+    this.time.delayedCall(900, () => h.fx.destroy());
+    bus.emit(reason === 'listo' ? 'hearth-done' : 'hearth-cancel', { reason });
+  }
+
+  updateHearth(moving) {
+    const h = this.hearthing;
+    if (!h) return;
+    h.fx.setPosition(this.player.x, this.player.y + 6);
+    if (moving) this.stopHearth('movimiento');
+    else if (this.time.now >= h.until) this.stopHearth('listo');
+  }
+
+  hearthArriveFx() {
+    if (!this.player) return;
+    const burst = this.add.particles(this.player.x, this.player.y, 'mota_mundo', {
+      speed: { min: 40, max: 110 }, lifespan: 700, scale: { start: 1.4, end: 0 }, emitting: false,
+      tint: [0x9ae8ff, 0xffffff], blendMode: 'ADD',
+    }).setDepth(12);
+    burst.explode(28);
+    this.time.delayedCall(900, () => burst.destroy());
+  }
+
   update(time, delta) {
     if (!this.player) return;
     if (this.shade) this.updateSky();
     this.social?.update(delta);
     this.city?.update(delta);
+    this.updateNpcs(time, delta);
     this.reportPosition(time);
     this.checkExits(time);
     this.checkRefuge(time);
@@ -1859,7 +1999,7 @@ export default class WorldScene extends Phaser.Scene {
       const glow = m.getData('glow');
       if (glow) glow.setPosition(m.x, m.y - 6);
     }
-    if (this.encounterLock) return;
+    if (this.encounterLock) { if (this.hearthing) this.stopHearth('combate'); return; }
     const k = this.keys;
     let vx = 0;
     let vy = 0;
@@ -1873,6 +2013,7 @@ export default class WorldScene extends Phaser.Scene {
     const speed = SPEED * (this.speedMul ?? 1);
     this.player.setVelocity((vx / len) * speed, (vy / len) * speed);
     this.player.anims.timeScale = this.speedMul ?? 1; // los pasos van al ritmo de la carrera
+    this.updateHearth(!!(vx || vy));
     // con el bufo de velocidad se levanta polvo a los pies al correr
     if (this.dust) this.dust.emitting = !!(vx || vy) && this.speedMul > 1;
 

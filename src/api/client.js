@@ -187,6 +187,9 @@ export const api = {
   writeLibro: (playerId, text, token) => request(`/api/player/${playerId}/world/libro`, { method: 'POST', body: { text }, token }),
   revive: (playerId, token) => request(`/api/player/${playerId}/world/revivir`, { method: 'POST', token }),
   travel: (playerId, destino, token) => request(`/api/player/${playerId}/world/viaje`, { method: 'POST', body: { destino }, token }),
+  getPiedra: (playerId, token) => request(`/api/player/${playerId}/world/piedra`, { token }),
+  vincularPiedra: (playerId, vinculo, token) => request(`/api/player/${playerId}/world/piedra/vincular`, { method: 'POST', body: { vinculo }, token }),
+  usarPiedra: (playerId, token) => request(`/api/player/${playerId}/world/piedra/usar`, { method: 'POST', token }),
   // Colección del cazador (tecla K): bestiario, amuletos, cartas y jefe mítico
   getBestiario: (playerId, token) => request(`/api/player/${playerId}/coleccion/bestiario`, { token }),
   buyAmuleto: (playerId, code, token) => request(`/api/player/${playerId}/coleccion/amuleto`, { method: 'POST', body: { code }, token }),

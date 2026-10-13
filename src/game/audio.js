@@ -302,6 +302,16 @@ class AudioEngine {
         this.burst(t + 0.12, 0.3, { gain: 0.08, filter: 'lowpass', from: 1800, to: 300 });
         ['C5', 'E5', 'G5', 'B5', 'E6'].forEach((n, i) => this.tone(freq(n), t + 0.35 + i * 0.08, 0.5, { wave: 'sine', gain: 0.06 }));
         break;
+      case 'piedra':
+        // la piedra de regreso empieza a vibrar: un zumbido grave que sube
+        this.tone(110, t, 1.2, { wave: 'sine', gain: 0.12, slide: 220 });
+        this.tone(freq('E5'), t + 0.2, 0.9, { wave: 'triangle', gain: 0.04, slide: freq('E6') });
+        break;
+      case 'vinculo':
+        // llegada junto a la estatua (o vincular la piedra): campanas de agua
+        this.burst(t, 0.35, { gain: 0.1, filter: 'bandpass', from: 3000, to: 600, q: 1.5 });
+        ['E5', 'B5', 'E6', 'G#6', 'B6'].forEach((n, i) => this.tone(freq(n), t + 0.1 + i * 0.07, 0.6, { wave: 'sine', gain: 0.06 }));
+        break;
       case 'mejora':
         ['G4', 'C5', 'E5', 'G5'].forEach((n, i) => this.tone(freq(n), t + i * 0.05, 0.18, { wave: 'triangle', gain: 0.08 }));
         break;

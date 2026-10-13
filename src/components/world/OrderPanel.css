@@ -1,0 +1,146 @@
+/* Casas de las órdenes (OrderPanel): maestro, técnicas, tienda, venta y encargos */
+.op-emblem-icon {
+  width: 20px;
+  height: 20px;
+  image-rendering: pixelated;
+}
+
+.op-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  background: linear-gradient(90deg, rgba(74, 58, 28, 0.5), rgba(20, 20, 32, 0.2));
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 6px;
+}
+
+.op-head > div {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.op-head strong {
+  font: 700 1rem 'Cinzel', serif;
+  color: var(--gold-bright, #ffe08a);
+}
+
+.op-head small {
+  color: var(--text-soft, #b8ac90);
+}
+
+.op-head p {
+  margin: 4px 0 0;
+  font: italic 0.88rem 'EB Garamond', serif;
+  color: var(--cream, #e8dcb8);
+}
+
+.op-portrait {
+  width: 56px;
+  height: 56px;
+  image-rendering: pixelated;
+  border: 2px solid var(--gold, #d4af37);
+  border-radius: 6px;
+  background: #1e2238;
+}
+
+.op-emblem {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+}
+
+.op-note {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  color: var(--text-soft, #b8ac90);
+}
+
+.op-wares,
+.op-quests {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.op-ware {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 5px;
+  background: rgba(20, 20, 32, 0.35);
+}
+
+.op-ware--poor .wp-coins {
+  color: #ff9a8a;
+}
+
+.op-ware-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.op-ware-info small {
+  color: var(--text-soft, #b8ac90);
+}
+
+.op-state {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: #ff9a8a;
+}
+
+.op-state--ok {
+  color: #9dffbf;
+}
+
+.op-quest {
+  padding: 8px 10px;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 6px;
+  background: rgba(20, 20, 32, 0.35);
+}
+
+.op-quest p {
+  margin: 4px 0;
+  font-size: 0.86rem;
+  color: var(--cream, #e8dcb8);
+}
+
+.op-quest-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.op-quest-head strong {
+  color: var(--gold-bright, #ffe08a);
+}
+
+.op-quest-head small,
+.op-quest-foot > span:first-child {
+  font-size: 0.8rem;
+  color: var(--text-soft, #b8ac90);
+}
+
+.op-quest-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.op-quest-foot .op-state {
+  margin: 0;
+}

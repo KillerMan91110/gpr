@@ -17,8 +17,8 @@ const POS_KEY = 'mundo_posicion_v2';
 const TS = 32;
 // ventanas del juego que puede abrir un NPC o punto de interés (pages/World.js)
 const WINDOW_IDS = ['inventario', 'personaje', 'habilidades', 'misiones', 'formacion', 'mascotas', 'gremio', 'mercado', 'mapa', 'logros',
-  'ranking', 'misiones_gremio', 'enfermeria', 'artesanos', 'taller', 'contratar', 'maestros', 'quests_gremio', 'encantador',
-  'mi_gremio', 'crear_gremio', 'unirse_gremio'];
+  'ranking', 'misiones_gremio', 'enfermeria', 'artesanos', 'taller', 'contratar', 'encantador',
+  'crear_gremio', 'unirse_gremio', 'vinculo', 'orden_guerrero', 'orden_mago', 'orden_arquero', 'orden_picaro', 'orden_sacerdote'];
 const RESOURCE_TYPES = Object.keys(RESOURCE_FRAMES);
 const SEASONS = ['primavera', 'verano', 'otoño', 'invierno'];
 const OBJECT_TYPES = [
@@ -36,12 +36,14 @@ const OBJECT_TYPES = [
   { type: 'pilar', label: 'Pilar', hint: 'El Pilar de Aethra (fuente animada y ofrenda)' },
   { type: 'palomas', label: 'Palomas', hint: 'Bandada que sale volando al acercarse' },
   { type: 'gato', label: 'Gato', hint: 'Gato que toma el sol' },
+  { type: 'vinculo', label: 'Estatua', hint: 'Estatua del Viajero: vincula la piedra de regreso (solo en ciudades grandes)' },
 ];
 // objetos que se editan con la lista genérica de propiedades
 const GENERIC_PROPS = {
   salida: [['destino', 'string', 'pradera'], ['x', 'int', 0], ['y', 'int', 0], ['etiqueta', 'string', 'Salida']],
   ciudadano: [['sprite', 'string', 'cit_1'], ['ruta', 'string', ''], ['velocidad', 'int', 32], ['horario', 'string', 'siempre'], ['charla', 'string', ''], ['mira', 'string', ''], ['frases', 'string', 'paseante'], ['nombre', 'string', ''], ['rol', 'string', '']],
   ruta: [['orden', 'int', 0]],
+  vinculo: [['etiqueta', 'string', 'Estatua del Viajero — Piedra de regreso'], ['ventana', 'string', 'vinculo'], ['vinculo', 'string', 'aurelia']],
   cartel: [['icono', 'string', 'espada']],
   pilar: [['etiqueta', 'string', 'Pilar de Aethra — Ofrenda'], ['ventana', 'string', 'ofrenda']],
   palomas: [],

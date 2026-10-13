@@ -1,0 +1,354 @@
+/* Gremio (G): sala del gremio y guía de servicios de la ciudad */
+.gh-oswin {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  image-rendering: pixelated;
+  border: 2px solid var(--gold);
+  border-radius: 6px;
+  background: #1e2238;
+}
+
+.gh-banner {
+  --gh-color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-left: 4px solid var(--gh-color);
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(74, 58, 28, 0.5), rgba(20, 20, 32, 0.25));
+}
+
+.gh-emblem {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  color: var(--gh-color);
+  border: 2px solid var(--gh-color);
+  border-radius: 50%;
+  background: rgba(10, 10, 18, 0.6);
+}
+
+.gh-banner-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gh-banner-main strong {
+  font: 700 1.05rem 'Cinzel', serif;
+  color: var(--gold-bright);
+}
+
+.gh-banner-main small {
+  color: var(--text-soft);
+}
+
+.gh-xp {
+  position: relative;
+  height: 12px;
+  margin-top: 4px;
+  border: 1px solid #000;
+  border-radius: 6px;
+  background: #15121c;
+  overflow: hidden;
+}
+
+.gh-xp > div {
+  height: 100%;
+  background: linear-gradient(90deg, #8a6a20, #e8c050);
+}
+
+.gh-xp span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 700 9px 'Cinzel', serif;
+  color: #fff;
+  text-shadow: 0 1px 1px #000;
+}
+
+.gh-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.gh-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 6px;
+  background: rgba(20, 20, 32, 0.4);
+}
+
+.gh-card h5 {
+  margin: 0 0 4px;
+  font: 700 0.85rem 'Cinzel', serif;
+  color: var(--gold-bright);
+}
+
+.gh-parchment p {
+  margin: 0 0 6px;
+  font: italic 0.95rem 'EB Garamond', serif;
+  color: var(--cream);
+}
+
+.gh-parchment .wp-btn,
+.gh-danger .wp-btn {
+  align-self: flex-start;
+}
+
+.gh-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.gh-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+}
+
+.gh-row span {
+  color: var(--text-soft);
+}
+
+.gh-row b {
+  color: var(--cream);
+  font-weight: 600;
+  text-align: right;
+}
+
+.gh-row em {
+  color: var(--text-soft);
+  font-size: 0.8rem;
+}
+
+.gh-row small {
+  flex: none;
+  color: var(--text-soft);
+}
+
+.gh-row.is-off {
+  opacity: 0.5;
+}
+
+.gh-row.is-on b {
+  color: #9dffbf;
+}
+
+.gh-note {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.gh-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.gh-danger p {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.wp-btn.gh-btn-danger {
+  color: #ffb4a8;
+  border-color: #8a2a2a;
+}
+
+.wp-btn.gh-btn-danger:hover {
+  background: rgba(138, 42, 42, 0.35);
+}
+
+/* miembros */
+.gh-member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.gh-member:last-child {
+  border-bottom: 0;
+}
+
+.gh-member-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  color: var(--cream);
+}
+
+.gh-member-name em {
+  color: var(--gold-bright);
+  font-style: normal;
+}
+
+.gh-member-name small {
+  color: var(--text-soft);
+}
+
+.gh-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: #4a4458;
+}
+
+.gh-dot.is-on {
+  background: #5fd97e;
+  box-shadow: 0 0 6px #5fd97e;
+}
+
+.gh-role {
+  flex: none;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font: 700 0.72rem 'Cinzel', serif;
+  border: 1px solid var(--gold-dim);
+  color: var(--text-soft);
+}
+
+.gh-role--LEADER {
+  color: #ffe08a;
+  border-color: var(--gold-bright);
+}
+
+.gh-role--OFFICER {
+  color: #9ad8f0;
+  border-color: #4a8ad8;
+}
+
+/* banco */
+.gh-bank {
+  align-items: flex-start;
+}
+
+.gh-bank-gold {
+  font: 700 1.3rem 'Cinzel', serif;
+  color: var(--gold-bright);
+}
+
+.gh-bank small {
+  color: var(--text-soft);
+}
+
+.gh-bank .wp-search,
+.gh-buy .wp-search {
+  width: auto;
+  margin: 0;
+}
+
+.gh-buy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.gh-buy input[type='number'] {
+  width: 70px;
+}
+
+/* editar gremio */
+.gh-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+
+.gh-form .wp-search {
+  margin: 0;
+}
+
+.gh-radio {
+  display: flex;
+  gap: 14px;
+}
+
+.gh-radio label {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
+
+.gh-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.gh-picks button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 5px;
+  background: rgba(10, 10, 18, 0.6);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.gh-picks button.is-on {
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 6px rgba(240, 216, 120, 0.6);
+}
+
+.gh-picks .gh-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+/* ciudad */
+.gh-city {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Registro de Gremios (Oswin) */
+.gh-search {
+  margin-bottom: 8px;
+}
+
+.gh-search .wp-search {
+  flex: 1;
+  margin: 0;
+}
+
+.gh-guild-name {
+  font: 700 0.95rem 'Cinzel', serif;
+  color: var(--gold-bright) !important;
+  text-align: left !important;
+}
+
+.gh-poor {
+  color: #ff9a8a !important;
+}

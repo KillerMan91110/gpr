@@ -34,7 +34,9 @@ import { AchievementsPanel, InfirmaryPanel, RankingPanel } from '../components/w
 import MapPanel from '../components/world/MapPanel';
 import WorldSocial from '../components/world/WorldSocial';
 import SocialPanel from '../components/world/SocialPanel';
-import { OfrendaPanel, LibroPanel } from '../components/world/CityPanels';
+import { OfrendaPanel, LibroPanel, VinculoPanel } from '../components/world/CityPanels';
+import OrderPanel from '../components/world/OrderPanel';
+import GuildRegistryPanel from '../components/world/GuildRegistryPanel';
 import BestiarioPanel from '../components/world/BestiarioPanel';
 import MarketPanel from '../components/world/MarketPanel';
 import HirePanel from '../components/world/HirePanel';
@@ -65,22 +67,24 @@ const WINDOWS = {
   taller:          { title: 'Taller del herrero',   panel: CraftingPanel, pos: { x: 330, y: 80 } },
   // servicios del gremio que siguen usando su pantalla de siempre dentro del marco
   contratar:       { title: 'Contratar aventureros', panel: HirePanel, pos: { x: 320, y: 90 } },
-  maestros:        { title: 'Maestros del gremio',   icon: ['graduate-cap', 'delapouite'],  embed: '/guild/masters' },
-  quests_gremio:   { title: 'Encargos del gremio',   icon: ['scroll-unfurled', 'lorc'],     embed: '/guild/quests' },
   encantador:      { title: 'Encantador',            panel: EnchantPanel, pos: { x: 380, y: 90 } },
-  mi_gremio:       { title: 'Sala del gremio',       icon: ['castle', 'delapouite'],        embed: '/guild/my' },
-  crear_gremio:    { title: 'Fundar un gremio',      icon: ['trowel', 'delapouite'],        embed: '/guild/create' },
-  unirse_gremio:   { title: 'Unirse a un gremio',    icon: ['shaking-hands', 'delapouite'], embed: '/guild/join' },
+  // Registro de Gremios de Aurelia (solo hablando con Oswin)
+  unirse_gremio:   { title: 'Registro de Gremios',   panel: GuildRegistryPanel, pos: { x: 340, y: 80 }, props: { tab: 'unirse' } },
+  crear_gremio:    { title: 'Registro de Gremios',   panel: GuildRegistryPanel, pos: { x: 340, y: 80 }, props: { tab: 'fundar' } },
+  // maestro de evolución que trajo un miembro al gremio (la ruta llega al abrirla, ver openWin)
+  maestro_gremio:  { title: 'Maestro del gremio',    icon: ['wizard-face', 'delapouite'],   embed: '/guild/my/masters' },
   // buzón de cartas entre amigos (desde la ventana Social)
   buzon:           { title: 'Buzón',                 icon: ['mailbox', 'delapouite'],       embed: '/friends' },
-  // Aurelia: el Pilar de Aethra, el libro de visitas de la posada y las casas de las órdenes
+  // Aurelia: el Pilar de Aethra, el libro de visitas de la posada y la Estatua del Viajero
   ofrenda:         { title: 'Pilar de Aethra',       panel: OfrendaPanel, pos: { x: 380, y: 120 } },
   libro:           { title: 'Libro de visitas',      panel: LibroPanel,   pos: { x: 360, y: 100 } },
-  orden_guerrero:  { title: 'Cuartel del Acero',     icon: ['broadsword', 'lorc'],          embed: '/guild/masters/1' },
-  orden_mago:      { title: 'Torre Arcana',          icon: ['wizard-staff', 'lorc'],        embed: '/guild/masters/2' },
-  orden_arquero:   { title: 'Campo del Halcón',      icon: ['pocket-bow', 'lorc'],          embed: '/guild/masters/3' },
-  orden_picaro:    { title: 'La Sombra Callada',     icon: ['plain-dagger', 'lorc'],        embed: '/guild/masters/4' },
-  orden_sacerdote: { title: 'Capilla de la Luz',     icon: ['holy-symbol', 'lorc'],         embed: '/guild/masters/5' },
+  vinculo:         { title: 'Estatua del Viajero',   panel: VinculoPanel, pos: { x: 380, y: 90 }, props: { vinculo: 'aurelia' } },
+  // casas de las órdenes: solo se abren hablando con su maestro en el Barrio de las Órdenes
+  orden_guerrero:  { title: 'Cuartel del Acero',     panel: OrderPanel, pos: { x: 300, y: 70 }, props: { orden: 'guerrero' } },
+  orden_mago:      { title: 'Torre Arcana',          panel: OrderPanel, pos: { x: 300, y: 70 }, props: { orden: 'mago' } },
+  orden_arquero:   { title: 'Campo del Halcón',      panel: OrderPanel, pos: { x: 300, y: 70 }, props: { orden: 'arquero' } },
+  orden_picaro:    { title: 'La Sombra Callada',     panel: OrderPanel, pos: { x: 300, y: 70 }, props: { orden: 'picaro' } },
+  orden_sacerdote: { title: 'Capilla de la Luz',     panel: OrderPanel, pos: { x: 300, y: 70 }, props: { orden: 'sacerdote' } },
 };
 
 function defaultPosFor(w) {
@@ -89,6 +93,9 @@ function defaultPosFor(w) {
   return { x: 20 + Math.max(0, (window.innerWidth - Math.min(820, window.innerWidth - 40)) / 2), y: 70 };
 }
 const TOOLBAR = ['inventario', 'personaje', 'habilidades', 'misiones', 'formacion', 'mascotas', 'gremio', 'social', 'mercado', 'mapa', 'bestiario', 'logros', 'ranking'];
+// piedra de regreso: tecla y segundos que hay que quedarse quieto para usarla
+const STONE_KEY = 'v';
+const HEARTH_MS = 5000;
 const KEY_TO_WINDOW = Object.fromEntries(Object.entries(WINDOWS).filter(([, w]) => w.key).map(([id, w]) => [w.key, id]));
 
 const BASE_CLASSES = ['guerrero', 'mago', 'arquero', 'picaro', 'sacerdote'];
@@ -182,9 +189,11 @@ export default function World() {
     let t = null;
     const onCast = (c) => { clearTimeout(t); setCast({ ...c, key: Date.now() }); t = setTimeout(() => setCast(null), c.ms + 150); };
     const onDone = (r) => { if (r?.error) { clearTimeout(t); setCast(null); } };
+    const onCancel = () => { clearTimeout(t); setCast(null); };
     bus.on('cast', onCast);
     bus.on('resource-gathered', onDone);
-    return () => { clearTimeout(t); bus.off('cast', onCast); bus.off('resource-gathered', onDone); };
+    bus.on('hearth-cancel', onCancel);
+    return () => { clearTimeout(t); bus.off('cast', onCast); bus.off('resource-gathered', onDone); bus.off('hearth-cancel', onCancel); };
   }, []);
   const [levelUp, setLevelUp] = useState(null);
   const [clock, setClock] = useState(null);
@@ -224,8 +233,11 @@ export default function World() {
       return list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
     });
   }, []);
-  const openWin = useCallback((id) => {
+  // algunas ventanas reciben datos al abrirse (p. ej. la ruta del maestro del gremio)
+  const [winArgs, setWinArgs] = useState({});
+  const openWin = useCallback((id, args) => {
     audio.sfx('abrir');
+    if (args) setWinArgs((cur) => ({ ...cur, [id]: args }));
     setOpen((list) => [...list.filter((x) => x !== id), id]);
   }, []);
   const closeWin = useCallback((id) => { audio.sfx('cerrar'); setOpen((list) => list.filter((x) => x !== id)); }, []);
@@ -376,6 +388,54 @@ export default function World() {
     }
   }, [player, token, loadHud]);
   useEffect(() => () => audio.music(null), []);
+
+  // ---- piedra de regreso (tecla V): la escena la canaliza unos segundos y el servidor lleva
+  // a qué estatua está vinculada y la recarga de 20 minutos ----
+  const [piedra, setPiedra] = useState(null);
+  const [, setPiedraTick] = useState(0);
+  useEffect(() => {
+    if (!player) return undefined;
+    api.getPiedra(player.id, token).then(setPiedra).catch(() => {});
+    const t = setInterval(() => setPiedraTick((n) => n + 1), 10000);
+    return () => clearInterval(t);
+  }, [player, token]);
+  const piedraLeft = piedra?.readyAt ? Math.max(0, new Date(piedra.readyAt).getTime() - Date.now()) : 0;
+  const castStone = useCallback(() => {
+    if (battleRef.current || !piedra) return;
+    const left = piedra.readyAt ? new Date(piedra.readyAt).getTime() - Date.now() : 0;
+    if (left > 0) {
+      audio.sfx('error');
+      bus.emit('social-toast', { text: `La piedra todavía no tiene fuerza. Estará lista en ${Math.ceil(left / 60000)} min.`, kind: 'error' });
+      return;
+    }
+    bus.emit('hearth-start', { ms: HEARTH_MS }, (ok) => {
+      if (!ok) return;
+      audio.sfx('piedra');
+      bus.emit('cast', { label: `Piedra de regreso · ${piedra.nombre}`, ms: HEARTH_MS });
+    });
+  }, [piedra]);
+  useEffect(() => {
+    if (!player) return undefined;
+    const onDone = async () => {
+      try {
+        const r = await api.usarPiedra(player.id, token);
+        setPiedra(r);
+        bus.emit('zone-change', { zoneDir: r.destino.zona, x: r.destino.x, y: r.destino.y });
+        setTimeout(() => { audio.sfx('vinculo'); bus.emit('hearth-arrive'); }, 650);
+        bus.emit('social-toast', { text: `La piedra te devuelve a ${r.lugar}.`, kind: 'tour' });
+      } catch (err) {
+        audio.sfx('error');
+        bus.emit('social-toast', { text: err.message, kind: 'error' });
+        api.getPiedra(player.id, token).then(setPiedra).catch(() => {});
+      }
+    };
+    const onCancel = ({ reason }) => bus.emit('social-toast', {
+      text: reason === 'combate' ? '¡Te atacaron! Perdiste la concentración.' : 'Te moviste y la piedra se apagó.', kind: 'error',
+    });
+    bus.on('hearth-done', onDone);
+    bus.on('hearth-cancel', onCancel);
+    return () => { bus.off('hearth-done', onDone); bus.off('hearth-cancel', onCancel); };
+  }, [player, token]);
 
   // compañeros del grupo caminando detrás del héroe
   const partyKey = party.filter((m) => !m.isHero).map(baseOf).join(',');
@@ -529,12 +589,13 @@ export default function World() {
         if (chat) { e.preventDefault(); chat.focus(); }
         return;
       }
+      if (e.key.toLowerCase() === STONE_KEY) { e.preventDefault(); castStone(); return; }
       const id = KEY_TO_WINDOW[e.key.toLowerCase()];
       if (id) { e.preventDefault(); toggleWindow(id); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [toggleWindow, confirmBoss]);
+  }, [toggleWindow, confirmBoss, castStone]);
 
   const heroMember = party.find((m) => m.isHero);
   const companions = party.filter((m) => !m.isHero);
@@ -669,6 +730,23 @@ export default function World() {
             );
           })}
           <span className="hud-slots-sep" />
+          {/* piedra de regreso: el arco oscuro muestra cuánto le falta para recargarse */}
+          <button
+            type="button"
+            className={`hud-slot hud-slot--piedra${piedraLeft ? ' hud-slot--cd' : ''}`}
+            aria-label="Piedra de regreso (V)"
+            style={{ '--cd': piedraLeft ? piedraLeft / ((piedra?.recargaMin ?? 20) * 60000) : 0 }}
+            onClick={castStone}
+          >
+            <img src={`${process.env.PUBLIC_URL}/assets/mundo/vinculo/piedra_regreso.png`} alt="" />
+            {piedraLeft > 0 && <span className="hud-slot-cd">{Math.ceil(piedraLeft / 60000)}m</span>}
+            <kbd>{STONE_KEY.toUpperCase()}</kbd>
+            <span className="hud-tooltip">
+              Piedra de regreso{piedra ? ` · ${piedra.nombre}` : ''}
+              {piedraLeft > 0 && <small> · lista en {Math.ceil(piedraLeft / 60000)} min</small>}
+            </span>
+          </button>
+          <span className="hud-slots-sep" />
           <button type="button" className="hud-slot" aria-label="Salir del mundo" onClick={() => navigate('/')}>
             <GameIcon name="house" artist="delapouite" />
             <span className="hud-tooltip">Salir del mundo</span>
@@ -756,12 +834,19 @@ export default function World() {
               onClose: () => closeWin(id),
               defaultPos: defaultPosFor(w),
             };
-            if (w.embed) return <EmbedPanel key={id} {...common} id={id} title={w.title} icon={w.icon} path={w.embed} openWindow={openWin} />;
+            if (w.embed) {
+              const path = winArgs[id]?.path ?? w.embed;
+              return <EmbedPanel key={`${id}:${path}`} {...common} id={id} title={w.title} icon={w.icon} path={path} openWindow={openWin} />;
+            }
             const Panel = w.panel;
             return (
               <Panel
                 key={id}
                 {...common}
+                {...w.props}
+                piedra={piedra}
+                onPiedra={setPiedra}
+                onUseStone={castStone}
                 stats={stats}
                 party={party}
                 gold={stats.gold}

@@ -47,6 +47,7 @@ const EMBED_ROUTES = [
 const NATIVE_WINDOWS = {
   '/guild': 'gremio', '/artisan-shop': 'artesanos', '/crafting': 'taller', '/pets': 'mascotas',
   '/formation': 'formacion', '/guild/infirmary': 'enfermeria', '/quests': 'misiones', '/guild/enchant': 'encantador',
+  '/guild/my': 'gremio', '/guild/join': 'unirse_gremio', '/guild/create': 'crear_gremio', '/guild/adventurers': 'contratar',
 };
 
 const ROOT_ROUTE = { outlet: null, matches: [], isDataRoute: false };

@@ -105,3 +105,47 @@ export function LibroPanel(props) {
     </FloatingPanel>
   );
 }
+
+// Estatua del Viajero: aquí se vincula la piedra de regreso (solo hay una por ciudad grande).
+// El estado de la piedra lo lleva pages/World.js (también lo usa la barra de acciones).
+export function VinculoPanel({ vinculo, piedra, onPiedra, ...props }) {
+  const { player, token } = useAuth();
+  const [msg, setMsg] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [, tick] = useState(0);
+  useEffect(() => { const t = setInterval(() => tick((n) => n + 1), 15000); return () => clearInterval(t); }, []);
+
+  const bind = async () => {
+    setBusy(true);
+    try {
+      const r = await api.vincularPiedra(player.id, vinculo, token);
+      onPiedra?.(r);
+      audio.sfx('vinculo');
+      setMsg(`La piedra se entibia en tu mano. Ahora te traerá a ${r.lugar}.`);
+    } catch (e) { setMsg(e.message); audio.sfx('error'); }
+    setBusy(false);
+  };
+
+  const here = piedra?.vinculo === vinculo;
+  const waiting = piedra?.readyAt && new Date(piedra.readyAt).getTime() > Date.now();
+  return (
+    <FloatingPanel {...props} id="vinculo" title="Estatua del Viajero" icon={<img className="cp-piedra-icon" src={`${process.env.PUBLIC_URL}/assets/mundo/vinculo/piedra_regreso.png`} alt="" />} width={420}>
+      <div className="cp-ofrenda">
+        <div className="cp-estatua" aria-hidden="true" style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/assets/mundo/vinculo/estatua_vinculo.png)` }} />
+        <p className="cp-lore">«Quien deja aquí el eco de su piedra, siempre encuentra el camino de vuelta.»</p>
+        {piedra && (
+          <div className="cp-blessing cp-piedra">
+            <b>Piedra de regreso</b>
+            <span>Vinculada a {piedra.nombre} ({piedra.lugar})</span>
+            <small>{waiting ? `Recargando: lista en ${left(new Date(piedra.readyAt).getTime() - Date.now())}` : 'Lista para usar · tecla V'}</small>
+          </div>
+        )}
+        <button type="button" className="wp-btn wp-btn--gold" disabled={busy || !piedra || here} onClick={bind}>
+          {here ? 'Tu piedra ya está vinculada aquí' : 'Vincular la piedra aquí'}
+        </button>
+        <p className="cp-hint">Úsala desde cualquier lugar: tardas unos segundos en concentrarte y, si te mueves o te atacan, se corta. Después necesita {piedra?.recargaMin ?? 20} minutos para recargarse.</p>
+        {msg && <p className="cp-msg">{msg}</p>}
+      </div>
+    </FloatingPanel>
+  );
+}

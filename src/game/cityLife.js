@@ -10,6 +10,7 @@ import { gameHour } from './WorldScene';
 //  cartel     cartel colgante con ícono junto a la puerta de un edificio
 //  palomas    bandada que picotea y sale volando si te acercas
 //  gato       gato que toma el sol y a veces da un paseo
+//  vinculo    Estatua del Viajero: ahí se vincula la piedra de regreso (solo en ciudades grandes)
 // Los globitos de lo que dicen los pinta socialLayer (clave "cit:<nombre>").
 
 const ASSETS = `${process.env.PUBLIC_URL}/assets`;
@@ -28,6 +29,7 @@ export default class CityLife {
     if (!scene.textures.exists('carteles')) scene.load.spritesheet('carteles', `${ASSETS}/mundo/carteles.png`, { frameWidth: 24, frameHeight: 24 });
     if (!scene.textures.exists('f_paloma')) scene.load.spritesheet('f_paloma', `${ASSETS}/mundo/fauna/paloma.png`, { frameWidth: 16, frameHeight: 16 });
     if (!scene.textures.exists('f_gato')) scene.load.spritesheet('f_gato', `${ASSETS}/mundo/fauna/gato.png`, { frameWidth: 16, frameHeight: 16 });
+    if (!scene.textures.exists('estatua_vinculo')) scene.load.spritesheet('estatua_vinculo', `${ASSETS}/mundo/vinculo/estatua_vinculo.png`, { frameWidth: 48, frameHeight: 96 });
   }
 
   constructor(scene, points) {
@@ -49,6 +51,7 @@ export default class CityLife {
     of('cartel').forEach((o) => this.makeSign(o));
     of('palomas').forEach((o) => this.makeFlock(o));
     of('gato').forEach((o) => this.makeCat(o));
+    of('vinculo').forEach((o) => this.makeStatue(o));
 
     // hojas de caminar de los ciudadanos (se cargan una vez para todos)
     const citizens = of('ciudadano');
@@ -80,6 +83,16 @@ export default class CityLife {
       s.tweens.add({ targets: pilar, duration: 1600, yoyo: true, repeat: -1, tint: { from: 0xffffff, to: 0xffe08a } });
     }
     this.pilar = pilar;
+  }
+
+  // Estatua del Viajero: la piedra que alza late con la luz de Aethra
+  makeStatue(o) {
+    const s = this.scene;
+    if (!s.anims.exists('estatua_brillo')) s.anims.create({ key: 'estatua_brillo', frames: s.anims.generateFrameNumbers('estatua_vinculo', { start: 0, end: 3 }), frameRate: 5, repeat: -1 });
+    const x = o.x + 16;
+    const base = o.y + 32;
+    s.add.sprite(x, base, 'estatua_vinculo', 0).setOrigin(0.5, 1).setDepth(9.5 + base / 100000).play('estatua_brillo');
+    s.blockers.add(s.add.rectangle(x, base - 12, 40, 22));
   }
 
   makeSign(o) {

@@ -88,10 +88,22 @@ export const DIALOGUES_CIUDAD = {
     lines: {},
   },
   oswin: {
-    name: 'Oswin', role: 'Registro de gremios', portrait: PORTRAIT('tomas'),
-    greet: () => 'Registro de Gremios de Aurelia. Fundar uno, unirse a uno o revisar el tuyo: todo pasa por estas manos.',
-    options: () => [{ label: 'Ver gremios', window: 'gremio' }, bye],
-    lines: {},
+    name: 'Oswin', role: 'Registro de gremios', portrait: PORTRAIT('oswin'),
+    greet: () => pick([
+      'Registro de Gremios de Aurelia. Fundar uno, unirse a uno o contratar aventureros: todo pasa por estas manos.',
+      'Firma aquí, aquí y… aquí. ¿Vienes a buscar gremio o a contratar compañeros?',
+    ]),
+    options: () => [
+      { label: 'Unirme a un gremio', window: 'unirse_gremio' },
+      { label: 'Fundar un gremio', window: 'crear_gremio' },
+      { label: 'Contratar aventureros', window: 'contratar' },
+      { label: 'Ver mi gremio', window: 'gremio' },
+      { label: '¿Para qué sirve un gremio?', next: 'gremios' },
+      bye,
+    ],
+    lines: {
+      gremios: 'Un gremio reparte oro y experiencia extra a sus miembros en cada combate, y cuanto más sube de nivel, más gente admite. A partir del nivel 2 tiene banco y tienda propios. Fundar uno cuesta 50.000 de oro; unirse a uno abierto es gratis.',
+    },
   },
   cochero: {
     name: 'Gaspar', role: 'Cochero de la diligencia', portrait: PORTRAIT('cochero'),

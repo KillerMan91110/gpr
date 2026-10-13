@@ -138,3 +138,38 @@
 .cp-libro-list .cp-none {
   color: #6b5326;
 }
+
+/* Estatua del Viajero (piedra de regreso) */
+.cp-estatua {
+  width: 96px;
+  height: 192px;
+  background: 0 0 / 384px 192px no-repeat; /* la imagen va en el estilo del componente */
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 10px rgba(154, 232, 255, 0.35));
+  animation: cp-estatua 0.9s steps(4) infinite;
+}
+
+@keyframes cp-estatua {
+  to { background-position: -384px 0; }
+}
+
+.cp-piedra-icon {
+  width: 20px;
+  height: 20px;
+  image-rendering: pixelated;
+}
+
+.cp-piedra {
+  border-color: #4ab4e8;
+  background: rgba(30, 60, 96, 0.45);
+}
+
+.cp-piedra b {
+  color: #9ae8ff;
+}
+
+.cp-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-soft, #b8ac90);
+}

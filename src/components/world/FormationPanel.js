@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
 import FloatingPanel from './FloatingPanel';
+import { guiar } from '../../game/cityGuide';
 import { CLASS_ICON } from '../../utils/classIcons';
 import { getAbyssCheckpoint } from '../../utils/abyssCheckpoint';
 
@@ -69,7 +70,8 @@ export default function FormationPanel({ onChanged, onClose, zIndex, onActivate,
   const bySlot = { 2: npcs.find((n) => n.slot === 2), 3: npcs.find((n) => n.slot === 3) };
   const reserve = bench?.members ?? [];
   const cap = bench?.cap ?? 10;
-  const hire = () => openWindow?.('contratar');
+  // se contrata en persona, con Oswin en el Registro de Gremios de Aurelia
+  const hire = () => guiar(['oswin'], 'Habla con Oswin para contratar aventureros.');
 
   const card = (member, slot) => {
     if (!member) {

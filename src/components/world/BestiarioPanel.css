@@ -187,3 +187,9 @@ button.col-card:hover:not(:disabled) { transform: translateY(-3px); }
   width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex: none;
   border: 1px solid var(--gold-dim); border-radius: 3px; background: rgba(0, 0, 0, 0.35);
 }
+
+/* Piedra de regreso: siempre en la primera casilla de la mochila */
+.wp-slot--piedra img { width: 32px; height: 32px; image-rendering: pixelated; }
+.wp-slot.wp-slot--piedra { border-color: #4ab4e8; box-shadow: inset 0 0 10px rgba(74, 180, 232, 0.45); }
+.wp-slot--piedra.is-cd img { filter: grayscale(0.7) brightness(0.75); }
+.wp-stone-tip b { color: #9ae8ff; }
