@@ -22,6 +22,7 @@ import { CLASS_ICON } from '../utils/classIcons';
 import BagPanel from '../components/world/BagPanel';
 import CharacterPanel from '../components/world/CharacterPanel';
 import SkillsPanel from '../components/world/SkillsPanel';
+import EvolutionPanel from '../components/world/EvolutionPanel';
 import { QuestBoardPanel, QuestLogPanel } from '../components/world/QuestPanels';
 import EmbedPanel from '../components/world/EmbedPanel';
 import MerchantPanel from '../components/world/MerchantPanel';
@@ -63,6 +64,7 @@ const WINDOWS = {
   inventario:      { title: 'Mochila',            key: 'i', icon: ['knapsack', 'lorc'],          panel: BagPanel,          pos: 'right' },
   personaje:       { title: 'Personaje',          key: 'c', icon: ['wizard-face', 'delapouite'], panel: CharacterPanel,    pos: { x: 300, y: 110 } },
   habilidades:     { title: 'Habilidades',        key: 'h', icon: ['spell-book', 'delapouite'],  panel: SkillsPanel,       pos: { x: 330, y: 130 } },
+  evolucion:       { title: 'Evolución',          key: 'y', icon: ['dna2', 'lorc'],              panel: EvolutionPanel,    pos: { x: 350, y: 110 } },
   misiones:        { title: 'Misiones',           key: 'j', icon: ['scroll-unfurled', 'lorc'],   panel: QuestLogPanel,     pos: { x: 360, y: 150 } },
   formacion:       { title: 'Formación',          key: 'f', icon: ['meeple-army', 'delapouite'], panel: FormationPanel,    pos: { x: 300, y: 90 } },
   mascotas:        { title: 'Mascotas',           key: 'n', icon: ['paw', 'lorc'],               panel: PetsPanel,         pos: { x: 320, y: 100 } },
@@ -118,7 +120,7 @@ function defaultPosFor(w) {
 }
 // en el celular la barra muestra solo estas (y la piedra); el resto va en el menú (☰)
 const QUICK = ['inventario', 'mapa', 'misiones'];
-const TOOLBAR = ['inventario', 'personaje', 'habilidades', 'misiones', 'taller', 'formacion', 'mascotas', 'gremio', 'social', 'mercado', 'mapa', 'bestiario', 'logros', 'ranking'];
+const TOOLBAR = ['inventario', 'personaje', 'habilidades', 'evolucion', 'misiones', 'taller', 'formacion', 'mascotas', 'gremio', 'social', 'mercado', 'mapa', 'bestiario', 'logros', 'ranking'];
 // piedra de regreso: tecla y segundos que hay que quedarse quieto para usarla
 const STONE_KEY = 'v';
 const HEARTH_MS = 5000;
@@ -250,6 +252,13 @@ export default function World() {
     if (!player || !token) return;
     api.getPlayerStats(player.id, token).then(setStats).catch(() => {});
     api.getParty(player.id, token).then((p) => setParty(p.members ?? [])).catch(() => {});
+    // sendas de evolución que se acaban de revelar (cumpliste alguno de sus requisitos)
+    api.getEvolutions(player.id, token).then((evo) => {
+      for (const name of evo.newlyDiscovered ?? []) {
+        audio.sfx('mision');
+        bus.emit('social-toast', { text: `🧬 ¡Descubriste una nueva senda de evolución: ${name}! Mírala en Evolución (Y).`, kind: 'ok' });
+      }
+    }).catch(() => {});
     loadCoop();
   }, [player, token, loadCoop]);
   useEffect(() => {

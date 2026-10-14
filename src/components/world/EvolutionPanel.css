@@ -1,0 +1,156 @@
+/* =====================================================================================
+   Panel de Evolución: árbol de sendas (la clase actual a la izquierda, sus evoluciones a la
+   derecha unidas por líneas). Las ocultas son medallones grises con candado.
+   ===================================================================================== */
+.evp-path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 6px;
+  font: 600 0.88rem 'Cinzel', serif;
+  color: var(--text-soft);
+}
+.evp-path-node em { margin: 0 4px; font-style: normal; color: var(--gold); }
+.evp-path-node--now { color: #ffe9a8; }
+.evp-path small { margin-left: auto; font: 0.8rem 'EB Garamond', serif; }
+
+/* ---- árbol ---- */
+.evp-tree {
+  position: relative;
+  max-width: 100%;
+  margin: 0 auto 8px;
+  border-radius: 8px;
+  background:
+    radial-gradient(ellipse at 15% 50%, rgba(212, 175, 55, 0.12), transparent 55%),
+    radial-gradient(circle at 70% 50%, rgba(90, 60, 140, 0.18), transparent 70%);
+}
+.evp-lines { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.evp-line { fill: none; stroke: rgba(212, 175, 55, 0.55); stroke-width: 2; }
+.evp-line--locked { stroke: rgba(140, 140, 150, 0.35); stroke-dasharray: 4 5; }
+.evp-line--active { stroke: #f6e08c; stroke-width: 2.5; }
+.evp-line--ready {
+  stroke: #f6e08c;
+  stroke-width: 2.5;
+  stroke-dasharray: 8 6;
+  animation: evp-flow 0.9s linear infinite;
+  filter: drop-shadow(0 0 3px rgba(246, 224, 140, 0.8));
+}
+@keyframes evp-flow { to { stroke-dashoffset: -14; } }
+
+/* medallones */
+.evp-medal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  flex: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #3a2d52, #120e18 75%);
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 0 2px #000, inset 0 0 10px rgba(0, 0, 0, 0.8);
+  color: #f0d8a0;
+  font-size: 28px;
+}
+.evp-medal--root { width: 76px; height: 76px; border-width: 3px; overflow: hidden; }
+.evp-medal--root img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+.evp-medal--small { width: 42px; height: 42px; font-size: 22px; }
+
+.evp-root {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.evp-root-name { font: 700 0.85rem 'Cinzel', serif; color: #ffe9a8; text-shadow: 0 1px 3px #000; white-space: nowrap; }
+
+/* nodos de las sendas */
+.evp-node {
+  position: absolute;
+  transform: translate(-27px, -50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+}
+.evp-node-text { display: flex; flex-direction: column; min-width: 150px; }
+.evp-node-text strong { font: 700 0.95rem 'Cinzel', serif; color: #ffe9a8; text-shadow: 0 1px 3px #000; }
+.evp-node-text small { font: italic 0.78rem 'EB Garamond', serif; color: var(--text-soft); }
+
+.evp-node:hover .evp-medal,
+.evp-node--active .evp-medal { box-shadow: 0 0 0 2px #000, 0 0 14px rgba(246, 224, 140, 0.55), inset 0 0 10px rgba(0, 0, 0, 0.8); }
+.evp-node--active .evp-node-text strong { color: #fff6d0; }
+
+/* anillo de progreso alrededor del medallón */
+.evp-ring { position: absolute; inset: -5px; width: calc(100% + 10px); height: calc(100% + 10px); transform: rotate(-90deg); pointer-events: none; }
+.evp-ring circle { fill: none; stroke: #7dff9a; stroke-width: 2.2; stroke-linecap: round; opacity: 0.85; }
+
+/* lista para evolucionar: brilla y late */
+.evp-node--ready .evp-medal {
+  border-color: #fff1b0;
+  animation: evp-pulse 1.6s ease-in-out infinite;
+}
+.evp-node--ready .evp-node-text small { color: #7dff9a; font-style: normal; font-weight: 600; }
+@keyframes evp-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px #000, 0 0 6px rgba(246, 224, 140, 0.4), inset 0 0 10px rgba(0, 0, 0, 0.8); }
+  50% { box-shadow: 0 0 0 2px #000, 0 0 20px rgba(246, 224, 140, 0.95), inset 0 0 10px rgba(0, 0, 0, 0.8); }
+}
+
+/* oculta: solo un candado gris */
+.evp-node--locked { cursor: not-allowed; }
+.evp-node--locked .evp-medal {
+  background: radial-gradient(circle at 50% 35%, #3a3a42, #15151a 75%);
+  border-color: #5a5a64;
+  color: #8a8a94;
+}
+.evp-node--locked .evp-node-text strong { color: #6a6a74; letter-spacing: 0.2em; }
+.evp-node--locked .evp-node-text small { color: #5a5a64; }
+.evp-node--locked:hover .evp-medal { box-shadow: 0 0 0 2px #000, inset 0 0 10px rgba(0, 0, 0, 0.8); }
+
+/* ---- detalle de la senda elegida ---- */
+.evp-detail {
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2e2838;
+  border-radius: 6px;
+}
+.evp-detail--ready { border-color: rgba(246, 224, 140, 0.6); }
+.evp-detail-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.evp-detail-head h3 { margin: 0; font: 700 1.05rem 'Cinzel', serif; color: #ffe9a8; }
+.evp-detail-head small { font: italic 0.82rem 'EB Garamond', serif; color: var(--text-soft); }
+
+.evp-reqs { list-style: none; margin: 0; padding: 0; font: 0.85rem/1.35 'EB Garamond', serif; color: var(--cream); }
+.evp-reqs li {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  column-gap: 6px;
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(212, 175, 55, 0.12);
+}
+.evp-req-mark { color: #ff8a7a; font-weight: 700; }
+.evp-req-text { display: flex; gap: 6px; }
+.evp-req-text em { margin-left: auto; font-style: normal; color: var(--text-soft); }
+.evp-req-bar { grid-column: 2; height: 4px; margin-top: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.evp-req-bar i { display: block; height: 100%; background: linear-gradient(90deg, #b8902c, #f6e08c); }
+.evp-reqs .evp-req--met { color: #9dffb2; }
+.evp-reqs .evp-req--met .evp-req-mark { color: #7dff9a; }
+.evp-reqs .evp-req--met .evp-req-bar i { background: linear-gradient(90deg, #2a8a4a, #7dff9a); }
+.evp-reqs .evp-req--unknown .evp-req-mark { color: var(--text-soft); }
+
+.evp-go { animation: evp-pulse 1.6s ease-in-out infinite; }
+.evp-confirm { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; font-size: 0.82rem; color: #ffd0a0; }
+.evp-confirm span { width: 100%; }
+
+/* celular: el árbol se achica en horizontal */
+@media (max-width: 600px) {
+  .evp-tree { transform: scale(0.82); transform-origin: left top; margin-bottom: -20px; }
+  .evp-node-text { min-width: 110px; }
+}

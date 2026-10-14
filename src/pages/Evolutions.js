@@ -102,7 +102,12 @@ export default function Evolutions() {
       )}
 
       <div className="evo-branch-grid">
-        {evolutions.map((evo) => (
+        {evolutions.map((evo) => (evo.locked ? (
+          // senda oculta: se revela al cumplir alguno de sus requisitos
+          <div key={evo.evolutionId} className="evo-node-card rpg-panel" style={{ display: 'grid', placeItems: 'center', minHeight: 120, opacity: 0.45, filter: 'grayscale(1)' }} title="Senda oculta">
+            <GameIcon name="padlock" artist="lorc" />
+          </div>
+        ) : (
           <div
             key={evo.evolutionId}
             className={`evo-node-card rpg-panel${evo.canEvolve ? ' evo-node-card--ready' : ''}`}
@@ -146,7 +151,7 @@ export default function Evolutions() {
               </p>
             )}
           </div>
-        ))}
+        )))}
       </div>
     </div>
   );
