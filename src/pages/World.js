@@ -80,7 +80,8 @@ const WINDOWS = {
   misiones_gremio: { title: 'Tablón del gremio',  panel: QuestBoardPanel, pos: { x: 360, y: 120 } },
   enfermeria:      { title: 'Enfermería',         panel: InfirmaryPanel,  pos: { x: 420, y: 160 } },
   artesanos:       { title: 'Artesanos del gremio', panel: MerchantPanel, pos: { x: 360, y: 90 } },
-  taller:          { title: 'Taller del herrero',   panel: CraftingPanel, pos: { x: 330, y: 80 } },
+  // se abre en cualquier lado; el equipo pide estar en una forja y el agua, en el Pilar
+  taller:          { title: 'Taller',             key: 'u', icon: ['anvil', 'lorc'],             panel: CraftingPanel,     pos: { x: 330, y: 80 } },
   // servicios del gremio que siguen usando su pantalla de siempre dentro del marco
   contratar:       { title: 'Contratar aventureros', panel: HirePanel, pos: { x: 320, y: 90 } },
   encantador:      { title: 'Encantador',            panel: EnchantPanel, pos: { x: 380, y: 90 } },
@@ -117,7 +118,7 @@ function defaultPosFor(w) {
 }
 // en el celular la barra muestra solo estas (y la piedra); el resto va en el menú (☰)
 const QUICK = ['inventario', 'mapa', 'misiones'];
-const TOOLBAR = ['inventario', 'personaje', 'habilidades', 'misiones', 'formacion', 'mascotas', 'gremio', 'social', 'mercado', 'mapa', 'bestiario', 'logros', 'ranking'];
+const TOOLBAR = ['inventario', 'personaje', 'habilidades', 'misiones', 'taller', 'formacion', 'mascotas', 'gremio', 'social', 'mercado', 'mapa', 'bestiario', 'logros', 'ranking'];
 // piedra de regreso: tecla y segundos que hay que quedarse quieto para usarla
 const STONE_KEY = 'v';
 const HEARTH_MS = 5000;

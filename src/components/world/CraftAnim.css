@@ -1,0 +1,68 @@
+/* ---- taller: animación de fabricar uno por uno (ver CraftAnim.js) ---- */
+.craft-sprite {
+  display: inline-block;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.craft-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 10px 10px 12px;
+  background: radial-gradient(ellipse at 50% 40%, rgba(255, 200, 120, 0.12), rgba(0, 0, 0, 0.35) 70%);
+  border: 1px solid rgba(232, 192, 80, 0.35);
+  border-radius: 6px;
+}
+
+.craft-stage-art {
+  position: relative;
+  width: 128px;
+  height: 128px;
+}
+.craft-stage-art .craft-sprite { position: absolute; left: 0; top: 0; }
+.craft-stage-art .craft-effect { z-index: 2; }
+/* el objeto que sale salta un poco sobre el efecto */
+.craft-stage-item {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  z-index: 3;
+  font-size: 2.2rem;
+  transform: translate(-50%, -50%);
+  animation: craft-pop 0.7s ease-out forwards;
+}
+@keyframes craft-pop {
+  0% { opacity: 0; transform: translate(-50%, -20%) scale(0.4); }
+  40% { opacity: 1; transform: translate(-50%, -75%) scale(1.15); }
+  100% { opacity: 1; transform: translate(-50%, -60%) scale(1); }
+}
+.craft-stage-item--fallo { animation: craft-crack 0.7s ease-out forwards; filter: grayscale(1) brightness(0.7); }
+@keyframes craft-crack {
+  0% { opacity: 1; transform: translate(-50%, -50%) rotate(0); }
+  30% { transform: translate(-54%, -50%) rotate(-8deg); }
+  60% { transform: translate(-46%, -48%) rotate(8deg); }
+  100% { opacity: 0; transform: translate(-50%, -30%) rotate(14deg); }
+}
+
+.craft-stage-caption { font: 700 0.95rem 'Cinzel', serif; color: #f6e6c0; text-align: center; min-height: 1.3em; }
+.craft-stage-caption--exito { color: #9dffbf; }
+.craft-stage-caption--suerte { color: #ffd84a; text-shadow: 0 0 8px rgba(255, 200, 60, 0.6); }
+.craft-stage-caption--fallo { color: #ff9a8a; }
+
+.craft-progress { width: 100%; height: 6px; background: rgba(0, 0, 0, 0.5); border-radius: 3px; overflow: hidden; }
+.craft-progress > span { display: block; height: 100%; background: linear-gradient(90deg, #c09030, #ffe070); transition: width 0.25s ease; }
+
+.craft-summary { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; font-size: 0.9rem; }
+.craft-summary .ok { color: #9dffbf; }
+.craft-summary .lucky { color: #ffd84a; }
+.craft-summary .err { color: #ff9a8a; }
+.craft-lost { font-size: 0.8rem; color: #d8b0a8; text-align: center; }
+
+/* dónde se fabrica la receta */
+.craft-station { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 2px 0 6px; font-size: 0.85rem; color: #c8f0c0; }
+.craft-station small { flex-basis: 100%; color: #ffb4a8; }
+.craft-station--far { color: #ffcf9a; }

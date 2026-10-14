@@ -57,6 +57,10 @@ export function OfrendaPanel(props) {
           {state?.offeredToday ? 'Ya hiciste tu ofrenda de hoy' : `Ofrecer ${state?.cost ?? 50} de oro`}
         </button>
         {msg && <p className="cp-msg">{msg}</p>}
+        {/* el agua del Pilar: los frascos vacíos (alquimista) se llenan aquí, en el taller */}
+        <button type="button" className="wp-btn" onClick={() => props.openWindow?.('taller', { recipe: 'AGUA_PURIFICADA_PILAR' })}>
+          Llenar frascos de agua
+        </button>
       </div>
     </FloatingPanel>
   );

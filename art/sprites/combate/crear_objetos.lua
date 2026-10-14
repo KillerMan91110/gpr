@@ -1,6 +1,8 @@
 -- Íconos de objetos sin arte propio (32x32, mismo estilo que crear_equipo.lua: contorno oscuro
 -- automático): pociones y elixires de vida y maná, las comidas que curan de la Pradera y los
--- accesorios (amuletos, collar, brazalete, anillos) hasta el nivel de la Pradera.
+-- accesorios (amuletos, collar, brazalete, anillos) hasta el nivel de la Pradera, y los
+-- materiales y consumibles del crafteo v2 (frasco, agua, lingote, tabla, cuero, antídoto,
+-- tónico y vendaje). Los nuevos van siempre al final: el orden es el del atlas.
 -- Salida: equipo/objetos.aseprite, equipo/objetos.png (una fila) y equipo/objetos.json (orden).
 -- Uso: aseprite -b --script-param dir=D:/Sprites/v2 --script crear_objetos.lua
 local function hex(s) return Color{r=tonumber(s:sub(1,2),16), g=tonumber(s:sub(3,4),16), b=tonumber(s:sub(5,6),16)} end
@@ -23,6 +25,9 @@ for k, v in pairs({
   tr1="a0a880", tr2="666e50",                         -- guiso de troll
   po1="7a7e8a", po2="4a4e5a", po3="2e303a",           -- olla de hierro
   rb1="e04a4a", rb2="9a2028",                         -- cinta roja
+  aq1="dcf8ff", aq2="8ad8f0", aq3="3a98c8",           -- agua del Pilar
+  am1="ffe08a", am2="e8a028", am3="9a5a10",           -- miel
+  le1="d09860", le2="9a6438", le3="5e3a1c",           -- cuero tratado
 }) do PAL[k] = hex(v) end
 
 -- ---------------------------------------------------------------- lienzo
@@ -331,6 +336,83 @@ icon("amuleto_brujo", function(G)
   G.px(16, 30, "fe3"); G.rect(15, 28, 17, 29, "fe3")
   pendant(G, "fe1", "fe3", "p1", "p3")
   G.rect(15, 20, 17, 22, "p2"); G.px(16, 21, "K")
+end)
+
+-- ---------------------------------------------------------------- crafteo v2: materiales y consumibles
+-- frasco sin nada (se compra en el alquimista y se llena en el Pilar)
+icon("frasco_vacio", function(G)
+  G.rect(14, 4, 18, 8, "co1"); G.rect(17, 4, 18, 8, "co2"); G.rect(14, 8, 18, 8, "co2")
+  G.rect(13, 9, 19, 10, "gl2"); G.rect(14, 9, 15, 10, "gl1")
+  G.rect(14, 11, 18, 14, "gl2"); G.rect(15, 11, 15, 14, "gl1")
+  G.ellipse(16, 21, 8.5, 8, "gl2")
+  G.ellipse(16, 21, 7.2, 6.8, nil, function(x, y) return ((x - 16) + (y - 21) > 5) and "gl3" or "gl1" end)
+  G.line(10, 17, 10, 22, "W"); G.px(11, 15, "W")
+end)
+
+-- agua del Pilar: celeste clara con un destello
+icon("agua_purificada", function(G)
+  flaskSmall(G, {"aq1", "aq2", "aq3"})
+  G.px(25, 6, "W"); G.px(24, 7, "aq1"); G.px(26, 7, "aq1"); G.px(25, 8, "W"); G.px(25, 5, "aq1"); G.px(25, 9, "aq1")
+end)
+
+-- lingote visto de frente: cara de arriba clara, frente medio, costado oscuro
+icon("lingote_hierro", function(G)
+  G.poly({{3, 26}, {29, 26}, {25, 16}, {7, 16}}, "fe2")
+  G.poly({{7, 16}, {25, 16}, {27, 12}, {9, 12}}, "fe1")
+  G.poly({{25, 16}, {29, 26}, {27, 26}, {24, 17}}, "fe3")
+  G.line(8, 17, 22, 17, "W"); G.line(5, 25, 27, 25, "fe3")
+  G.px(12, 13, "W"); G.px(13, 13, "W")
+end)
+
+-- dos tablas de roble apiladas con la veta marcada
+local function plank(G, dx, dy)
+  G.poly({{3 + dx, 17 + dy}, {19 + dx, 4 + dy}, {24 + dx, 9 + dy}, {8 + dx, 22 + dy}}, "wd1")
+  G.line(5 + dx, 18 + dy, 20 + dx, 6 + dy, "wd2"); G.line(7 + dx, 20 + dy, 22 + dx, 8 + dy, "wd2")
+  G.poly({{19 + dx, 4 + dy}, {24 + dx, 9 + dy}, {25 + dx, 9 + dy}, {20 + dx, 4 + dy}}, "wd3")
+  G.px(13 + dx, 12 + dy, "wd3")
+end
+icon("tabla_roble", function(G)
+  plank(G, 0, 0)
+  plank(G, 5, 6)
+end)
+
+-- piel curtida y enrollada, con costura
+icon("cuero_tratado", function(G)
+  G.poly({{4, 9}, {12, 6}, {20, 8}, {27, 6}, {26, 16}, {28, 25}, {18, 27}, {9, 25}, {4, 27}, {6, 17}}, "le1")
+  G.poly({{20, 8}, {27, 6}, {26, 16}, {28, 25}, {20, 26}}, "le2")
+  for i = 0, 7 do G.px(7 + i * 2.5, 11 + (i % 2), "le3") end
+  for i = 0, 7 do G.px(7 + i * 2.5, 23 - (i % 2), "le3") end
+  G.ellipse(5, 18, 2.5, 9, "le2"); G.line(5, 10, 5, 26, "le3")
+  G.px(12, 15, "pa"); G.px(13, 16, "pa")
+end)
+
+-- antídoto: botella verde con una hoja en la etiqueta
+icon("antidoto", function(G)
+  flaskBig(G, {"v1", "v2", "v3"}, function(g)
+    g.poly({{12, 23}, {16, 19}, {21, 18}, {18, 22}}, "v2")
+    g.line(13, 23, 19, 19, "v3")
+  end)
+end)
+
+-- tónico de miel: frasco ámbar con una gota que chorrea y una abejita
+icon("tonico_miel", function(G)
+  flaskSmall(G, {"am1", "am2", "am3"})
+  G.rect(15, 11, 17, 13, "am2"); G.px(16, 14, "am2")
+  G.ellipse(25, 8, 2.5, 2, "am1"); G.line(24, 7, 24, 9, "K"); G.line(26, 7, 26, 9, "K")
+  G.px(24, 5, "gl1"); G.px(26, 5, "gl1"); G.px(25, 6, "gl1")
+end)
+
+-- vendaje: rollo de tela visto de costado, con la punta suelta y una ramita de hierba
+icon("vendaje", function(G)
+  G.poly({{14, 22}, {28, 25}, {27, 29}, {13, 26}}, "pa")
+  G.line(16, 24, 26, 27, "wd1")
+  G.rect(8, 11, 22, 23, "W")
+  G.line(8, 23, 22, 23, "pa"); G.line(8, 20, 22, 20, "pa"); G.line(8, 14, 22, 14, "pa")
+  G.ellipse(22, 17, 3, 6, "pa")
+  G.ellipse(8, 17, 3, 6, "W")
+  G.ellipse(8, 17, 1.6, 3.4, "pa"); G.px(8, 17, "wd1")
+  G.rect(14, 15, 16, 19, "rb1"); G.rect(13, 16, 17, 18, "rb1")
+  G.line(21, 4, 27, 11, "v3"); G.px(23, 5, "v2"); G.px(24, 6, "v2"); G.px(25, 8, "v2"); G.px(22, 7, "v1"); G.px(26, 9, "v1")
 end)
 
 -- ---------------------------------------------------------------- atlas (una fila)

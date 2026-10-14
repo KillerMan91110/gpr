@@ -386,6 +386,47 @@ class AudioEngine {
       case 'pasos':
         this.burst(t, 0.03, { gain: 0.03, filter: 'lowpass', from: 600 });
         break;
+      // ---- taller (crafteo uno por uno, ver components/world/CraftAnim.js)
+      case 'yunque':
+        // martillazo: golpe seco y el "tiiin" metálico del yunque
+        this.burst(t, 0.05, { gain: 0.2, filter: 'highpass', from: 1800 });
+        this.tone(freq('E6'), t, 0.25, { wave: 'square', gain: 0.035 });
+        this.tone(freq('B6'), t + 0.01, 0.35, { wave: 'sine', gain: 0.05 });
+        break;
+      case 'burbuja':
+        for (let i = 0; i < 2; i++) this.tone(260 + Math.random() * 180, t + i * 0.09, 0.07, { wave: 'sine', gain: 0.07, slide: 900 });
+        break;
+      case 'hervor':
+        this.burst(t, 0.3, { gain: 0.06, filter: 'lowpass', from: 700, to: 300 });
+        this.tone(200 + Math.random() * 80, t + 0.1, 0.06, { wave: 'sine', gain: 0.05, slide: 600 });
+        break;
+      case 'agua':
+        // el frasco entra al agua del Pilar
+        this.burst(t, 0.35, { gain: 0.1, filter: 'bandpass', from: 1600, to: 500, q: 1.2 });
+        for (let i = 0; i < 3; i++) this.tone(400 + Math.random() * 300, t + 0.08 + i * 0.07, 0.06, { wave: 'sine', gain: 0.06, slide: 1200 });
+        break;
+      case 'serrucho':
+        this.burst(t, 0.12, { gain: 0.06, filter: 'bandpass', from: 2400, to: 3200, q: 4 });
+        this.burst(t + 0.16, 0.12, { gain: 0.06, filter: 'bandpass', from: 3200, to: 2400, q: 4 });
+        break;
+      case 'craft_ok':
+        // salió bien: arpegio alegre que sube y un brillito
+        ['C5', 'E5', 'G5', 'C6'].forEach((n, i) => this.tone(freq(n), t + i * 0.07, 0.22, { wave: 'triangle', gain: 0.09 }));
+        this.tone(freq('E7'), t + 0.3, 0.12, { wave: 'square', gain: 0.025 });
+        break;
+      case 'craft_suerte':
+        // salió de mejor rareza: fanfarria más larga con destellos
+        ['C5', 'E5', 'G5', 'C6', 'E6', 'G6'].forEach((n, i) => this.tone(freq(n), t + i * 0.07, 0.3, { wave: 'square', gain: 0.045 }));
+        this.tone(freq('C4'), t, 0.5, { wave: 'triangle', gain: 0.12 });
+        this.tone(freq('G4'), t + 0.25, 0.5, { wave: 'triangle', gain: 0.12 });
+        [0.45, 0.55, 0.62, 0.7].forEach((d, i) => this.tone(freq(['C7', 'E7', 'G7', 'C8'][i]), t + d, 0.1, { wave: 'sine', gain: 0.05 }));
+        break;
+      case 'craft_fallo':
+        // falló: "pfff" de humo y un "wa-waaa" triste que baja
+        this.burst(t, 0.3, { gain: 0.12, filter: 'lowpass', from: 1200, to: 150 });
+        this.tone(freq('G4'), t + 0.15, 0.22, { wave: 'square', gain: 0.05, slide: freq('F#4') });
+        this.tone(freq('F#4'), t + 0.4, 0.5, { wave: 'square', gain: 0.05, slide: freq('C4') });
+        break;
       default:
     }
   }

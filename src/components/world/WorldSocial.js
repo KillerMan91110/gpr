@@ -51,11 +51,22 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
     return () => bus.off('social-toast', onToast);
   }, []);
 
+  // ---- tu mascota activa (la que te sigue): los demás jugadores también la ven ----
+  const petRef = useRef(null);
+  useEffect(() => {
+    const onPet = (species) => {
+      petRef.current = species ?? null;
+      if (socket && connected) socket.emit('world:pet', petRef.current);
+    };
+    bus.on('world-pet', onPet);
+    return () => bus.off('world-pet', onPet);
+  }, [socket, connected]);
+
   // ---- entrar a la zona y repartir lo que llega por socket a la escena ----
   useEffect(() => {
     if (!worldReady || !socket || !connected || !player || !zoneDir) return undefined;
     const enter = () => bus.emit('hero-pos', (p) => {
-      socket.emit('world:enter', { zone: zoneDir, x: p.x, y: p.y, facing: p.facing, flip: p.flip, cls: baseClass }, (r) => {
+      socket.emit('world:enter', { zone: zoneDir, x: p.x, y: p.y, facing: p.facing, flip: p.flip, cls: baseClass, pet: petRef.current }, (r) => {
         if (!r?.ok) return;
         bus.emit('others-roster', { me: player.id, list: r.roster });
         bus.emit('my-guild', r.me?.guild ?? null);
@@ -66,7 +77,7 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
     const forward = {
       'world:join': 'other-join', 'world:leave': 'other-leave', 'world:moved': 'other-move', 'world:typing': 'other-typing',
       'world:say': 'other-say', 'world:emote': 'other-emote', 'world:emoji': 'other-emoji', 'world:state': 'other-state',
-      'world:lfg': 'other-lfg',
+      'world:lfg': 'other-lfg', 'world:pet': 'other-pet',
     };
     const fns = Object.entries(forward).map(([ev, to]) => [ev, (data) => bus.emit(to, data)]);
     fns.forEach(([ev, fn]) => socket.on(ev, fn));
@@ -271,13 +282,18 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
     if (socket && connected && level) socket.emit('world:refresh');
   }, [level, socket, connected]);
 
-  // ---- estados: en combate / mirando un combate / ausente (3 min sin hacer nada) ----
+  // ---- estados: en combate / mirando un combate / fabricando / ausente (3 min sin hacer nada) ----
+  const [crafting, setCrafting] = useState(false);
+  useEffect(() => {
+    bus.on('crafting', setCrafting);
+    return () => bus.off('crafting', setCrafting);
+  }, []);
   useEffect(() => {
     if (!socket || !connected) return undefined;
     const send = () => {
       const idle = Date.now() - lastActive.current > AFK_MS;
       afk.current = idle;
-      socket.emit('world:state', { state: watching ? 'observando' : inBattle ? 'combate' : idle ? 'ausente' : null });
+      socket.emit('world:state', { state: watching ? 'observando' : inBattle ? 'combate' : crafting ? 'crafteando' : idle ? 'ausente' : null });
     };
     send();
     const onActivity = () => {
@@ -292,7 +308,7 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
       window.removeEventListener('keydown', onActivity);
       window.removeEventListener('mousedown', onActivity);
     };
-  }, [socket, connected, inBattle, watching]);
+  }, [socket, connected, inBattle, watching, crafting]);
 
   // ---- clic en otro jugador (o en un nombre de la ventana Social) ----
   useEffect(() => {

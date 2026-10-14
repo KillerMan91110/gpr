@@ -1,12 +1,23 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
 import ItemIcon from './ItemIcon';
 import audio from '../../game/audio';
+import bus from '../../game/bus';
+import { CraftSprite, STATION_SOUND, sheetLength, stationFor } from './CraftAnim';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
 import { iconForItem, RARITY_LABELS } from './itemIcons';
+
+// dónde se fabrica cada receta (crafting_recipes.station en el back)
+const STATION_LABEL = {
+  forja: { icon: ['anvil', 'lorc'], text: 'Se fabrica en una forja' },
+  pilar: { icon: ['water-drop', 'sbed'], text: 'Se llena en el Pilar de Aethra' },
+  libre: { icon: ['knapsack', 'lorc'], text: 'Se puede fabricar en cualquier lado' },
+};
+const wait = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+const STATIONS_POLL_MS = 3000;
 
 const CLASS_ICON = {
   GUERRERO: ['broadsword', 'lorc'], MAGO: ['wizard-staff', 'lorc'], ARQUERO: ['bow-arrow', 'delapouite'],
@@ -28,7 +39,10 @@ function Stepper({ value, max, onChange }) {
 // Taller al estilo del registro de oficios de FFXIV: categorías arriba, recetas a la izquierda
 // (con cuántas se pueden hacer) y a la derecha el resultado, los materiales tienes/necesitas y
 // el botón de fabricar. La pestaña Desmantelar usa la mochila.
-export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, defaultPos }) {
+// Se abre en cualquier lado (tecla U): pociones, comidas y refinados simples se hacen donde sea;
+// el equipo y los lingotes piden estar en una forja y el agua, junto al Pilar de Aethra. Se
+// fabrica uno por uno, con la animación de la estación y el efecto de cada resultado.
+export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, defaultPos, args }) {
   const { player, token } = useAuth();
   const [tab, setTab] = useState('craft');
   const [recipes, setRecipes] = useState(null);
@@ -42,11 +56,28 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [hover, setHover] = useState(null);
+  // fabricación en curso (o la última, con su resumen): ver craft()
+  const [run, setRun] = useState(null);
+  const stopRef = useRef(false);
+  // ¿estás junto a una forja / al Pilar? (se pregunta cada pocos segundos mientras caminas)
+  const [stations, setStations] = useState(null);
 
   const loadRecipes = useCallback(() => api.getCraftAvailable(player.id, token).then(setRecipes), [player, token]);
   const loadInventory = useCallback(() => api.getPlayerInventory(player.id, token).then(setInventory), [player, token]);
 
   useEffect(() => { loadRecipes().catch((e) => setError(e.message)); }, [loadRecipes]);
+  useEffect(() => {
+    const check = () => api.getCraftStations(player.id, token).then(setStations).catch(() => {});
+    check();
+    const t = setInterval(check, STATIONS_POLL_MS);
+    return () => clearInterval(t);
+  }, [player, token]);
+  // abierta desde el Pilar ("Llenar frascos"): con esa receta elegida
+  useEffect(() => {
+    if (args?.recipe) { setTab('craft'); setCat('todo'); setSearch(''); setSelCode(args.recipe); setResult(null); }
+  }, [args]);
+  // si se cierra la ventana a mitad, se deja de fabricar
+  useEffect(() => () => { stopRef.current = true; bus.emit('crafting', false); }, []);
   useEffect(() => { if (tab === 'dismantle') loadInventory().catch((e) => setError(e.message)); }, [tab, loadInventory]);
 
   const categories = useMemo(() => {
@@ -59,35 +90,75 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
       }
     }
     if ((recipes ?? []).some((r) => r.resultType === 'CONSUMABLE')) list.push({ code: 'CONSUMABLE', name: 'Consumibles', icon: ['standing-potion', 'lorc'] });
+    if ((recipes ?? []).some((r) => r.resultType === 'MATERIAL')) list.push({ code: 'MATERIAL', name: 'Materiales y refinados', icon: ['metal-bar', 'lorc'] });
     return list;
   }, [recipes]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return (recipes ?? []).filter((r) => (cat === 'todo' || (cat === 'CONSUMABLE' ? r.resultType === 'CONSUMABLE' : r.classCode === cat))
+    return (recipes ?? []).filter((r) => (cat === 'todo' || (cat === 'CONSUMABLE' || cat === 'MATERIAL' ? r.resultType === cat : r.classCode === cat))
       && (!q || r.resultName.toLowerCase().includes(q)))
       .sort((a, b) => Number(b.canCraft) - Number(a.canCraft));
   }, [recipes, cat, search]);
 
   const recipe = recipes?.find((r) => r.code === selCode) ?? filtered[0] ?? null;
   const craftable = recipe ? Math.min(99, ...recipe.ingredients.map((i) => Math.floor(i.have / Math.max(1, i.need)))) : 0;
+  // aviso si la receta pide un lugar y no estás ahí (lo último que dijo el servidor)
+  const stationNote = recipe?.station ? (stations ? stations[recipe.station] : recipe.stationNote) ?? null : null;
 
+  // Fabricar uno por uno: la estación trabaja (martillazos, burbujas…) mientras el servidor decide
+  // esa unidad, y después sale su efecto: éxito, suerte (mejor rareza) o fallo. "Detener" corta
+  // antes de la siguiente unidad (las ya hechas quedan hechas).
   const craft = async () => {
     if (!recipe || busy) return;
+    const station = stationFor(recipe);
+    const total = qty;
+    const itemIcon = iconForItem({ name: recipe.resultName, slot: recipe.resultSlot, item_type: recipe.resultType });
+    stopRef.current = false;
     setBusy(true);
     setError(null);
+    setResult(null);
+    bus.emit('crafting', true);
+    let st = { name: recipe.resultName, itemIcon, total, done: 0, ok: 0, lucky: 0, fail: 0, gained: 0, lost: {}, station, effect: null, key: 0, working: true };
+    setRun(st);
     try {
-      const r = await api.craft(player.id, recipe.code, qty, token);
-      audio.sfx(r.successCount > 0 ? 'golpe' : 'error');
-      if (r.successCount > 0) setTimeout(() => audio.sfx('recoger'), 160);
-      setResult({ type: 'craft', name: recipe.resultName, ...r });
-      setQty(1);
-      await loadRecipes();
-      onChanged?.();
+      for (let i = 0; i < total && !stopRef.current; i += 1) {
+        st = { ...st, effect: null, working: true };
+        setRun(st);
+        // eslint-disable-next-line no-await-in-loop
+        const [r] = await Promise.all([api.craft(player.id, recipe.code, 1, token), wait(sheetLength(station))]);
+        const lucky = (r.results ?? []).some((x) => x.qualityTier > 0);
+        const effect = r.successCount > 0 ? (lucky ? 'suerte' : 'exito') : 'fallo';
+        audio.sfx(effect === 'suerte' ? 'craft_suerte' : effect === 'exito' ? 'craft_ok' : 'craft_fallo');
+        const lost = { ...st.lost };
+        (r.lost ?? []).forEach((m) => { lost[m.name] = (lost[m.name] ?? 0) + m.quantity; });
+        st = {
+          ...st,
+          done: st.done + 1,
+          ok: st.ok + (r.successCount > 0 ? 1 : 0),
+          lucky: st.lucky + (lucky ? 1 : 0),
+          fail: st.fail + (r.failCount ?? 0),
+          gained: st.gained + (r.totalGained ?? 0),
+          lost,
+          effect,
+          rarity: r.results?.[0]?.rarity ?? null,
+          key: st.key + 1,
+          working: false,
+        };
+        setRun(st);
+        // eslint-disable-next-line no-await-in-loop
+        await wait(sheetLength(effect) + 250);
+      }
     } catch (e) {
       setError(e.message);
+      audio.sfx('error');
     } finally {
+      bus.emit('crafting', false);
+      setRun({ ...st, working: false, finished: true });
       setBusy(false);
+      setQty(1);
+      await loadRecipes().catch(() => {});
+      onChanged?.();
     }
   };
 
@@ -114,7 +185,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
   return (
     <FloatingPanel
       id="taller"
-      title="Taller del herrero"
+      title="Taller"
       icon={<GameIcon name="anvil" artist="lorc" />}
       width={700}
       defaultPos={defaultPos}
@@ -152,7 +223,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                     <button
                       type="button"
                       className={`wp-recipe${recipe?.code === r.code ? ' wp-recipe--sel' : ''}${r.canCraft ? '' : ' wp-recipe--missing'}`}
-                      onClick={() => { setSelCode(r.code); setQty(1); setResult(null); }}
+                      onClick={() => { if (busy) return; setSelCode(r.code); setQty(1); setResult(null); setRun(null); }}
                     >
                       <span className={`wp-slot wp-slot--sm wp-rarity-${(r.rarity || 'COMUN').toLowerCase()}`}><ItemIcon icon={icon} /></span>
                       <span className={`wp-recipe-name wp-text-${(r.rarity || 'COMUN').toLowerCase()}`}>{r.resultName}</span>
@@ -185,6 +256,15 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                     <span>Éxito <b>{recipe.successRate}%</b></span>
                     <span>Obtienes <b>x{recipe.resultQuantity}</b></span>
                   </div>
+                  {(() => {
+                    const s = STATION_LABEL[recipe.station ?? 'libre'] ?? STATION_LABEL.libre;
+                    return (
+                      <div className={`craft-station${stationNote ? ' craft-station--far' : ''}`}>
+                        <GameIcon name={s.icon[0]} artist={s.icon[1]} /> {s.text} {stationNote ? '' : '✓'}
+                        {stationNote && <small>{stationNote}</small>}
+                      </div>
+                    );
+                  })()}
                   <h4 className="wp-section-title">Materiales</h4>
                   <ul className="wp-mats">
                     {recipe.ingredients.map((ing, i) => {
@@ -201,11 +281,50 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                   </ul>
                   <div className="wp-deal">
                     <Stepper value={qty} max={Math.max(1, craftable)} onChange={setQty} />
-                    <button type="button" className="wp-btn wp-btn--gold" disabled={!recipe.canCraft || busy} onClick={craft}>
-                      {busy ? 'Fabricando…' : 'Fabricar'}
-                    </button>
+                    {busy
+                      ? <button type="button" className="wp-btn" onClick={() => { stopRef.current = true; }}>Detener</button>
+                      : <button type="button" className="wp-btn wp-btn--gold" disabled={!recipe.canCraft || !!stationNote} onClick={craft}>Fabricar</button>}
                   </div>
                 </>
+              )}
+              {run && (
+                <div className="craft-stage">
+                  <div className="craft-stage-art">
+                    <CraftSprite
+                      name={run.station}
+                      onFrame={(i) => { const s = run.working && STATION_SOUND[run.station]?.[i]; if (s) audio.sfx(s); }}
+                    />
+                    {run.effect && <CraftSprite key={run.key} name={run.effect} loop={false} className="craft-effect" />}
+                    {run.effect && (
+                      <span key={`item-${run.key}`} className={`craft-stage-item${run.effect === 'fallo' ? ' craft-stage-item--fallo' : ''}`}>
+                        <ItemIcon icon={run.itemIcon} />
+                      </span>
+                    )}
+                  </div>
+                  <div className={`craft-stage-caption${run.effect ? ` craft-stage-caption--${run.effect}` : ''}`}>
+                    {run.finished
+                      ? (run.done === 0 ? 'No se fabricó nada' : `${run.name}: listo`)
+                      : run.working
+                        ? `Fabricando ${run.name}… ${run.done + 1}/${run.total}`
+                        : run.effect === 'suerte'
+                          ? `¡Qué suerte! Salió ${RARITY_LABELS[run.rarity] ?? 'mejor'}`
+                          : run.effect === 'exito' ? '¡Salió bien!' : 'Falló… se perdió parte del material'}
+                  </div>
+                  <div className="craft-progress"><span style={{ width: `${(run.done / Math.max(1, run.total)) * 100}%` }} /></div>
+                  {run.finished && (
+                    <>
+                      <div className="craft-summary">
+                        {run.gained > 0 && <span className="ok">✓ {run.gained}x {run.name}</span>}
+                        {run.lucky > 0 && <span className="lucky">★ {run.lucky} con suerte</span>}
+                        {run.fail > 0 && <span className="err">✗ {run.fail} {run.fail === 1 ? 'fallo' : 'fallos'}</span>}
+                      </div>
+                      {Object.keys(run.lost).length > 0 && (
+                        <div className="craft-lost">Perdiste: {Object.entries(run.lost).map(([n, q]) => `${q}x ${n}`).join(', ')}</div>
+                      )}
+                      <button type="button" className="wp-btn" onClick={() => setRun(null)}>Listo</button>
+                    </>
+                  )}
+                </div>
               )}
               {result && (
                 <div className="wp-craft-result">

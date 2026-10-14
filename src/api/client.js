@@ -147,6 +147,8 @@ export const api = {
   // modo espectador: el combate abierto de otro jugador y, mientras lo miras, su estado
   // refuerzos: entrar al combate ya empezado de un compañero de grupo
   reinforceCombat: (targetId, token) => request(`/api/combat/reinforce/${targetId}`, { method: 'POST', token }),
+  // taller: ¿estás junto a una forja / al Pilar de Aethra? (barato, se pregunta seguido)
+  getCraftStations: (playerId, token) => request(`/api/player/${playerId}/craft/stations`, { token }),
   watchCombat: (targetId, token) => request(`/api/combat/watch/${targetId}`, { token }),
   watchSession: (sessionId, token) => request(`/api/combat/watch/session/${sessionId}`, { token }),
   // caíste en un combate de grupo que sigue: sales de él y despiertas en tu refugio

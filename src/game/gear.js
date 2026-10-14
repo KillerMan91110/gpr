@@ -147,7 +147,8 @@ export function iconCell(art) {
 // atlas de una fila, 32x32, en el orden de OBJETOS. Se reconocen por el nombre.
 export const OBJETOS = ['pocion_vida_menor', 'pocion_vida_mayor', 'pocion_mana_menor', 'pocion_mana_mayor',
   'elixir_regeneracion', 'esencia_restauradora', 'estofado_lobo', 'sopa_goblin', 'guiso_troll',
-  'amuleto_pradera', 'collar_pradera', 'brazalete_pradera', 'anillo_pradera', 'amuleto_capitan', 'anillo_fuerza', 'amuleto_brujo'];
+  'amuleto_pradera', 'collar_pradera', 'brazalete_pradera', 'anillo_pradera', 'amuleto_capitan', 'anillo_fuerza', 'amuleto_brujo',
+  'frasco_vacio', 'agua_purificada', 'lingote_hierro', 'tabla_roble', 'cuero_tratado', 'antidoto', 'tonico_miel', 'vendaje'];
 const OBJETO_BY_NAME = {
   'pocion de vida menor': 'pocion_vida_menor', 'pocion de vida mayor': 'pocion_vida_mayor',
   'pocion de mana menor': 'pocion_mana_menor', 'pocion de mana mayor': 'pocion_mana_mayor',
@@ -156,6 +157,9 @@ const OBJETO_BY_NAME = {
   'amuleto de pradera': 'amuleto_pradera', 'collar de pradera': 'collar_pradera', 'brazalete de pradera': 'brazalete_pradera',
   'anillo de pradera': 'anillo_pradera', 'amuleto del capitan': 'amuleto_capitan', 'anillo de fuerza menor': 'anillo_fuerza',
   'amuleto del brujo': 'amuleto_brujo',
+  'frasco vacio': 'frasco_vacio', 'agua purificada': 'agua_purificada', 'lingote de hierro': 'lingote_hierro',
+  'tabla de roble': 'tabla_roble', 'cuero tratado': 'cuero_tratado', antidoto: 'antidoto', 'tonico de miel': 'tonico_miel',
+  vendaje: 'vendaje',
 };
 
 // índice en el atlas de objetos, o null

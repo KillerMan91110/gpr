@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import bus from './bus';
 import { DIALOGUES } from './dialogues';
 import { socialStore } from './socialStore';
+import { PET_SPECIES } from './world/shared';
 
 // Lo social del mundo: los demás jugadores caminando (con su clase, nombre, nivel y gremio),
 // los globitos de chat sobre las cabezas (también el de "…" mientras alguien escribe), gestos,
@@ -9,6 +10,7 @@ import { socialStore } from './socialStore';
 // React (pages/World.js) y llega aquí por el bus.
 
 const ASSETS = `${process.env.PUBLIC_URL}/assets`;
+const PET_GAP = 18; // a cuántos px detrás de su dueño camina la mascota (como la tuya)
 const TAG_FONT = 'Cinzel, Georgia, serif';
 const TEXT_FONT = "'EB Garamond', Georgia, serif";
 const RES = 4;
@@ -17,11 +19,13 @@ const GESTURES = ['saludar', 'bailar', 'reir', 'sentarse', 'aplaudir']; // frame
 // en combate se muestra el globito animado de espadas (globo_combate) y mirando el combate de
 // otro, el de un ojo que parpadea (globo_observando); los dos hechos en Aseprite
 const STATE_ICON = { ausente: '💤' };
-const STATE_BUBBLE = { combate: 'globo_combate', observando: 'globo_observando' };
+const STATE_BUBBLE = { combate: 'globo_combate', observando: 'globo_observando', crafteando: 'globo_crafteo' };
 const BUBBLE_ANIM = {
   globo_combate: { frameRate: 6 },
   // abierto un buen rato y un parpadeo rápido
   globo_observando: { durations: [1200, 70, 120, 70] },
+  // martillo: arriba, bajando, golpe con chispas, rebote
+  globo_crafteo: { durations: [200, 100, 160, 120] },
 };
 const NPC_CHAT_MS = [14000, 26000];
 const MEET_RADIUS = 10 * 32; // a esta distancia cuenta como "te cruzaste" (lista de recientes)
@@ -51,6 +55,7 @@ export default class SocialLayer {
     scene.load.spritesheet('gestos', `${ASSETS}/mundo/gestos.png`, { frameWidth: 16, frameHeight: 16 });
     scene.load.spritesheet('globo_combate', `${ASSETS}/mundo/globo_combate.png`, { frameWidth: 24, frameHeight: 24 });
     scene.load.spritesheet('globo_observando', `${ASSETS}/mundo/globo_observando.png`, { frameWidth: 24, frameHeight: 24 });
+    scene.load.spritesheet('globo_crafteo', `${ASSETS}/mundo/globo_crafteo.png`, { frameWidth: 24, frameHeight: 24 });
   }
 
   ensureTextures() {
@@ -78,6 +83,7 @@ export default class SocialLayer {
       'other-emote': ({ id, emote }) => this.emote(this.keyOf(id), emote),
       'other-emoji': ({ id, emoji }) => this.emoji(this.keyOf(id), emoji),
       'other-state': ({ id, state }) => this.setState(id, state),
+      'other-pet': ({ id, pet }) => this.setPet(id, pet),
       'my-typing': (on) => this.typing('me', on),
       'other-lfg': ({ id, on }) => { const o = this.others.get(id); if (o) { o.lfg = on; this.setState(id, o.state); } },
       'social-lfg': (on) => this.heroFlag.setText(on ? '⚑' : ''),
@@ -148,6 +154,7 @@ export default class SocialLayer {
       cur.guild.setText(p.guild ? `‹${p.guild.name}›` : '').setColor(p.guild?.color || '#a8e0a0');
       cur.info = p;
       cur.lfg = !!p.lfg;
+      this.setPet(p.id, p.pet);
       this.setState(p.id, p.state);
       return;
     }
@@ -177,6 +184,7 @@ export default class SocialLayer {
       const o = { id: p.id, cls: p.cls, info: p, lfg: !!p.lfg, sprite, name, guild, stateIcon, dot, tx: p.x, ty: p.y, f: p.f, flip: p.flip, m: p.m, state: null };
       this.others.set(p.id, o);
       this.paintParty(o);
+      this.setPet(p.id, p.pet);
       this.setState(p.id, this.pendingState.has(p.id) ? this.pendingState.get(p.id) : p.state);
       this.pendingState.delete(p.id);
     };
@@ -200,7 +208,7 @@ export default class SocialLayer {
     const o = this.others.get(id);
     if (!o) return;
     this.clearBubble(`p:${id}`);
-    [o.sprite, o.name, o.guild, o.stateIcon, o.dot, o.fightBubble].filter(Boolean).forEach((x) => { this.scene.tweens.killTweensOf(x); x.destroy(); });
+    [o.sprite, o.name, o.guild, o.stateIcon, o.dot, o.fightBubble, o.pet?.sprite].filter(Boolean).forEach((x) => { this.scene.tweens.killTweensOf(x); x.destroy(); });
     this.others.delete(id);
   }
 
@@ -211,13 +219,55 @@ export default class SocialLayer {
     if (m && o.sitting) this.stand(o.sprite, o);
   }
 
+  // Mascota de otro jugador: camina detrás de él por su estela, igual que la tuya detrás de ti
+  // (WorldScene.setPet). species = especie del sprite (mascotas.png) o null si no lleva.
+  setPet(id, species) {
+    const o = this.others.get(id);
+    if (!o) return;
+    if ((o.pet?.species ?? null) === (species ?? null)) return;
+    o.pet?.sprite.destroy();
+    o.pet = null;
+    const idx = PET_SPECIES.indexOf(species);
+    if (idx < 0) return;
+    const s = this.scene;
+    const sprite = s.add.sprite(o.sprite.x, o.sprite.y + 4, 'mascotas', idx * 2).setDepth(9.5).setOrigin(0.5, 0.85);
+    const key = `pet_${species}`;
+    if (!s.anims.exists(key)) s.anims.create({ key, frames: [{ key: 'mascotas', frame: idx * 2 }, { key: 'mascotas', frame: idx * 2 + 1 }], frameRate: 7, repeat: -1 });
+    s.minimap?.ignore(sprite);
+    sprite.setAlpha(o.sprite.alpha);
+    o.pet = { species, sprite, key, frame: idx * 2, trail: [] };
+  }
+
+  // la mascota sigue la estela de su dueño a PET_GAP px
+  updatePet(o, walking) {
+    const pet = o.pet;
+    const sp = o.sprite;
+    const last = pet.trail[0];
+    if (!last || Math.hypot(last.x - sp.x, last.y - sp.y) > 2) {
+      pet.trail.unshift({ x: sp.x, y: sp.y });
+      if (pet.trail.length > 40) pet.trail.pop();
+    }
+    let pos = pet.trail[pet.trail.length - 1];
+    let acc = 0;
+    for (let i = 1; i < pet.trail.length; i += 1) {
+      acc += Math.hypot(pet.trail[i].x - pet.trail[i - 1].x, pet.trail[i].y - pet.trail[i - 1].y);
+      if (acc >= PET_GAP) { pos = pet.trail[i]; break; }
+    }
+    const dx = pos.x - pet.sprite.x;
+    pet.sprite.setPosition(pos.x, pos.y + 6).setDepth(pos.y < sp.y ? 9.55 : 9.65 + sp.y / 100000);
+    if (Math.abs(dx) > 0.2) pet.sprite.setFlipX(dx < 0);
+    if (walking) pet.sprite.anims.play(pet.key, true);
+    else if (pet.sprite.anims.isPlaying) { pet.sprite.anims.stop(); pet.sprite.setFrame(pet.frame); }
+  }
+
   setState(id, state) {
     const o = this.others.get(id);
     if (!o) { this.pendingState.set(id, state ?? null); return; }
     o.state = state ?? null;
     o.stateIcon.setText(STATE_ICON[o.state] ?? (o.lfg && !o.state ? '⚑' : '')).setColor(o.lfg && !o.state ? '#ffd84a' : '#ffffff');
-    // peleando o mirando una pelea: translúcido (los monstruos no lo tocan)
-    o.sprite.setAlpha(STATE_BUBBLE[o.state] ? 0.55 : 1);
+    // peleando o mirando una pelea: translúcido (los monstruos no lo tocan); fabricando, no
+    o.sprite.setAlpha(STATE_BUBBLE[o.state] && o.state !== 'crafteando' ? 0.55 : 1);
+    o.pet?.sprite.setAlpha(o.sprite.alpha);
     // globito sobre la cabeza: espadas mientras pelea (solo o en grupo), un ojo mientras mira el
     // combate de otro; se quita al terminar
     const key = STATE_BUBBLE[o.state] ?? null;
@@ -445,6 +495,7 @@ export default class SocialLayer {
       o.stateIcon.setPosition(sp.x + o.name.width / 2 + 1, o.name.y + 1);
       o.fightBubble?.setPosition(sp.x, o.name.y - 9);
       o.dot.setPosition(sp.x, sp.y);
+      if (o.pet) this.updatePet(o, walking);
     }
     // te cruzaste con alguien: queda en "Recientes" de la ventana Social
     this.meetTimer = (this.meetTimer ?? 0) + delta;
