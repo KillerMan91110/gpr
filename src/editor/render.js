@@ -9,6 +9,7 @@ const CACHE_SCALE = 0.5; // los trozos cacheados se guardan a media resolución 
 export const RESOURCE_FRAMES = {
   hierba: ['recursos', 0], mineral: ['recursos', 2], cofre: ['recursos', 4],
   setas: ['recursos2', 0], tronco: ['recursos2', 2], flor_luz: ['recursos2', 4], nido: ['recursos2', 6], restos: ['recursos2', 8],
+  lino: ['recursos3', 0], cuarzo: ['recursos3', 2], trigo: ['recursos3', 4],
 };
 
 export const POINT_STYLE = {
@@ -50,7 +51,7 @@ export class Renderer {
   constructor(canvas, images) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
-    this.images = images; // { tiles, recursos, recursos2, aspas, npc: { nombre: img } }
+    this.images = images; // { tiles, recursos, recursos2, recursos3, aspas, npc: { nombre: img } }
     this.zone = null;
     this.view = { x: 0, y: 0, zoom: 1 };
     this.opts = { grid: true, encima: true, puntos: true, subzonas: false, paso: false, chunks: true };

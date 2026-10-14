@@ -34,7 +34,7 @@ export function stationFor(recipe) {
   if (recipe.station === 'pilar') return 'fuente';
   if (recipe.station === 'forja') return 'yunque';
   const n = (recipe.resultName ?? '').toLowerCase();
-  if (/estofado|sopa|guiso|asado/.test(n)) return 'olla';
+  if (/estofado|sopa|guiso|asado|pan de/.test(n)) return 'olla';
   if (recipe.resultType === 'CONSUMABLE' && !/vendaje/.test(n)) return 'caldero';
   return 'mesa';
 }

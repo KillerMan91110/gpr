@@ -92,6 +92,7 @@ export default class WorldScene extends Phaser.Scene {
     this.load.spritesheet('heroe', `${ASSETS}/mundo/caminar/${this.heroClass}.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos', `${ASSETS}/mundo/recursos.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos2', `${ASSETS}/mundo/recursos2.png`, { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('recursos3', `${ASSETS}/mundo/recursos3.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('mascotas', `${ASSETS}/mundo/mascotas.png`, { frameWidth: 24, frameHeight: 24 });
     this.load.spritesheet('f_mariposa', `${ASSETS}/mundo/fauna/mariposa.png`, { frameWidth: 8, frameHeight: 8 });
     this.load.spritesheet('f_pajaro', `${ASSETS}/mundo/fauna/pajaro.png`, { frameWidth: 16, frameHeight: 16 });

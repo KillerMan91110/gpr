@@ -66,6 +66,10 @@ export const RESOURCES = {
   flor_luz: { sheet: 'recursos2', frames: [4, 5], label: 'Recoger la flor luminosa', glint: 0x7adcc0 },
   nido: { sheet: 'recursos2', frames: [6, 7], label: 'Revisar el nido', glint: 0xfff4a0 },
   restos: { sheet: 'recursos2', frames: [8, 9], label: 'Registrar los restos', glint: 0xffd84a },
+  // recolección v4 (art/sprites/mundo/crear_recursos3.lua)
+  lino: { sheet: 'recursos3', frames: [0, 1], label: 'Cosechar el lino', glint: 0xb8d8ff },
+  cuarzo: { sheet: 'recursos3', frames: [2, 3], label: 'Recoger el cuarzo de río', glint: 0xf0c8ff },
+  trigo: { sheet: 'recursos3', frames: [4, 5], label: 'Segar el trigo', glint: 0xffe070 },
 };
 // mascotas.png: 2 frames por especie, en este orden
 export const PET_SPECIES = ['lobo', 'ave', 'limo', 'gato', 'dragon', 'zorro', 'tortuga', 'arana'];

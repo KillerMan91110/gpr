@@ -149,7 +149,7 @@ export const OBJETOS = ['pocion_vida_menor', 'pocion_vida_mayor', 'pocion_mana_m
   'elixir_regeneracion', 'esencia_restauradora', 'estofado_lobo', 'sopa_goblin', 'guiso_troll',
   'amuleto_pradera', 'collar_pradera', 'brazalete_pradera', 'anillo_pradera', 'amuleto_capitan', 'anillo_fuerza', 'amuleto_brujo',
   'frasco_vacio', 'agua_purificada', 'lingote_hierro', 'tabla_roble', 'cuero_tratado', 'antidoto', 'tonico_miel', 'vendaje',
-  'amuleto_colmillos'];
+  'amuleto_colmillos', 'fibra_lino', 'tela_lino', 'cuarzo_rio', 'trigo', 'harina', 'pan_campo'];
 const OBJETO_BY_NAME = {
   'pocion de vida menor': 'pocion_vida_menor', 'pocion de vida mayor': 'pocion_vida_mayor',
   'pocion de mana menor': 'pocion_mana_menor', 'pocion de mana mayor': 'pocion_mana_mayor',
@@ -161,6 +161,8 @@ const OBJETO_BY_NAME = {
   'frasco vacio': 'frasco_vacio', 'agua purificada': 'agua_purificada', 'lingote de hierro': 'lingote_hierro',
   'tabla de roble': 'tabla_roble', 'cuero tratado': 'cuero_tratado', antidoto: 'antidoto', 'tonico de miel': 'tonico_miel',
   vendaje: 'vendaje', 'amuleto de colmillos': 'amuleto_colmillos',
+  'fibra de lino': 'fibra_lino', 'tela de lino': 'tela_lino', 'cuarzo de rio': 'cuarzo_rio', trigo: 'trigo', harina: 'harina',
+  'pan de campo': 'pan_campo',
 };
 
 // índice en el atlas de objetos, o null

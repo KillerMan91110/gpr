@@ -371,14 +371,15 @@ export default function MapEditor() {
         if (cancelled) return;
         const v = Date.now();
         const imgs = imagesRef.current;
-        const [tiles, recursos, recursos2, aspas] = await Promise.all([
+        const [tiles, recursos, recursos2, recursos3, aspas] = await Promise.all([
           loadImage(`${ASSETS}/mundo/tileset_${z.tilesetName}.png?v=${v}`),
           imgs.recursos ?? loadImage(`${ASSETS}/mundo/recursos.png`),
           imgs.recursos2 ?? loadImage(`${ASSETS}/mundo/recursos2.png`),
+          imgs.recursos3 ?? loadImage(`${ASSETS}/mundo/recursos3.png`),
           imgs.aspas ?? loadImage(`${ASSETS}/mundo/aspas.png`),
         ]);
         if (cancelled) return;
-        Object.assign(imgs, { tiles, recursos, recursos2, aspas });
+        Object.assign(imgs, { tiles, recursos, recursos2, recursos3, aspas });
         // historial de antes de la recarga (guardar recarga la página en desarrollo)
         if (!restored.current) {
           restored.current = true;

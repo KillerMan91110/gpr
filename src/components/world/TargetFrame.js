@@ -8,6 +8,7 @@ const RESOURCE_ICON = {
   hierba: ['herbs-bundle', 'delapouite'], setas: ['mushrooms', 'delapouite'], flor_luz: ['dandelion-flower', 'delapouite'],
   mineral: ['crystal-growth', 'lorc'], tronco: ['wood-axe', 'lorc'], cofre: ['locked-chest', 'lorc'],
   nido: ['nest-eggs', 'delapouite'], restos: ['skull-crossed-bones', 'lorc'],
+  lino: ['flax', 'delapouite'], cuarzo: ['crystal-cluster', 'lorc'], trigo: ['wheat', 'lorc'],
 };
 
 export default function TargetFrame({ poi, marks = {} }) {

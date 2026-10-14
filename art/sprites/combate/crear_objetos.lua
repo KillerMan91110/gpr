@@ -28,6 +28,9 @@ for k, v in pairs({
   aq1="dcf8ff", aq2="8ad8f0", aq3="3a98c8",           -- agua del Pilar
   am1="ffe08a", am2="e8a028", am3="9a5a10",           -- miel
   le1="d09860", le2="9a6438", le3="5e3a1c",           -- cuero tratado
+  ln1="e8f0d8", ln2="c0d0a8", ln3="8aa070", lb="8ab8f0", -- lino (fibra, tela y su flor)
+  k1="f4e8f0", k2="d8b8e0", k3="a888c0",              -- cuarzo rosado
+  y1="f0d070", y2="c89a38", y3="8a6420",              -- trigo y pan
 }) do PAL[k] = hex(v) end
 
 -- ---------------------------------------------------------------- lienzo
@@ -427,6 +430,66 @@ icon("amuleto_colmillos", function(G)
   fang(16, 17, 11)
   fang(21, 15, 9)
   G.ellipse(16, 15, 2, 2, "au1"); G.px(15, 14, "W")
+end)
+
+-- ---------------------------------------------------------------- recolección v4
+-- fibra de lino: un manojo atado con florcitas celestes
+icon("fibra_lino", function(G)
+  for i, x in ipairs({10, 13, 16, 19, 22}) do
+    G.line(16, 28, x, 6 + (i % 2) * 2, (i % 2 == 0) and "ln2" or "ln3")
+  end
+  G.rect(13, 19, 19, 21, "wd1"); G.line(13, 21, 19, 21, "wd2")
+  for _, p in ipairs({{10, 6}, {16, 4}, {22, 6}}) do G.px(p[1], p[2], "lb"); G.px(p[1] - 1, p[2], "lb"); G.px(p[1] + 1, p[2], "lb"); G.px(p[1], p[2] - 1, "W") end
+end)
+
+-- tela de lino: rollo de tela clara, doblado
+icon("tela_lino", function(G)
+  G.poly({{4, 12}, {24, 8}, {28, 20}, {8, 25}}, "ln1")
+  G.poly({{8, 25}, {28, 20}, {28, 23}, {8, 28}}, "ln2")
+  for i = 0, 4 do G.line(7 + i * 4, 12 - i, 11 + i * 4, 24 - i, "ln2") end
+  G.ellipse(6, 18, 3, 7, "ln2"); G.ellipse(6, 18, 1.4, 3, "ln3")
+end)
+
+-- cuarzo de río: racimo de cristales rosados
+icon("cuarzo_rio", function(G)
+  local function shard(x0, y0, x1, y1, w, c, d)
+    G.poly({{x0 - w, y0}, {x0 + w, y0}, {x1 + 1, y1 + 2}, {x1, y1}, {x1 - 1, y1 + 2}}, c)
+    G.line(x0 + w - 1, y0, x1, y1 + 1, d)
+  end
+  G.ellipse(16, 26, 11, 3, "st2")
+  shard(12, 26, 8, 10, 3, "k2", "k3")
+  shard(16, 26, 17, 4, 3, "k1", "k3")
+  shard(21, 26, 25, 12, 2, "k2", "k3")
+  G.px(15, 8, "W"); G.px(16, 11, "W"); G.px(9, 13, "W")
+end)
+
+-- trigo: tres espigas
+icon("trigo", function(G)
+  for i, x in ipairs({11, 16, 21}) do
+    local top = 5 + (i % 2) * 3
+    G.line(x, top + 8, 16, 29, "y2")
+    for j = 0, 7 do G.px(x - 1, top + j, "y1"); G.px(x + 1, top + j, "y2"); G.px(x, top + j, (j % 2 == 0) and "y1" or "y3") end
+    G.line(x, top - 1, x - 2, top - 4, "y3")
+  end
+  G.rect(13, 20, 19, 21, "wd1")
+end)
+
+-- harina: saquito atado con la harina asomando
+icon("harina", function(G)
+  G.poly({{9, 12}, {23, 12}, {27, 27}, {5, 27}}, "pa")
+  G.poly({{20, 12}, {23, 12}, {27, 27}, {22, 27}}, "wd1")
+  G.rect(11, 10, 21, 12, "wd2")
+  G.ellipse(16, 8, 5, 3, "W"); G.px(14, 7, "ln1")
+  G.rect(12, 18, 17, 22, "y1"); G.px(14, 19, "y3"); G.px(15, 21, "y3")
+end)
+
+-- pan de campo: hogaza dorada con cortes
+icon("pan_campo", function(G)
+  G.ellipse(16, 20, 12, 8, "y2")
+  G.ellipse(15, 18, 10, 6, "y1")
+  for i = 0, 2 do G.line(10 + i * 5, 14, 13 + i * 5, 20, "y3") end
+  G.ellipse(16, 25, 11, 3, nil, function(x, y) return y > 24 and "y3" or nil end)
+  G.px(12, 15, "W")
 end)
 
 -- ---------------------------------------------------------------- atlas (una fila)
