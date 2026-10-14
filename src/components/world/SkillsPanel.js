@@ -18,6 +18,7 @@ export function skillIcon(s) {
   if (s.skillType === 'ESPECIAL') return I('magic-swirl', 'lorc');
   if (/fuego|llama|ign/.test(n)) return I('fireball', 'lorc');
   if (/hielo|escarcha|helad/.test(n)) return I('ice-bolt', 'lorc');
+  if (/luz|sagrad|divin/.test(n)) return I('sunbeams', 'lorc');
   if (/flecha|disparo|tiro/.test(n)) return s.targetType === 'ALL_ENEMIES' ? I('arrow-cluster', 'lorc') : I('bullseye', 'skoll');
   if (/pu[nñ]o|golpe de palma|pu[nñ]etazo/.test(n)) return I('punch', 'lorc');
   if (s.damageSchool === 'MAGICO') return s.targetType === 'ALL_ENEMIES' ? I('crystal-ball', 'lorc') : I('crystal-wand', 'lorc');

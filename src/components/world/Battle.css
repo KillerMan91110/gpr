@@ -691,6 +691,16 @@ body.en-combate .chat-box-restore { display: none; }
 .bt-reinforce strong { font: 900 1.7rem 'Cinzel', serif; letter-spacing: 0.04em; color: #fff0e8; text-shadow: 0 2px 6px #000, 0 0 18px rgba(255, 60, 40, 0.8); text-align: center; }
 .bt-reinforce span { font: italic 1rem 'EB Garamond', Georgia, serif; color: #ffd0c8; }
 
+/* aviso de nivel: mismo cartel que los refuerzos, en ámbar */
+.bt-levelwarn {
+  background: linear-gradient(90deg, transparent, rgba(96, 52, 4, 0.94) 18%, rgba(96, 52, 4, 0.94) 82%, transparent);
+  border-color: #ffb03a;
+  animation-duration: 3.8s;
+}
+.bt-levelwarn small { color: #ffe9a8; }
+.bt-levelwarn strong { text-shadow: 0 2px 6px #000, 0 0 18px rgba(255, 150, 30, 0.8); }
+.bt-levelwarn span { color: #ffe2b8; }
+
 @keyframes bt-reinforce {
   0% { opacity: 0; transform: translateY(-14px) scaleY(0.4); }
   10% { opacity: 1; transform: none; }

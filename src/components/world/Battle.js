@@ -20,6 +20,9 @@ const IDLE_SKIP_MS = 30 * 1000;
 const COOP_POLL_MS = 3000;
 
 // ¿este combatiente lo manejas tú? (tu héroe o tus compañeros contratados)
+// diferencia de nivel desde la que el combate se pone en contra (en el back, LEVEL_GAP_FREE + 1)
+const LEVEL_GAP_WARN = 3;
+
 function isMine(p, playerId) {
   if (p.player_id != null) return p.player_id === playerId;
   if (p.owner_player_id != null) return p.owner_player_id === playerId;
@@ -221,8 +224,14 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
   // refuerzos: un compañero de grupo que estaba lejos se une a tu combate ya empezado
   const [reinforce, setReinforce] = useState(null);
   const announced = useRef(new Set()); // refuerzos ya anunciados (el aviso llega por socket y por consulta)
+  // aviso de nivel: si algún enemigo te pasa por LEVEL_GAP_WARN niveles o más, haces menos daño y
+  // recibes más (lib/combat.js levelGapMultiplier en el back); se avisa una vez al empezar
+  const [levelWarn, setLevelWarn] = useState(null);
+  const levelWarned = useRef(null);
+  const bossesRef = useRef([]);
   useEffect(() => {
     const onBosses = (list) => {
+      bossesRef.current = list;
       setBosses(list);
       if (list.length) {
         setBossIntro(list[0]);
@@ -369,6 +378,29 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
       sending.current = false;
     }
   }, [actor, state, token, play, afterTurn]);
+
+  // los temporizadores no dependen del efecto: si llega otro estado del combate antes de que salga
+  // el cartel, no se cancela (solo al cerrar la pantalla)
+  const levelWarnTimers = useRef([]);
+  useEffect(() => () => levelWarnTimers.current.forEach(clearTimeout), []);
+  const warnSessionId = state?.session?.id;
+  useEffect(() => {
+    if (!warnSessionId || levelWarned.current === warnSessionId) return;
+    const list = state?.participants ?? [];
+    const me = list.find((p) => p.player_id === player.id);
+    if (!me) return;
+    levelWarned.current = warnSessionId;
+    const higher = list.filter((p) => p.side === 'ENEMY' && p.hp > 0 && p.level != null && me.level != null
+      && p.level - me.level >= LEVEL_GAP_WARN);
+    if (!higher.length) return;
+    const gap = Math.max(...higher.map((p) => p.level - me.level));
+    // si hay jefe, después de su cartel de entrada
+    levelWarnTimers.current.push(setTimeout(() => {
+      setLevelWarn({ gap, count: higher.length, key: Date.now() });
+      audio.sfx('penalizacion');
+      levelWarnTimers.current.push(setTimeout(() => setLevelWarn(null), 3800));
+    }, bossesRef.current.length ? 2700 : 400));
+  }, [warnSessionId, state?.participants, player.id]);
 
   // ---- combate en grupo: lo que hacen los compañeros llega por socket (y por consulta, por
   // si se pierde algún aviso); se reproduce en orden, nunca encima de una acción propia ----
@@ -575,6 +607,15 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
           <small>¡Evento!</small>
           <strong>¡Tus refuerzos están llegando!</strong>
           <span>{reinforce.names.join(' y ')} se une a la batalla</span>
+        </div>
+      )}
+
+      {/* aviso de nivel: enemigos que te superan por varios niveles */}
+      {levelWarn && (
+        <div className="bt-reinforce bt-levelwarn" key={levelWarn.key}>
+          <small>¡Cuidado!</small>
+          <strong>{levelWarn.count > 1 ? 'Enemigos de nivel superior' : 'Enemigo de nivel superior'}</strong>
+          <span>Te supera{levelWarn.count > 1 ? 'n' : ''} por {levelWarn.gap} niveles: harás menos daño y recibirás más</span>
         </div>
       )}
 
