@@ -1048,10 +1048,13 @@ export default function World() {
           global, pero la capa deja pasar los clics al mapa (solo los paneles los reciben). */}
       {stats && createPortal(
         <div className="wp-layer">
-          {open.map((id, i) => {
+          {/* orden fijo en la página (por nombre) y la capa según cuál está al frente: si el
+              orden cambiara al traer una ventana al frente, React la movería entre el clic de
+              bajada y el de subida y el navegador perdería ese clic (había que hacer dos) */}
+          {[...open].sort().map((id) => {
             const w = WINDOWS[id];
             const common = {
-              zIndex: 10 + i,
+              zIndex: 10 + open.indexOf(id),
               onActivate: () => bringToFront(id),
               onClose: () => closeWin(id),
               defaultPos: defaultPosFor(w),
