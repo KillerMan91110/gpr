@@ -144,6 +144,9 @@ const plain = (s) => (s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\
 // clase base de un compañero (las evolucionadas empiezan con el nombre de su clase base)
 const baseOf = (m) => BASE_CLASSES.find((c) => plain(m.classCode ?? m.className).startsWith(c)) ?? 'guerrero';
 const HUD_POLL_MS = 15000;
+// Desde cuántos niveles de diferencia el combate empieza a ponerse en contra (lib/combat.js
+// levelGapMultiplier en el back): los jefes muestran el nivel recomendado, sin bloquear
+const LEVEL_GAP_FREE = 2;
 
 function isTyping(el) {
   return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
@@ -601,11 +604,10 @@ export default function World() {
   const confirmBoss = useCallback(() => {
     const b = bossPrompt;
     if (!b) return;
-    if (b.kind === 'mythic' && stats && stats.level < b.level) return;
     setBossPrompt(null);
     gameRef.current?.scene.getScene('mundo')?.lockForBattle();
     bus.emit('encounter', b);
-  }, [bossPrompt, stats]);
+  }, [bossPrompt]);
 
   // El chat global se vuelve semitransparente dentro del mundo (ver World.css: body.en-mundo)
   useEffect(() => {
@@ -990,8 +992,8 @@ export default function World() {
             {bossPrompt.kind === 'mythic' ? (
               <>
                 <p>Vida compartida: {Number(bossPrompt.hp).toLocaleString()} / {Number(bossPrompt.maxHp).toLocaleString()}</p>
-                <p className="boss-prompt-note">Cada intento le resta vida para todos. Cuando caiga, el botín se reparte según cuánto daño hiciste. Nivel mínimo {bossPrompt.level}.</p>
-                {stats && stats.level < bossPrompt.level && <p className="boss-prompt-warn">⚠ Necesitas nivel {bossPrompt.level} para enfrentarlo. Sigue cazando y vuelve.</p>}
+                <p className="boss-prompt-note">Cada intento le resta vida para todos. Cuando caiga, el botín se reparte según cuánto daño hiciste.</p>
+                <p className={stats && stats.level < bossPrompt.level ? 'boss-prompt-warn' : 'boss-prompt-note'}>Recomendado: Nv. {bossPrompt.level}+{stats ? ` · Tu nivel: ${stats.level}` : ''}</p>
               </>
             ) : bossPrompt.kind === 'cripta' ? (
               <>
@@ -999,11 +1001,11 @@ export default function World() {
                 <p className="boss-prompt-note">Cuando su faro apunte a alguien, ese héroe debe usar <b>Defender</b> en su turno o perderá media vida. Su escudo cambia de debilidad cada vez que se recupera de una rotura: mira cuál tiene.</p>
               </>
             ) : <p>Nivel {bossPrompt.level}</p>}
-            {bossPrompt.kind !== 'mythic' && stats && stats.level < bossPrompt.level - 3 && (
-              <p className="boss-prompt-warn">⚠ Es mucho más fuerte que tú (nivel {stats.level}). Ve con tu grupo completo y pociones.</p>
+            {bossPrompt.kind !== 'mythic' && stats && stats.level < bossPrompt.level - LEVEL_GAP_FREE && (
+              <p className="boss-prompt-warn">Recomendado: Nv. {bossPrompt.level - LEVEL_GAP_FREE}+ · Tu nivel: {stats.level}. Ve con tu grupo completo y pociones.</p>
             )}
             <div className="boss-prompt-actions">
-              <button type="button" className="boss-prompt-go" onClick={confirmBoss} disabled={bossPrompt.kind === 'mythic' && !!stats && stats.level < bossPrompt.level}>Desafiar <kbd>Enter</kbd></button>
+              <button type="button" className="boss-prompt-go" onClick={confirmBoss}>Desafiar <kbd>Enter</kbd></button>
               <button type="button" className="boss-prompt-no" onClick={() => setBossPrompt(null)}>Ahora no <kbd>Esc</kbd></button>
             </div>
           </div>
