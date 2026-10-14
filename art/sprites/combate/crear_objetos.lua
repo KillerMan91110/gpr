@@ -415,6 +415,20 @@ icon("vendaje", function(G)
   G.line(21, 4, 27, 11, "v3"); G.px(23, 5, "v2"); G.px(24, 6, "v2"); G.px(25, 8, "v2"); G.px(22, 7, "v1"); G.px(26, 9, "v1")
 end)
 
+-- amuleto de colmillos: cordón de cuero con tres colmillos de lobo y una cuenta dorada
+icon("amuleto_colmillos", function(G)
+  chain(G, 14, "le2", "le3")
+  local function fang(x, y, len)
+    G.poly({{x - 2, y}, {x + 2, y}, {x + 0.5, y + len}}, "bn")
+    G.line(x + 1, y + 1, x + 0.5, y + len - 1, "pa")
+    G.px(x - 1, y, "W")
+  end
+  fang(11, 15, 9)
+  fang(16, 17, 11)
+  fang(21, 15, 9)
+  G.ellipse(16, 15, 2, 2, "au1"); G.px(15, 14, "W")
+end)
+
 -- ---------------------------------------------------------------- atlas (una fila)
 local n = #ICONS
 local img = Image(n * 32, 32, ColorMode.RGB)

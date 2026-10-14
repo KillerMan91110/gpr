@@ -7,6 +7,7 @@ import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
 import { iconForItem } from './itemIcons';
 import bus from '../../game/bus';
+import audio from '../../game/audio';
 import { CardIcon, RARITY_LABEL } from './coleccionArt';
 import './BestiarioPanel.css';
 
@@ -87,7 +88,17 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
         openWindow?.('mi_puesto');
         return;
       }
-      if (it.item_type === 'EQUIPMENT') {
+      if (it.is_scroll) {
+        // pergamino de receta: se lee y enseña a fabricar su set (se busca en el Taller, tecla U)
+        if (it.recipe_already_learned) {
+          setMessage({ ok: false, text: 'Ya conoces todas las recetas de este pergamino.' });
+          return;
+        }
+        const r = await api.useRecipeScroll(player.id, it.item_id, token);
+        const names = (r?.learnedRecipes ?? []).map((x) => x.resultName);
+        audio.sfx('mision');
+        setMessage({ ok: true, text: names.length ? `Aprendiste a fabricar: ${names.join(', ')}. Búscalas en el Taller (U).` : (r?.message ?? 'Leíste el pergamino') });
+      } else if (it.item_type === 'EQUIPMENT') {
         await api.equipItem(player.id, it.item_id, it.enchant_level, it.quality_tier, token);
         setMessage({ ok: true, text: `Equipaste ${it.name}` });
       } else if (it.item_type === 'CONSUMABLE' && !NO_GENERIC_USE.has(it.code)) {
@@ -107,6 +118,7 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
 
   const hintFor = (it) => {
     if (it.code === 'MUNECO_DE_VENTA') return 'Clic derecho: armar tu puesto';
+    if (it.is_scroll) return it.recipe_already_learned ? 'Ya conoces todas sus recetas' : 'Clic derecho: leer el pergamino (aprendes sus recetas)';
     if (it.item_type === 'EQUIPMENT') return 'Clic derecho: equipar';
     if (it.item_type === 'CONSUMABLE' && !NO_GENERIC_USE.has(it.code)) return 'Clic derecho: usar';
     return null;
