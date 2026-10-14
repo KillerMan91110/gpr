@@ -22,6 +22,30 @@ const STATS = {
 };
 
 const BUFF = { color: '#ffd84a', hex: 0xffd84a };
+
+// Estados con nombre propio (combat_participant_buffs.status_code): todas las filas de un mismo
+// estado se muestran como un solo ícono (la quemadura es daño por turno + menos ataque).
+const NAMED = {
+  BLEED: { name: 'Sangrado', short: 'Sangrado', icon: ['bleeding-wound', 'lorc'], color: '#ff6a6a', hex: 0xe03a3a },
+  BURN: { name: 'Quemadura', short: 'Quemado', icon: ['burning-embers', 'lorc'], color: '#ff9a4a', hex: 0xff7a2a },
+  POISON: { name: 'Veneno', short: 'Veneno', icon: ['poison-bottle', 'lorc'], color: '#7be05a', hex: 0x5ad04a },
+  SLOW: { name: 'Ralentizado', short: 'Lento', icon: ['snail', 'lorc'], color: '#9ad8ff', hex: 0x7ac8ff },
+  PARALYZE: { name: 'Paralizado', short: 'Paralizado', icon: ['lightning-helix', 'lorc'], color: '#ffe95a', hex: 0xffe23a },
+  BLIND: { name: 'Ceguera', short: 'Ciego', icon: ['blindfold', 'delapouite'], color: '#d8d0ff', hex: 0xb8a8ff },
+  WEAKEN: { name: 'Debilitado', short: 'Débil', icon: ['broken-shield', 'lorc'], color: '#c08aff', hex: 0xa070ff },
+  TAUNT: { kind: 'buff', name: 'Provocando', short: 'Provoca', icon: ['shouting', 'lorc'], color: '#ff8a5a', hex: 0xff7a4a },
+};
+// estados que hacen daño por ronda (para el humo, el color y el sonido del daño)
+export const DOT_STATUS = new Set(['DOT', 'BLEED', 'BURN', 'POISON']);
+
+function namedDetail(e, turns, from) {
+  const stat = STATS[e.code];
+  if (e.code === 'DOT') return `Pierde ${e.amount}% de su vida máxima cada ronda${turns}${from}`;
+  if (e.code === 'PARALYZE') return `Puede perder el turno (25%)${turns}${from}`;
+  if (e.code === 'BLIND') return `Falla el ${e.amount}% de sus golpes${turns}${from}`;
+  if (e.code === 'TAUNT') return `Los enemigos lo atacan a él${turns}${from}`;
+  return `${e.amount > 0 ? '+' : ''}${e.amount} ${(stat?.name ?? e.code).toLowerCase()}${turns}${from}`;
+}
 const DEBUFF = { color: '#c08aff', hex: 0xa070ff };
 
 // Un efecto del back → cómo mostrarlo. `key` agrupa los repetidos (dos venenos = un ícono).
@@ -30,6 +54,8 @@ export function describeEffect(e) {
   const turns = e.rounds != null ? ` · ${e.rounds} ${e.rounds === 1 ? 'turno' : 'turnos'}` : '';
   const from = e.source ? ` (${e.source})` : '';
 
+  const named = NAMED[e.status] ?? NAMED[code];
+  if (named) return { key: e.status ?? code, kind: named.kind ?? 'debuff', ...named, detail: namedDetail(e, turns, from) };
   if (code === 'DOT') {
     return {
       key: 'DOT', kind: 'debuff', name: 'Veneno', short: 'Veneno', icon: ['poison-bottle', 'lorc'], color: '#7be05a', hex: 0x5ad04a,
@@ -143,6 +169,7 @@ export function statusesOf(p) {
 
 // Íconos que la escena de combate precarga para dibujar los estados sobre los combatientes
 export const STATUS_ICONS = [
+  ...Object.values(NAMED).map((n) => n.icon),
   ['poison-bottle', 'lorc'], ['regeneration', 'sbed'], ['burning-passion', 'lorc'], ['invisible', 'delapouite'], ['cursed-star', 'lorc'],
   ['shield-reflect', 'lorc'], ['checked-shield', 'lorc'], ['spiked-armor', 'lorc'], ['magic-shield', 'lorc'],
   ['magic-swirl', 'lorc'], ['upgrade', 'delapouite'], ['lighthouse', 'delapouite'], ...Object.values(STATS).map((s) => s.icon),

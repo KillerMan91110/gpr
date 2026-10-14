@@ -190,7 +190,7 @@ export default function GuildMasterDetail() {
 
                 <div className="skill-meta">
                   <span className="skill-unlock-hint">
-                    {s.learnMethod === 'GOLD' ? `Costo: ${s.goldCost} de oro` : s.requirementText || 'Requiere misión'}
+                    {s.learnMethod === 'GOLD' ? `Costo: ${s.goldCost} de oro${s.learnLevel ? ` · desde el nivel ${s.learnLevel}` : ''}` : s.requirementText || 'Requiere misión'}
                   </span>
                   {!isPassive && s.manaCost > 0 && (
                     <span className="skill-stat-chip">{s.manaCost} maná</span>
@@ -213,7 +213,7 @@ export default function GuildMasterDetail() {
                 ) : !data.isOwnClass ? (
                   <p className="auth-error">No es tu clase</p>
                 ) : s.locked ? (
-                  <p className="auth-error">Bloqueada</p>
+                  <p className="auth-error">{s.levelLocked ? `Necesitas nivel ${s.learnLevel}` : 'Bloqueada'}</p>
                 ) : (
                   <button className="rpg-button" disabled={disabled} onClick={() => handleLearn(s.id)}>
                     {busyId === s.id ? 'Aprendiendo...' : s.learnMethod === 'GOLD' ? 'Aprender' : 'Completar misión'}

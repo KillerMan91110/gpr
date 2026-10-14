@@ -34,6 +34,7 @@ export const TARGET_LABEL = { SELF: 'Uno mismo', ENEMY: 'Un enemigo', ALL_ENEMIE
 const LEARN_LABEL = { LEVEL: 'Se aprende al nivel', GOLD: 'Se compra al maestro', QUEST: 'Recompensa de misión', ITEM: 'Se aprende con un objeto' };
 
 function effectText(e) {
+  if (e.description) return e.description;
   const amount = e.percentAmount != null ? `${e.percentAmount}%` : e.flatAmount;
   const stat = STAT_LABELS[e.statCode] ?? e.statCode ?? '';
   const turns = e.durationTurns ? ` (${e.durationTurns} turnos)` : '';
@@ -51,9 +52,10 @@ export default function SkillsPanel(props) {
     api.getClassSkills(player.id, token).then(setSkills).catch(() => setSkills([]));
   }, [player, token]);
 
+  // solo las que ya sabes: las que faltan las enseña el maestro de tu orden (panel de la orden)
   const list = useMemo(() => (skills ?? [])
-    .filter((s) => (tab === 'pasivas' ? s.isPassive : !s.isPassive))
-    .sort((a, b) => Number(b.learned) - Number(a.learned) || (a.learnLevel ?? 999) - (b.learnLevel ?? 999)), [skills, tab]);
+    .filter((s) => s.learned && (tab === 'pasivas' ? s.isPassive : !s.isPassive))
+    .sort((a, b) => (a.learnLevel ?? 999) - (b.learnLevel ?? 999) || a.name.localeCompare(b.name)), [skills, tab]);
 
   const current = list.find((s) => s.id === selected) ?? list[0];
   const learnedCount = (skills ?? []).filter((s) => s.learned).length;
@@ -70,13 +72,14 @@ export default function SkillsPanel(props) {
           {[['activas', 'Activas'], ['pasivas', 'Pasivas']].map(([id, label]) => (
             <button key={id} type="button" className={`wp-tab${tab === id ? ' wp-tab--active' : ''}`} onClick={() => { setTab(id); setSelected(null); }}>{label}</button>
           ))}
-          <span className="wp-foot-note">{learnedCount} / {skills?.length ?? 0} aprendidas</span>
+          <span className="wp-foot-note">{learnedCount} aprendidas · las nuevas te las enseña tu maestro en Aurelia</span>
         </div>
       )}
     >
       <div className="wp-split">
         <div className="wp-skill-list">
           {skills === null && <p className="wp-empty">Cargando…</p>}
+          {skills && list.length === 0 && <p className="wp-empty">Todavía no aprendiste ninguna.</p>}
           {list.map((s) => {
             const icon = skillIcon(s);
             return (
@@ -109,10 +112,11 @@ export default function SkillsPanel(props) {
               {!current.isPassive && <div><span>Costo</span><strong className="wp-stat--mp">{current.manaCost} maná</strong></div>}
               <div><span>Objetivo</span><strong>{TARGET_LABEL[current.targetType] ?? current.targetType}</strong></div>
               {current.hits > 1 && <div><span>Golpes</span><strong>{current.hits}</strong></div>}
+              {current.cooldownRounds > 0 && <div><span>Recarga</span><strong>cada {current.cooldownRounds} rondas</strong></div>}
               <div>
                 <span>Estado</span>
                 <strong className={current.learned ? 'wp-stat--up' : 'wp-stat--locked'}>
-                  {current.learned ? 'Aprendida' : `${LEARN_LABEL[current.learnMethod] ?? 'Bloqueada'}${current.learnLevel && current.learnMethod === 'LEVEL' ? ` ${current.learnLevel}` : ''}`}
+                  {current.learned ? 'Aprendida' : `${LEARN_LABEL[current.learnMethod] ?? 'Bloqueada'}${current.learnLevel && current.learnMethod === 'LEVEL' ? ` ${current.learnLevel}` : ''}${current.learnLevel && current.learnMethod === 'GOLD' ? ` (desde el nivel ${current.learnLevel})` : ''}`}
                 </strong>
               </div>
             </div>

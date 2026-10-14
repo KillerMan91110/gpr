@@ -95,7 +95,7 @@ export default function OrderPanel({ orden, gold, onChanged, ...props }) {
 
   const skillList = useMemo(() => (skills?.skills ?? [])
     .map((s) => ({ ...details[s.id], ...s }))
-    .sort((a, b) => Number(a.learned) - Number(b.learned) || (a.goldCost ?? 0) - (b.goldCost ?? 0)), [skills, details]);
+    .sort((a, b) => Number(a.learned) - Number(b.learned) || (a.learnLevel ?? 99) - (b.learnLevel ?? 99) || (a.goldCost ?? 0) - (b.goldCost ?? 0)), [skills, details]);
   const current = tab === 'tecnicas' ? (skillList.find((s) => s.id === selected) ?? skillList[0]) : null;
   const sellable = useMemo(() => (inventory ?? []).filter((i) => i.item_type === 'EQUIPMENT' && i.quantity > 0), [inventory]);
   const own = !!skills?.isOwnClass;
@@ -145,7 +145,7 @@ export default function OrderPanel({ orden, gold, onChanged, ...props }) {
               >
                 <span className="wp-skill-icon"><GameIcon {...skillIcon(s)} /></span>
                 <span className="wp-skill-name">{s.name}</span>
-                <span className="wp-skill-meta">{s.learned ? 'Aprendida' : s.learnMethod === 'GOLD' ? `${s.goldCost} oro` : 'Misión'}</span>
+                <span className="wp-skill-meta">{s.learned ? 'Aprendida' : s.levelLocked ? `Nv. ${s.learnLevel}` : s.learnMethod === 'GOLD' ? `${s.goldCost} oro` : 'Misión'}</span>
               </button>
             ))}
           </div>
@@ -162,14 +162,16 @@ export default function OrderPanel({ orden, gold, onChanged, ...props }) {
               <div className="wp-detail-rows">
                 {current.manaCost > 0 && !current.isPassive && <div><span>Costo</span><strong className="wp-stat--mp">{current.manaCost} maná</strong></div>}
                 {current.targetType && <div><span>Objetivo</span><strong>{TARGET_LABEL[current.targetType] ?? current.targetType}</strong></div>}
+                {current.cooldownRounds > 0 && <div><span>Recarga</span><strong>cada {current.cooldownRounds} rondas</strong></div>}
                 <div>
                   <span>Se aprende</span>
-                  <strong>{current.learnMethod === 'GOLD' ? `${current.goldCost} de oro` : `Misión: ${current.requirementText ?? '—'}`}</strong>
+                  <strong>{current.learnMethod === 'GOLD' ? `${current.goldCost} de oro${current.learnLevel ? ` · desde el nivel ${current.learnLevel}` : ''}` : `Misión: ${current.requirementText ?? '—'}`}</strong>
                 </div>
               </div>
               {current.learned ? <p className="op-state op-state--ok">✓ Ya la dominas</p>
                 : !own ? <p className="op-state">Solo {info.maestro} enseña a los de su orden.</p>
-                  : current.locked ? <p className="op-state">Primero completa la misión «{current.requirementText}».</p>
+                  : current.levelLocked ? <p className="op-state">Te la enseño cuando llegues al nivel {current.learnLevel}.</p>
+                    : current.locked ? <p className="op-state">Primero completa la misión «{current.requirementText}».</p>
                     : (
                       <button
                         type="button"

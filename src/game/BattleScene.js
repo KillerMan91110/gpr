@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import bus from './bus';
 import audio from './audio';
 import { ELEMENTS } from './elements';
-import { STATUS_ICONS, statusesOf } from './statuses';
+import { DOT_STATUS, STATUS_ICONS, statusesOf } from './statuses';
 import { preloadGear, gearTexture, bodyTexture } from './battleGear';
 
 // Escena de combate estilo Octopath (2.5D): fondo en capas con parallax y desenfoque, héroes a la
@@ -486,9 +486,15 @@ export default class BattleScene extends Phaser.Scene {
     // Romper y Furia: el back los registra después del golpe que los provocó
     if (target && /ha sido ROTO/.test(log.description ?? '')) { await this.breakFx(target); return; }
     if (target && /entra en furia/.test(log.description ?? '')) { await this.furyFx(target); return; }
-    // veneno / regeneración al cerrar la ronda: el back los registra con actor = objetivo
-    if (actor && actor === target && log.action === 'SKILL' && (log.damage > 0 || log.heal > 0) && /veneno|regeneraci/i.test(log.description ?? '')) {
+    // veneno, quemadura, sangrado o regeneración al cerrar la ronda: el back los registra con
+    // actor = objetivo
+    if (actor && actor === target && log.action === 'SKILL' && (log.damage > 0 || log.heal > 0) && /veneno|quemadura|sangrado|regeneraci/i.test(log.description ?? '')) {
       await this.statusTick(actor, log);
+      return;
+    }
+    // paralizado: pierde el turno
+    if (actor && actor === target && /está paralizado/.test(log.description ?? '')) {
+      await this.paralyzedFx(actor);
       return;
     }
     switch (log.action) {
@@ -1485,12 +1491,14 @@ export default class BattleScene extends Phaser.Scene {
     if (!u.alive) return;
     const { x, y } = this.statusAnchor(u);
     this.floatText(u, st.short, st.color, 10);
-    audio.sfx(st.key === 'DOT' ? 'veneno' : st.kind === 'buff' ? 'mejora' : 'penalizacion');
-    if (st.key === 'DOT') {
+    audio.sfx(DOT_STATUS.has(st.key) ? 'veneno' : st.kind === 'buff' ? 'mejora' : 'penalizacion');
+    if (DOT_STATUS.has(st.key)) {
       this.emit(u.home.x, u.home.y - 30, 'humo', {
         speedX: { min: -25, max: 25 }, speedY: { min: -50, max: -15 }, lifespan: 700, scale: { start: 0.3, end: 1 },
-        alpha: { start: 0.7, end: 0 }, tint: [0x5ad04a, 0x2a7a2a, 0x9aff6a], blendMode: 'NORMAL',
+        alpha: { start: 0.7, end: 0 }, tint: st.key === 'DOT' ? [0x5ad04a, 0x2a7a2a, 0x9aff6a] : [st.hex, 0x2a1a1a], blendMode: 'NORMAL',
       }, 14);
+    } else if (st.key === 'PARALYZE') {
+      this.sparks(u, st.hex);
     } else if (st.kind === 'buff') {
       this.rainArrows(u, st.hex, -1);
       this.ring(u.home.x, u.home.y - 10, st.hex, 26, 520);
@@ -1518,11 +1526,14 @@ export default class BattleScene extends Phaser.Scene {
   startStatusFx(u, st) {
     const follow = (emitter, oy) => { emitter.startFollow(u.body, 0, oy); return emitter; };
     const parts = [];
-    if (st.key === 'DOT') {
+    if (DOT_STATUS.has(st.key)) {
+      // veneno verde, quemadura en chispas que suben, sangrado en gotas que caen
+      const bleed = st.key === 'BLEED';
       parts.push(follow(this.add.particles(0, 0, 'mota', {
-        x: { min: -12, max: 12 }, speedY: { min: -26, max: -12 }, lifespan: 1100, frequency: 240,
-        scale: { start: 0.9, end: 0.2 }, alpha: { start: 0.9, end: 0 }, tint: [0x5ad04a, 0x9aff6a],
-      }).setDepth(1050), -30));
+        x: { min: -12, max: 12 }, speedY: bleed ? { min: 14, max: 30 } : { min: -26, max: -12 }, lifespan: 1100, frequency: 240,
+        scale: { start: 0.9, end: 0.2 }, alpha: { start: 0.9, end: 0 }, tint: st.key === 'DOT' ? [0x5ad04a, 0x9aff6a] : [st.hex, 0xffffff],
+        blendMode: st.key === 'BURN' ? 'ADD' : 'NORMAL',
+      }).setDepth(1050), bleed ? -40 : -30));
     } else if (st.key === 'DAMAGE_TAKEN' && st.kind === 'debuff') {
       parts.push(follow(this.add.particles(0, 0, 'humo', {
         x: { min: -16, max: 16 }, speedY: { min: -18, max: -6 }, lifespan: 1300, frequency: 300,
@@ -1579,20 +1590,40 @@ export default class BattleScene extends Phaser.Scene {
     u.statusKeys = new Set();
   }
 
-  // daño de veneno o curación por regeneración al cerrar la ronda
+  // paralizado: chispas y el combatiente tiembla sin moverse
+  async paralyzedFx(u) {
+    if (!u.alive) return;
+    audio.sfx('penalizacion');
+    this.sparks(u, 0xffe23a);
+    this.floatText(u, 'Paralizado', '#ffe95a', 12);
+    await tween(this, { targets: [u.body, u.weapon, u.offhand].filter(Boolean), x: '+=2', duration: 50, yoyo: true, repeat: 4 });
+    await wait(this, 240);
+  }
+
+  sparks(u, hex) {
+    this.emit(u.home.x, u.home.y - 34, 'estrella', {
+      speed: { min: 40, max: 110 }, lifespan: 380, scale: { start: 0.9, end: 0 }, tint: [hex, 0xffffff], blendMode: 'ADD',
+    }, 14);
+  }
+
+  // daño de veneno, quemadura o sangrado, o curación por regeneración, al cerrar la ronda
   async statusTick(u, log) {
     if (log.hp_after != null) u.hp = log.hp_after;
     if (log.damage > 0) {
+      const desc = log.description ?? '';
+      const [label, color, tint, smoke] = /quemadura/.test(desc) ? ['Quemadura', '#ff9a4a', 0xff8a4a, [0xff7a2a, 0x3a1a0a]]
+        : /sangrado/.test(desc) ? ['Sangrado', '#ff6a6a', 0xff6a6a, [0xe03a3a, 0x3a0a0a]]
+          : ['Veneno', '#7be05a', 0x7be05a, [0x5ad04a, 0x2a7a2a]];
       audio.sfx('veneno');
       this.emit(u.home.x, u.home.y - 28, 'humo', {
         speedX: { min: -30, max: 30 }, speedY: { min: -60, max: -20 }, lifespan: 600, scale: { start: 0.3, end: 1.1 },
-        alpha: { start: 0.8, end: 0 }, tint: [0x5ad04a, 0x2a7a2a], blendMode: 'NORMAL',
+        alpha: { start: 0.8, end: 0 }, tint: smoke, blendMode: 'NORMAL',
       }, 12);
-      u.body.setTint(0x7be05a);
-      u.weapon?.setTint(0x7be05a);
-      u.offhand?.setTint(0x7be05a);
+      u.body.setTint(tint);
+      u.weapon?.setTint(tint);
+      u.offhand?.setTint(tint);
       this.playUnit(u, 'hurt');
-      this.floatText(u, `${log.damage}`, '#7be05a', 14, 'Veneno', '#9aff6a');
+      this.floatText(u, `${log.damage}`, color, 14, label, '#ffffff');
       await tween(this, { targets: [u.body, u.weapon, u.offhand].filter(Boolean), x: `+=${u.side === 'PLAYER' ? -4 : 4}`, duration: 80, yoyo: true, repeat: 1 });
       u.body.clearTint();
       u.weapon?.clearTint();

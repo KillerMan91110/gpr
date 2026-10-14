@@ -780,13 +780,17 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
               {skillList?.length === 0 && <p className="bt-empty">Sin habilidades</p>}
               {skillList?.map((s) => {
                 const noMana = (s.manaCost ?? 0) > (actor.mana ?? 0);
+                // rondas que faltan para poder usarla otra vez (tiempo de espera)
+                const waitRounds = actor.cooldowns?.[s.id] ?? 0;
+                const reload = s.cooldownRounds ? `
+Se puede usar cada ${s.cooldownRounds} rondas.` : '';
                 return (
                   <button
                     key={s.id}
                     type="button"
                     className="bt-sub"
-                    disabled={!s.supported || noMana}
-                    title={s.supported ? s.description : s.unsupportedReason}
+                    disabled={!s.supported || noMana || waitRounds > 0}
+                    title={s.supported ? `${s.description ?? ''}${reload}` : s.unsupportedReason}
                     onClick={() => pickSkill(s)}
                   >
                     <span className="bt-sub-name">
@@ -796,7 +800,9 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
                         <em className="bt-tag bt-tag--weak" title="Algún enemigo es débil a este elemento">▲</em>
                       )}
                     </span>
-                    <small className={noMana ? 'bt-nomana' : ''}>{s.manaCost} MP</small>
+                    {waitRounds > 0
+                      ? <small className="bt-nomana" title="Rondas para poder usarla otra vez">⌛ {waitRounds}</small>
+                      : <small className={noMana ? 'bt-nomana' : ''}>{s.manaCost} MP</small>}
                   </button>
                 );
               })}
@@ -868,6 +874,9 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
                 ))}
                 {result.rewards.levelUps?.map((l) => (
                   <span key={`${l.playerId ?? l.npcId}`} className="bt-levelup">¡{l.npcName ?? player.nickname} sube a nivel {l.newLevel}!</span>
+                ))}
+                {result.rewards.levelUps?.filter((l) => l.playerId === player.id && l.teachable?.length).map((l) => (
+                  <span key={`tecnica-${l.newLevel}`} className="bt-levelup">Tu maestro ya puede enseñarte: {l.teachable.join(', ')}.</span>
                 ))}
                 {result.rewards.cardsDropped?.map((c) => (
                   <span key={`carta-${c.monsterId}`} className={`bt-card bt-card--${c.rarity.toLowerCase()}`}>
