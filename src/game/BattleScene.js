@@ -472,6 +472,8 @@ export default class BattleScene extends Phaser.Scene {
   elementOf(log, actor, ctx) {
     if (!actor) return null;
     if (log.action === 'SKILL' && actor.pid === ctx.actorId && ctx.actionElement) return ctx.actionElement;
+    // habilidad de un compañero de grupo: el back manda su elemento
+    if (log.action === 'SKILL' && actor.kind !== 'monster' && log.skill_element) return log.skill_element;
     if (actor.kind === 'monster') return actor.elementCode;
     if (log.action === 'ATTACK') return actor.imbued;
     return null;
@@ -503,7 +505,7 @@ export default class BattleScene extends Phaser.Scene {
         else if (target) await this.impact(target, log, null, element, actor);
         break;
       case 'SKILL':
-        if (actor) await this.skill(actor, target, log, element, actor.pid === ctx.actorId ? ctx.actionSkill : null);
+        if (actor) await this.skill(actor, target, log, element, actor.pid === ctx.actorId ? ctx.actionSkill : this.skillFromLog(log, actor));
         else if (target) await this.impact(target, log, 'magic', element, actor);
         break;
       case 'USE_ITEM':
@@ -876,13 +878,20 @@ export default class BattleScene extends Phaser.Scene {
     return target ? [{ unit: target, log }] : [];
   }
 
+  // habilidad de otro héroe (compañero de grupo): el back manda su código y sus datos en el registro,
+  // así se ve como lo que es (una Bola de Fuego, no un golpe cualquiera)
+  skillFromLog(log, actor) {
+    if (actor.kind === 'monster' || !log.skill_code) return null;
+    return { code: log.skill_code, skillType: log.skill_type, targetType: log.skill_target, damageSchool: log.skill_school, hits: log.skill_hits, fromLog: true };
+  }
+
   async skill(actor, target, log, element, sk) {
     const style = this.skillStyle(sk, actor, target, log);
     this.lastSkillCode = sk?.code ?? log.skill_code ?? null;
     const hits = this.skillHits(log, actor, target);
     const main = hits[0]?.unit ?? target;
-    // los monstruos anuncian su habilidad (el jugador ya la eligió en su barra)
-    if (actor.kind === 'monster' && log.skill_code) {
+    // los monstruos y los compañeros de grupo anuncian su habilidad (la tuya ya la elegiste en tu barra)
+    if (log.skill_code && (actor.kind === 'monster' || sk?.fromLog)) {
       const name = (log.description ?? '').match(/ usa (.+?)(?: sobre | y cura a |:)/)?.[1];
       if (name) this.skillBanner(actor, name);
     }

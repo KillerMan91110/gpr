@@ -120,4 +120,7 @@ export const STAT_LABELS = {
   ATK: 'Ataque', DEF: 'Defensa', MAG: 'Inteligencia', MAGIC_DEF: 'Defensa mágica', SPD: 'Velocidad',
   CRIT_CHANCE: 'Prob. de crítico', CRIT_DAMAGE: 'Daño crítico', EVASION: 'Evasión', HP: 'Vida', LUCK: 'Suerte',
   RESIST_DARK: 'Resistencia a oscuridad',
+  // comidas y pociones
+  HEAL_HP: 'de vida', HEAL_MP: 'de maná', BUFF_ATK: 'de ataque en combate', BUFF_DEF: 'de defensa en combate',
+  BUFF_MAG: 'de inteligencia en combate', BUFF_SPD: 'de velocidad en combate', HOT: 'de vida por ronda',
 };

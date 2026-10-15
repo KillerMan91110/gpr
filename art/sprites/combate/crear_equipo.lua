@@ -40,6 +40,7 @@ local SETS = {
   {"ancestral",     {"f4eac4","ccb47c","8c7442", "90f4dc","3cac94", "e4cc94","b49458","70582e","40321a", "b0fff2","3ce4c4"}},
   {"arcano",        {"e4ecff","9cacec","5c6cac", "ccacff","7c5ac4", "a48cf0","6c4cc8","44309a","261a5c", "dcf6ff","70c4ff"}},
   {"sagrado",       {"ffffff","dce4f2","8c9cba", "ffe070","c09030", "fcfcff","e0e4f0","b0b8cc","74809a", "8ad8ff","3a7ae0"}},
+  {"vigia",         {"f0cc90","c08848","7a5028", "ffd86a","c09030", "8aa8e8","4a6ad8","2e4478","1c2c50", "fff4b0","ffd86a"}},
 }
 local WOOD = {"a8703c","6a4428"}
 local SET_INDEX = {}
