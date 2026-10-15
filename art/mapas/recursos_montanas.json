@@ -1,0 +1,127 @@
+[
+ {
+  "id": "mineral_paso",
+  "tipo": "veta_montana",
+  "spots": 6
+ },
+ {
+  "id": "tronco_paso",
+  "tipo": "pino",
+  "spots": 6
+ },
+ {
+  "id": "flor_paso",
+  "tipo": "flor_nieve",
+  "spots": 6
+ },
+ {
+  "id": "mineral_minas",
+  "tipo": "veta_montana",
+  "spots": 8
+ },
+ {
+  "id": "flor_minas",
+  "tipo": "flor_nieve",
+  "spots": 3
+ },
+ {
+  "id": "cofre_minas",
+  "tipo": "cofre_montana",
+  "spots": 1
+ },
+ {
+  "id": "tronco_pinar",
+  "tipo": "pino",
+  "spots": 8
+ },
+ {
+  "id": "flor_pinar",
+  "tipo": "flor_nieve",
+  "spots": 6
+ },
+ {
+  "id": "restos_pinar",
+  "tipo": "restos_montana",
+  "spots": 3
+ },
+ {
+  "id": "cuarzo_lago",
+  "tipo": "cristal_lago",
+  "spots": 8
+ },
+ {
+  "id": "flor_lago",
+  "tipo": "flor_nieve",
+  "spots": 3
+ },
+ {
+  "id": "cofre_lago",
+  "tipo": "cofre_montana",
+  "spots": 2
+ },
+ {
+  "id": "mineral_garganta",
+  "tipo": "veta_montana",
+  "spots": 6
+ },
+ {
+  "id": "tronco_garganta",
+  "tipo": "pino",
+  "spots": 3
+ },
+ {
+  "id": "flor_garganta",
+  "tipo": "flor_nieve",
+  "spots": 3
+ },
+ {
+  "id": "restos_garganta",
+  "tipo": "restos_montana",
+  "spots": 3
+ },
+ {
+  "id": "cofre_garganta",
+  "tipo": "cofre_montana",
+  "spots": 2
+ },
+ {
+  "id": "mineral_acantilados",
+  "tipo": "veta_montana",
+  "spots": 6
+ },
+ {
+  "id": "flor_acantilados",
+  "tipo": "flor_nieve",
+  "spots": 3
+ },
+ {
+  "id": "restos_acantilados",
+  "tipo": "restos_montana",
+  "spots": 3
+ },
+ {
+  "id": "cofre_acantilados",
+  "tipo": "cofre_montana",
+  "spots": 2
+ },
+ {
+  "id": "mineral_cumbre",
+  "tipo": "veta_montana",
+  "spots": 3
+ },
+ {
+  "id": "flor_cumbre",
+  "tipo": "flor_nieve",
+  "spots": 3
+ },
+ {
+  "id": "restos_cumbre",
+  "tipo": "restos_montana",
+  "spots": 3
+ },
+ {
+  "id": "cofre_cumbre",
+  "tipo": "cofre_montana",
+  "spots": 2
+ }
+]

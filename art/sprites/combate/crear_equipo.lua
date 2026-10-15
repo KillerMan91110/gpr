@@ -41,6 +41,10 @@ local SETS = {
   {"arcano",        {"e4ecff","9cacec","5c6cac", "ccacff","7c5ac4", "a48cf0","6c4cc8","44309a","261a5c", "dcf6ff","70c4ff"}},
   {"sagrado",       {"ffffff","dce4f2","8c9cba", "ffe070","c09030", "fcfcff","e0e4f0","b0b8cc","74809a", "8ad8ff","3a7ae0"}},
   {"vigia",         {"f0cc90","c08848","7a5028", "ffd86a","c09030", "8aa8e8","4a6ad8","2e4478","1c2c50", "fff4b0","ffd86a"}},
+  -- Montañas Grises nv 21: acero escarchado, pelaje de oso y escamas de sierpe azul hielo
+  {"escarcha",      {"e8f6ff","9cc8e4","4e7ea4", "f4fbff","a8d8f0", "a8805c","7a5638","4e3420","2e1e12", "dcfaff","6cc8f0"}},
+  -- Mina Profunda nv 22: hierro negro de los enanos, runas azules y el ascua del Corazón del gólem
+  {"hierro_negro",  {"8a94aa","4c5466","262a36", "9ad8ff","4a98d0", "a07850","6e5038","4a3424","2a1e14", "ffc070","e07a20"}},
 }
 local WOOD = {"a8703c","6a4428"}
 local SET_INDEX = {}

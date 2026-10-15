@@ -1226,6 +1226,1290 @@
           "loop": false
         }
       }
+    },
+    "CABRA_MONTES": {
+      "name": "Cabra Montés",
+      "rank": "comun",
+      "sheet": "enemigos/cabra_montes.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            420,
+            420
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            200,
+            130,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            5
+          ],
+          "durations": [
+            250
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            6,
+            7
+          ],
+          "durations": [
+            200,
+            1000
+          ],
+          "loop": false
+        }
+      }
+    },
+    "ORCO_MONTANA": {
+      "name": "Orco de Montaña",
+      "rank": "comun",
+      "sheet": "enemigos/orco_montana.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            450,
+            450
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            200,
+            140,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            5
+          ],
+          "durations": [
+            250
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            6,
+            7
+          ],
+          "durations": [
+            200,
+            1000
+          ],
+          "loop": false
+        }
+      }
+    },
+    "LOBO_NIEVE": {
+      "name": "Lobo de las Nieves",
+      "rank": "comun",
+      "sheet": "enemigos/lobo_nieve.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            400,
+            400
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            200,
+            120,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            5
+          ],
+          "durations": [
+            250
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            6,
+            7
+          ],
+          "durations": [
+            200,
+            1000
+          ],
+          "loop": false
+        }
+      }
+    },
+    "MINERO_CORROMPIDO": {
+      "name": "Minero Corrompido",
+      "rank": "comun",
+      "sheet": "enemigos/minero_corrompido.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            450,
+            450
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            200,
+            140,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            5
+          ],
+          "durations": [
+            250
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            6,
+            7
+          ],
+          "durations": [
+            200,
+            1000
+          ],
+          "loop": false
+        }
+      }
+    },
+    "MURCIELAGO_CAVERNA": {
+      "name": "Murciélago de Caverna",
+      "rank": "comun",
+      "sheet": "enemigos/murcielago_caverna.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            180,
+            180
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            180,
+            200,
+            200
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            5
+          ],
+          "durations": [
+            250
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            6,
+            7
+          ],
+          "durations": [
+            200,
+            1000
+          ],
+          "loop": false
+        }
+      }
+    },
+    "CENTINELA_PIEDRA": {
+      "name": "Centinela de Piedra",
+      "rank": "comun",
+      "sheet": "enemigos/centinela_piedra.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            520,
+            520
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            300,
+            170,
+            300
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            5
+          ],
+          "durations": [
+            300
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            6,
+            7
+          ],
+          "durations": [
+            300,
+            1200
+          ],
+          "loop": false
+        }
+      }
+    },
+    "ESPECTRO_HELADO": {
+      "name": "Espectro Helado",
+      "rank": "comun",
+      "sheet": "enemigos/espectro_helado.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            420,
+            420
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            200,
+            220,
+            200
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            180,
+            320,
+            200
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            250
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            220,
+            1000
+          ],
+          "loop": false
+        }
+      }
+    },
+    "OSO_CUMBRES": {
+      "name": "Oso de las Cumbres",
+      "rank": "comun",
+      "sheet": "enemigos/oso_cumbres.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            500,
+            500
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            260,
+            140,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            5
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "SIERPE_HIELO": {
+      "name": "Sierpe de Hielo",
+      "rank": "comun",
+      "sheet": "enemigos/sierpe_hielo.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            450,
+            450
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            200,
+            150,
+            220
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            200,
+            320,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            250
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            200,
+            1000
+          ],
+          "loop": false
+        }
+      }
+    },
+    "TROLL_SALVAJE": {
+      "name": "Troll Salvaje",
+      "rank": "comun",
+      "sheet": "enemigos/troll_salvaje.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            480,
+            480
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            150,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            200,
+            300,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            220,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "ARPIA_ECO": {
+      "name": "Arpía del Eco",
+      "rank": "comun",
+      "sheet": "enemigos/arpia_eco.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            220,
+            220
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            200,
+            150,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            5
+          ],
+          "durations": [
+            250
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            6,
+            7
+          ],
+          "durations": [
+            200,
+            1000
+          ],
+          "loop": false
+        }
+      }
+    },
+    "ELEMENTAL_TORMENTA": {
+      "name": "Elemental de Tormenta",
+      "rank": "comun",
+      "sheet": "enemigos/elemental_tormenta.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            300,
+            300
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            200,
+            200,
+            200
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            180,
+            300,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            250
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            220,
+            1000
+          ],
+          "loop": false
+        }
+      }
+    },
+    "GIGANTE_HIELO": {
+      "name": "Gigante de Hielo",
+      "rank": "raro",
+      "sheet": "enemigos/gigante_hielo.png",
+      "frameSize": {
+        "w": 56,
+        "h": 56
+      },
+      "anchor": {
+        "x": 28,
+        "y": 54
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            520,
+            520
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            300,
+            170,
+            300
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            5
+          ],
+          "durations": [
+            300
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            6,
+            7
+          ],
+          "durations": [
+            300,
+            1200
+          ],
+          "loop": false
+        }
+      }
+    },
+    "BRUJO_MONTANA": {
+      "name": "Brujo de la Montaña",
+      "rank": "raro",
+      "sheet": "enemigos/brujo_montana.png",
+      "frameSize": {
+        "w": 56,
+        "h": 56
+      },
+      "anchor": {
+        "x": 28,
+        "y": 54
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            480,
+            480
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            240,
+            220
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            200,
+            320,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "SENOR_ACANTILADO": {
+      "name": "Señor del Acantilado",
+      "rank": "miniboss",
+      "sheet": "enemigos/senor_acantilado.png",
+      "frameSize": {
+        "w": 64,
+        "h": 64
+      },
+      "anchor": {
+        "x": 32,
+        "y": 62
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            520,
+            520
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            260,
+            170,
+            280
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            340,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            300
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            300,
+            1300
+          ],
+          "loop": false
+        }
+      }
+    },
+    "REY_MONTANA": {
+      "name": "Rey de la Montaña",
+      "rank": "jefe",
+      "sheet": "enemigos/rey_montana.png",
+      "frameSize": {
+        "w": 64,
+        "h": 64
+      },
+      "anchor": {
+        "x": 32,
+        "y": 62
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            560,
+            560
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            300,
+            180,
+            320
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            360,
+            260
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            320
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            320,
+            1400
+          ],
+          "loop": false
+        }
+      }
+    },
+    "GUARDIA_TORMENTA": {
+      "name": "Guardia de la Tormenta",
+      "rank": "comun",
+      "sheet": "enemigos/guardia_tormenta.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            420,
+            420
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            200,
+            150,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            5
+          ],
+          "durations": [
+            250
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            1000
+          ],
+          "loop": false
+        }
+      }
+    },
+    "MINA_MINERO": {
+      "name": "Minero Poseído",
+      "rank": "raro",
+      "sheet": "enemigos/mina_minero.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            450,
+            450
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            200,
+            140,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            5
+          ],
+          "durations": [
+            250
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            6,
+            7
+          ],
+          "durations": [
+            200,
+            1000
+          ],
+          "loop": false
+        }
+      }
+    },
+    "MINA_GOLEM_VETA": {
+      "name": "Gólem de Veta",
+      "rank": "raro",
+      "sheet": "enemigos/mina_golem_veta.png",
+      "frameSize": {
+        "w": 56,
+        "h": 56
+      },
+      "anchor": {
+        "x": 28,
+        "y": 54
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            520,
+            520
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            300,
+            170,
+            300
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            5
+          ],
+          "durations": [
+            300
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            6,
+            7
+          ],
+          "durations": [
+            300,
+            1200
+          ],
+          "loop": false
+        }
+      }
+    },
+    "MINA_GOLEM_NEGRO": {
+      "name": "Gólem de Hierro Negro",
+      "rank": "jefe",
+      "sheet": "enemigos/mina_golem_negro.png",
+      "frameSize": {
+        "w": 64,
+        "h": 64
+      },
+      "anchor": {
+        "x": 32,
+        "y": 62
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            560,
+            560
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            320,
+            180,
+            320
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            360,
+            260
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            320
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            320,
+            1400
+          ],
+          "loop": false
+        }
+      }
     }
   }
 }

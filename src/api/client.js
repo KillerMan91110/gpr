@@ -74,6 +74,8 @@ export const api = {
     request(`/api/player/${playerId}/craft`, { method: 'POST', body: { recipeCode, quantity }, token }),
   dismantle: (playerId, itemId, quantity, token) =>
     request(`/api/player/${playerId}/dismantle`, { method: 'POST', body: { itemId, quantity }, token }),
+  // comida activa ("bien alimentado"): { foodBuff: { name, text, expiresAt } | null }
+  getFoodBuff: (playerId, token) => request(`/api/player/${playerId}/food-buff`, { token }),
   useItem: (playerId, itemId, token) =>
     request(`/api/player/${playerId}/use-item`, { method: 'POST', body: { itemId }, token }),
   useRecipeScroll: (playerId, itemId, token) =>
@@ -128,8 +130,10 @@ export const api = {
   gatherWorldNode: (playerId, nodeId, token) => request(`/api/player/${playerId}/world/nodes/${nodeId}/gather`, { method: 'POST', token }),
   // areaLevels: rango de niveles de la subzona del mundo 2D donde empezó el combate ("3-6")
   // worldGroup: en el mundo 2D el servidor suma a los compañeros de grupo que estén cerca
-  exploreZone: (zoneId, token, coopPartnerIds, leadMonsterCode, areaLevels, worldGroup = false, worldPos = null) => {
+  // areaMonsters: los monstruos de la zona de encuentro del mapa (el servidor arma la pelea con ellos)
+  exploreZone: (zoneId, token, coopPartnerIds, leadMonsterCode, areaLevels, worldGroup = false, worldPos = null, areaMonsters = null) => {
     const body = {};
+    if (areaMonsters?.length) body.areaMonsters = areaMonsters;
     if (worldPos) body.worldPos = worldPos;
     if (coopPartnerIds?.length) body.coopPartnerIds = coopPartnerIds;
     if (worldGroup) body.worldGroup = true;
@@ -237,8 +241,11 @@ export const api = {
   getCazadores: () => request('/api/world/cazadores'),
   getMiticoAporte: (playerId, token) => request(`/api/player/${playerId}/coleccion/mitico/aporte`, { token }),
   // La Cripta del Vigía (gprback/routes/cripta.js)
+  // mazmorras del mundo 2D (Cripta del Vigía, Mina Profunda): dir = carpeta de la zona
+  getMazmorra: (playerId, dir, token) => request(`/api/player/${playerId}/world/${dir}`, { token }),
+  encenderBrasero: (playerId, orden, token, dir = 'cripta') => request(`/api/player/${playerId}/world/${dir}/brasero`, { method: 'POST', body: { orden }, token }),
+  combateMazmorra: (playerId, dir, objetivo, token) => request(`/api/player/${playerId}/world/${dir}/combate`, { method: 'POST', body: { objetivo }, token }),
   getCripta: (playerId, token) => request(`/api/player/${playerId}/world/cripta`, { token }),
-  encenderBrasero: (playerId, orden, token) => request(`/api/player/${playerId}/world/cripta/brasero`, { method: 'POST', body: { orden }, token }),
   combateCripta: (playerId, objetivo, token) => request(`/api/player/${playerId}/world/cripta/combate`, { method: 'POST', body: { objetivo }, token }),
   enterMitico: (playerId, token) => request(`/api/player/${playerId}/coleccion/mitico/enter`, { method: 'POST', token }),
   // Ventana Social del mundo 2D (tecla O)

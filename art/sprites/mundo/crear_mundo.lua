@@ -32,6 +32,11 @@ local ORDER = {
   {"pb","3a5ea8"},{"pbd","26407a"},{"pg","3e7a4a"},{"pgd","28553a"},{"pv","6a4a9a"},{"pvd","48306c"},{"pz","5a6070"},{"pzd","3c404c"},
   {"wp","efe6cf"},{"wpd","cfc3a3"},{"tb","5a3a22"},{"gl","9ad8f0"},{"go","ffd860"},{"god","c89a2a"},
   {"ag","a8d4b8"},{"agd","6aa08c"},{"agh","dcf4e4"},{"wn","ffe9a0"},{"fv","b070e0"},{"n","4e3622"},{"Oh","e08a4a"},{"O","c0602a"},
+  -- v5 (Montañas): nieve, roca gris, hielo y abismo
+  {"nv1","f2f6fc"},{"nv2","d4e0ee"},{"nv3","a8b8cc"},
+  {"rq1","a8a6b2"},{"rq2","86848f"},{"rq3","64626e"},{"rq4","42404c"},
+  {"hl1","e4f8ff"},{"hl2","a8dcf0"},{"hl3","6aaed0"},
+  {"ab1","34303e"},{"ab2","1a1822"},{"ab3","4a4654"},
 }
 local C = {}
 for _,e in ipairs(ORDER) do C[e[1]] = hex(e[2]) end
@@ -1112,6 +1117,226 @@ addGrid("puerta_abierta", 4, 3, function(V)
   V.rect(96, 44, 103, 95, "b"); V.rect(97, 46, 102, 95, "B"); V.rect(96, 60, 103, 61, "d"); V.rect(96, 80, 103, 81, "d")
 end)
 
+-- ---------------------------------------------------------------------------------------
+-- v5 (Montañas Grises): suelo de roca y nieve, abismos con puentes colgantes, lago helado,
+-- meseta nevada con pared de roca, pinos y rocas con nieve, picos, cristales de hielo y la
+-- entrada de la mina enana con rieles, vagonetas, antorchas y estandartes.
+-- Los tiles nuevos van al FINAL para no cambiar los ids viejos.
+-- ---------------------------------------------------------------------------------------
+local function rockPx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 9 and "rq1" or (n < 15 and "rq3" or "rq2"))
+end
+local function rockBase(G, seed)
+  for y=0,31 do for x=0,31 do rockPx(G, x, y, seed) end end
+  for i=0,5 do local x, y = noise(i, 1, seed) % 28, noise(i, 2, seed) % 28; G.px(x, y, "rq4"); G.px(x+1, y, "rq3") end
+end
+local function snowPx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 7 and "nv2" or (n < 9 and "nv3" or "nv1"))
+end
+local function snowBase(G, seed) for y=0,31 do for x=0,31 do snowPx(G, x, y, seed) end end end
+
+-- roca sobre el pasto (la montaña empieza donde termina la pradera)
+local function rockTile(mask)
+  return function(G)
+    rockBase(G, 111)
+    local depth = function(i, side) return 3 + (noise(i, side, 113 + mask) % 4) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "rq3") end)
+    sideBand(G, mask, depth, function(x, y) grassPx(G, x, y, 25) end)
+  end
+end
+-- nieve sobre la roca: el borde deja ver la piedra de forma irregular
+local function snowTile(mask)
+  return function(G)
+    snowBase(G, 121)
+    local depth = function(i, side) return 3 + (noise(i, side, 123 + mask) % 5) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "nv3") end)
+    sideBand(G, mask, depth, function(x, y) rockPx(G, x, y, 26) end)
+  end
+end
+-- abismo: oscuridad con un labio de roca y su sombra
+local function chasmTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"ab2")
+    for y=0,31 do for x=0,31 do if noise(x, y, 131) < 6 then G.px(x, y, "ab1") end end end
+    local depth = function(i, side) return 4 + (noise(i, side, 133 + mask) % 3) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 2 end, function(x, y) G.px(x, y, "ab3") end)
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "rq4") end)
+    sideBand(G, mask, depth, function(x, y) rockPx(G, x, y, 27) end)
+  end
+end
+-- lago helado: hielo con grietas y brillo, orilla de nieve
+local function iceTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"hl2")
+    for y=0,31 do for x=0,31 do if noise(x, y, 141) < 5 then G.px(x, y, "hl1") end end end
+    for i=0,9 do G.px(6 + i, 10 + i // 2, "hl3"); G.px(18 + i // 2, 20 + i, "hl3") end
+    G.px(9,7,"W"); G.px(10,6,"W"); G.px(22,15,"W")
+    local depth = function(i, side) return 4 + (noise(i, side, 143 + mask) % 3) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "hl3") end)
+    sideBand(G, mask, depth, function(x, y) snowPx(G, x, y, 28) end)
+  end
+end
+-- meseta nevada: nieve con un filo de luz y una sombra donde termina (debajo va la pared)
+local function snowPlateauTile(mask)
+  return function(G)
+    snowBase(G, 151)
+    if mask & 1 == 0 then G.rect(0,0,31,0,"nv3"); G.rect(0,1,31,2,"W") end
+    if mask & 2 == 0 then G.rect(31,0,31,31,"nv3"); G.rect(29,0,30,31,"nv2") end
+    if mask & 8 == 0 then G.rect(0,0,0,31,"nv3"); G.rect(1,0,2,31,"W") end
+    if mask & 4 == 0 then G.rect(0,30,31,31,"nv3") end
+  end
+end
+
+for m=0,15 do TILES[#TILES+1] = {"roca_" .. m, rockTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"nieve_" .. m, snowTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"abismo_" .. m, chasmTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"hielo_" .. m, iceTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"mesetan_" .. m, snowPlateauTile(m)} end
+
+-- variantes del suelo lleno (el generador las mezcla al azar)
+TILES[#TILES+1] = {"roca_grava", function(G)
+  rockBase(G, 161)
+  for _,p in ipairs({{5,6},{12,3},{22,9},{8,17},{18,15},{26,20},{4,26},{15,24},{24,28}}) do G.px(p[1],p[2],"rq1"); G.px(p[1]+1,p[2],"rq3"); G.px(p[1],p[2]+1,"rq4") end
+end}
+TILES[#TILES+1] = {"roca_musgo", function(G)
+  rockBase(G, 162)
+  for _,p in ipairs({{7,9,3},{20,19,4},{12,25,2}}) do G.ellipse(p[1],p[2],p[3],p[3]-1,"c3"); G.px(p[1]-1,p[2]-1,"c1") end
+end}
+TILES[#TILES+1] = {"nieve_huellas", function(G)
+  snowBase(G, 163)
+  for i=0,5 do local x, y = 6 + i * 4, 4 + i * 5; G.rect(x,y,x+1,y+2,"nv3"); G.rect(x+3,y+1,x+4,y+3,"nv3") end
+end}
+-- hierba alta nevada: matas escarchadas donde aparecen monstruos
+TILES[#TILES+1] = {"hierba_nevada", function(G)
+  snowBase(G, 164)
+  for x=1,31,4 do for y=3,31,8 do
+    local o = (y // 8) % 2 * 2
+    G.rect(x+o,y,x+o,y+5,"pd"); G.rect(x+o+1,y+1,x+o+1,y+5,"pn"); G.px(x+o,y-1,"nv1"); G.px(x+o+2,y+2,"pd"); G.px(x+o+1,y,"nv2")
+  end end
+end}
+
+-- pared de roca de la meseta nevada (alta: con la nieve arriba; baja: con sombra)
+local function snowCliff(row, side)
+  return function(G)
+    G.rect(0,0,31,31,"rq2")
+    for x=0,31 do
+      local n = noise(x, row, 171)
+      if x % 7 == 0 then G.rect(x,0,x,31,"rq3") end
+      if n < 18 then G.px(x, n % 31, "rq1") end
+    end
+    for y=4,31,9 do G.rect(0,y,31,y,"rq3") end
+    if row == 1 then G.rect(0,0,31,3,"nv1"); for x=0,31,3 do G.px(x,4,"nv2"); G.px(x+1,5,"nv3") end end
+    if row == 2 then G.rect(0,26,31,31,"rq4"); G.rect(0,24,31,25,"rq3") end
+    if side == "i" then G.rect(0,0,2,31,"rq3") end
+    if side == "d" then G.rect(29,0,31,31,"rq3") end
+  end
+end
+for _, side in ipairs({"i", "c", "d"}) do
+  TILES[#TILES+1] = {"cara_n_a_" .. side, snowCliff(1, side)}
+  TILES[#TILES+1] = {"cara_n_b_" .. side, snowCliff(2, side)}
+end
+
+-- puentes colgantes sobre el abismo
+TILES[#TILES+1] = {"colgante_h", function(G)
+  G.rect(0,0,31,31,"ab2"); G.rect(0,8,31,23,"B")
+  for x=0,31,4 do G.rect(x,8,x,23,"b") end
+  G.rect(0,8,31,8,"t1"); G.rect(0,4,31,4,"t2"); G.rect(0,27,31,27,"t2")
+  for x=2,31,8 do G.rect(x,4,x,8,"t3"); G.rect(x,23,x,27,"t3") end
+end}
+TILES[#TILES+1] = {"colgante_v", function(G)
+  G.rect(0,0,31,31,"ab2"); G.rect(8,0,23,31,"B")
+  for y=0,31,4 do G.rect(8,y,23,y,"b") end
+  G.rect(8,0,8,31,"t1"); G.rect(4,0,4,31,"t2"); G.rect(27,0,27,31,"t2")
+  for y=2,31,8 do G.rect(4,y,8,y,"t3"); G.rect(23,y,27,y,"t3") end
+end}
+
+-- rieles de la mina (se camina por encima)
+deco("rieles_h", function(G)
+  for x=1,31,6 do G.rect(x,10,x+2,21,"b"); G.rect(x,10,x+2,10,"B") end
+  G.rect(0,12,31,13,"sd"); G.rect(0,18,31,19,"sd"); G.rect(0,12,31,12,"sw"); G.rect(0,18,31,18,"sw")
+end)
+deco("rieles_v", function(G)
+  for y=1,31,6 do G.rect(10,y,21,y+2,"b"); G.rect(10,y,21,y,"B") end
+  G.rect(12,0,13,31,"sd"); G.rect(18,0,19,31,"sd"); G.rect(12,0,12,31,"sw"); G.rect(18,0,18,31,"sw")
+end)
+deco("vagoneta", function(G)
+  G.ellipse(16,28,13,3,"rq4")
+  G.rect(4,12,27,23,"sd"); G.rect(4,12,27,13,"sw"); G.rect(4,22,27,23,"sk")
+  G.rect(6,9,25,12,"rq2"); G.ellipse(11,9,4,3,"rq1"); G.ellipse(20,8,5,3,"rq3"); G.px(15,7,"go"); G.px(22,7,"go")
+  G.ellipse(9,25,3,3,"sk"); G.ellipse(22,25,3,3,"sk"); G.px(9,25,"sw"); G.px(22,25,"sw")
+end)
+deco("antorcha", function(G)
+  G.ellipse(16,29,5,2,"rq4"); G.rect(15,12,17,29,"b"); G.rect(13,10,19,12,"sk")
+  G.ellipse(16,6,4,5,"R"); G.ellipse(16,7,2,3,"fl"); G.px(16,1,"R"); G.px(14,3,"R")
+end)
+deco("cristal_hielo", function(G)
+  G.ellipse(16,28,10,3,"nv3")
+  local function shard(x0, y0, x1, y1, w)
+    for i=0,w do G.rect(x0 - w + i, y0, x0 - w + i, y0, "hl2") end
+    for t=0,20 do local f = t / 20; local x = x0 + (x1 - x0) * f; local y = y0 + (y1 - y0) * f; local ww = math.floor(w * (1 - f) + 0.5)
+      G.rect(x - ww, y, x + ww, y, "hl2"); G.px(x - ww, y, "hl1"); G.px(x + ww, y, "hl3") end
+  end
+  shard(12, 27, 9, 9, 3); shard(18, 27, 20, 4, 4); shard(23, 27, 26, 14, 2)
+  G.px(19,8,"W"); G.px(10,13,"W")
+end)
+
+-- pinos y rocas con nieve
+addGrid("pino_nevado", 2, 2, function(V)
+  V.ellipse(32,59,14,4,"nv3"); V.rect(30,46,33,58,"b")
+  for i=0,3 do local y = 4 + i * 11
+    for r=0,12 do V.rect(32 - r - i * 2, y + r, 32 + r + i * 2, y + r, r < 3 and "pn" or "pd") end
+    for r=0,4 do V.rect(32 - r - i * 2, y + r, 32 + r + i * 2 - 2, y + r, "nv1") end
+    V.rect(32 - 12 - i * 2, y + 12, 32 - 8 - i * 2, y + 12, "nv2"); V.rect(32 + 6 + i * 2, y + 12, 32 + 10 + i * 2, y + 12, "nv2")
+  end
+end)
+addGrid("roca_nevada", 2, 2, function(V)
+  V.ellipse(32,56,28,6,"nv3"); V.ellipse(32,40,28,20,"rq3"); V.ellipse(30,36,26,18,"rq2"); V.ellipse(24,32,15,11,"rq1")
+  V.ellipse(30,24,22,9,"nv1"); V.ellipse(24,22,12,5,"W"); V.ellipse(44,44,9,5,"rq4")
+end)
+-- un pico de la cordillera (3x3): la cima nevada pasa por encima del héroe
+addGrid("pico", 3, 3, function(V)
+  V.ellipse(48,92,46,5,"rq4")
+  for y=2,90 do local half = math.floor((y - 2) * 0.52); V.rect(48 - half, y, 48 + half, y, "rq2"); V.rect(48, y, 48 + half, y, "rq3") end
+  for y=2,34 do local half = math.floor((y - 2) * 0.52); V.rect(48 - half, y, 48 + half - 2, y, "nv1"); V.px(48 + half - 1, y, "nv3") end
+  for i=0,8 do V.px(30 + i * 2, 34 + (i % 3), "nv2"); V.px(31 + i * 2, 35 + (i % 2), "nv3") end
+  V.rect(46,2,49,6,"W")
+  for _,p in ipairs({{30,60},{60,52},{40,74},{64,78}}) do V.rect(p[1],p[2],p[1]+6,p[2],"rq4") end
+end)
+-- entrada de la mina enana: pared de roca con un túnel de vigas (se entra por el centro de abajo)
+addGrid("entrada_mina", 3, 3, function(V)
+  V.rect(0,0,95,95,"rq2")
+  for y=0,95,9 do V.rect(0,y,95,y,"rq3") end
+  for x=0,95,13 do V.rect(x,0,x,95,"rq3") end
+  V.rect(0,0,95,6,"nv1"); for x=0,95,3 do V.px(x,7,"nv2") end
+  V.ellipse(48,62,22,30,"ab2"); V.rect(26,62,70,95,"ab2"); V.ellipse(48,64,18,26,"K"); V.rect(30,64,66,95,"K")
+  V.rect(24,40,30,95,"B"); V.rect(66,40,72,95,"B"); V.rect(22,36,74,42,"B"); V.rect(22,36,74,37,"t1"); V.rect(24,40,25,95,"t1")
+  V.rect(40,30,56,36,"b"); V.px(48,33,"go"); V.px(47,33,"go"); V.px(49,33,"go")
+  for x=34,62,6 do V.rect(x,90,x+2,95,"b") end; V.rect(36,92,60,93,"sd")
+end)
+addGrid("estandarte_enano", 1, 2, function(V)
+  V.ellipse(16,60,6,2,"rq4"); V.rect(15,4,17,60,"b"); V.rect(8,4,24,6,"sk")
+  V.rect(8,6,24,34,"R"); V.rect(8,6,9,34,"r"); V.rect(8,34,16,40,"R"); V.rect(16,34,24,38,"R")
+  V.ellipse(16,18,5,5,"go"); V.rect(14,16,18,20,"sk"); V.px(16,18,"go")
+end)
+
+-- camino de montaña: el mismo camino de tierra, pero la orilla es de roca (no de pasto)
+local function rockPathTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"t1")
+    for y=0,31 do for x=0,31 do local n = noise(x,y,4); if n < 8 then G.px(x,y,"t2") elseif n < 11 then G.px(x,y,"t3") end end end
+    local depth = function(i, side) return 3 + (noise(i, side, 131 + mask) % 4) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "t2") end)
+    sideBand(G, mask, depth, function(x, y) rockPx(G, x, y, 27) end)
+    for i=0,31,5 do
+      if mask & 1 == 0 then G.px(i, depth(i,1), "rq4") end
+      if mask & 4 == 0 then G.px(i, 31-depth(i,3), "rq4") end
+    end
+  end
+end
+for m=0,15 do TILES[#TILES+1] = {"caminor_" .. m, rockPathTile(m)} end
+
 local COLLIDE = {arbol=true, roca=true, arbusto=true, valla=true, agua=true, cartel=true, fogata=true, orilla_agua_arriba=true,
   arbol_grande_bi=true, arbol_grande_bd=true, carpa_ai=true, carpa_ad=true, carpa_bi=true, carpa_bd=true,
   puesto_ai=true, puesto_ad=true, puesto_bi=true, puesto_bd=true, yunque=true, barril=true, caja=true, farol=true}
@@ -1148,6 +1373,15 @@ for _, b in ipairs({{"casa_roja",3},{"casa_azul",3},{"casa_verde",3},{"casa_pied
   {"forja_enana",3},{"casa_elfica",3},{"arbol_plata",3}}) do aboveRows(b[1], b[2], 1) end
 aboveRows("torre_arcana", 2, 2); aboveRows("catedral", 6, 2); aboveRows("estatua", 1, 1)
 ABOVE["puerta_abierta_0_1"] = true; ABOVE["puerta_abierta_0_2"] = true
+
+-- v5 (Montañas): choques y lo que tapa al héroe
+for m=0,15 do COLLIDE["abismo_" .. m] = true; COLLIDE["hielo_" .. m] = true end
+for _, n in ipairs({"cara_n_a_i","cara_n_a_c","cara_n_a_d","cara_n_b_i","cara_n_b_c","cara_n_b_d","vagoneta","antorcha","cristal_hielo"}) do COLLIDE[n] = true end
+bigCollide("pino_nevado", 2, 2, 1); bigCollide("roca_nevada", 2, 2, 0); bigCollide("pico", 3, 3, 1); bigCollide("estandarte_enano", 1, 2, 1)
+for r=0,1 do for c=0,2 do COLLIDE[string.format("entrada_mina_%d_%d", r, c)] = true end end
+COLLIDE["entrada_mina_2_0"] = true; COLLIDE["entrada_mina_2_2"] = true
+ABOVE["pino_nevado_0_0"] = true; ABOVE["pino_nevado_0_1"] = true; ABOVE["estandarte_enano_0_0"] = true
+for c=0,2 do ABOVE[string.format("pico_0_%d", c)] = true end
 
 local COLS = 8
 local ROWS = math.ceil(#TILES / COLS)

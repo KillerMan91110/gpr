@@ -14,7 +14,7 @@ export const SHAPES = ['espada', 'gran_espada', 'hacha', 'espada_runica', 'daga'
   'guanteletes', 'guantes', 'guantes_tela', 'guantes_bendecidos',
   'botas_pesadas', 'botas', 'sandalias'];
 export const SETS = ['hierro', 'acero', 'pradera', 'montana', 'capitan', 'titan', 'acantilado', 'volcan', 'rey_montana', 'caldera', 'titan_fuego',
-  'costas', 'oceano', 'profundidades', 'tundra', 'rey_hielo', 'catacumbas', 'lich', 'ancestral', 'arcano', 'sagrado', 'vigia'];
+  'costas', 'oceano', 'profundidades', 'tundra', 'rey_hielo', 'catacumbas', 'lich', 'ancestral', 'arcano', 'sagrado', 'vigia', 'escarcha', 'hierro_negro'];
 // formas que tienen hoja de combate (arma en la mano o pieza en la mano de atrás)
 export const COMBAT_WEAPONS = ['espada', 'gran_espada', 'espada_runica', 'hacha', 'daga', 'arco', 'ballesta', 'baculo_arcano', 'varita', 'baculo_sagrado'];
 export const COMBAT_OFFHANDS = ['escudo', 'carcaj', 'orbe', 'cristal', 'daga_gemela', 'simbolo'];
@@ -32,6 +32,8 @@ const BY_CLASS = {
 // set por código (los sets de zona tienen sufijo fijo) y, si no, por el nombre
 const SET_BY_CODE = [
   [/_VIGIA$|_VIGIA_CAIDO$/, 'vigia'], // set de la Guardia y armas del Vigía Caído (Pradera)
+  [/_ESCARCHA$/, 'escarcha'], // set de la Escarcha (Montañas Grises, nv 21)
+  [/_HIERRO_NEGRO$/, 'hierro_negro'], // armas de Hierro Negro (Mina Profunda, nv 22)
   [/TITAN_F\b|TITAN_F$/, 'titan_fuego'], [/TITAN_P\b|TITAN_P$/, 'titan'], [/REY_MONT/, 'rey_montana'], [/REY_HIELO/, 'rey_hielo'],
   [/PRADERA/, 'pradera'], [/MONTANAS/, 'montana'], [/CAPITAN/, 'capitan'], [/ACANT/, 'acantilado'], [/VOLCAN/, 'volcan'],
   [/CALDERA/, 'caldera'], [/COSTAS/, 'costas'], [/OCEANO/, 'oceano'], [/PROFU/, 'profundidades'], [/TUNDRA/, 'tundra'],
@@ -154,7 +156,15 @@ export const OBJETOS = ['pocion_vida_menor', 'pocion_vida_mayor', 'pocion_mana_m
   'carne_jabali', 'glandula_sapo', 'medalla_vigia', 'runa_menhir', 'fragmento_eclipse', 'asado_jabali', 'elixir_lago',
   'emblema_guardia', 'amuleto_runico', 'amuleto_alba',
   'collar_cristal_negro', 'saco_cristales', 'cristal_enterrado', 'engranaje_molino', 'unguento_raiz', 'carta_eclipse',
-  'mapa_chaman', 'cristal_capitan', 'fragmento_sello', 'palo_roble', 'carta_ren', 'carta_marta', 'hacha_brenna', 'muneca_trapo', 'ojo_vigia'];
+  'mapa_chaman', 'cristal_capitan', 'fragmento_sello', 'palo_roble', 'carta_ren', 'carta_marta', 'hacha_brenna', 'muneca_trapo', 'ojo_vigia',
+  // materiales de los monstruos de las Montañas Grises
+  'cuerno_cabra', 'colmillo_orco', 'piel_lobo_nieve', 'pico_corrompido', 'membrana_murcielago', 'fragmento_piedra_viva',
+  'esencia_helada', 'garra_oso', 'escama_sierpe', 'piel_troll', 'pluma_arpia', 'nucleo_tormenta', 'cristal_gigante', 'vara_brujo',
+  'madera_pino', 'flor_nieve', 'acero_refinado',
+  'carne_cabra', 'lomo_oso', 'asado_cabra', 'te_flor_nieve', 'caldo_oso', 'elixir_tormenta', 'insignia_guardia_real',
+  // la Mina Profunda y los objetos de misión de la historia de las Montañas
+  'mena_hierro_negro', 'corazon_hierro_negro', 'llave_mina', 'carta_elenya', 'hacha_orco', 'cristal_veta', 'esquirla_sello',
+  'nota_brujo', 'corazon_tormenta', 'fragmento_sello_montanas'];
 const OBJETO_BY_NAME = {
   'pocion de vida menor': 'pocion_vida_menor', 'pocion de vida mayor': 'pocion_vida_mayor',
   'pocion de mana menor': 'pocion_mana_menor', 'pocion de mana mayor': 'pocion_mana_mayor',
@@ -178,6 +188,21 @@ const OBJETO_BY_NAME = {
   'carta con un eclipse': 'carta_eclipse', 'mapa del chaman': 'mapa_chaman', 'cristal del capitan': 'cristal_capitan',
   'primer fragmento de sello': 'fragmento_sello', 'palo de roble': 'palo_roble', 'carta de ren': 'carta_ren',
   'carta de marta': 'carta_marta', 'hacha de brenna': 'hacha_brenna', 'muneca de trapo': 'muneca_trapo', 'ojo del vigia': 'ojo_vigia',
+  // materiales de los monstruos de las Montañas Grises
+  'cuerno de cabra montes': 'cuerno_cabra', 'colmillo de orco': 'colmillo_orco', 'piel de lobo de las nieves': 'piel_lobo_nieve',
+  'pico corrompido': 'pico_corrompido', 'membrana de murcielago': 'membrana_murcielago', 'fragmento de piedra viva': 'fragmento_piedra_viva',
+  'esencia espectral helada': 'esencia_helada', 'garra de oso de las cumbres': 'garra_oso', 'escama de sierpe de hielo': 'escama_sierpe',
+  'piel de troll': 'piel_troll', 'pluma de arpia del eco': 'pluma_arpia', 'nucleo de tormenta': 'nucleo_tormenta',
+  'cristal de gigante de hielo': 'cristal_gigante', 'vara del brujo de montana': 'vara_brujo',
+  'madera de pino nevado': 'madera_pino', 'flor de nieve': 'flor_nieve', 'acero refinado': 'acero_refinado',
+  'carne de cabra montes': 'carne_cabra', 'lomo de oso de las cumbres': 'lomo_oso', 'asado de cabra montes': 'asado_cabra',
+  'te de flor de nieve': 'te_flor_nieve', 'caldo de oso': 'caldo_oso', 'elixir de tormenta': 'elixir_tormenta',
+  'insignia de la guardia real': 'insignia_guardia_real',
+  'mena de hierro negro': 'mena_hierro_negro', 'corazon de hierro negro': 'corazon_hierro_negro',
+  // objetos de misión de las Montañas
+  'llave de la mina profunda': 'llave_mina', 'carta de elenya': 'carta_elenya', 'hacha de orco marcada': 'hacha_orco',
+  'cristal de la veta': 'cristal_veta', 'esquirla del segundo sello': 'esquirla_sello', 'nota del brujo': 'nota_brujo',
+  'corazon de la tormenta': 'corazon_tormenta', 'segundo fragmento de sello': 'fragmento_sello_montanas',
 };
 
 // índice en el atlas de objetos, o null

@@ -10,9 +10,10 @@ import bus from '../../game/bus';
 import audio from '../../game/audio';
 import { ELEMENTS, splitResistances } from '../../game/elements';
 import { statusesOf } from '../../game/statuses';
+import { isDungeon } from '../../game/world/shared';
 import './Battle.css';
 
-const ZONE_BACKGROUND = { 1: 'pradera' };
+const ZONE_BACKGROUND = { 1: 'pradera', 2: 'montanas' };
 // combate en grupo: a partir de cuándo se puede saltar el turno de un compañero que no responde
 // (el servidor exige lo mismo, ver IDLE_TURN_MS en routes/combat.js) y cada cuánto se pregunta
 // por el estado mientras actúa otro (por si se pierde un aviso del socket)
@@ -185,11 +186,11 @@ async function startOrResume(encounter, token, playerId) {
   // compartida; si no, encuentro de la zona
   try {
     if (encounter.kind === 'mythic') initial = await api.enterMitico(playerId, token);
-    else if (encounter.kind === 'cripta') initial = await api.combateCripta(playerId, encounter.target, token);
+    else if (encounter.kind === 'cripta') initial = await api.combateMazmorra(playerId, encounter.dungeon ?? 'cripta', encounter.target, token);
     else if (encounter.kind === 'emboscada') initial = await api.createCombatSession(encounter.monsters, token);
     else initial = encounter.kind === 'boss' || encounter.kind === 'esbirro'
       ? await api.createCombatSession([{ code: encounter.code, level: encounter.level }], token)
-      : await api.exploreZone(encounter.zoneId, token, undefined, encounter.code, encounter.areaLevels, !!encounter.group, encounter.position);
+      : await api.exploreZone(encounter.zoneId, token, undefined, encounter.code, encounter.areaLevels, !!encounter.group, encounter.position, encounter.areaMonsters);
     return { initial, resumed: false };
   } catch (err) {
     // otra pestaña ya creó el combate: retomarlo
@@ -335,7 +336,8 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
           heroBaseClass,
           heroHasWeapon,
           playerId: player.id,
-          background: encounter.kind === 'cripta' || encounter.position?.zona === 'cripta' ? 'cripta' : ZONE_BACKGROUND[encounter.zoneId] ?? 'pradera',
+          // las mazmorras pelean sobre piedra bajo tierra (el fondo de la cripta)
+          background: encounter.kind === 'cripta' || isDungeon(encounter.position?.zona) ? 'cripta' : ZONE_BACKGROUND[encounter.zoneId] ?? 'pradera',
         });
         await ready;
         if (cancelled) return;
@@ -892,15 +894,15 @@ Se puede usar cada ${s.cooldownRounds} rondas.` : '';
                 {result.rewards.mythic?.killed && <span className="bt-levelup">¡Derribaste al jefe mítico! El botín se reparte entre todos los cazadores.</span>}
                 {result.rewards.crypt?.guardian && (
                   <span className="bt-bestiary">
-                    <GameIcon name="dungeon-gate" artist="delapouite" /> Cayó un guardián de la cripta ({result.rewards.crypt.guardians.length}/{result.rewards.crypt.totalGuardians})
-                    {result.rewards.crypt.doorOpen ? ': ¡la Puerta del Vigía se abre!' : ''}
+                    <GameIcon name="dungeon-gate" artist="delapouite" /> Cayó un {result.rewards.crypt.guardianWord ?? 'guardián de la cripta'} ({result.rewards.crypt.guardians.length}/{result.rewards.crypt.totalGuardians})
+                    {result.rewards.crypt.doorOpen ? `: ¡${result.rewards.crypt.doorName ?? 'la Puerta del Vigía'} se abre!` : ''}
                   </span>
                 )}
                 {result.rewards.crypt?.boss && (
                   <span className="bt-levelup">
-                    <GameIcon name="lighthouse" artist="delapouite" /> ¡El Vigía Caído se apaga!
+                    <GameIcon name={result.rewards.crypt.bossIcon ?? 'lighthouse'} artist="delapouite" /> {result.rewards.crypt.bossDownText ?? '¡El Vigía Caído se apaga!'}
                     {result.rewards.crypt.chest
-                      ? ` Cofre del Vigía: +${Number(result.rewards.crypt.chest.gold).toLocaleString()} oro${result.rewards.crypt.chest.item ? ` y ${result.rewards.crypt.chest.item.name} x${result.rewards.crypt.chest.item.quantity}` : ''}.`
+                      ? ` ${result.rewards.crypt.chestName ?? 'Cofre del Vigía'}: +${Number(result.rewards.crypt.chest.gold).toLocaleString()} oro${result.rewards.crypt.chest.item ? ` y ${result.rewards.crypt.chest.item.name} x${result.rewards.crypt.chest.item.quantity}` : ''}.`
                       : ' Su cofre ya lo abriste hoy: vuelve mañana por otro.'}
                   </span>
                 )}

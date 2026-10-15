@@ -20,7 +20,8 @@ const UNIT_SCALE = 1.7;
 // pies de cada combatiente; el primero es el de adelante. Los monstruos van en espejo.
 // como mucho 3 por lado (3 jugadores, o 1 jugador y sus 2 compañeros, o 2 jugadores y uno)
 // el cuarto puesto es para un refuerzo que llega a mitad de la pelea
-const HERO_SLOTS = [{ x: 212, y: 296 }, { x: 160, y: 270 }, { x: 150, y: 326 }, { x: 104, y: 298 }];
+// (bien metidos en el suelo: la fila de atrás no queda sobre la línea del horizonte)
+const HERO_SLOTS = [{ x: 214, y: 312 }, { x: 166, y: 290 }, { x: 140, y: 332 }, { x: 100, y: 312 }];
 const ENEMY_SLOTS = HERO_SLOTS.map((s) => ({ x: VW - s.x, y: s.y }));
 
 const BASE_CLASSES = ['guerrero', 'mago', 'arquero', 'picaro', 'sacerdote'];
@@ -30,9 +31,11 @@ const BACKGROUNDS = {
   pradera: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
   // la Cripta del Vigía (art/sprites/mundo/crear_fondo_cripta.lua): mismas capas, bajo tierra
   cripta: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
+  // Montañas Grises (art/sprites/mundo/crear_fondo_montanas.lua): picos nevados y cielo de tormenta
+  montanas: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
 };
 // colores para rellenar arriba y abajo del escenario en pantalla vertical
-const FILL_COLORS = { pradera: [0x4f86d6, 0xc9a46a], cripta: [0x0c0a16, 0x3a3650] };
+const FILL_COLORS = { pradera: [0x4f86d6, 0xc9a46a], cripta: [0x0c0a16, 0x3a3650], montanas: [0x5a6478, 0xf4f8fc] };
 // cuánto se mueve cada capa respecto de la cámara (parallax)
 const LAYER_SCROLL = [0.05, 0.18, 0.4, 1, 1.25];
 
@@ -207,13 +210,18 @@ export default class BattleScene extends Phaser.Scene {
         ];
       }
       cam.setZoom(this.baseZoom);
-      cam.centerOn(VW / 2, VH * 0.66);
+      // centro del encuadre: en vertical, más abajo (la pelea va sobre el suelo, no en el cielo)
+      this.homeY = VH * 0.66 + 12;
+      cam.centerOn(VW / 2, this.homeY);
     } else {
       this.fillers?.forEach((f) => f.destroy());
       this.fillers = null;
       this.baseZoom = Math.max(width / VW, height / VH);
       cam.setZoom(this.baseZoom);
-      cam.centerOn(VW / 2, VH / 2);
+      // un poco más abajo que la mitad, sin pasarse del borde de abajo del fondo (las capas, escaladas,
+      // llegan hasta y = 395): en pantallas más anchas que 16:9 la pelea queda sobre el suelo
+      this.homeY = Math.min(VH / 2 + 6, 395 - height / this.baseZoom / 2);
+      cam.centerOn(VW / 2, this.homeY);
     }
     // Una capa con scrollFactor f se dibuja corrida scrollX*(1-f) respecto de una normal: se
     // compensa con la posición base de la cámara para que todas calcen en el encuadre inicial y
@@ -392,7 +400,7 @@ export default class BattleScene extends Phaser.Scene {
     this.tweens.add({ targets: u.body, scaleX: u.body.scaleX * 1.08, scaleY: u.body.scaleY * 1.08, duration: 160, yoyo: true, repeat: 2 });
     await wait(this, 1500);
     if (u.alive) this.playUnit(u, 'idle');
-    cam.pan(VW / 2, VH / 2, 600, 'Sine.easeInOut');
+    cam.pan(VW / 2, this.homeY, 600, 'Sine.easeInOut');
     this.tweens.add({ targets: cam, zoom: this.baseZoom, duration: 600, ease: 'Sine.easeInOut' });
     await wait(this, 620);
   }
@@ -474,7 +482,7 @@ export default class BattleScene extends Phaser.Scene {
     if (log.action === 'SKILL' && actor.pid === ctx.actorId && ctx.actionElement) return ctx.actionElement;
     // habilidad de un compañero de grupo: el back manda su elemento
     if (log.action === 'SKILL' && actor.kind !== 'monster' && log.skill_element) return log.skill_element;
-    if (actor.kind === 'monster') return actor.elementCode;
+    if (actor.kind === 'monster') return (log.action === 'SKILL' && log.skill_element) || actor.elementCode;
     if (log.action === 'ATTACK') return actor.imbued;
     return null;
   }
@@ -776,7 +784,7 @@ export default class BattleScene extends Phaser.Scene {
     this.activeArrow = null;
     // recentrar siempre (por si el final llegó con la cámara todavía acercada a un golpe)
     this.breathTween?.stop();
-    this.cameras.main.pan(VW / 2, VH / 2, 500, 'Sine.easeInOut', true);
+    this.cameras.main.pan(VW / 2, this.homeY, 500, 'Sine.easeInOut', true);
     if (status === 'PLAYER_WON') {
       [...this.units.values()].filter((u) => u.kind === 'hero' && u.alive).forEach((u) => this.playUnit(u, 'victory'));
       this.tweens.add({ targets: this.cameras.main, zoom: this.baseZoom * 1.08, duration: 1200, ease: 'Sine.easeOut' });
@@ -822,6 +830,16 @@ export default class BattleScene extends Phaser.Scene {
     // monstruos: el back dice qué habilidad usaron (combat_log.skill_code) y cada una tiene su efecto
     const mcode = log.skill_code ?? '';
     if (mcode) {
+      // Montañas Grises
+      if (/MORDIDA_HELADA/.test(mcode)) return { kind: 'bite', color: 0x8ad8ff };
+      if (/CORNADA|PICADO|LANZAZO/.test(mcode)) return { kind: 'charge' };
+      if (/GOLPE_PICO|ZARPAZO/.test(mcode)) return { kind: 'slash', heavy: true };
+      if (/CHILLIDO/.test(mcode)) return { kind: 'shriek' };
+      if (/PIEL_PIEDRA/.test(mcode)) return { kind: 'buff', shield: true };
+      if (/REGENERACION/.test(mcode)) return { kind: 'buff', regen: true };
+      if (/AVALANCHA/.test(mcode)) return { kind: 'quake', snow: true };
+      if (/DESCARGA|ALIENTO_HELADO/.test(mcode)) return { kind: 'storm' };
+      if (/TOQUE_GELIDO/.test(mcode)) return { kind: 'bolt' };
       if (/MORDIDA/.test(mcode)) return { kind: 'bite', color: 0xff5a5a };
       if (/PICADURA|MORDISCO/.test(mcode)) return { kind: 'bite', color: 0x7be05a, small: /MORDISCO/.test(mcode) };
       if (/PIEDRAZO/.test(mcode)) return { kind: 'throw' };
@@ -902,7 +920,8 @@ export default class BattleScene extends Phaser.Scene {
       case 'charge': return this.fxCharge(actor, main, hits);
       case 'slash': return this.fxSlash(actor, main, hits, element, style);
       case 'flurry': return this.fxFlurry(actor, main, hits, element, style.hits);
-      case 'quake': return this.fxQuake(actor, hits, element);
+      case 'quake': return this.fxQuake(actor, hits, element, style);
+      case 'shriek': return this.fxShriek(actor, hits);
       case 'shot': return this.fxShot(actor, main, hits, element, style);
       case 'volley': return this.fxVolley(actor, hits, element);
       case 'bolt': return this.fxBolt(actor, main, hits, element, style);
@@ -1019,7 +1038,7 @@ export default class BattleScene extends Phaser.Scene {
     this.resetFocus();
   }
 
-  async fxQuake(actor, hits, element) {
+  async fxQuake(actor, hits, element, style = {}) {
     this.focusOn(actor);
     this.playUnit(actor, actor.kind === 'hero' ? 'attack_melee' : 'cast');
     const parts = [actor.body, actor.weapon, actor.offhand].filter(Boolean);
@@ -1030,10 +1049,27 @@ export default class BattleScene extends Phaser.Scene {
     for (const h of hits) {
       this.emit(h.unit.home.x, h.unit.home.y, 'roca', {
         speedX: { min: -60, max: 60 }, speedY: { min: -190, max: -80 }, gravityY: 440, lifespan: 700,
-        scale: { start: 1.4, end: 0.5 }, tint: [0x8a6a4a, 0x5a4030, 0xc8a070], blendMode: 'NORMAL', rotate: { min: 0, max: 360 },
-      }, 14);
+        scale: { start: 1.4, end: 0.5 }, tint: style.snow ? [0xf4f8fc, 0xc2d0e0, 0x7e90a8] : [0x8a6a4a, 0x5a4030, 0xc8a070],
+        blendMode: 'NORMAL', rotate: { min: 0, max: 360 },
+      }, style.snow ? 22 : 14);
     }
     await this.hitAll(hits, null, element ?? 'EARTH', actor, 110);
+    if (actor.alive) this.playUnit(actor, 'idle');
+    this.resetFocus();
+  }
+
+  async fxShriek(actor, hits) {
+    this.focusOn(actor);
+    this.playUnit(actor, 'attack');
+    await wait(this, 180);
+    this.cameras.main.shake(420, 0.01);
+    for (let i = 0; i < 4; i++) this.time.delayedCall(i * 90, () => this.ring(actor.home.x, actor.home.y - 34, 0xd8c8ff, 30 + i * 22, 480));
+    hits.forEach((h, i) => this.time.delayedCall(220 + i * 80, () => {
+      this.ring(h.unit.home.x, h.unit.home.y - 30, 0xd8c8ff, 22, 360);
+      this.ring(h.unit.home.x, h.unit.home.y - 30, 0xffffff, 12, 300);
+    }));
+    await wait(this, 300);
+    await this.hitAll(hits, null, null, actor, 90);
     if (actor.alive) this.playUnit(actor, 'idle');
     this.resetFocus();
   }
@@ -1223,7 +1259,7 @@ export default class BattleScene extends Phaser.Scene {
 
   async fxBuff(actor, target, style) {
     this.playUnit(actor, style.shout && actor.kind === 'hero' ? 'victory' : 'cast');
-    const color = style.holy ? 0xffe680 : style.shield ? 0x8fc9ff : 0xffd84a;
+    const color = style.holy ? 0xffe680 : style.shield ? 0x8fc9ff : style.regen ? 0x7dff9a : 0xffd84a;
     if (style.shout) {
       // grito de guerra: ondas que salen del que grita
       this.cameras.main.shake(380, 0.008);
@@ -1819,13 +1855,14 @@ export default class BattleScene extends Phaser.Scene {
     const cx = b ? (a.home.x + b.home.x) / 2 : a.home.x;
     this.breathTween?.pause();
     this.tweens.add({ targets: cam, zoom: this.baseZoom * 1.12, duration: 300, ease: 'Sine.easeOut' });
-    cam.pan(cx, VH / 2 + 30, 300, 'Sine.easeOut');
+    cam.pan(cx, Math.max(VH / 2 + 30, this.homeY), 300, 'Sine.easeOut');
   }
 
   resetFocus() {
     const cam = this.cameras.main;
     this.tweens.add({ targets: cam, zoom: this.baseZoom, duration: 400, ease: 'Sine.easeInOut' });
-    cam.pan(VW / 2, VH / 2, 400, 'Sine.easeInOut', false, (_c, progress) => {
+    // vuelve al centro del encuadre inicial (en vertical no es VH / 2: si no, el encuadre se corría)
+    cam.pan(VW / 2, this.homeY, 400, 'Sine.easeInOut', false, (_c, progress) => {
       if (progress === 1) this.breathTween?.resume();
     });
   }

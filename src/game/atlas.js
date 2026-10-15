@@ -15,7 +15,7 @@ export const ATLAS_ZONES = {
     dir: 'pradera', x: 268, y: 238, color: '#d8b84a', icon: ['wheat', 'lorc'],
     route: 'Tierras de cultivo al sur de la capital. Aldea Espiga está en el cruce de caminos.',
   },
-  2: { x: 420, y: 214, color: '#9aa0a8', icon: ['stone-pile', 'delapouite'], route: 'Al este de la Pradera, siguiendo el Camino del Este hasta salir del mapa.' },
+  2: { dir: 'montanas', x: 420, y: 214, color: '#9aa0a8', icon: ['stone-pile', 'delapouite'], route: 'Al este de la Pradera, siguiendo el Camino del Este. El Bastión de Hierro está en el corazón de la sierra.' },
   3: { x: 528, y: 118, color: '#d0603a', icon: ['fireball', 'lorc'], route: 'Al noreste, atravesando los pasos de las Montañas Grises.' },
   4: { x: 476, y: 334, color: '#5a8cae', icon: ['water-flask', 'delapouite'], route: 'Bajando hacia el mar desde el Volcán Rojo, por la costa este.' },
   5: { x: 330, y: 50, color: '#bfe2f2', icon: ['ice-bolt', 'lorc'], route: 'Lejos al norte, más allá de la capital.' },

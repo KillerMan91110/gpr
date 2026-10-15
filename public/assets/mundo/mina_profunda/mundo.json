@@ -1,0 +1,97 @@
+{
+ "nombre": "La Mina Profunda",
+ "zona": 2,
+ "interior": true,
+ "mazmorra": "mina_profunda",
+ "musica": "cripta",
+ "tileset": "mina",
+ "terrenos": [
+  "suelo",
+  "muro",
+  "rieles",
+  "sello",
+  "escalera"
+ ],
+ "tile": 32,
+ "mazmorraArte": {
+  "brasero": "farol",
+  "puerta": "reja_sello",
+  "luzPuerta": 10152191
+ },
+ "chunkWidth": 40,
+ "chunkHeight": 30,
+ "columns": 1,
+ "rows": 2,
+ "encuentroHierba": 0,
+ "gidHierba": 0,
+ "inicio": {
+  "x": 640,
+  "y": 208
+ },
+ "clima": {
+  "estacion": "interior",
+  "lluvia": 0
+ },
+ "gids": {
+  "flores": [],
+  "agua": [],
+  "prado": [],
+  "arboles": [],
+  "dorados": [],
+  "seco": []
+ },
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
+  }
+ ],
+ "subzonas": [
+  {
+   "name": "Entrada",
+   "x0": 416,
+   "y0": 96,
+   "x1": 864,
+   "y1": 640,
+   "levels": "18-24"
+  },
+  {
+   "name": "Galería de las Vagonetas",
+   "x0": 128,
+   "y0": 640,
+   "x1": 1152,
+   "y1": 1248,
+   "levels": "18-24"
+  },
+  {
+   "name": "Pozo de Cristal",
+   "x0": 288,
+   "y0": 1248,
+   "x1": 992,
+   "y1": 1568,
+   "levels": "18-24"
+  },
+  {
+   "name": "Cámara del Sello",
+   "x0": 224,
+   "y0": 1568,
+   "x1": 1056,
+   "y1": 1888,
+   "levels": "18-24"
+  },
+  {
+   "name": "La Mina Profunda",
+   "x0": 0,
+   "y0": 0,
+   "x1": 1280,
+   "y1": 1920,
+   "levels": null
+  }
+ ]
+}

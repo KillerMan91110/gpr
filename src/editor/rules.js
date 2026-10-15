@@ -6,7 +6,9 @@
 
 export const TERRAIN_LIST = ['pasto', 'dorado', 'camino', 'agua', 'hierba', 'plaza', 'guarida', 'trigo', 'seco', 'meseta', 'cara', 'escalera', 'puente', 'muro',
   // v4 (ciudad)
-  'adoquin', 'losa', 'mosaico', 'canal', 'puentep'];
+  'adoquin', 'losa', 'mosaico', 'canal', 'puentep',
+  // v5 (Montañas Grises)
+  'roca', 'nieve', 'abismo', 'hielo', 'hierban', 'mesetan', 'caran', 'colgante'];
 
 // Pinceles de terreno de la paleta (orden y nombre que se ven)
 export const TERRAIN_BRUSHES = [
@@ -28,9 +30,19 @@ export const TERRAIN_BRUSHES = [
   { id: 'mosaico', label: 'Mosaico', icon: 'mosaico' },
   { id: 'canal', label: 'Canal', icon: 'canal_10' },
   { id: 'puentep', label: 'Puente de piedra', icon: 'puente_piedra_v' },
+  { id: 'roca', label: 'Roca de montaña', icon: 'roca_15' },
+  { id: 'nieve', label: 'Nieve', icon: 'nieve_15' },
+  { id: 'hierban', label: 'Hierba nevada (combates)', icon: 'hierba_nevada' },
+  { id: 'hielo', label: 'Hielo', icon: 'hielo_15' },
+  { id: 'abismo', label: 'Abismo', icon: 'abismo_15' },
+  { id: 'colgante', label: 'Puente colgante', icon: 'colgante_h' },
+  { id: 'mesetan', label: 'Meseta nevada (con pared)', icon: 'mesetan_4' },
+  { id: 'caran', label: 'Pared de roca nevada', icon: 'cara_n_a_c' },
 ];
 
-const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_[hv]|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_[hv])$/;
+const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_[hv]|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_[hv]|caminor_\d+|roca_(\d+|grava|musgo)|nieve_(\d+|huellas)|abismo_\d+|hielo_\d+|mesetan_\d+|cara_n_[ab]_[icd]|colgante_[hv]|hierba_nevada)$/;
+
+const MOUNTAIN = ['roca', 'nieve', 'mesetan', 'hierban', 'abismo', 'hielo'];
 
 export function terrainOfName(name) {
   if (!name) return 'pasto';
@@ -39,6 +51,14 @@ export function terrainOfName(name) {
   if (name === 'mosaico') return 'mosaico';
   if (/^canal_/.test(name)) return 'canal';
   if (/^puente_piedra_/.test(name)) return 'puentep';
+  if (/^roca_(\d+|grava|musgo)$/.test(name)) return 'roca';
+  if (/^nieve_/.test(name)) return 'nieve';
+  if (/^abismo_/.test(name)) return 'abismo';
+  if (/^hielo_\d+$/.test(name)) return 'hielo';
+  if (/^mesetan_/.test(name)) return 'mesetan';
+  if (/^cara_n_/.test(name)) return 'caran';
+  if (/^colgante_/.test(name)) return 'colgante';
+  if (name === 'hierba_nevada') return 'hierban';
   if (/^camino/.test(name)) return 'camino';
   if (/^agua|^orilla_agua/.test(name)) return 'agua';
   if (/^trigo_/.test(name)) return 'trigo';
@@ -64,6 +84,10 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
   const pastoFamily = new Set([T.pasto, T.pasto_matas, T.pasto_flores, T.dorado_15].filter(Boolean));
   const cobbleFamily = new Set([T.adoquin, T.adoquin_b, T.adoquin_musgo].filter(Boolean));
   const slabFamily = new Set([T.losa, T.losa_b].filter(Boolean));
+  const rockFamily = new Set([T.roca_15, T.roca_grava, T.roca_musgo].filter(Boolean));
+  const snowFamily = new Set([T.nieve_15, T.nieve_huellas].filter(Boolean));
+  const randomRock = () => { const r = Math.random(); return r < 0.08 ? T.roca_grava : r < 0.12 ? T.roca_musgo : T.roca_15; };
+  const randomSnow = () => (Math.random() < 0.06 ? T.nieve_huellas : T.nieve_15);
   const randomCobble = () => { const r = Math.random(); return r < 0.12 ? T.adoquin_musgo : r < 0.4 ? T.adoquin_b : T.adoquin; };
 
   const randomPasto = () => {
@@ -85,10 +109,18 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
   function groundGid(tAt, x, y, cur) {
     const t = tAt(x, y);
     const mask = (same) => (same(tAt(x, y - 1)) ? 1 : 0) | (same(tAt(x + 1, y)) ? 2 : 0) | (same(tAt(x, y + 1)) ? 4 : 0) | (same(tAt(x - 1, y)) ? 8 : 0);
-    const isPath = (n) => ['camino', 'plaza', 'guarida', 'puente', 'escalera', null].includes(n);
+    const isPath = (n) => ['camino', 'plaza', 'guarida', 'puente', 'escalera', 'colgante', null].includes(n);
+    const isChasm = (n) => n === 'abismo' || n === 'colgante';
+    // como en art/mapas/generar_montanas.js
+    const rockLike = (n) => ['roca', 'nieve', 'hierban', 'camino', 'plaza', 'muro', 'abismo', 'colgante', 'hielo', 'mesetan', 'caran', 'escalera', null].includes(n);
+    const snowLike = (n) => ['nieve', 'hierban', 'hielo', 'mesetan', null].includes(n);
     const isWater = (n) => n === 'agua' || n === 'puente';
     switch (t) {
-      case 'camino': return T[`camino_${mask(isPath)}`];
+      case 'camino': {
+        // entre la roca de la montaña, el camino lleva orilla de roca (caminor_*)
+        const rock = T.caminor_0 && [tAt(x, y - 1), tAt(x + 1, y), tAt(x, y + 1), tAt(x - 1, y)].some((n) => MOUNTAIN.includes(n));
+        return T[`${rock ? 'caminor' : 'camino'}_${mask(isPath)}`];
+      }
       case 'agua': return T[`agua_${mask(isWater)}`];
       case 'puente': return isWater(tAt(x - 1, y)) && isWater(tAt(x + 1, y)) ? T.puente_v : T.puente_h;
       case 'hierba': return T.hierba_alta;
@@ -112,6 +144,31 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
       case 'mosaico': return T.mosaico;
       case 'canal': return T[`canal_${mask((n) => n === 'canal' || n === 'puentep')}`];
       case 'puentep': return tAt(x - 1, y) === 'canal' && tAt(x + 1, y) === 'canal' ? T.puente_piedra_v : T.puente_piedra_h;
+      case 'roca': {
+        const m = mask(rockLike);
+        if (m === 15) return rockFamily.has(cur) ? cur : randomRock();
+        return T[`roca_${m}`];
+      }
+      case 'nieve': {
+        const m = mask(snowLike);
+        if (m === 15) return snowFamily.has(cur) ? cur : randomSnow();
+        return T[`nieve_${m}`];
+      }
+      case 'mesetan': {
+        const m = mask((n) => ['mesetan', 'caran', 'escalera', 'hierban'].includes(n));
+        if (m === 15) return snowFamily.has(cur) ? cur : randomSnow();
+        return T[`mesetan_${m}`];
+      }
+      case 'abismo': return T[`abismo_${mask(isChasm)}`];
+      case 'colgante': return isChasm(tAt(x - 1, y)) && isChasm(tAt(x + 1, y)) ? T.colgante_v : T.colgante_h;
+      case 'hielo': return T[`hielo_${mask((n) => n === 'hielo')}`];
+      case 'hierban': return T.hierba_nevada;
+      case 'caran': {
+        const top = tAt(x, y - 1) === 'mesetan';
+        const sideOk = (n) => n === 'caran' || n === 'escalera';
+        const side = !sideOk(tAt(x - 1, y)) ? 'i' : (!sideOk(tAt(x + 1, y)) ? 'd' : 'c');
+        return T[`cara_n_${top ? 'a' : 'b'}_${side}`];
+      }
       case 'cara': {
         const top = tAt(x, y - 1) === 'meseta';
         const sideOk = (n) => n === 'cara' || n === 'escalera';

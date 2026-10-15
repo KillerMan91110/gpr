@@ -302,6 +302,13 @@ local NPCS = {
   npc_sela = {race="humano", style="mono", hair="Hd", hairD="K", top="Cy", topD="y", topL="Y", apron="T", pants="Cn", boots="b", skin=N, skinD=Nd},
   -- Vera, la cazadora de la atalaya: capucha verde, ropa de cuero y botas
   npc_vera = {race="humano", style="capucha", hair="Cg", hairD="g", top="Cg", topD="g", topL="Gh", pants="Cn", boots="b", belt="b", skin=D, skinD=Dd},
+  -- Bastión de Hierro (Montañas Grises)
+  -- Durgan, el jefe minero enano: casco con vela, barba pelirroja trenzada y chaleco de cuero sobre camisa gris
+  npc_durgan = {race="enano", style="casco", hat="Y", hair="Ho", beard="Ho", top="A", topD="a", topL="Ah", vest="Cn", pants="b", boots="b", belt="N", skin=D, skinD=Dd},
+  -- Hilda, la cocinera del Bastión: enana de moño rubio, mejillas rojas y delantal blanco sobre vestido verde
+  npc_hilda = {race="enano", style="mono", hair="Y", hairD="y", top="Cg", topD="g", topL="Gh", apron="Cw", pants="Cn", boots="b", skin=P, skinD=Pd},
+  -- Tilo, ahora escudero de los enanos: el mismo pelo naranja, con casco y peto de hierro que le quedan grandes
+  npc_tilo_escudero = {race="nino", style="casco", hat="Cb", hair="Ho", hairD="o", top="S", topD="s", topL="W", tabard="Cb", pants="Cn", boots="b", belt="N", skin=D, skinD=Dd},
 }
 -- solo=npc_a,npc_b genera solo esos (para no rehacer los que ya tienen retoques)
 local solo = app.params.solo

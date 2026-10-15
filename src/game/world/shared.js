@@ -9,6 +9,12 @@ export const TAG_RES = 4;
 
 export const ASSETS = `${process.env.PUBLIC_URL}/assets`;
 export const DEFAULT_ZONE = 'pradera';
+// mazmorras (gprback/lib/mazmorra.js): carpeta de la zona → niveles de sus combates y prefijo de sus monstruos
+export const DUNGEONS = {
+  cripta: { min: 5, max: 12, codePrefix: 'CRIPTA_' },
+  mina_profunda: { min: 18, max: 24, codePrefix: 'MINA_' },
+};
+export const isDungeon = (dir) => !!DUNGEONS[dir];
 export const SPEED = 110;
 // Las ciudades son grandes: dentro se corre un 50% más rápido (bufo "Paso de la ciudad", que se
 // ve en el HUD y se pierde al salir). Una zona puede fijar el suyo con "velocidad" en su
@@ -70,6 +76,13 @@ export const RESOURCES = {
   lino: { sheet: 'recursos3', frames: [0, 1], label: 'Cosechar el lino', glint: 0xb8d8ff },
   cuarzo: { sheet: 'recursos3', frames: [2, 3], label: 'Recoger el cuarzo de río', glint: 0xf0c8ff },
   trigo: { sheet: 'recursos3', frames: [4, 5], label: 'Segar el trigo', glint: 0xffe070 },
+  // Montañas Grises (art/sprites/mundo/crear_recursos4.lua)
+  veta_montana: { sheet: 'recursos4', frames: [0, 1], label: 'Picar la veta de acero', glint: 0x6fc3ff },
+  pino: { sheet: 'recursos4', frames: [2, 3], label: 'Talar el pino', glint: 0xfff4a0 },
+  flor_nieve: { sheet: 'recursos4', frames: [4, 5], label: 'Recoger la flor de nieve', glint: 0xe6fbff },
+  cristal_lago: { sheet: 'recursos4', frames: [6, 7], label: 'Recoger el cristal del lago', glint: 0xa8e4ff },
+  restos_montana: { sheet: 'recursos2', frames: [8, 9], label: 'Registrar los restos', glint: 0xffd84a },
+  cofre_montana: { sheet: 'recursos', frames: [4, 5], label: 'Abrir el cofre', glint: 0xffd84a },
 };
 // mascotas.png: 2 frames por especie, en este orden
 export const PET_SPECIES = ['lobo', 'ave', 'limo', 'gato', 'dragon', 'zorro', 'tortuga', 'arana'];

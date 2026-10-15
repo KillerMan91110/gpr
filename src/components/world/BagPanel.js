@@ -107,6 +107,8 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
       } else if (it.item_type === 'CONSUMABLE' && !NO_GENERIC_USE.has(it.code)) {
         const r = await api.useItem(player.id, it.item_id, token);
         setMessage({ ok: true, text: r?.message || `Usaste ${it.name}` });
+        // comida con bonus: el HUD muestra "Bien alimentado" con su tiempo
+        if (r?.foodBuff) bus.emit('food-buff', r.foodBuff);
       } else {
         return;
       }

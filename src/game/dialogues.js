@@ -287,6 +287,106 @@ export const DIALOGUES = {
       bosque: 'Desde la primavera los árboles se secan de adentro hacia afuera, como si algo les chupara la savia por las raíces. Y los jabalíes… antes huían del hacha. Ahora la buscan. El roble viejo, más al norte, es el que peor está.',
     },
   },
+  // ---------------------------------------------------------------- Bastión de Hierro (Montañas Grises)
+  // Durgan: el jefe minero enano, gruñón y orgulloso; da la historia de las Montañas
+  durgan: {
+    name: 'Durgan',
+    role: 'Jefe de la mina',
+    portrait: PORTRAIT('durgan'),
+    ambient: [
+      '¡Esa veta no se va a picar sola!',
+      'Mi barba tiene más años que tu espada.',
+      'Las minas cantaban antes. Ahora solo crujen.',
+      'Hmph. Humanos. Siempre con frío.',
+    ],
+    greet: ({ night, mark }) => {
+      if (mark === '?') return '¡Volviste! Y con todas las piernas. Cuéntame, que no tengo todo el día.';
+      if (mark === '!') return 'Tú. Sí, tú, el alto. Tengo trabajo para alguien que no se asuste de la oscuridad.';
+      return night
+        ? pick(['De noche los rayos caen más cerca. Duerme con un ojo abierto.', 'Hmph. Otro que no duerme. Yo tampoco, desde que la mina se volvió loca.'])
+        : pick(['Bienvenido al Bastión de Hierro. No toques nada que brille.', 'Si vienes a cavar, cava. Si vienes a mirar, mira desde lejos.']);
+    },
+    options: () => [
+      { label: '¿Qué pasa en la mina?', next: 'mina' },
+      { label: '¿Y esas tormentas?', next: 'tormenta' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      mina: 'Hace un año los mineros empezaron a ver luces negras en las vetas. Después dejaron de volver a casa. Los que vuelven no son los mismos: tienen los ojos oscuros y pican la roca hasta romperse las manos. Algo hay allá abajo. Algo viejo.',
+      tormenta: 'Mi abuelo decía que el Rey de la Montaña mandaba a los rayos, y que los rayos lo obedecían por amor. Ahora caen donde quieren. El Rey ya no está bien… y nadie se atreve a subir a la Cumbre a preguntarle por qué.',
+    },
+  },
+  // Hilda: la cocinera del Bastión; enseña las comidas de la montaña
+  hilda: {
+    name: 'Hilda',
+    role: 'Cocinera del Bastión',
+    portrait: PORTRAIT('hilda'),
+    ambient: [
+      '¡Sopa caliente para los valientes!',
+      'Un enano con hambre es un enano peligroso.',
+      'La flor de nieve le da un sabor… mmm.',
+      '¿Eso es una costilla de oso? ¡Dámela!',
+    ],
+    greet: ({ night }) => (night
+      ? pick(['A estas horas solo queda caldo. Pero es el mejor caldo de la sierra.', 'Siéntate junto al fuego, que se te ve el frío en la cara.'])
+      : pick(['Nadie sale a la nieve con la panza vacía. Come antes de irte: te dura un buen rato.', 'Tráeme carne de cabra o un buen lomo de oso y te cocino algo que te haga pelear como tres enanos.'])),
+    options: () => [
+      { label: 'Cocinar', window: 'taller' },
+      { label: '¿Por qué comer antes de salir?', next: 'comida' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      comida: 'Porque la comida de verdad no se olvida en un ratito, cielo. Comes antes de salir y durante un buen rato peleas mejor: más fuerza, más aguante, según lo que comas. Uno a la vez, eh, que no quiero enanos reventados.',
+    },
+  },
+  // Ren en las Montañas: llegó antes como explorador, siguiendo al Encapuchado
+  ren_bastion: {
+    name: 'Ren',
+    role: 'Explorador',
+    portrait: PORTRAIT('ren'),
+    ambient: [
+      'Las huellas del Encapuchado siguen hacia el este.',
+      'Nunca vi tanta nieve junta.',
+      'Marta me dio esta bufanda. No me la saco ni para dormir.',
+    ],
+    greet: ({ mark }) => {
+      if (mark === '?') return '¡Ahí estás! Cuéntame qué encontraste.';
+      if (mark === '!') return 'Llegué hace unos días siguiendo al Encapuchado. Tengo algo para ti.';
+      return pick(['Las montañas no son el bosque: aquí el frío te muerde de verdad.', 'Los enanos no confían en nadie. Pero Durgan es buena gente, aunque no lo parezca.']);
+    },
+    options: () => [
+      { label: '¿Qué haces aquí?', next: 'aqui' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      aqui: 'Seguí las huellas del Encapuchado desde el Corazón de la Pradera. Subió por el Paso de la Montaña y se metió en las minas. Los enanos dicen que desde entonces las tormentas no paran. No creo que sea casualidad.',
+    },
+  },
+  // Tilo, ahora escudero de los enanos: ayuda en la forja del Bastión
+  tilo_bastion: {
+    name: 'Tilo',
+    role: 'Escudero de los enanos',
+    portrait: PORTRAIT('tilo_escudero'),
+    ambient: [
+      '¡Mira mi casco! ¡Es de verdad!',
+      'Durgan dice que soy el escudero más ruidoso que tuvo.',
+      '*clang* ¡Ay, mi dedo!',
+      'Partelobos se quedó en casa. ¡Ahora tengo un martillo!',
+    ],
+    greet: ({ mark }) => {
+      if (mark === '?') return '¡Volviste! ¿Me trajiste algo? ¿Una espada? ¿Un dragón?';
+      if (mark === '!') return '¡Tengo una misión importantísima! Bueno… importante. Bueno, una misión.';
+      return pick(['¡Vine a ayudar! Mi mamá no sabe. Bueno, sabe. Gritó mucho.', 'Ahora soy escudero de verdad. Limpio las armaduras y avivo la forja. ¡Y a veces me dejan martillar!']);
+    },
+    options: () => [
+      { label: 'Usar la forja', window: 'taller' },
+      { label: '¿Cómo llegaste hasta aquí?', next: 'llegada' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      llegada: '¡Me colé en la diligencia de Gaspar! Trueno se escapó a mitad del camino y tuvimos que seguirlo hasta el Paso. Cuando llegamos, Durgan me vio cargar un barril y dijo «este sirve». ¡Así que ahora soy escudero!',
+    },
+  },
   // Nilo: el pescador viejo del Lago Cristalino
   nilo: {
     name: 'Nilo',

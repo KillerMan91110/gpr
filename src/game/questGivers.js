@@ -89,4 +89,9 @@ export const NPC_LUGAR = {
   vera: 'la atalaya de las Tierras Heridas',
   elenya: 'la Catedral de Aurelia',
   marta: 'la posada de Aurelia',
+  // Bastión de Hierro (Montañas Grises)
+  durgan: 'la entrada de la mina del Bastión de Hierro',
+  hilda: 'la lonja del Bastión de Hierro',
+  ren_bastion: 'la entrada oeste del Bastión de Hierro',
+  tilo_bastion: 'la forja del Bastión de Hierro',
 };

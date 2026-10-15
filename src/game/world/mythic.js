@@ -261,7 +261,7 @@ export const mythicMethods = {
     if (on !== this.mythicFog.emitting) {
       this.mythicFog.emitting = on;
       this.mythicFog.setParticleTint(this.redMoon ? 0xffc0b8 : 0xc8d8ff);
-      if (on && this.weather === 'lluvia') this.setWeather('despejado');
+      if (on && (this.weather === 'lluvia' || this.weather === 'nieve')) this.setWeather('despejado');
       bus.emit('weather', on ? 'niebla' : this.weather);
     }
   },

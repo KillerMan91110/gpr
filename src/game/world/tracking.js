@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { TAG_FONT, TAG_RES, propOf } from './shared';
+import { TAG_FONT, TAG_RES, propOf, DUNGEONS } from './shared';
 
 // Rastreo de misiones: para cada misión que el jugador rastrea (botón 📍 del diario o del
 // seguidor), una flecha alrededor del héroe apunta al objetivo del paso actual, con el nombre de la
@@ -55,9 +55,10 @@ export const trackingMethods = {
       case 'boss': {
         const boss = (this.bossPoints ?? []).filter((b) => b.code === target.code).map((b) => ({ x: b.x, y: b.y }));
         if (boss.length) return boss;
-        // jefes de la Cripta: la puerta de la Cripta del Vigía
-        if (/^CRIPTA_/.test(target.code ?? '')) {
-          return (this.exits ?? []).filter((e) => e.dest === 'cripta').map((e) => ({ x: e.rect.centerX, y: e.rect.centerY }));
+        // jefes de una mazmorra: su puerta (la Cripta del Vigía, la Mina Profunda)
+        const dungeon = Object.entries(DUNGEONS).find(([, d]) => (target.code ?? '').startsWith(d.codePrefix))?.[0];
+        if (dungeon) {
+          return (this.exits ?? []).filter((e) => e.dest === dungeon).map((e) => ({ x: e.rect.centerX, y: e.rect.centerY }));
         }
         return [];
       }

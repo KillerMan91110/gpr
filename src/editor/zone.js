@@ -280,6 +280,9 @@ export class Zone {
   // ------------------------------------------------------------ pintar
   // Terreno con bordes automáticos (como los autotiles de RPG Maker)
   paintTerrain(cells, terrain) {
+    // terreno que esta zona aún no usaba (p. ej. nieve en la Pradera): se suma al final de su lista,
+    // así los códigos que ya están pintados no cambian
+    if (!this.terrainList.includes(terrain) && TERRAIN_LIST.includes(terrain)) this.terrainList.push(terrain);
     const c = this.terrainList.indexOf(terrain);
     if (c < 0) return;
     this.begin(`Pintar ${terrain}`);
@@ -291,31 +294,39 @@ export class Zone {
     }
     if (!box) return;
     if (terrain === 'meseta') { this.addCliffs(box); box.y1 += 3; }
-    else if (terrain !== 'cara' && terrain !== 'escalera') { this.removeOrphanCliffs(box); box.y1 += 3; }
+    else if (terrain === 'mesetan') { this.addCliffs(box, 'mesetan', 'caran'); box.y1 += 3; }
+    else if (!['cara', 'caran', 'escalera'].includes(terrain)) {
+      this.removeOrphanCliffs(box);
+      this.removeOrphanCliffs(box, 'mesetan', 'caran');
+      box.y1 += 3;
+    }
     this.retile(box, 1);
   }
 
-  // la meseta lleva su pared de roca de dos filas debajo del borde sur
-  addCliffs(box) {
+  // la meseta lleva su pared de roca de dos filas debajo del borde sur (la nevada, la suya)
+  addCliffs(box, top = 'meseta', wall = 'cara') {
+    if (!this.terrainList.includes(wall)) this.terrainList.push(wall);
+    const keep = top === 'meseta' ? ['agua', 'meseta', 'puente', 'trigo', 'escalera', 'cara'] : ['abismo', 'hielo', 'colgante', 'mesetan', 'escalera', 'caran'];
     for (let x = box.x0; x <= box.x1; x++) {
       for (let y = box.y0 - 1; y <= box.y1; y++) {
-        if (this.tAt(x, y) !== 'meseta' || ['meseta', 'trigo'].includes(this.tAt(x, y + 1))) continue;
+        if (this.tAt(x, y) !== top || [top, 'trigo'].includes(this.tAt(x, y + 1))) continue;
         for (const dy of [1, 2]) {
           const n = this.tAt(x, y + dy);
-          if (n !== null && !['agua', 'meseta', 'puente', 'trigo', 'escalera', 'cara'].includes(n)) this.set('terreno', x, y + dy, this.terrainList.indexOf('cara'));
+          if (n !== null && !keep.includes(n)) this.set('terreno', x, y + dy, this.terrainList.indexOf(wall));
         }
       }
     }
   }
 
-  // paredes que se quedaron sin meseta encima vuelven a ser pasto
-  removeOrphanCliffs(box) {
-    const pasto = this.terrainList.indexOf('pasto');
+  // paredes que se quedaron sin meseta encima vuelven a ser pasto (las nevadas, roca)
+  removeOrphanCliffs(box, top = 'meseta', wall = 'cara') {
+    if (!this.terrainList.includes(wall)) return;
+    const pasto = Math.max(0, this.terrainList.indexOf(top === 'meseta' ? 'pasto' : 'roca'));
     for (let x = box.x0; x <= box.x1; x++) {
       for (let y = box.y0; y <= box.y1 + 3; y++) {
-        if (this.tAt(x, y) !== 'cara') continue;
+        if (this.tAt(x, y) !== wall) continue;
         const up = this.tAt(x, y - 1);
-        const ok = up === 'meseta' || ((up === 'cara' || up === 'escalera') && this.tAt(x, y - 2) === 'meseta');
+        const ok = up === top || ((up === wall || up === 'escalera') && this.tAt(x, y - 2) === top);
         if (!ok) this.set('terreno', x, y, pasto);
       }
     }

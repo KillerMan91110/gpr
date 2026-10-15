@@ -134,7 +134,8 @@ const POS_KEY = 'mundo_posicion_v2';
 // los aventureros empiezan en Aurelia, la capital
 const DEFAULT_ZONE_ID = 0;
 const DEFAULT_ZONE_DIR = 'aurelia';
-const ZONE_TITLES = { aurelia: ['La capital', 'Aurelia'], pradera: ['Zona 1', 'Pradera Dorada'], cripta: ['Mazmorra', 'La Cripta del Vigía'] };
+const ZONE_TITLES = { aurelia: ['La capital', 'Aurelia'], pradera: ['Zona 1', 'Pradera Dorada'], cripta: ['Mazmorra', 'La Cripta del Vigía'],
+  montanas: ['Zona 2', 'Montañas Grises'], mina_profunda: ['Mazmorra', 'La Mina Profunda'] };
 // recorrido del guía Tomás por Aurelia (lugar, posición en píxeles y qué hay ahí)
 const AURELIA_TOUR = [
   { name: 'Catedral de Aethra', x: 59.5 * 32, y: 16 * 32, info: 'Aquí te curan y aquí despiertas si caes en combate.' },
@@ -221,6 +222,24 @@ export default function World() {
   const [continentZoneIds, setContinentZoneIds] = useState([]);
   // bufos del héroe que da el mundo (Paso de la ciudad…): iconos junto al minimapa, como en WoW
   const [buffs, setBuffs] = useState([]);
+  // comida tomada antes de salir ("bien alimentado"): { name, text, expiresAt } (lib/comida.js del back)
+  const [food, setFood] = useState(null);
+  const [foodNow, setFoodNow] = useState(Date.now());
+  useEffect(() => {
+    if (!player?.id || !token) return undefined;
+    api.getFoodBuff(player.id, token).then((r) => setFood(r?.foodBuff ?? null)).catch(() => {});
+    const onFood = (f) => setFood(f);
+    bus.on('food-buff', onFood);
+    const t = setInterval(() => setFoodNow(Date.now()), 30000);
+    return () => { bus.off('food-buff', onFood); clearInterval(t); };
+  }, [player?.id, token]);
+  const foodMin = food ? Math.ceil((new Date(food.expiresAt).getTime() - foodNow) / 60000) : 0;
+  const hudBuffs = foodMin > 0
+    ? [...buffs, {
+      id: 'comida', icon: ['meal', 'delapouite'], label: `${foodMin}m`, name: `Bien alimentado: ${food.name}`,
+      desc: `Tus combates empiezan con ${food.text}. Quedan ${foodMin} min.`,
+    }]
+    : buffs;
   // barra de lanzamiento (recolectar): { label, ms, key }
   const [cast, setCast] = useState(null);
   useEffect(() => {
@@ -395,7 +414,7 @@ export default function World() {
     // la puerta de la Cripta: sellada hasta que Aldren te da su llave (misión «La torre que vigilaba»)
     const onCryptDoor = async (e) => {
       if (!player) return;
-      const st = await api.getCripta(player.id, token).catch(() => null);
+      const st = await api.getMazmorra(player.id, e.dest, token).catch(() => null);
       if (st?.sealed) {
         audio.sfx('error');
         bus.emit('social-toast', { text: st.sealedText ?? 'La puerta está sellada.', kind: 'error' });
@@ -944,6 +963,7 @@ export default function World() {
             {String(clock.hour).padStart(2, '0')}:00
             {weather === 'lluvia' && <GameIcon name="raining" artist="lorc" />}
             {weather === 'niebla' && <GameIcon name="fog" artist="delapouite" />}
+            {weather === 'nieve' && <GameIcon name="snowflake-1" artist="lorc" />}
           </span>
         )}
       </div>
@@ -958,9 +978,9 @@ export default function World() {
         </div>
       )}
 
-      {!battle && buffs.length > 0 && (
+      {!battle && hudBuffs.length > 0 && (
         <div className="hud-buffs" style={{ top: MINIMAP.margin + 2, right: MINIMAP.margin + MINIMAP.width + 16 }}>
-          {buffs.map((b) => (
+          {hudBuffs.map((b) => (
             <div className="hud-buff" key={b.id} tabIndex={0}>
               <GameIcon name={b.icon[0]} artist={b.icon[1]} />
               <small>{b.label ?? '∞'}</small>

@@ -21,7 +21,7 @@ export const resourcesMethods = {
       const block = this.add.rectangle(first.x, first.y - 4, 18, 10);
       this.blockers.add(block);
       const glint = this.add.particles(0, 0, 'mota_mundo', {
-        x: { min: -8, max: 8 }, y: { min: -6, max: 6 }, lifespan: 900, frequency: def.tipo === 'cofre' ? 500 : 900,
+        x: { min: -8, max: 8 }, y: { min: -6, max: 6 }, lifespan: 900, frequency: /^cofre/.test(def.tipo) ? 500 : 900,
         scale: { start: 0.8, end: 0 }, alpha: { start: 0.9, end: 0 }, speedY: { min: -12, max: -4 }, tint: cfg.glint, blendMode: 'ADD',
       }).setDepth(11);
       glint.startFollow(sprite, 0, -12);
@@ -85,7 +85,7 @@ export const resourcesMethods = {
     const ms = GATHER_MS;
     bus.emit('cast', { label: r.cfg.label, ms });
     this.tweens.add({ targets: r.sprite, angle: { from: -6, to: 6 }, duration: 80, yoyo: true, repeat: Math.round(ms / 160) - 1, onComplete: () => r.sprite.setAngle(0) });
-    const hit = ['mineral', 'tronco'].includes(r.tipo) ? 'golpe' : 'recoger';
+    const hit = ['mineral', 'tronco', 'veta_montana', 'pino'].includes(r.tipo) ? 'golpe' : 'recoger';
     audio.sfx(hit);
     this.time.delayedCall(ms / 2, () => audio.sfx(hit));
     this.time.delayedCall(ms, () => bus.emit('gather', { id: r.id, tipo: r.tipo }));
@@ -102,7 +102,7 @@ export const resourcesMethods = {
     }
     this.setResourceReady(r, false);
     this.scheduleRespawn(r, res.readyAt, res.spot);
-    audio.sfx(r.tipo === 'cofre' || r.tipo === 'restos' ? 'cofre' : 'recoger');
+    audio.sfx(/^(cofre|restos)/.test(r.tipo) ? 'cofre' : 'recoger');
     const burst = this.add.particles(r.sprite.x, r.sprite.y - 12, 'mota_mundo', {
       speed: { min: 30, max: 90 }, lifespan: 600, scale: { start: 1.2, end: 0 }, emitting: false, tint: [r.cfg.glint, 0xffffff], blendMode: 'ADD',
     }).setDepth(12);

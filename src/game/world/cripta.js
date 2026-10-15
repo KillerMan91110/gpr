@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import bus from '../bus';
 import audio from '../audio';
-import { ASSETS, TAG_FONT, TAG_RES, propOf } from './shared';
+import { ASSETS, TAG_FONT, TAG_RES, propOf, DUNGEONS } from './shared';
 
 // La Cripta del Vigía (gprback/lib/cripta.js, mapa de art/mapas/generar_cripta.js): mazmorra bajo
 // las Ruinas del Vigía. Aquí viven la boca de la cripta que se ve en la Pradera y, dentro, los
@@ -21,7 +21,8 @@ const FLED_IGNORE_MS = 8000; // el guardián del que huiste no te ve en este rat
 
 export const criptaMethods = {
   buildCrypt(all) {
-    // ---- desde fuera: la boca de la cripta sobre su salida en las Ruinas del Vigía
+    // ---- desde fuera: la boca de la cripta sobre su salida en las Ruinas del Vigía (la Mina Profunda
+    // ya tiene su entrada dibujada en el mapa de las Montañas)
     const mouths = (this.exits ?? []).filter((e) => e.dest === 'cripta');
     if (mouths.length) {
       this.loadThen(() => { if (!this.textures.exists('mz_entrada')) this.load.image('mz_entrada', `${ASSETS}/mundo/mazmorra/entrada.png`); }, () => {
@@ -37,23 +38,25 @@ export const criptaMethods = {
     this.crypt = null;
     if (!this.world.mazmorra) return;
 
-    // ---- dentro de la cripta
-    const crypt = { state: null, guardians: [], braziers: [], door: null, boss: null, ready: false };
+    // ---- dentro de la mazmorra (el farol y la reja de la mina vienen de su mundo.json: mazmorraArte)
+    const crypt = { state: null, guardians: [], braziers: [], door: null, boss: null, ready: false, dir: this.zoneDir };
+    const arte = { brasero: 'brasero', puerta: 'puerta_sello', luzPuerta: 0x7ff8ff, ...(this.world.mazmorraArte ?? {}) };
+    crypt.keys = { brasero: `mz_${arte.brasero}`, puerta: `mz_${arte.puerta}`, luzPuerta: arte.luzPuerta };
     this.crypt = crypt;
     const catalog = this.cache.json.get('enemigos').monsters;
     const gPoints = all.filter((o) => o.type === 'guardian');
     const bossPt = all.find((o) => o.type === 'vigia');
     const codes = new Set([...gPoints.map((o) => propOf(o, 'monstruo')), bossPt && propOf(bossPt, 'monstruo')].filter(Boolean));
     this.loadThen(() => {
-      if (!this.textures.exists('mz_brasero')) this.load.spritesheet('mz_brasero', `${ASSETS}/mundo/mazmorra/brasero.png`, { frameWidth: 32, frameHeight: 32 });
-      if (!this.textures.exists('mz_puerta')) this.load.spritesheet('mz_puerta', `${ASSETS}/mundo/mazmorra/puerta_sello.png`, { frameWidth: 128, frameHeight: 64 });
+      if (!this.textures.exists(crypt.keys.brasero)) this.load.spritesheet(crypt.keys.brasero, `${ASSETS}/mundo/mazmorra/${arte.brasero}.png`, { frameWidth: 32, frameHeight: 32 });
+      if (!this.textures.exists(crypt.keys.puerta)) this.load.spritesheet(crypt.keys.puerta, `${ASSETS}/mundo/mazmorra/${arte.puerta}.png`, { frameWidth: 128, frameHeight: 64 });
       for (const code of codes) {
         const m = catalog[code];
         if (m && !this.textures.exists(`mon_${code}`)) this.load.spritesheet(`mon_${code}`, `${ASSETS}/sprites/combate/${m.sheet}`, { frameWidth: m.frameSize.w, frameHeight: m.frameSize.h });
       }
     }, () => {
-      if (!this.anims.exists('mz_brasero_fuego')) this.anims.create({ key: 'mz_brasero_fuego', frames: this.anims.generateFrameNumbers('mz_brasero', { start: 1, end: 4 }), frameRate: 8, repeat: -1 });
-      if (!this.anims.exists('mz_puerta_sello')) this.anims.create({ key: 'mz_puerta_sello', frames: this.anims.generateFrameNumbers('mz_puerta', { start: 0, end: 1 }), frameRate: 2, repeat: -1 });
+      if (!this.anims.exists(`${crypt.keys.brasero}_fuego`)) this.anims.create({ key: `${crypt.keys.brasero}_fuego`, frames: this.anims.generateFrameNumbers(crypt.keys.brasero, { start: 1, end: 4 }), frameRate: 8, repeat: -1 });
+      if (!this.anims.exists(`${crypt.keys.puerta}_sello`)) this.anims.create({ key: `${crypt.keys.puerta}_sello`, frames: this.anims.generateFrameNumbers(crypt.keys.puerta, { start: 0, end: 1 }), frameRate: 2, repeat: -1 });
       this.buildBraziers(all.filter((o) => o.type === 'brasero'));
       this.buildDoor(all.find((o) => o.type === 'sello'));
       if (bossPt) this.buildCryptBoss(bossPt, catalog);
@@ -72,7 +75,7 @@ export const criptaMethods = {
     this.crypt.braziers = points.map((o) => {
       const x = o.x + 16;
       const y = o.y + 16;
-      const sprite = this.add.sprite(x, y, 'mz_brasero', 0).setOrigin(0.5, 0.75).setDepth(9 + y / 100000);
+      const sprite = this.add.sprite(x, y, this.crypt.keys.brasero, 0).setOrigin(0.5, 0.75).setDepth(9 + y / 100000);
       const block = this.add.rectangle(x, y + 2, 20, 12);
       this.blockers.add(block);
       const glow = this.add.image(x, y - 8, 'luz').setDepth(20.6).setBlendMode('ADD').setTint(0xff9a4a).setScale(1.5).setAlpha(0);
@@ -85,10 +88,10 @@ export const criptaMethods = {
     if (!o) return;
     const x = o.x + (o.width || 128) / 2;
     const y = o.y + (o.height || 64);
-    const sprite = this.add.sprite(x, y, 'mz_puerta', 0).setOrigin(0.5, 1).setDepth(8.8).play('mz_puerta_sello');
+    const sprite = this.add.sprite(x, y, this.crypt.keys.puerta, 0).setOrigin(0.5, 1).setDepth(8.8).play(`${this.crypt.keys.puerta}_sello`);
     const block = this.add.rectangle(x, o.y + 40, o.width || 128, 48);
     this.blockers.add(block);
-    const glow = this.add.image(x, o.y + 40, 'luz').setDepth(20.6).setBlendMode('ADD').setTint(0x7ff8ff).setScale(1.2).setAlpha(0.6);
+    const glow = this.add.image(x, o.y + 40, 'luz').setDepth(20.6).setBlendMode('ADD').setTint(this.crypt.keys.luzPuerta).setScale(1.2).setAlpha(0.6);
     this.tweens.add({ targets: glow, alpha: 0.3, duration: 900, yoyo: true, repeat: -1 });
     this.minimap?.ignore(glow);
     this.crypt.door = { x, y: o.y + 64, sprite, block, glow, open: false };
@@ -122,7 +125,7 @@ export const criptaMethods = {
     if (!crypt.ready) return;
     for (const b of crypt.braziers) {
       const lit = b.orden <= st.braziers;
-      if (lit && !b.lit) b.sprite.play('mz_brasero_fuego');
+      if (lit && !b.lit) b.sprite.play(`${crypt.keys.brasero}_fuego`);
       if (!lit && b.lit) b.sprite.stop().setFrame(0);
       b.lit = lit;
       this.pois = this.pois.filter((p) => p.id !== `brasero_${b.orden}`);
@@ -133,7 +136,7 @@ export const criptaMethods = {
       d.open = st.doorOpen;
       d.block.body.enable = !d.open;
       d.glow.setVisible(!d.open);
-      if (d.open) d.sprite.stop().setFrame(2); else d.sprite.play('mz_puerta_sello');
+      if (d.open) d.sprite.stop().setFrame(2); else d.sprite.play(`${crypt.keys.puerta}_sello`);
     }
     this.pois = this.pois.filter((p) => p.id !== 'cripta_puerta');
     if (d && !d.open) {
@@ -289,7 +292,7 @@ export const criptaMethods = {
     g.alert.setVisible(false);
     g.mode = 'patrol';
     bus.emit('encounter', {
-      kind: 'cripta', target: g.id, code: g.code, name: g.name, zoneId: this.zoneId,
+      kind: 'cripta', dungeon: this.crypt?.dir ?? 'cripta', target: g.id, code: g.code, name: g.name, zoneId: this.zoneId,
       position: this.toLocal(this.player.x, this.player.y, this.zone),
     });
   },
@@ -298,8 +301,8 @@ export const criptaMethods = {
     const b = this.crypt?.boss;
     if (!b) return;
     bus.emit('boss-challenge', {
-      kind: 'cripta', target: 'jefe', code: b.code, name: b.name, rank: 'jefe',
-      level: Math.max(6, Math.min(13, (this.heroLevel ?? 1) + 1)),
+      kind: 'cripta', dungeon: this.crypt?.dir ?? 'cripta', target: 'jefe', code: b.code, name: b.name, rank: 'jefe',
+      level: (() => { const d = DUNGEONS[this.crypt?.dir] ?? DUNGEONS.cripta; return Math.max(d.min + 1, Math.min(d.max + 1, (this.heroLevel ?? 1) + 1)); })(),
       zoneId: this.zoneId, position: this.toLocal(this.player.x, this.player.y, this.zone),
     });
   },

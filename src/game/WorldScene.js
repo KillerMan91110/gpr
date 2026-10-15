@@ -5,7 +5,7 @@ import { MINIMAP } from './hudLayout';
 import SocialLayer from './socialLayer';
 import StallLayer from './stallLayer';
 import CityLife, { isFestival } from './cityLife';
-import { TAG_FONT, TAG_RES, ASSETS, DEFAULT_ZONE, SPEED, CITY_SPEED, POI_RADIUS, CHUNK_NEAR, CHUNK_FAR, ENCOUNTER_GRACE_MS, POST_BATTLE_GRACE_MS, ESCAPE_GRACE_MS, SHY_RADIUS, PASO_FORZADO, PASO_CORNISA, EDGE, WALK, IDLE, FOLLOW_GAP, PET_SPECIES, BASE_CLASSES, SKY, lerpColor, mulColor, gameHour, propOf } from './world/shared';
+import { TAG_FONT, TAG_RES, ASSETS, DEFAULT_ZONE, SPEED, CITY_SPEED, POI_RADIUS, CHUNK_NEAR, CHUNK_FAR, ENCOUNTER_GRACE_MS, POST_BATTLE_GRACE_MS, ESCAPE_GRACE_MS, SHY_RADIUS, PASO_FORZADO, PASO_CORNISA, EDGE, WALK, IDLE, FOLLOW_GAP, PET_SPECIES, BASE_CLASSES, SKY, lerpColor, mulColor, gameHour, propOf, isDungeon } from './world/shared';
 import { mythicMethods } from './world/mythic';
 import { walkGridMethods } from './world/walkGrid';
 import { npcsMethods } from './world/npcs';
@@ -95,6 +95,7 @@ export default class WorldScene extends Phaser.Scene {
     this.load.spritesheet('recursos', `${ASSETS}/mundo/recursos.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos2', `${ASSETS}/mundo/recursos2.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos3', `${ASSETS}/mundo/recursos3.png`, { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('recursos4', `${ASSETS}/mundo/recursos4.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('mascotas', `${ASSETS}/mundo/mascotas.png`, { frameWidth: 24, frameHeight: 24 });
     this.load.spritesheet('f_mariposa', `${ASSETS}/mundo/fauna/mariposa.png`, { frameWidth: 8, frameHeight: 8 });
     this.load.spritesheet('f_pajaro', `${ASSETS}/mundo/fauna/pajaro.png`, { frameWidth: 16, frameHeight: 16 });
@@ -204,6 +205,8 @@ export default class WorldScene extends Phaser.Scene {
     this.setZone(z);
     this.subzone = null;
     this.emitZone();
+    // cada zona tiene su clima: al cruzar se vuelve a tirar (no sigue nevando en la Pradera)
+    this.rollWeather?.();
     // aviso del cambio de paso al entrar o salir de la ciudad
     if (this.speedMul > before) {
       this.floatLoot([{ text: `Paso de la ciudad: +${Math.round((this.speedMul - 1) * 100)}% velocidad`, color: '#9ae8ff' }]);
@@ -271,6 +274,8 @@ export default class WorldScene extends Phaser.Scene {
       g.fillStyle(0xffffff, 1).fillCircle(2, 2, 2).generateTexture('mota_mundo', 4, 4).destroy();
       const r = this.make.graphics({ x: 0, y: 0 }, false);
       r.fillStyle(0xbfd8ff, 1).fillRect(0, 0, 1, 7).generateTexture('gota', 1, 7).destroy();
+      const f = this.make.graphics({ x: 0, y: 0 }, false);
+      f.fillStyle(0xffffff, 1).fillRect(1, 0, 1, 3).fillRect(0, 1, 3, 1).generateTexture('copo', 3, 3).destroy();
       const l = this.make.graphics({ x: 0, y: 0 }, false);
       l.fillStyle(0xffffff, 1).fillRect(1, 0, 2, 1).fillRect(0, 1, 4, 2).fillRect(1, 3, 2, 1).generateTexture('hoja', 4, 4).destroy();
     }
@@ -715,6 +720,7 @@ export default class WorldScene extends Phaser.Scene {
       this.shade.setPosition(v.x - 48, v.y - 48);
       if (this.shade.width !== v.width + 96 || this.shade.height !== v.height + 96) this.shade.setSize(v.width + 96, v.height + 96);
       this.rain?.setPosition(v.x + v.width / 2, v.y - 20);
+      this.snow?.setPosition(v.x + v.width / 2, v.y - 20);
     };
     this.events.on('postupdate', cover);
     this.events.once('shutdown', () => this.events.off('postupdate', cover));
@@ -742,7 +748,8 @@ export default class WorldScene extends Phaser.Scene {
     this.updateSky();
   }
 
-  // Clima: la Pradera es de final de verano: casi siempre despejado, a veces llueve un rato
+  // Clima: la Pradera es de final de verano: casi siempre despejado, a veces llueve un rato.
+  // En las zonas de invierno (clima.nieve) nieva en vez de llover.
   createWeather() {
     const cam = this.cameras.main;
     this.rain = this.add.particles(0, 0, 'gota', {
@@ -751,19 +758,34 @@ export default class WorldScene extends Phaser.Scene {
     }).setDepth(22);
     this.minimap.ignore(this.rain);
     this.rain.setPosition(cam.worldView.x, cam.worldView.y);
+    this.snow = this.add.particles(0, 0, 'copo', {
+      x: { min: -460, max: 460 }, y: { min: -40, max: 0 }, speedY: { min: 40, max: 80 }, speedX: { min: -30, max: 10 },
+      lifespan: 9000, frequency: 40, quantity: 2, scale: { min: 0.8, max: 1.6 }, alpha: { start: 0.9, end: 0.3 },
+      accelerationX: { min: -6, max: 6 }, emitting: false,
+    }).setDepth(22);
+    this.minimap.ignore(this.snow);
+    this.snow.setPosition(cam.worldView.x, cam.worldView.y);
+    this.rollWeather = () => {
+      // durante la noche eterna manda la niebla: ni llueve ni nieva
+      const clima = this.world.clima ?? {};
+      const frozen = this.frozenNight();
+      if (!frozen && Math.random() < (clima.nieve ?? 0)) this.setWeather('nieve');
+      else this.setWeather(!frozen && Math.random() < (clima.lluvia ?? 0) ? 'lluvia' : 'despejado');
+    };
     const roll = () => {
-      // durante la noche eterna manda la niebla, no llueve
-    const rainy = !this.frozenNight() && Math.random() < (this.world.clima?.lluvia ?? 0);
-      this.setWeather(rainy ? 'lluvia' : 'despejado');
+      this.rollWeather();
       this.time.delayedCall(Phaser.Math.Between(4, 8) * 60000, roll);
     };
     this.time.delayedCall(Phaser.Math.Between(60000, 120000), roll);
+    // en las zonas de invierno el clima se ve desde que llegas
+    if (this.world.clima?.nieve) this.rollWeather();
   }
 
   setWeather(kind) {
     if (kind === this.weather) return;
     this.weather = kind;
     this.rain.emitting = kind === 'lluvia';
+    if (this.snow) this.snow.emitting = kind === 'nieve';
     bus.emit('weather', kind);
   }
 
@@ -784,6 +806,7 @@ export default class WorldScene extends Phaser.Scene {
     }
     this.setMythicFog(frozen);
     if (this.weather === 'lluvia') color = mulColor(color, 0xb4bccc);
+    else if (this.weather === 'nieve') color = mulColor(color, 0xdce4f0);
     this.shade.setFillStyle(color);
     // cuánto "de noche" es (0 de día, 1 en plena noche) para las luces
     const c = Phaser.Display.Color.IntegerToColor(color);
@@ -963,7 +986,7 @@ export default class WorldScene extends Phaser.Scene {
       const r = this.crypt ? this.cryptRespawn()
         : this.refuge && this.zoneByDir[this.refuge.zone] ? this.toGlobal(this.refuge.x, this.refuge.y, this.refuge.zone) : this.spawnPoint;
       this.player.setPosition(r.x, r.y);
-      bus.emit('hero-revive', { place: this.crypt ? (this.crypt.state?.respawn?.name ?? 'la entrada de la cripta') : this.refuge?.name ?? null });
+      bus.emit('hero-revive', { place: this.crypt ? (this.crypt.state?.respawn?.name ?? 'la entrada de la mazmorra') : this.refuge?.name ?? null });
       this.trail = [];
       this.updateChunks(true);
       this.checkZoneChange();
@@ -1067,7 +1090,7 @@ export default class WorldScene extends Phaser.Scene {
     const e = this.exits.find((ex) => Phaser.Geom.Rectangle.Contains(ex.rect, x, y + 8));
     // la Cripta del Vigía puede estar sellada (se abre con la llave de Aldren): React le pregunta
     // al servidor y, si está abierta, manda 'cripta-abrir'; mientras, el héroe da un paso atrás
-    if (e?.dest === 'cripta') {
+    if (isDungeon(e?.dest)) {
       this.exitsArmedAt = time + 2500;
       this.stopPlayer();
       this.player.setPosition(this.player.x, this.player.y + 28);
@@ -1243,6 +1266,7 @@ export default class WorldScene extends Phaser.Scene {
     }
     bus.emit('encounter', {
       kind: 'zone', code: mon.getData('code'), name: mon.getData('name'), zoneId: this.zoneId, areaLevels: this.subzone?.levels ?? null,
+      areaMonsters: mon.getData('area') ? this.areaMonsters(mon.getData('area')) : null,
       position: this.toLocal(this.player.x, this.player.y, this.zone),
     });
   }
@@ -1265,7 +1289,29 @@ export default class WorldScene extends Phaser.Scene {
     this.input.keyboard.enabled = false;
     this.cameras.main.shake(250, 0.006);
     audio.sfx('encuentro');
-    bus.emit('encounter', { kind: 'zone', name: null, zoneId: this.zoneId, areaLevels: this.subzone?.levels ?? null, position: this.toLocal(this.player.x, this.player.y, this.zone) });
+    bus.emit('encounter', {
+      kind: 'zone', name: null, zoneId: this.zoneId, areaLevels: this.subzone?.levels ?? null, position: this.toLocal(this.player.x, this.player.y, this.zone),
+      areaMonsters: this.areaMonstersAt(this.player.x, this.player.y),
+    });
+  }
+
+  // Monstruos de la zona de encuentro donde estás (o de la más cercana de tu subzona, a menos de
+  // ~20 casillas): el servidor arma la pelea con ellos, así cada monstruo vive en su lugar del mapa
+  areaMonstersAt(x, y) {
+    const sub = this.subzone?.name;
+    let best = null;
+    let bestD = 640 * 640;
+    for (const a of this.encounterAreas ?? []) {
+      if (this.zoneAt(a.x + a.width / 2, a.y + a.height / 2) !== this.zone) continue;
+      if (Phaser.Geom.Rectangle.Contains(new Phaser.Geom.Rectangle(a.x, a.y, a.width, a.height), x, y)) return this.areaMonsters(a);
+      const cx = a.x + a.width / 2;
+      const cy = a.y + a.height / 2;
+      const d = (cx - x) ** 2 + (cy - y) ** 2;
+      const local = this.toLocal(cx, cy, this.zone);
+      const sz = this.world.subzonas?.find((s) => local.x >= s.x0 && local.x < s.x1 && local.y >= s.y0 && local.y < s.y1 && !s.safe);
+      if (d < bestD && (!sub || sz?.name === sub)) { best = a; bestD = d; }
+    }
+    return best ? this.areaMonsters(best) : null;
   }
 
   // Desafiar a un jefe en su guarida (React pide confirmación antes de empezar)
