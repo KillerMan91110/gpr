@@ -15,7 +15,8 @@ import DialogueBox from '../components/world/DialogueBox';
 import { DIALOGUES } from '../game/dialogues';
 import QuestTracker from '../components/world/QuestTracker';
 import TargetFrame from '../components/world/TargetFrame';
-import { questMarks } from '../game/questGivers';
+import { questMarks, readyQuestsFor, hasWorkFor } from '../game/questGivers';
+import { MAX_TRACKED, TRACK_COLORS, trackTargets, loadTracked, saveTracked } from '../game/questTracking';
 import LevelUpBanner from '../components/world/LevelUpBanner';
 import SoundControl from '../components/world/SoundControl';
 import { MINIMAP } from '../game/hudLayout';
@@ -207,9 +208,13 @@ export default function World() {
   const [dialogue, setDialogue] = useState(null);
   // lo que dice el NPC por una misión al hablarle (antes de su saludo de siempre)
   const [questLines, setQuestLines] = useState(null);
+  // sube cuando la conversación tiene que empezar de nuevo con el mismo NPC (al entregarle una misión)
+  const [dlgKey, setDlgKey] = useState(0);
   const [npcMarks, setNpcMarks] = useState({});
   // misiones del jugador (para las marcas de los NPCs y el seguimiento de la derecha)
-  const [quests, setQuests] = useState({ active: [], available: [] });
+  const [quests, setQuests] = useState({ active: [], available: [], loaded: false });
+  // misiones rastreadas (📍): la flecha del mapa apunta a su objetivo (game/world/tracking.js)
+  const [tracked, setTracked] = useState([]);
   // NPC con el que se abrió el tablón: muestra solo sus misiones (null = todas, el tablón del gremio)
   const [questGiver, setQuestGiver] = useState(null);
   // ids de las zonas del mundo abierto (las de etheria.json)
@@ -401,10 +406,32 @@ export default function World() {
     const onTurnIn = ({ npc, text }) => {
       setQuestLines([{ speaker: DIALOGUES[npc]?.name ?? null, text }]);
       setDialogue(npc);
+      setDlgKey((k) => k + 1);
     };
     bus.on('quest-entrega', onTurnIn);
     return () => { bus.off('quest-point', onQuestPoint); bus.off('cripta-puerta', onCryptDoor); bus.off('quest-entrega', onTurnIn); };
   }, [player, token, showQuestResult]);
+
+  // Entregar en persona, desde la conversación con quien recibe la misión (el servidor revisa que
+  // estés a su lado). Si sale bien, dice su línea de entrega en la misma conversación.
+  const turnInQuest = useCallback(async (q) => {
+    if (!player) return;
+    try {
+      await api.completeQuest(player.id, q.id, token);
+      audio.jingle('mision');
+      bus.emit('social-toast', { text: `✔ ¡${q.name} completada!`, kind: 'ok' });
+      onInventoryChanged();
+      bus.emit('quests-changed');
+      const npc = q.turn_in_npc ?? dialogue;
+      if (q.dialog?.entrega && npc) {
+        setQuestLines([{ speaker: DIALOGUES[npc]?.name ?? null, text: q.dialog.entrega }]);
+        setDlgKey((k) => k + 1);
+      }
+    } catch (err) {
+      audio.sfx('error');
+      bus.emit('social-toast', { text: err.message, kind: 'error' });
+    }
+  }, [player, token, dialogue, onInventoryChanged]);
 
   // ---- eventos que vienen del mapa ----
   useEffect(() => {
@@ -624,7 +651,7 @@ export default function World() {
   useEffect(() => {
     if (!player) return;
     Promise.all([api.getActiveQuests(player.id, token), api.getAvailableQuests(player.id, token)])
-      .then(([active, available]) => setQuests({ active, available }))
+      .then(([active, available]) => setQuests({ active, available, loaded: true }))
       .catch(() => {});
   }, [player, token, refreshKey, stats?.level]);
   // Al entrar al mundo: si quedó un combate abierto (recargaste la página, se cortó la conexión
@@ -650,6 +677,39 @@ export default function World() {
   useEffect(() => {
     setNpcMarks(questMarks({ ...quests, level: stats?.level ?? 1, continentZoneIds }));
   }, [quests, stats?.level, continentZoneIds]);
+
+  // ---- rastreo de misiones ----
+  useEffect(() => { if (player) setTracked(loadTracked(player.id)); }, [player]);
+  const setTrackedSaved = useCallback((fn) => {
+    setTracked((prev) => {
+      const next = fn(prev);
+      if (player) saveTracked(player.id, next);
+      return next;
+    });
+  }, [player]);
+  const toggleTrack = useCallback((id) => {
+    setTrackedSaved((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id].slice(-MAX_TRACKED)));
+  }, [setTrackedSaved]);
+  // al aceptar una misión se rastrea sola (se puede quitar con el 📍)
+  useEffect(() => {
+    const onAccepted = (id) => setTrackedSaved((prev) => (prev.includes(id) ? prev : [...prev, id].slice(-MAX_TRACKED)));
+    bus.on('quest-accepted', onAccepted);
+    return () => bus.off('quest-accepted', onAccepted);
+  }, [setTrackedSaved]);
+  // las que ya entregaste o abandonaste dejan de rastrearse
+  useEffect(() => {
+    if (!quests.loaded) return;
+    const ids = new Set((quests.active ?? []).map((q) => q.id));
+    if (tracked.some((id) => !ids.has(id))) setTrackedSaved((prev) => prev.filter((id) => ids.has(id)));
+  }, [quests, tracked, setTrackedSaved]);
+  useEffect(() => {
+    if (!worldReady) return;
+    const tracks = tracked.map((id, i) => {
+      const q = (quests.active ?? []).find((x) => x.id === id);
+      return q ? { questId: id, name: q.name, color: TRACK_COLORS[i % TRACK_COLORS.length], targets: trackTargets(q, continentZoneIds) } : null;
+    }).filter(Boolean);
+    bus.emit('quest-track', tracks);
+  }, [worldReady, tracked, quests, continentZoneIds]);
   useEffect(() => { if (worldReady) bus.emit('npc-marks', npcMarks); }, [worldReady, npcMarks]);
   useEffect(() => {
     if (!worldReady) return;
@@ -922,16 +982,20 @@ export default function World() {
             onSkip={skipGuide}
             onToast={(text) => bus.emit('social-toast', { text, kind: 'tour' })}
           />
-          <QuestTracker active={quests.active} continentZoneIds={continentZoneIds} onOpen={() => openWin('misiones')} />
+          <QuestTracker active={quests.active} continentZoneIds={continentZoneIds} tracked={tracked} onToggleTrack={toggleTrack} onOpen={() => openWin('misiones')} />
         </div>
       )}
 
       {/* ---- conversación con un NPC ---- */}
       {dialogue && (
         <DialogueBox
+          key={`${dialogue}:${dlgKey}`}
           id={dialogue}
           ctx={{ night: !!clock?.night, mark: npcMarks[dialogue] ?? null }}
           questLines={questLines}
+          readyQuests={readyQuestsFor(quests.active, dialogue, continentZoneIds)}
+          hasWork={hasWorkFor(quests.available, dialogue, continentZoneIds)}
+          onTurnIn={turnInQuest}
           onOpenWindow={(win) => {
             // el tablón abierto desde un NPC muestra solo sus misiones
             if (win === 'misiones_gremio') setQuestGiver(dialogue);
@@ -1151,6 +1215,8 @@ export default function World() {
                 onChanged={onInventoryChanged}
                 openWindow={openWin}
                 giver={id === 'misiones_gremio' ? questGiver : undefined}
+                tracked={tracked}
+                onToggleTrack={toggleTrack}
                 onClearGiver={() => setQuestGiver(null)}
                 continentZoneIds={continentZoneIds}
                 windows={WINDOWS}

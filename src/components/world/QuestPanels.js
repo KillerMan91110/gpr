@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
 import FloatingPanel from './FloatingPanel';
-import { questsOfGiver } from '../../game/questGivers';
+import { questsOfGiver, needsTurnInPerson, NPC_LUGAR } from '../../game/questGivers';
 import { DIALOGUES } from '../../game/dialogues';
 import audio from '../../game/audio';
 import bus from '../../game/bus';
@@ -79,7 +79,7 @@ function useMessage() {
 }
 
 // Diario de misiones (J): misiones aceptadas y su progreso, más el registro de completadas.
-export function QuestLogPanel({ onChanged, ...props }) {
+export function QuestLogPanel({ onChanged, tracked = [], onToggleTrack, ...props }) {
   const { player, token } = useAuth();
   const [active, setActive] = useState(null);
   const [completed, setCompleted] = useState([]);
@@ -156,19 +156,28 @@ export function QuestLogPanel({ onChanged, ...props }) {
               <>
                 <button
                   type="button"
-                  className="wp-btn wp-btn--gold"
-                  disabled={busy || !objectivesDone(current)}
-                  title={current.turn_in_npc ? `Se entrega en persona a ${DIALOGUES[current.turn_in_npc]?.name ?? 'quien te la dio'}` : undefined}
-                  onClick={() => run(async () => {
-                    const q = current;
-                    await api.completeQuest(player.id, q.id, token);
-                    // quien la recibe dice su línea de entrega (misiones de historia y secundarias)
-                    const npc = q.turn_in_npc ?? q.giver_npc;
-                    if (q.dialog?.entrega && npc && DIALOGUES[npc]) bus.emit('quest-entrega', { npc, text: q.dialog.entrega });
-                  }, `¡${current.name} completada!`)}
+                  className={`wp-btn${tracked.includes(current.id) ? ' wp-btn--on' : ''}`}
+                  onClick={() => onToggleTrack?.(current.id)}
+                  title="La flecha del mapa te lleva a su objetivo"
                 >
-                  Entregar
+                  📍 {tracked.includes(current.id) ? 'Dejar de rastrear' : 'Rastrear'}
                 </button>
+                {needsTurnInPerson(current) ? (
+                  // se entrega en persona: hablando con quien la recibe (marca ? en el mapa)
+                  <span className={`wp-quest-turnin${objectivesDone(current) ? ' wp-quest-turnin--ready' : ''}`}>
+                    {objectivesDone(current) ? '❔ Entrégasela' : 'Se entrega'} a {DIALOGUES[current.turn_in_npc]?.name ?? 'quien te la dio'}
+                    {NPC_LUGAR[current.turn_in_npc] ? `, en ${NPC_LUGAR[current.turn_in_npc]}` : ''}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="wp-btn wp-btn--gold"
+                    disabled={busy || !objectivesDone(current)}
+                    onClick={() => run(() => api.completeQuest(player.id, current.id, token), `¡${current.name} completada!`)}
+                  >
+                    Entregar
+                  </button>
+                )}
                 {inGroup && !current.is_personal && (
                   <button
                     type="button"
@@ -232,6 +241,7 @@ export function QuestBoardPanel({ onChanged, giver, onClearGiver, continentZoneI
     setBusy(true);
     try {
       await api.acceptQuest(player.id, current.id, token);
+      bus.emit('quest-accepted', current.id);
       audio.sfx('mejora');
       setMessage({ ok: true, text: `Aceptaste: ${current.name}` });
       setSelected(null);

@@ -4,7 +4,7 @@ import { DIALOGUES } from '../../game/dialogues';
 
 // Caja de diálogo estilo JRPG: retrato del NPC, el texto aparece letra por letra y abajo las
 // opciones (1-9 para elegir, Espacio/Enter para completar el texto, Esc para irse).
-export default function DialogueBox({ id, ctx, questLines, onOpenWindow, onAction, onClose }) {
+export default function DialogueBox({ id, ctx, questLines, readyQuests, hasWork, onTurnIn, onOpenWindow, onAction, onClose }) {
   // mientras se conversa, el chat global se aparta para no tapar el cuadro de diálogo
   useEffect(() => {
     document.body.classList.add('en-dialogo');
@@ -33,18 +33,17 @@ export default function DialogueBox({ id, ctx, questLines, onOpenWindow, onActio
 
   const done = shown >= text.length;
   const { night, mark } = ctx;
-  // cualquier NPC que dé misiones (game/questGivers.js) ofrece verlas o entregarlas, aunque su
-  // diálogo no lo tenga escrito
+  // cualquier NPC que dé misiones (game/questGivers.js) ofrece verlas, aunque su diálogo no lo tenga
+  // escrito; las que ya cumpliste se le entregan aquí mismo, en persona (una opción por misión)
   const options = useMemo(() => {
     // la última línea de la misión cierra la conversación (ya te dio lo que tenía que darte)
     if (questLine) return lineIdx < questLines.length - 1 ? [{ label: '▶ Continuar', questNext: true }] : [{ label: '▶ Terminar', close: true }];
     const base = def ? def.options({ night, mark }) : [];
-    if (!mark || mark === 'gris' || base.some((o) => o.window === 'misiones_gremio')) return base;
-    const quest = mark === '?'
-      ? { label: '✔ Entregar misión', window: 'misiones' }
-      : { label: '❗ ¿Tienes trabajo para mí?', window: 'misiones_gremio' };
-    return [quest, ...base];
-  }, [def, night, mark, questLine, lineIdx, questLines]);
+    const turnIns = (readyQuests ?? []).map((q) => ({ label: `✔ Entregar: ${q.name}`, turnIn: q }));
+    const work = hasWork && !base.some((o) => o.window === 'misiones_gremio')
+      ? [{ label: '❗ ¿Tienes trabajo para mí?', window: 'misiones_gremio' }] : [];
+    return [...turnIns, ...work, ...base];
+  }, [def, night, mark, questLine, lineIdx, questLines, readyQuests, hasWork]);
 
   const choose = useCallback((o) => {
     audio.sfx('clic');
@@ -54,11 +53,12 @@ export default function DialogueBox({ id, ctx, questLines, onOpenWindow, onActio
       setText(questLines?.[next]?.text ?? def?.greet(ctx) ?? '');
       return;
     }
-    if (o.close) onClose();
+    if (o.turnIn) onTurnIn?.(o.turnIn);
+    else if (o.close) onClose();
     else if (o.window) { onOpenWindow(o.window); onClose(); }
     else if (o.next) setText(def.lines[o.next]);
     else if (o.action) { onAction?.(o); onClose(); }
-  }, [def, onClose, onOpenWindow, onAction, lineIdx, questLines, ctx]);
+  }, [def, onClose, onOpenWindow, onAction, onTurnIn, lineIdx, questLines, ctx]);
 
   useEffect(() => {
     const onKey = (e) => {

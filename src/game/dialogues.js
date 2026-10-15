@@ -35,9 +35,8 @@ export const DIALOGUES = {
         ? pick(['De noche los lobos se vuelven atrevidos. Quédate cerca de la luz de los faroles.', 'Shh… ¿Oyes eso? Algo se mueve en la hierba alta. Siempre es así cuando cae el sol.'])
         : pick(['La pradera parece tranquila, pero no te fíes de la hierba alta.', 'Buenos días, aventurero. ¿Vienes a ayudar o solo de paso?']);
     },
-    options: ({ mark }) => [
+    options: () => [
       { label: 'Ver encargos del gremio', window: 'misiones_gremio' },
-      ...(mark === '?' ? [{ label: 'Entregar misiones', window: 'misiones' }] : []),
       { label: 'Háblame de la Pradera', next: 'lore' },
       { label: '¿Qué hay en el este?', next: 'este' },
       { label: '¿Y al sur?', next: 'sur' },

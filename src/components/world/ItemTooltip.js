@@ -35,12 +35,12 @@ export default function ItemTooltip({ item, x, y, token, hint }) {
 
   return (
     <div className="wp-tooltip" style={{ left, top }}>
-      <div className={`wp-tooltip-name wp-rarity-${rarity.toLowerCase()}`}>
+      <div className={`wp-tooltip-name wp-rarity-${rarity.toLowerCase()}${item.questItem ? ' wp-tooltip-name--quest' : ''}`}>
         {item.name}{item.enchantLevel ? ` +${item.enchantLevel}` : ''}
       </div>
       <div className="wp-tooltip-sub">
-        {RARITY_LABELS[rarity] ?? rarity}
-        {item.itemType === 'EQUIPMENT' ? ` · ${SLOT_LABELS[item.slot] ?? item.slot}` : ` · ${TYPE_LABELS[item.itemType] ?? ''}`}
+        {item.questItem ? 'Objeto de misión' : RARITY_LABELS[rarity] ?? rarity}
+        {item.questItem ? '' : item.itemType === 'EQUIPMENT' ? ` · ${SLOT_LABELS[item.slot] ?? item.slot}` : ` · ${TYPE_LABELS[item.itemType] ?? ''}`}
         {detail?.is_two_handed ? ' · Dos manos' : ''}
       </div>
       {detail?.statBonuses?.map((b) => (

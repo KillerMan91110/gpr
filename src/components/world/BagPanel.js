@@ -30,6 +30,7 @@ export function toTooltipItem(row) {
     qualityTier: row.quality_tier,
     quantity: row.quantity,
     code: row.code,
+    questItem: !!row.is_quest_item,
   };
 }
 
@@ -71,7 +72,9 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
     const q = search.trim().toLowerCase();
     return (items ?? [])
       .filter((it) => it.quantity > 0 && (!q || it.name.toLowerCase().includes(q)))
-      .sort((a, b) => (TYPE_ORDER[a.item_type] ?? 9) - (TYPE_ORDER[b.item_type] ?? 9)
+      // los objetos de misión primero (no se venden ni se pierden de vista)
+      .sort((a, b) => Number(!!b.is_quest_item) - Number(!!a.is_quest_item)
+        || (TYPE_ORDER[a.item_type] ?? 9) - (TYPE_ORDER[b.item_type] ?? 9)
         || RARITY_ORDER.indexOf(b.effective_rarity || b.rarity) - RARITY_ORDER.indexOf(a.effective_rarity || a.rarity)
         || a.name.localeCompare(b.name));
   }, [items, search]);
@@ -117,6 +120,7 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
   };
 
   const hintFor = (it) => {
+    if (it.is_quest_item) return 'Objeto de misión: no se vende ni se regala. Se va al entregar o abandonar la misión.';
     if (it.code === 'MUNECO_DE_VENTA') return 'Clic derecho: armar tu puesto';
     if (it.is_scroll) return it.recipe_already_learned ? 'Ya conoces todas sus recetas' : 'Clic derecho: leer el pergamino (aprendes sus recetas)';
     if (it.item_type === 'EQUIPMENT') return 'Clic derecho: equipar';
@@ -209,13 +213,14 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
             <button
               key={it.inventory_id}
               type="button"
-              className={`wp-slot wp-rarity-${rarity}`}
+              className={`wp-slot wp-rarity-${rarity}${it.is_quest_item ? ' wp-slot--quest' : ''}`}
               onMouseMove={(e) => setHover({ it, x: e.clientX, y: e.clientY })}
               onMouseLeave={() => setHover(null)}
               onDoubleClick={() => activate(it)}
               onContextMenu={(e) => { e.preventDefault(); activate(it); }}
             >
               <ItemIcon icon={icon} />
+              {it.is_quest_item && <span className="wp-slot-quest" aria-label="Objeto de misión">📜</span>}
               {it.enchant_level > 0 && <span className="wp-slot-enchant">+{it.enchant_level}</span>}
               {it.quantity > 1 && <span className="wp-slot-qty">{it.quantity}</span>}
             </button>

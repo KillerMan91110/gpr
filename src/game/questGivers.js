@@ -32,7 +32,7 @@ export function giverOf(q, continentZoneIds) {
   return null;
 }
 
-const objectivesDone = (q) => q.objectives?.length > 0 && q.objectives.every((o) => (o.current_count ?? 0) >= o.target_count);
+export const objectivesDone = (q) => q.objectives?.length > 0 && q.objectives.every((o) => (o.current_count ?? 0) >= o.target_count);
 
 // { ren: '?', lyra: '!', ... } a partir de las misiones activas y disponibles del jugador
 export function questMarks({ active = [], available = [], level = 1, continentZoneIds = [] }) {
@@ -55,3 +55,38 @@ export function questMarks({ active = [], available = [], level = 1, continentZo
 export function questsOfGiver(list, giver, continentZoneIds) {
   return (list ?? []).filter((q) => giverOf(q, continentZoneIds) === giver);
 }
+
+// Entregar en persona: las misiones con turn_in_npc (historia, secundarias y diarias de los NPCs del
+// mapa) solo se cobran junto a quien las recibe, desde la conversación con él. Las de las zonas que
+// todavía no están en el mundo abierto (sin NPC) siguen entregándose desde el diario.
+export const needsTurnInPerson = (q) => !!q.turn_in_npc;
+
+// misiones listas que este NPC recibe
+export function readyQuestsFor(active, npc, continentZoneIds) {
+  return (active ?? []).filter((q) => objectivesDone(q) && (q.turn_in_npc ?? giverOf(q, continentZoneIds)) === npc);
+}
+
+// ¿este NPC tiene alguna misión que ya puedes aceptar?
+export function hasWorkFor(available, npc, continentZoneIds) {
+  return (available ?? []).some((q) => !q.accepted && q.prerequisite_met !== false && q.meets_level !== false
+    && giverOf(q, continentZoneIds) === npc);
+}
+
+// dónde está cada NPC que recibe misiones (para el diario: «Entrégasela a Marta, en …»)
+export const NPC_LUGAR = {
+  anciano: 'la fogata de la Aldea Espiga',
+  ren: 'la Aldea Espiga',
+  mirna: 'la Aldea Espiga',
+  goreth: 'la herrería de la Aldea Espiga',
+  cochero_aldea: 'la parada de la diligencia, en la Aldea Espiga',
+  tilo: 'la Aldea Espiga',
+  bruno: 'su granja, en la Aldea Espiga',
+  tobias: 'el molino de la Colina',
+  brenna: 'el campamento de leñadores del Bosque de Robleviejo',
+  nilo: 'el muelle del Lago Cristalino',
+  orlan: 'la excavación de las Ruinas del Vigía',
+  sela: 'el campamento de refugiados de las Praderas del Este',
+  vera: 'la atalaya de las Tierras Heridas',
+  elenya: 'la Catedral de Aurelia',
+  marta: 'la posada de Aurelia',
+};

@@ -873,6 +873,23 @@ body.en-mundo .bgm-control { display: none; }
 .hud-tracker-q em { font: italic 600 0.72rem 'EB Garamond', serif; color: #7dff9a; }
 .hud-tracker-q.done b { color: #7dff9a; }
 .hud-tracker-q:hover b { text-decoration: underline; }
+.hud-tracker-row { display: flex; align-items: flex-start; gap: 6px; }
+.hud-tracker-pin {
+  pointer-events: auto;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 0.72rem;
+  line-height: 1;
+  background: rgba(20, 20, 32, 0.55);
+  border: 1px solid rgba(240, 230, 208, 0.25);
+  border-radius: 50%;
+  cursor: pointer;
+  filter: grayscale(1) opacity(0.55);
+}
+.hud-tracker-pin:hover { filter: none; }
+.hud-tracker-row.tracked .hud-tracker-pin { filter: none; border-width: 2px; background: rgba(20, 20, 32, 0.8); }
 .hud-tracker-more { font: 500 0.68rem 'EB Garamond', serif; color: var(--cream); opacity: 0.75; text-shadow: 0 1px 2px #000; }
 
 @media (max-width: 900px) { .hud-tracker { display: none; } }

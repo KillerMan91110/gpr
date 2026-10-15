@@ -17,6 +17,7 @@ import { exploreMethods } from './world/explore';
 import { eventsMethods } from './world/events';
 import { criptaMethods } from './world/cripta';
 import { questsMethods } from './world/quests';
+import { trackingMethods } from './world/tracking';
 
 // Mundo abierto continuo (estilo MMO): public/assets/mundo/etheria.json coloca cada zona
 // (public/assets/mundo/<zona>/mundo.json) en su lugar del continente. Todas las zonas viven en
@@ -412,6 +413,7 @@ export default class WorldScene extends Phaser.Scene {
       'npc-marks': (marks) => this.setNpcMarks(marks),
       'quest-npc-spots': (spots) => this.setQuestNpcSpots(spots),
       'quest-points': (points) => this.setQuestPoints(points),
+      'quest-track': (tracks) => this.setTracking(tracks),
       'quest-ambush': (a) => this.startQuestAmbush(a),
       'cripta-abrir': (e) => this.changeZone(e.dest, e.tx, e.ty),
       'resources-state': (list) => this.setResourceStates(list),
@@ -1010,6 +1012,8 @@ export default class WorldScene extends Phaser.Scene {
       this.sheetsReady = true;
       for (const c of this.chunks.values()) this.spawnChunkMonsters(c);
       this.spawnBosses(catalog);
+      // las emboscadas de misión muestran a su monstruo: se rearman ahora que están sus hojas
+      if (this.questPointsRaw?.length) this.setQuestPoints(this.questPointsRaw);
     });
   }
 
@@ -1398,6 +1402,7 @@ export default class WorldScene extends Phaser.Scene {
 
     this.updatePoi();
     this.checkQuestVisits();
+    this.updateTracking(time);
     const touchE = this.touchInteract;
     this.touchInteract = false;
     if (this.nearPoi && (touchE || Phaser.Input.Keyboard.JustDown(k.interact) || Phaser.Input.Keyboard.JustDown(k.interact2))) {
@@ -1426,4 +1431,4 @@ export default class WorldScene extends Phaser.Scene {
 }
 
 // Partes de la escena que viven en su propio archivo (game/world/*)
-Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods);
+Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods);

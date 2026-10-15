@@ -131,6 +131,14 @@
 .wp-slot.wp-rarity-legendario { border-color: var(--rarity-legendario); color: #ffe3b5; box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9), 0 0 8px rgba(240, 169, 58, 0.55); }
 .wp-slot.wp-rarity-unico { border-color: var(--rarity-unico); color: #ffd6fa; box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9), 0 0 8px rgba(232, 79, 216, 0.55); }
 
+/* objetos de misión: borde ámbar y un pergamino en la esquina (no son botín ni se venden) */
+.wp-slot.wp-slot--quest {
+  border-color: #e8a028;
+  background: radial-gradient(circle at 50% 45%, rgba(232, 160, 40, 0.28), rgba(20, 14, 6, 0.85) 75%);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9), 0 0 7px rgba(232, 160, 40, 0.6);
+}
+.wp-slot-quest { position: absolute; right: 1px; top: -1px; font-size: 10px; pointer-events: none; filter: drop-shadow(0 1px 1px #000); }
+
 .wp-slot-qty,
 .wp-slot-enchant {
   position: absolute;
@@ -220,6 +228,7 @@
 .wp-rarity-epico.wp-tooltip-name { color: var(--rarity-epico); }
 .wp-rarity-legendario.wp-tooltip-name { color: var(--rarity-legendario); }
 .wp-rarity-unico.wp-tooltip-name { color: var(--rarity-unico); }
+.wp-tooltip-name.wp-tooltip-name--quest { color: #ffb84a; }
 
 /* ---- ficha del personaje ---- */
 .wp-char-subtitle {
@@ -446,6 +455,21 @@
 }
 
 .wp-btn--gold:hover:not(:disabled) { color: #000; filter: brightness(1.08); }
+
+/* misiones que se entregan en persona: a quién y dónde, en vez del botón */
+.wp-quest-turnin {
+  display: inline-block;
+  padding: 6px 10px;
+  border: 1px dashed var(--gold-dim);
+  border-radius: 5px;
+  color: var(--cream);
+  font: 600 0.74rem 'Cinzel', serif;
+  opacity: 0.75;
+}
+
+.wp-quest-turnin--ready { border-style: solid; border-color: var(--gold-bright); color: #ffe7a0; opacity: 1; }
+
+.wp-btn--on { border-color: var(--gold-bright); color: #ffe7a0; box-shadow: 0 0 6px rgba(255, 216, 74, 0.35) inset; }
 
 .wp-btn--danger { background: linear-gradient(180deg, #5a1a20, #2a0a10); border-color: #8a3a3a; color: #ffd6d6; }
 .wp-btn--wide { width: 100%; margin-top: 10px; }
