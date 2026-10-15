@@ -762,6 +762,17 @@ icon("muneca_trapo", function(G)
   G.thick(13, 26, 12, 30, 2, "pa"); G.thick(19, 26, 20, 30, 2, "pa")
 end)
 
+-- ojo del Vigía: el ojo de piedra del yelmo del Vigía Caído, que todavía brilla
+icon("ojo_vigia", function(G)
+  G.ellipse(16, 16, 13, 9, "rk2")
+  G.ellipse(16, 15, 12, 7.5, "rk1")
+  G.ellipse(16, 16, 9, 6, "W")
+  G.ellipse(16, 16, 5, 5, "az2"); G.ellipse(16, 16, 3.4, 3.4, "aq2"); G.ellipse(16, 16, 1.8, 1.8, "K")
+  G.px(14, 14, "W"); G.px(15, 13, "W")
+  G.line(5, 13, 9, 9, "rk3"); G.line(27, 13, 23, 9, "rk3")
+  G.px(4, 20, "aq2"); G.px(28, 21, "aq2"); G.px(16, 4, "au1")
+end)
+
 -- ---------------------------------------------------------------- atlas (una fila)
 local n = #ICONS
 local img = Image(n * 32, 32, ColorMode.RGB)

@@ -31,7 +31,7 @@ const BY_CLASS = {
 };
 // set por código (los sets de zona tienen sufijo fijo) y, si no, por el nombre
 const SET_BY_CODE = [
-  [/_VIGIA$/, 'vigia'], // set de la Guardia del Vigía (intermedio de la Pradera)
+  [/_VIGIA$|_VIGIA_CAIDO$/, 'vigia'], // set de la Guardia y armas del Vigía Caído (Pradera)
   [/TITAN_F\b|TITAN_F$/, 'titan_fuego'], [/TITAN_P\b|TITAN_P$/, 'titan'], [/REY_MONT/, 'rey_montana'], [/REY_HIELO/, 'rey_hielo'],
   [/PRADERA/, 'pradera'], [/MONTANAS/, 'montana'], [/CAPITAN/, 'capitan'], [/ACANT/, 'acantilado'], [/VOLCAN/, 'volcan'],
   [/CALDERA/, 'caldera'], [/COSTAS/, 'costas'], [/OCEANO/, 'oceano'], [/PROFU/, 'profundidades'], [/TUNDRA/, 'tundra'],
@@ -154,7 +154,7 @@ export const OBJETOS = ['pocion_vida_menor', 'pocion_vida_mayor', 'pocion_mana_m
   'carne_jabali', 'glandula_sapo', 'medalla_vigia', 'runa_menhir', 'fragmento_eclipse', 'asado_jabali', 'elixir_lago',
   'emblema_guardia', 'amuleto_runico', 'amuleto_alba',
   'collar_cristal_negro', 'saco_cristales', 'cristal_enterrado', 'engranaje_molino', 'unguento_raiz', 'carta_eclipse',
-  'mapa_chaman', 'cristal_capitan', 'fragmento_sello', 'palo_roble', 'carta_ren', 'carta_marta', 'hacha_brenna', 'muneca_trapo'];
+  'mapa_chaman', 'cristal_capitan', 'fragmento_sello', 'palo_roble', 'carta_ren', 'carta_marta', 'hacha_brenna', 'muneca_trapo', 'ojo_vigia'];
 const OBJETO_BY_NAME = {
   'pocion de vida menor': 'pocion_vida_menor', 'pocion de vida mayor': 'pocion_vida_mayor',
   'pocion de mana menor': 'pocion_mana_menor', 'pocion de mana mayor': 'pocion_mana_mayor',
@@ -177,7 +177,7 @@ const OBJETO_BY_NAME = {
   'cristal enterrado': 'cristal_enterrado', 'engranaje del molino': 'engranaje_molino', 'unguento de raiz': 'unguento_raiz',
   'carta con un eclipse': 'carta_eclipse', 'mapa del chaman': 'mapa_chaman', 'cristal del capitan': 'cristal_capitan',
   'primer fragmento de sello': 'fragmento_sello', 'palo de roble': 'palo_roble', 'carta de ren': 'carta_ren',
-  'carta de marta': 'carta_marta', 'hacha de brenna': 'hacha_brenna', 'muneca de trapo': 'muneca_trapo',
+  'carta de marta': 'carta_marta', 'hacha de brenna': 'hacha_brenna', 'muneca de trapo': 'muneca_trapo', 'ojo del vigia': 'ojo_vigia',
 };
 
 // índice en el atlas de objetos, o null
