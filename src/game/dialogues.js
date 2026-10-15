@@ -183,6 +183,215 @@ export const DIALOGUES = {
       chaman: 'Un chamán de túnica negra hace rituales en el Círculo de Piedras, al sur. Las runas brillan rojas cuando canta. Creo que tiene algo que ver con el despertar del Titán, pero nadie que fue a preguntarle volvió para contarlo.',
     },
   },
+  // Tilo: el niño de la Aldea que quiere ser héroe (misiones graciosas, gprback schema.sql)
+  tilo: {
+    name: 'Tilo',
+    role: 'Aprendiz de héroe',
+    portrait: PORTRAIT('tilo'),
+    ambient: [
+      '¡Ataque giratorio! …Uy, me mareé.',
+      '¡Cuando sea grande voy a matar un dragón!',
+      'Mi espada se llama Partelobos.',
+      '¿Tú también fuiste niño alguna vez?',
+    ],
+    greet: ({ night, mark }) => {
+      if (mark === '?') return '¡Volviste! ¡Cuéntame todo, todo, todo!';
+      if (mark === '!') return '¡Oye, oye! ¡Tengo una misión importantísima para ti!';
+      return night
+        ? pick(['Mi mamá dice que me vaya a dormir, pero los héroes no duermen. Bueno, un poquito.', 'De noche hago guardia. Desde la ventana. Con la manta.'])
+        : pick(['¿Eres un aventurero de verdad? ¿Con espada de verdad? ¡Qué suerte!', '¡Mira mi postura de combate! …¿Está bien así?']);
+    },
+    options: () => [
+      { label: '¿Por qué quieres ser héroe?', next: 'heroe' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      heroe: 'Porque cuando los lobos atacaron la granja de mi tío, nadie vino a ayudar. Cuando yo sea héroe, voy a llegar siempre. Siempre, siempre. Aunque llueva.',
+    },
+  },
+  // Bruno: el vecino gruñón de Goreth (la cadena de la cerca)
+  bruno: {
+    name: 'Bruno',
+    role: 'Granjero',
+    portrait: PORTRAIT('bruno'),
+    ambient: [
+      'Grrr… esa vaca otra vez.',
+      'Mi cerca era más bonita antes.',
+      'Ese herrero hace demasiado ruido.',
+      'En mis tiempos las calabazas eran más grandes.',
+    ],
+    greet: ({ night, mark }) => {
+      if (mark === '?') return 'Hmph. ¿Ya está? Bueno, pasa, pasa.';
+      if (mark === '!') return 'Tú. Sí, tú. Necesito a alguien que no sea un inútil. ¿Lo eres?';
+      return night
+        ? pick(['¿No duermes? Yo tampoco. Ese yunque no para ni de noche.', 'Vigilo mi cerca. Por si acaso.'])
+        : pick(['¿Qué miras? Es una cerca. Una cerca normal.', 'Si vienes de parte de Goreth, ya te puedes ir.']);
+    },
+    options: () => [
+      { label: '¿Qué tienes contra Goreth?', next: 'goreth' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      goreth: '¿Contra Goreth? Nada. Solo que hace ruido, se cree el mejor herrero del reino y una vez dijo que mis calabazas eran «normalitas». NORMALITAS. Gané el concurso tres años seguidos.',
+    },
+  },
+  // Tobías: el molinero de la Colina del Molino
+  tobias: {
+    name: 'Tobías',
+    role: 'Molinero',
+    portrait: PORTRAIT('tobias'),
+    ambient: [
+      'Gira, gira, rueda…',
+      '¡Harina fresca para el Festival!',
+      'El viento hoy viene del este.',
+      '*achís* Perdón, la harina.',
+    ],
+    greet: ({ night, mark }) => {
+      if (mark === '?') return '¡Lo lograste! Ven, ven, que te pago con lo que tengo.';
+      if (mark === '!') return '¡Ay, qué bueno que subiste! Tengo un problemita… bueno, un problemón.';
+      return night
+        ? pick(['De noche el molino descansa. Yo no: cuento los sacos.', 'Escucha el viento entre las aspas. Es la mejor canción de la Pradera.'])
+        : pick(['Bienvenido a la Colina del Molino. Si traes trigo, sales con harina.', 'Sin este molino, la aldea no tendría pan. Ni yo trabajo, claro.']);
+    },
+    options: () => [
+      { label: '¿Cómo se hace el pan?', next: 'pan' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      pan: 'Fácil: juntas trigo en los campos, lo conviertes en harina en cualquier taller (aquí sale más fina, claro) y después al horno con un poco de Agua Purificada del Pilar. El Pan de Campo cura y llena la panza.',
+    },
+  },
+  // ---- puestos de la Pradera: un NPC con su campamento en cada subzona (misiones de su zona) ----
+  // Brenna: la leñadora del Bosque de Robleviejo
+  brenna: {
+    name: 'Brenna',
+    role: 'Leñadora',
+    portrait: PORTRAIT('brenna'),
+    ambient: [
+      '¡Madera va!',
+      'Este bosque está enfermo. Lo siento en la corteza.',
+      'Los jabalíes ya no respetan ni el hacha.',
+      'El roble viejo tiene más años que todos nosotros juntos.',
+    ],
+    greet: ({ night, mark }) => {
+      if (mark === '?') return '¡Volviste entero! Ven, siéntate junto al fuego y cuéntame.';
+      if (mark === '!') return 'Oye, tú, el de las botas limpias. ¿Sabes usar eso que llevas? Me vendría bien una mano.';
+      return night
+        ? pick(['De noche el bosque cruje distinto. Quédate cerca del fuego.', 'No duermo bien desde que los jabalíes enloquecieron.'])
+        : pick(['Bienvenido al campamento de leñadores. Cuidado con el tronco, que no es asiento.', 'Si buscas madera de roble, la que cae sola es la mejor.']);
+    },
+    options: () => [
+      { label: '¿Qué le pasa al bosque?', next: 'bosque' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      bosque: 'Desde la primavera los árboles se secan de adentro hacia afuera, como si algo les chupara la savia por las raíces. Y los jabalíes… antes huían del hacha. Ahora la buscan. El roble viejo, más al norte, es el que peor está.',
+    },
+  },
+  // Nilo: el pescador viejo del Lago Cristalino
+  nilo: {
+    name: 'Nilo',
+    role: 'Pescador',
+    portrait: PORTRAIT('nilo'),
+    ambient: [
+      'Hoy no pica nada. Ni ayer. Ni antes de ayer.',
+      'Este lago era claro como un espejo…',
+      'Esos sapos me miran feo.',
+      'Mi abuelo pescó aquí, y su abuelo también.',
+    ],
+    greet: ({ night, mark }) => {
+      if (mark === '?') return '¡Ajá! Sabía que volverías. Los buenos siempre vuelven al muelle.';
+      if (mark === '!') return 'Psst, muchacho. Acércate. Un viejo pescador necesita un favor.';
+      return night
+        ? pick(['De noche salen los sapos grandes. Y croan. Toda. La. Noche.', 'Si ves luces sobre el agua, no las sigas. Hazle caso a este viejo.'])
+        : pick(['Siéntate un rato. Pescar es esperar, y esperar es la mitad de la vida.', 'Desde que el agua se enturbió, solo pesco botas.']);
+    },
+    options: () => [
+      { label: '¿Qué le pasó al lago?', next: 'lago' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      lago: 'Un día el agua amaneció turbia, con olor a ceniza. Después salieron los sapos, grandes como perros. Y hace poco apareció un forastero ahogado aquí cerca, con una capa negra que no era de pescador. El lago se está llenando de cosas que no son del lago.',
+    },
+  },
+  // Maese Orlan: el erudito de Aurelia que excava la torre del Vigía
+  orlan: {
+    name: 'Maese Orlan',
+    role: 'Erudito',
+    portrait: PORTRAIT('orlan'),
+    ambient: [
+      'Fascinante… fascinante.',
+      '¡No pises eso! Es un fragmento de cerámica de hace cuatro siglos.',
+      'Los Vigías escribían en una lengua muy curiosa.',
+      'Si solo pudiera leer la última línea…',
+    ],
+    greet: ({ night, mark }) => {
+      if (mark === '?') return '¡Excelente! Muéstrame lo que encontraste, con cuidado, con cuidado.';
+      if (mark === '!') return 'Ah, justo a tiempo. Necesito a alguien con más músculo que paciencia. Sin ofender.';
+      return night
+        ? pick(['De noche las inscripciones parecen moverse. Seguro es el cansancio. Seguro.', 'Los esqueletos no me dejan dormir. Ni trabajar. Ni pensar.'])
+        : pick(['Bienvenido a la excavación de la Torre del Vigía, por encargo de la Biblioteca de Aurelia.', 'Cada piedra de estas ruinas cuenta una historia. La mayoría, tristes.']);
+    },
+    options: () => [
+      { label: '¿Quiénes eran los Vigías?', next: 'vigias' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      vigias: 'Una orden de guardianes humanos. Cada uno vigilaba a una criatura antigua y a lo que esa criatura protegía. Esta torre era de la familia del primer Vigía de la Pradera. Su escudo, un ojo abierto, aparece en todas partes… incluso en los huesos que se levantan de noche.',
+    },
+  },
+  // Sela: la granjera que guía a los refugiados de las Praderas del Este
+  sela: {
+    name: 'Sela',
+    role: 'Granjera',
+    portrait: PORTRAIT('sela'),
+    ambient: [
+      'Tenemos que aguantar. Todos juntos.',
+      'Extraño mi casa…',
+      '¿Alguien vio a la cabra blanca?',
+      'Esas luces del sur no son de nadie bueno.',
+    ],
+    greet: ({ night, mark }) => {
+      if (mark === '?') return 'Gracias a ti esta gente duerme un poco más tranquila. Ven, ven.';
+      if (mark === '!') return 'Por favor, escúchame. Somos pocos y tenemos miedo, pero no somos cobardes.';
+      return night
+        ? pick(['Hacemos guardia por turnos. Las luces del Círculo se ven desde aquí.', 'Los niños preguntan cuándo volvemos a casa. No sé qué decirles.'])
+        : pick(['Bienvenido al campamento. No tenemos mucho, pero el fuego es de todos.', 'Mi granja estaba a una hora de aquí. Ahora es de los lobos.']);
+    },
+    options: () => [
+      { label: '¿Por qué huyeron?', next: 'huida' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      huida: 'Primero fueron los lobos, más grandes y más listos que nunca. Después las luces rojas en el Círculo de Piedras, cada noche. Y una mañana el trigo amaneció negro en un círculo perfecto alrededor de mi casa. Juntamos lo que pudimos y nos vinimos aquí, cerca del camino.',
+    },
+  },
+  // Vera: la cazadora que vigila la Guarida y las grietas desde su atalaya
+  vera: {
+    name: 'Vera',
+    role: 'Cazadora',
+    portrait: PORTRAIT('vera'),
+    ambient: [
+      'Shh. Escucha. ¿Oyes al norte?',
+      'Tres lobos esta mañana. Dos con cristales.',
+      'Desde aquí se ve todo: la Guarida y las grietas.',
+      'Una flecha bien puesta vale más que diez espadas.',
+    ],
+    greet: ({ night, mark }) => {
+      if (mark === '?') return 'Buen trabajo. Lo vi todo desde aquí arriba. Casi todo.';
+      if (mark === '!') return 'Tú. Tienes pinta de saber pelear. Tengo algo que necesita más de un arco.';
+      return night
+        ? pick(['De noche las grietas brillan violeta. No te acerques sin luz.', 'Los aullidos de la Guarida no paran desde hace semanas.'])
+        : pick(['Esta es mi atalaya. Desde aquí vigilo a la manada y a lo que sale de la tierra.', 'Si vas al sur, ve armado. Las bestias de la grieta no perdonan.']);
+    },
+    options: () => [
+      { label: '¿Qué vigilas?', next: 'vigila' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      vigila: 'Al norte, la Guarida: el Capitán de los Lobos manda ahí y la manada le obedece como nunca. Al sur, las Tierras Heridas: la tierra se abrió en grietas y de ahí salen lobos deformes con cristales en el lomo. Alguien está detrás de todo esto. Yo solo cuento cuántos salen cada día.',
+    },
+  },
   // Aurelia (dialoguesCiudad.js)
   ...DIALOGUES_CIUDAD,
 };

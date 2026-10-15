@@ -114,6 +114,7 @@
    96
   ]
  },
+ "editado": true,
  "subzonas": [
   {
    "name": "Plaza del Pilar",
@@ -197,7 +198,6 @@
    "safe": true
   }
  ],
- "editado": true,
  "chunks": [
   {
    "cx": 0,

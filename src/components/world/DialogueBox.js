@@ -4,14 +4,17 @@ import { DIALOGUES } from '../../game/dialogues';
 
 // Caja de diálogo estilo JRPG: retrato del NPC, el texto aparece letra por letra y abajo las
 // opciones (1-9 para elegir, Espacio/Enter para completar el texto, Esc para irse).
-export default function DialogueBox({ id, ctx, onOpenWindow, onAction, onClose }) {
+export default function DialogueBox({ id, ctx, questLines, onOpenWindow, onAction, onClose }) {
   // mientras se conversa, el chat global se aparta para no tapar el cuadro de diálogo
   useEffect(() => {
     document.body.classList.add('en-dialogo');
     return () => document.body.classList.remove('en-dialogo');
   }, []);
   const def = DIALOGUES[id];
-  const [text, setText] = useState(() => def?.greet(ctx) ?? '');
+  // lo que dice por una misión (lib/questSteps.js) va antes de su saludo; se pasa con "Continuar"
+  const [lineIdx, setLineIdx] = useState(0);
+  const questLine = questLines?.[lineIdx] ?? null;
+  const [text, setText] = useState(() => questLines?.[0]?.text ?? def?.greet(ctx) ?? '');
   const [shown, setShown] = useState(0);
   const timer = useRef(null);
 
@@ -33,21 +36,29 @@ export default function DialogueBox({ id, ctx, onOpenWindow, onAction, onClose }
   // cualquier NPC que dé misiones (game/questGivers.js) ofrece verlas o entregarlas, aunque su
   // diálogo no lo tenga escrito
   const options = useMemo(() => {
+    // la última línea de la misión cierra la conversación (ya te dio lo que tenía que darte)
+    if (questLine) return lineIdx < questLines.length - 1 ? [{ label: '▶ Continuar', questNext: true }] : [{ label: '▶ Terminar', close: true }];
     const base = def ? def.options({ night, mark }) : [];
     if (!mark || mark === 'gris' || base.some((o) => o.window === 'misiones_gremio')) return base;
     const quest = mark === '?'
       ? { label: '✔ Entregar misión', window: 'misiones' }
       : { label: '❗ ¿Tienes trabajo para mí?', window: 'misiones_gremio' };
     return [quest, ...base];
-  }, [def, night, mark]);
+  }, [def, night, mark, questLine, lineIdx, questLines]);
 
   const choose = useCallback((o) => {
     audio.sfx('clic');
+    if (o.questNext) {
+      const next = lineIdx + 1;
+      setLineIdx(next);
+      setText(questLines?.[next]?.text ?? def?.greet(ctx) ?? '');
+      return;
+    }
     if (o.close) onClose();
     else if (o.window) { onOpenWindow(o.window); onClose(); }
     else if (o.next) setText(def.lines[o.next]);
     else if (o.action) { onAction?.(o); onClose(); }
-  }, [def, onClose, onOpenWindow, onAction]);
+  }, [def, onClose, onOpenWindow, onAction, lineIdx, questLines, ctx]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -68,7 +79,7 @@ export default function DialogueBox({ id, ctx, onOpenWindow, onAction, onClose }
         <img src={def.portrait} alt="" draggable="false" />
       </div>
       <div className="dlg-body">
-        <header className="dlg-name">{def.name}<small>{def.role}</small></header>
+        <header className="dlg-name">{def.name}<small>{questLine ? 'Misión' : def.role}</small></header>
         {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
         <p className="dlg-text" onClick={() => setShown(text.length)}>
           {text.slice(0, shown)}

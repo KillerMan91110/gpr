@@ -47,6 +47,12 @@ export const api = {
     request(`/api/player/${playerId}/quests/${questId}/complete`, { method: 'POST', token }),
   abandonQuest: (playerId, questId, token) =>
     request(`/api/player/${playerId}/quests/${questId}/abandon`, { method: 'DELETE', token }),
+  // misiones por pasos: reiniciar una trabada, avisar que hablaste/llegaste/examinaste y los NPCs movidos
+  resetQuest: (playerId, questId, token) =>
+    request(`/api/player/${playerId}/quests/${questId}/reset`, { method: 'POST', token }),
+  questInteract: (playerId, kind, target, token) =>
+    request(`/api/player/${playerId}/quests/interact`, { method: 'POST', body: { kind, target }, token }),
+  getQuestNpcSpots: (playerId, token) => request(`/api/player/${playerId}/quests/npc-spots`, { token }),
   getCompletedQuests: (playerId, token) => request(`/api/player/${playerId}/quests/completed`, { token }),
   getEvolutions: (playerId, token) => request(`/api/player/${playerId}/evolutions`, { token }),
   evolve: (playerId, evolutionId, token) =>

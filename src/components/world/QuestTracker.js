@@ -19,13 +19,15 @@ export default function QuestTracker({ active = [], continentZoneIds = [], onOpe
       {!folded && shown.map((q) => {
         const objs = q.objectives ?? [];
         const done = objs.length > 0 && objs.every((o) => (o.current_count ?? 0) >= o.target_count);
-        const giver = giverOf(q, continentZoneIds);
+        // a quién se entrega: el que la recibe en persona (misiones de historia) o el que la dio
+        const giver = q.turn_in_npc ?? giverOf(q, continentZoneIds);
         return (
           <button type="button" key={q.id} className={`hud-tracker-q${done ? ' done' : ''}`} onClick={onOpen}>
-            <b>{q.quest_type === 'DIARIA' ? '◆ ' : ''}{q.name}</b>
+            <b>{q.quest_type === 'DIARIA' ? '◆ ' : q.quest_type === 'PRINCIPAL' ? '✦ ' : ''}{q.name}</b>
             {done
               ? <em>✔ Entrégala a {DIALOGUES[giver]?.name ?? q.npc_name ?? 'quien te la dio'}</em>
-              : objs.map((o) => (
+              // solo el paso actual: los siguientes no se adelantan
+              : objs.filter((o) => !o.future).map((o) => (
                 <span key={o.objective_id}>
                   - {o.description}: {Math.min(o.current_count ?? 0, o.target_count)}/{o.target_count}
                 </span>

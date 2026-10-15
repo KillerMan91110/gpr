@@ -48,6 +48,8 @@ export const npcsMethods = {
         });
       }
       this.setNpcMarks(this.marks);
+      // NPCs que una misión mandó a otro lugar (llegaron antes que sus sprites)
+      if (this.questSpots?.length) this.setQuestNpcSpots(this.questSpots);
     });
   },
 

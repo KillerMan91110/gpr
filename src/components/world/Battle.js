@@ -186,6 +186,7 @@ async function startOrResume(encounter, token, playerId) {
   try {
     if (encounter.kind === 'mythic') initial = await api.enterMitico(playerId, token);
     else if (encounter.kind === 'cripta') initial = await api.combateCripta(playerId, encounter.target, token);
+    else if (encounter.kind === 'emboscada') initial = await api.createCombatSession(encounter.monsters, token);
     else initial = encounter.kind === 'boss' || encounter.kind === 'esbirro'
       ? await api.createCombatSession([{ code: encounter.code, level: encounter.level }], token)
       : await api.exploreZone(encounter.zoneId, token, undefined, encounter.code, encounter.areaLevels, !!encounter.group, encounter.position);

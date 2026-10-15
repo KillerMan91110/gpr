@@ -24,10 +24,13 @@ function Rewards({ q }) {
   );
 }
 
+// Misiones por pasos: se ven los objetivos ya cumplidos y los del paso actual; los siguientes
+// quedan como "???" para no adelantar la historia.
 function Objectives({ q }) {
+  const future = (q.objectives ?? []).filter((o) => o.future).length;
   return (
     <ul className="wp-objectives">
-      {(q.objectives ?? []).map((o) => {
+      {(q.objectives ?? []).filter((o) => !o.future).map((o) => {
         const cur = Math.min(o.current_count ?? 0, o.target_count);
         const done = cur >= o.target_count;
         return (
@@ -38,6 +41,7 @@ function Objectives({ q }) {
           </li>
         );
       })}
+      {future > 0 && <li className="wp-objective-next"><span>◇ ??? (se revela al avanzar)</span></li>}
     </ul>
   );
 }
@@ -52,6 +56,7 @@ function QuestDetail({ q, actions }) {
       <span className="wp-detail-sub">
         {q.zone_name ?? 'Etheria'} · {q.npc_name ?? 'Gremio'} · Nv. {q.min_level}{q.max_level ? `-${q.max_level}` : '+'}
         {q.is_repeatable ? ' · Repetible' : ' · Única'}
+        {q.is_personal ? ' · Personal' : ''}
       </span>
       <p className="wp-detail-desc wp-parchment">{q.description}</p>
       <h4 className="wp-subhead">Objetivos</h4>
@@ -149,10 +154,22 @@ export function QuestLogPanel({ onChanged, ...props }) {
             q={current}
             actions={tab === 'curso' && (
               <>
-                <button type="button" className="wp-btn wp-btn--gold" disabled={busy || !objectivesDone(current)} onClick={() => run(() => api.completeQuest(player.id, current.id, token), `¡${current.name} completada!`)}>
+                <button
+                  type="button"
+                  className="wp-btn wp-btn--gold"
+                  disabled={busy || !objectivesDone(current)}
+                  title={current.turn_in_npc ? `Se entrega en persona a ${DIALOGUES[current.turn_in_npc]?.name ?? 'quien te la dio'}` : undefined}
+                  onClick={() => run(async () => {
+                    const q = current;
+                    await api.completeQuest(player.id, q.id, token);
+                    // quien la recibe dice su línea de entrega (misiones de historia y secundarias)
+                    const npc = q.turn_in_npc ?? q.giver_npc;
+                    if (q.dialog?.entrega && npc && DIALOGUES[npc]) bus.emit('quest-entrega', { npc, text: q.dialog.entrega });
+                  }, `¡${current.name} completada!`)}
+                >
                   Entregar
                 </button>
-                {inGroup && (
+                {inGroup && !current.is_personal && (
                   <button
                     type="button"
                     className="wp-btn"
@@ -166,6 +183,17 @@ export function QuestLogPanel({ onChanged, ...props }) {
                     }}
                   >
                     Compartir con el grupo
+                  </button>
+                )}
+                {current.objectives?.some((o) => o.step > 1) && (
+                  <button
+                    type="button"
+                    className="wp-btn"
+                    disabled={busy}
+                    title="Si la misión quedó trabada: vuelve al primer paso (se quitan sus objetos de misión)"
+                    onClick={() => run(() => api.resetQuest(player.id, current.id, token), `${current.name}: volviste al primer paso`)}
+                  >
+                    Reiniciar
                   </button>
                 )}
                 <button type="button" className="wp-btn wp-btn--danger" disabled={busy} onClick={() => run(() => api.abandonQuest(player.id, current.id, token), `Abandonaste ${current.name}`)}>
@@ -242,7 +270,7 @@ export function QuestBoardPanel({ onChanged, giver, onClearGiver, continentZoneI
               className={`wp-quest${q.meets_level ? '' : ' wp-skill--locked'}${current?.id === q.id ? ' wp-skill--active' : ''}`}
               onClick={() => setSelected(q.id)}
             >
-              <span className="wp-quest-name">{q.quest_type === 'DIARIA' ? '◆ ' : ''}{q.name}</span>
+              <span className="wp-quest-name">{q.quest_type === 'DIARIA' ? '◆ ' : q.quest_type === 'PRINCIPAL' ? '✦ ' : ''}{q.name}</span>
               <small>Nv. {q.min_level}{q.max_level ? `-${q.max_level}` : '+'} · <Stars n={q.difficulty_stars} /></small>
             </button>
           ))}

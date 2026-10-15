@@ -52,7 +52,9 @@ export function useCrypt({ player, token, worldReady, zoneDir, onChanged }) {
 // Recuadro bajo el minimapa con el avance del recorrido
 export function CryptTracker({ crypt }) {
   if (!crypt) return null;
-  const next = !crypt.doorOpen
+  const next = crypt.cleared
+    ? 'Venciste al Vigía Caído: la cripta está completada. Sal y vuelve a entrar para recorrerla otra vez.'
+    : !crypt.doorOpen
     ? `Vence a los guardianes que patrullan (${crypt.guardians.length}/${crypt.totalGuardians}). Si te ven, te persiguen: muévete fuera de su luz.`
     : 'La Puerta del Vigía está abierta. Baja a la Cámara del Faro.';
   return (
@@ -62,7 +64,7 @@ export function CryptTracker({ crypt }) {
         <b>La Cripta del Vigía</b>
       </div>
       <div className="hud-crypt-row">
-        <span className={crypt.doorOpen ? 'is-done' : ''}><GameIcon name="dungeon-gate" artist="delapouite" /> Guardianes {crypt.guardians.length}/{crypt.totalGuardians}</span>
+        <span className={crypt.doorOpen ? 'is-done' : ''}><GameIcon name="dungeon-gate" artist="delapouite" /> {crypt.cleared ? '✔ Completado' : `Guardianes ${crypt.guardians.length}/${crypt.totalGuardians}`}</span>
         <span><GameIcon name="lighthouse" artist="delapouite" /> {crypt.braziers ? `Brasero ${crypt.braziers}` : 'Sin brasero'}</span>
       </div>
       <p>{next}</p>

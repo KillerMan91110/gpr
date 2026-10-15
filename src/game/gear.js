@@ -149,7 +149,9 @@ export const OBJETOS = ['pocion_vida_menor', 'pocion_vida_mayor', 'pocion_mana_m
   'elixir_regeneracion', 'esencia_restauradora', 'estofado_lobo', 'sopa_goblin', 'guiso_troll',
   'amuleto_pradera', 'collar_pradera', 'brazalete_pradera', 'anillo_pradera', 'amuleto_capitan', 'anillo_fuerza', 'amuleto_brujo',
   'frasco_vacio', 'agua_purificada', 'lingote_hierro', 'tabla_roble', 'cuero_tratado', 'antidoto', 'tonico_miel', 'vendaje',
-  'amuleto_colmillos', 'fibra_lino', 'tela_lino', 'cuarzo_rio', 'trigo', 'harina', 'pan_campo'];
+  'amuleto_colmillos', 'fibra_lino', 'tela_lino', 'cuarzo_rio', 'trigo', 'harina', 'pan_campo', 'llave_vigia',
+  'carne_jabali', 'glandula_sapo', 'medalla_vigia', 'runa_menhir', 'fragmento_eclipse', 'asado_jabali', 'elixir_lago',
+  'emblema_guardia', 'amuleto_runico', 'amuleto_alba'];
 const OBJETO_BY_NAME = {
   'pocion de vida menor': 'pocion_vida_menor', 'pocion de vida mayor': 'pocion_vida_mayor',
   'pocion de mana menor': 'pocion_mana_menor', 'pocion de mana mayor': 'pocion_mana_mayor',
@@ -162,7 +164,11 @@ const OBJETO_BY_NAME = {
   'tabla de roble': 'tabla_roble', 'cuero tratado': 'cuero_tratado', antidoto: 'antidoto', 'tonico de miel': 'tonico_miel',
   vendaje: 'vendaje', 'amuleto de colmillos': 'amuleto_colmillos',
   'fibra de lino': 'fibra_lino', 'tela de lino': 'tela_lino', 'cuarzo de rio': 'cuarzo_rio', trigo: 'trigo', harina: 'harina',
-  'pan de campo': 'pan_campo',
+  'pan de campo': 'pan_campo', 'llave del vigia': 'llave_vigia',
+  'carne de jabali': 'carne_jabali', 'glandula de sapo': 'glandula_sapo', 'medalla del vigia': 'medalla_vigia',
+  'runa de menhir': 'runa_menhir', 'fragmento de eclipse': 'fragmento_eclipse', 'asado de jabali': 'asado_jabali',
+  'elixir del lago': 'elixir_lago', 'emblema de la guardia': 'emblema_guardia', 'amuleto runico': 'amuleto_runico',
+  'amuleto del alba': 'amuleto_alba',
 };
 
 // índice en el atlas de objetos, o null

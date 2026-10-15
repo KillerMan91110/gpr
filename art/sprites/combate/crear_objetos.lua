@@ -2,7 +2,8 @@
 -- automático): pociones y elixires de vida y maná, las comidas que curan de la Pradera y los
 -- accesorios (amuletos, collar, brazalete, anillos) hasta el nivel de la Pradera, y los
 -- materiales y consumibles del crafteo v2 (frasco, agua, lingote, tabla, cuero, antídoto,
--- tónico y vendaje). Los nuevos van siempre al final: el orden es el del atlas.
+-- tónico y vendaje) y objetos de misión (la llave del Vigía). Los nuevos van siempre al final:
+-- el orden es el del atlas.
 -- Salida: equipo/objetos.aseprite, equipo/objetos.png (una fila) y equipo/objetos.json (orden).
 -- Uso: aseprite -b --script-param dir=D:/Sprites/v2 --script crear_objetos.lua
 local function hex(s) return Color{r=tonumber(s:sub(1,2),16), g=tonumber(s:sub(3,4),16), b=tonumber(s:sub(5,6),16)} end
@@ -31,6 +32,12 @@ for k, v in pairs({
   ln1="e8f0d8", ln2="c0d0a8", ln3="8aa070", lb="8ab8f0", -- lino (fibra, tela y su flor)
   k1="f4e8f0", k2="d8b8e0", k3="a888c0",              -- cuarzo rosado
   y1="f0d070", y2="c89a38", y3="8a6420",              -- trigo y pan
+  sp1="b8c86a", sp2="7a8a3a", sp3="4a5a22", sy="ffd23a", -- sapo (glándula) y su veneno
+  bz1="e0a868", bz2="b07438", bz3="6e4420",           -- bronce de la guardia
+  az1="6a8ad8", az2="3a5aa8", az3="22346e",           -- azul del tabardo del Vigía
+  rk1="b8b4c0", rk2="8a8694", rk3="5e5a68", ru="7ff8c8", ru2="3ac898", -- piedra del Círculo y sus runas
+  ec1="5a4878", ec2="2e2440", ec3="171222", ev="c890ff", -- cristal de eclipse
+  al1="fff4c8", al2="ffd86a",                         -- luz del alba
 }) do PAL[k] = hex(v) end
 
 -- ---------------------------------------------------------------- lienzo
@@ -490,6 +497,124 @@ icon("pan_campo", function(G)
   for i = 0, 2 do G.line(10 + i * 5, 14, 13 + i * 5, 20, "y3") end
   G.ellipse(16, 25, 11, 3, nil, function(x, y) return y > 24 and "y3" or nil end)
   G.px(12, 15, "W")
+end)
+
+-- llave del Vigía (objeto de misión): llave antigua dorada con el ojo del Vigía en el aro
+icon("llave_vigia", function(G)
+  G.ellipse(9, 16, 6, 7, "au2")
+  G.ellipse(9, 15, 4, 5, "au1")
+  G.ellipse(9, 16, 3, 2.5, "aq2")
+  G.px(9, 16, "K"); G.px(8, 16, "aq3"); G.px(10, 15, "W")
+  G.rect(15, 15, 28, 17, "au2")
+  G.line(15, 15, 28, 15, "au1")
+  G.rect(21, 18, 23, 21, "au2"); G.line(21, 18, 21, 21, "au1")
+  G.rect(25, 18, 27, 23, "au2"); G.line(25, 18, 25, 23, "au1")
+  G.rect(28, 15, 29, 17, "au3")
+  G.px(14, 16, "au3"); G.px(14, 15, "au2")
+end)
+
+-- ---------------------------------------------------------------- botín de los monstruos nuevos de la Pradera
+-- carne de jabalí: pernil crudo con el hueso asomando
+icon("carne_jabali", function(G)
+  G.ellipse(14, 18, 10, 8, "rb2")
+  G.ellipse(13, 17, 8.5, 6.5, "mt")
+  G.ellipse(11, 15, 3, 2, "r1"); G.line(8, 20, 16, 22, "rb1")
+  G.thick(21, 13, 27, 7, 3, "bn")
+  G.ellipse(27, 5, 2.2, 2, "bn"); G.ellipse(29, 7, 2, 2, "bn")
+  G.px(22, 12, "pa"); G.px(26, 4, "W")
+end)
+
+-- glándula de sapo: bolsita verde y viscosa que gotea veneno amarillo
+icon("glandula_sapo", function(G)
+  G.ellipse(16, 17, 10, 9, "sp2")
+  G.ellipse(15, 16, 8, 7, "sp1")
+  G.px(11, 13, "sp3"); G.px(19, 19, "sp3"); G.px(14, 20, "sp3"); G.px(20, 14, "sp3")
+  G.ellipse(12, 13, 2, 1.4, "v1"); G.px(11, 12, "W")
+  G.rect(15, 26, 17, 26, "sp2")
+  G.ellipse(16, 28, 1.5, 2, "sy"); G.px(16, 29, "am3")
+  G.ellipse(23, 25, 1, 1.5, "sy")
+end)
+
+-- medalla del Vigía: disco de bronce con el ojo de la guardia y una cinta azul
+icon("medalla_vigia", function(G)
+  G.poly({{10, 2}, {15, 2}, {17, 13}, {13, 13}}, "az1")
+  G.poly({{17, 2}, {22, 2}, {19, 13}, {15, 13}}, "az2")
+  G.ellipse(16, 21, 9, 9, "bz2")
+  G.ellipse(16, 21, 7.3, 7.3, "bz1")
+  G.ellipse(16, 21, 5, 3, "bz3"); G.ellipse(16, 21, 3.4, 2, "W"); G.ellipse(16, 21, 1.5, 1.5, "az2"); G.px(16, 21, "K")
+  G.line(10, 26, 22, 26, "bz3"); G.px(11, 16, "W")
+end)
+
+-- runa de menhir: lasca de piedra gris con una runa verde que brilla
+icon("runa_menhir", function(G)
+  G.poly({{8, 6}, {22, 3}, {27, 14}, {24, 28}, {9, 29}, {5, 17}}, "rk2")
+  G.poly({{8, 6}, {22, 3}, {18, 9}, {9, 11}}, "rk1")
+  G.poly({{22, 3}, {27, 14}, {24, 28}, {20, 27}, {18, 9}}, "rk3")
+  G.line(13, 12, 13, 24, "ru"); G.line(13, 12, 17, 15, "ru"); G.line(17, 15, 13, 18, "ru")
+  G.line(14, 21, 17, 24, "ru2")
+  G.px(12, 11, "ru2"); G.px(18, 16, "ru2"); G.px(10, 7, "W")
+end)
+
+-- fragmento de eclipse: astilla de cristal negro con brillo violeta
+icon("fragmento_eclipse", function(G)
+  G.poly({{16, 2}, {23, 13}, {19, 30}, {10, 22}, {11, 10}}, "ec2")
+  G.poly({{16, 2}, {11, 10}, {10, 22}, {15, 17}}, "ec1")
+  G.poly({{16, 2}, {23, 13}, {19, 30}, {17, 16}}, "ec3")
+  G.line(16, 4, 15, 16, "ev"); G.px(14, 9, "W")
+  G.px(6, 8, "ev"); G.px(26, 22, "ev"); G.px(25, 6, "p1")
+end)
+
+-- asado de jabalí: pernil dorado sobre una tabla con una ramita
+icon("asado_jabali", function(G)
+  steam(G)
+  G.rect(3, 24, 29, 27, "wd1"); G.line(3, 27, 29, 27, "wd3"); G.line(5, 25, 26, 25, "wd2")
+  G.ellipse(14, 19, 10, 6.5, "st2")
+  G.ellipse(13, 18, 8.5, 5, "st1")
+  G.line(8, 16, 14, 21, "st2"); G.line(12, 15, 18, 20, "st2")
+  G.thick(22, 16, 28, 11, 3, "bn"); G.ellipse(28, 9, 2, 2, "bn")
+  G.px(10, 15, "am1"); G.px(15, 14, "am1")
+  G.line(4, 22, 8, 19, "v3"); G.px(5, 20, "v2"); G.px(7, 21, "v2")
+end)
+
+-- elixir del lago: botella con agua verdosa del lago y una gota violeta de magia
+icon("elixir_lago", function(G)
+  flaskBig(G, {"aq2", "sp2", "sp3"}, function(g)
+    g.ellipse(16, 21, 2.4, 3, "p2"); g.px(15, 20, "p1")
+  end)
+end)
+
+-- emblema de la guardia: escudito de bronce con el ojo del Vigía y cinta azul
+icon("emblema_guardia", function(G)
+  G.poly({{11, 2}, {21, 2}, {19, 9}, {13, 9}}, "az2")
+  G.line(13, 2, 15, 9, "az1")
+  G.poly({{6, 10}, {26, 10}, {25, 20}, {16, 30}, {7, 20}}, "bz2")
+  G.poly({{8, 12}, {24, 12}, {23, 19}, {16, 27}, {9, 19}}, "az2")
+  G.poly({{8, 12}, {16, 12}, {16, 27}, {9, 19}}, "az1")
+  G.ellipse(16, 18, 4.5, 2.6, "W"); G.ellipse(16, 18, 2, 2, "bz2"); G.px(16, 18, "K")
+  G.px(9, 11, "bz1"); G.px(10, 11, "bz1")
+end)
+
+-- amuleto rúnico: piedra con runa en un marco de plata
+icon("amuleto_runico", function(G)
+  chain(G, 13, "fe1", "fe2")
+  G.rect(15, 13, 17, 15, "fe2")
+  G.poly({{16, 14}, {24, 20}, {22, 29}, {10, 29}, {8, 20}}, "fe2")
+  G.poly({{16, 16}, {22, 21}, {20, 27}, {12, 27}, {10, 21}}, "rk2")
+  G.poly({{16, 16}, {10, 21}, {12, 27}, {16, 22}}, "rk1")
+  G.line(16, 18, 16, 26, "ru"); G.line(16, 18, 19, 21, "ru"); G.line(19, 21, 16, 23, "ru")
+  G.px(14, 19, "W")
+end)
+
+-- amuleto del alba: sol dorado naciente sobre el cristal de eclipse purificado
+icon("amuleto_alba", function(G)
+  chain(G, 12, "au1", "au2")
+  for i = 0, 6 do
+    local a = math.pi * (0.1 + i * 0.8 / 6) + math.pi
+    G.line(16 + math.cos(a) * 9, 21 + math.sin(a) * 9, 16 + math.cos(a) * 12, 21 + math.sin(a) * 12, "al2")
+  end
+  G.ellipse(16, 21, 8, 8, "au2")
+  G.ellipse(16, 21, 6.5, 6.5, "al2")
+  G.ellipse(16, 21, 4, 4, "ev"); G.ellipse(15.5, 20.5, 2.6, 2.6, "al1"); G.px(15, 19, "W")
 end)
 
 -- ---------------------------------------------------------------- atlas (una fila)

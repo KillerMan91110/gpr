@@ -24,6 +24,8 @@ export const TRIVIAL_LEVELS = 6;
 
 // NPC del mapa que da esta misión (null si su zona no está en el mundo abierto todavía)
 export function giverOf(q, continentZoneIds) {
+  // misiones de historia (misiones v2): el back dice directo qué NPC la da
+  if (q.giver_npc) return q.giver_npc;
   const known = QUEST_GIVERS[q.npc_name];
   if (known) return known;
   if (q.zone_id == null || continentZoneIds?.includes(q.zone_id)) return DEFAULT_GIVER;
@@ -37,7 +39,8 @@ export function questMarks({ active = [], available = [], level = 1, continentZo
   const marks = {};
   const rank = { gris: 1, '!': 2, '?': 3 };
   const put = (id, m) => { if (id && (rank[m] > (rank[marks[id]] ?? 0))) marks[id] = m; };
-  for (const q of active) if (objectivesDone(q)) put(giverOf(q, continentZoneIds), '?');
+  // el ? lo lleva quien la recibe (en las de historia puede no ser quien la dio)
+  for (const q of active) if (objectivesDone(q)) put(q.turn_in_npc ?? giverOf(q, continentZoneIds), '?');
   for (const q of available) {
     if (q.accepted || q.prerequisite_met === false) continue;
     if (q.max_level && level > q.max_level + TRIVIAL_LEVELS) continue;

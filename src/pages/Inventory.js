@@ -48,6 +48,7 @@ const STAT_LABELS = {
   CRIT_DAMAGE: 'CRIT DMG',
   EVASION: 'Evasión',
   HP: 'HP',
+  RESIST_DARK: 'RES OSC',
   LUCK: 'Suerte',
 };
 

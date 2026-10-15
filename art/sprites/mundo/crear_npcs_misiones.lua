@@ -285,7 +285,31 @@ end
 local NPCS = {
   -- Aldren, el Anciano Sabio de la Aldea Espiga: pelo y barba blancos, túnica marrón con ribete dorado
   npc_anciano = {race="humano", style="largo", hair="Hs", hairD="Hg", beard="Hs", top="Cn", topD="b", topL="N", robe=true, trim="go", neck="go", skin=P, skinD=Pd},
+  -- Tilo, el niño de la Aldea que quiere ser héroe: pelo naranja revuelto y túnica verde remendada
+  npc_tilo = {race="nino", style="corto", hair="Ho", hairD="o", top="Cg", topD="g", topL="Gh", pants="Cn", boots="b", belt="N", skin=D, skinD=Dd},
+  -- Bruno, el vecino gruñón de Goreth: barba gris, gorra parda y chaleco de granjero
+  npc_bruno = {race="humano", style="gorra", hat="N", hatD="n", hair="Hg", beard="Hg", top="Cy", topD="y", topL="Y", vest="Cn", pants="Hd", boots="b", belt="b", skin=N, skinD=Nd},
+  -- Tobías, el molinero de la Colina: gorro blanco de harina y delantal enharinado
+  npc_tobias = {race="humano", style="gorra", hat="Cw", hatD="T", hair="B", top="Cb", topD="a4", topL="a1", apron="Cw", pants="Cn", boots="b", belt="N"},
+  -- puestos de la Pradera (un NPC por subzona)
+  -- Brenna, la leñadora de Robleviejo: trenza castaña, camisa roja a cuadros y cinturón de cuero
+  npc_brenna = {race="humano", style="largo", hair="B", hairD="b", top="Cr", topD="r", topL="R", pants="Cn", boots="b", belt="b", skin=D, skinD=Dd},
+  -- Nilo, el pescador viejo del lago: sombrero de paja, barba blanca y chaqueta azul
+  npc_nilo = {race="humano", style="sombrero", hat="T", hatD="t", hair="Hs", beard="Hs", top="Cb", topD="a4", topL="a1", pants="Cn", boots="b", belt="N", skin=N, skinD=Nd},
+  -- Maese Orlan, el erudito de Aurelia que estudia la torre: calvo, barba gris y túnica morada
+  npc_orlan = {race="humano", style="calvo", hair="Hg", beard="Hg", top="Cp", topD="v", topL="Vh", robe=true, trim="go", skin=P, skinD=Pd},
+  -- Sela, la granjera refugiada de las Praderas del Este: moño oscuro, blusa amarilla y delantal
+  npc_sela = {race="humano", style="mono", hair="Hd", hairD="K", top="Cy", topD="y", topL="Y", apron="T", pants="Cn", boots="b", skin=N, skinD=Nd},
+  -- Vera, la cazadora de la atalaya: capucha verde, ropa de cuero y botas
+  npc_vera = {race="humano", style="capucha", hair="Cg", hairD="g", top="Cg", topD="g", topL="Gh", pants="Cn", boots="b", belt="b", skin=D, skinD=Dd},
 }
+-- solo=npc_a,npc_b genera solo esos (para no rehacer los que ya tienen retoques)
+local solo = app.params.solo
+if solo then
+  local keep = {}
+  for n in solo:gmatch("[^,]+") do keep[n] = true end
+  for n in pairs(NPCS) do if not keep[n] then NPCS[n] = nil end end
+end
 
 local png = app.params.png
 

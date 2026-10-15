@@ -12,6 +12,7 @@ import bus from '../game/bus';
 import audio from '../game/audio';
 import { speciesOf } from '../game/pets';
 import DialogueBox from '../components/world/DialogueBox';
+import { DIALOGUES } from '../game/dialogues';
 import QuestTracker from '../components/world/QuestTracker';
 import TargetFrame from '../components/world/TargetFrame';
 import { questMarks } from '../game/questGivers';
@@ -204,6 +205,8 @@ export default function World() {
   const [refreshKey, setRefreshKey] = useState(0);
   // conversación con un NPC, marcas de misión, subida de nivel y hora del día
   const [dialogue, setDialogue] = useState(null);
+  // lo que dice el NPC por una misión al hablarle (antes de su saludo de siempre)
+  const [questLines, setQuestLines] = useState(null);
   const [npcMarks, setNpcMarks] = useState({});
   // misiones del jugador (para las marcas de los NPCs y el seguimiento de la derecha)
   const [quests, setQuests] = useState({ active: [], available: [] });
@@ -350,12 +353,65 @@ export default function World() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseClass]);
 
+  // Misiones por pasos (gprback/lib/questSteps.js): lo que dicen los NPCs, lo que te dan y los
+  // avisos se muestran al hablar; si algo avanzó, se recargan el diario, las marcas y el mapa.
+  const showQuestResult = useCallback((r) => {
+    for (const e of r?.events ?? []) {
+      if (e.gave) bus.emit('social-toast', { text: `Recibiste ${e.gave.name}${e.gave.qty > 1 ? ` ×${e.gave.qty}` : ''}`, kind: 'ok' });
+      if (e.questReady) bus.emit('social-toast', { text: `✔ «${e.questName}»: ya puedes entregarla.`, kind: 'ok' });
+    }
+    for (const n of r?.notes ?? []) bus.emit('social-toast', { text: n, kind: 'tour' });
+    if (r?.events?.length) setRefreshKey((k) => k + 1);
+  }, []);
+  const talkTo = useCallback(async (id) => {
+    const r = player ? await api.questInteract(player.id, 'TALK', id, token).catch(() => null) : null;
+    showQuestResult(r);
+    const lines = (r?.events ?? []).filter((e) => e.dialog).map((e) => ({ speaker: e.speaker, text: e.dialog }));
+    setQuestLines(lines.length ? lines : null);
+    setDialogue(id);
+  }, [player, token, showQuestResult]);
+  const talkRef = useRef(talkTo);
+  talkRef.current = talkTo;
+  // llegaste a un lugar, examinaste algo o caíste en una emboscada de misión
+  useEffect(() => {
+    const onQuestPoint = async (pt) => {
+      if (!player) return;
+      const r = await api.questInteract(player.id, pt.type, pt.objectiveId, token).catch((err) => ({ notes: [err.message] }));
+      showQuestResult(r);
+      for (const e of r?.events ?? []) {
+        if (e.dialog) bus.emit('social-toast', { text: `${e.speaker ? `${e.speaker}: ` : ''}«${e.dialog}»`, kind: 'tour' });
+      }
+      if (r?.ambush) {
+        if (r.ambush.text) bus.emit('social-toast', { text: r.ambush.text, kind: 'error' });
+        bus.emit('quest-ambush', { monsters: r.ambush.monsters, name: pt.label ?? null });
+      }
+    };
+    bus.on('quest-point', onQuestPoint);
+    // la puerta de la Cripta: sellada hasta que Aldren te da su llave (misión «La torre que vigilaba»)
+    const onCryptDoor = async (e) => {
+      if (!player) return;
+      const st = await api.getCripta(player.id, token).catch(() => null);
+      if (st?.sealed) {
+        audio.sfx('error');
+        bus.emit('social-toast', { text: st.sealedText ?? 'La puerta está sellada.', kind: 'error' });
+      } else bus.emit('cripta-abrir', e);
+    };
+    bus.on('cripta-puerta', onCryptDoor);
+    // al entregar una misión de historia, quien la recibe dice su línea de entrega (quests.dialog)
+    const onTurnIn = ({ npc, text }) => {
+      setQuestLines([{ speaker: DIALOGUES[npc]?.name ?? null, text }]);
+      setDialogue(npc);
+    };
+    bus.on('quest-entrega', onTurnIn);
+    return () => { bus.off('quest-point', onQuestPoint); bus.off('cripta-puerta', onCryptDoor); bus.off('quest-entrega', onTurnIn); };
+  }, [player, token, showQuestResult]);
+
   // ---- eventos que vienen del mapa ----
   useEffect(() => {
     const onPoi = (p) => setPoi(p);
     // los NPCs con diálogo primero conversan; el resto abre su ventana directamente
     const onInteract = (p) => {
-      if (p?.dialogue) setDialogue(p.dialogue);
+      if (p?.dialogue) talkRef.current(p.dialogue);
       else if (p?.window) {
         if (p.window === 'misiones_gremio') setQuestGiver(null); // el tablón muestra todas
         openWin(p.window, p.args);
@@ -595,6 +651,18 @@ export default function World() {
     setNpcMarks(questMarks({ ...quests, level: stats?.level ?? 1, continentZoneIds }));
   }, [quests, stats?.level, continentZoneIds]);
   useEffect(() => { if (worldReady) bus.emit('npc-marks', npcMarks); }, [worldReady, npcMarks]);
+  useEffect(() => {
+    if (!worldReady) return;
+    const points = [];
+    for (const q of quests.active ?? []) {
+      for (const o of q.objectives ?? []) {
+        if (o.future || !o.place || o.current_count >= o.target_count || !['VISIT', 'INVESTIGATE', 'AMBUSH'].includes(o.objective_type)) continue;
+        points.push({ objectiveId: o.objective_id, type: o.objective_type, ...o.place, questName: q.name });
+      }
+    }
+    bus.emit('quest-points', points);
+    if (player) api.getQuestNpcSpots(player.id, token).then((spots) => bus.emit('quest-npc-spots', spots)).catch(() => {});
+  }, [worldReady, quests, player, token]);
 
   // subida de nivel: cartel, fanfarria y columna de luz en el mapa
   const prevStats = useRef(null);
@@ -863,13 +931,14 @@ export default function World() {
         <DialogueBox
           id={dialogue}
           ctx={{ night: !!clock?.night, mark: npcMarks[dialogue] ?? null }}
+          questLines={questLines}
           onOpenWindow={(win) => {
             // el tablón abierto desde un NPC muestra solo sus misiones
             if (win === 'misiones_gremio') setQuestGiver(dialogue);
             openWin(win);
           }}
           onAction={onDialogueAction}
-          onClose={() => setDialogue(null)}
+          onClose={() => { setDialogue(null); setQuestLines(null); }}
         />
       )}
 
@@ -981,7 +1050,7 @@ export default function World() {
             else if (poi.secret) bus.emit('secret-open', poi.secret);
             else if (poi.action) scene?.cryptAction(poi);
             else if (poi.resource) { const r = scene?.resources.get(poi.resource.id); if (r) scene.gather(r); }
-            else if (poi.dialogue) setDialogue(poi.dialogue);
+            else if (poi.dialogue) talkTo(poi.dialogue);
             else if (poi.window) openWin(poi.window);
           }}
         >
@@ -1038,7 +1107,7 @@ export default function World() {
       {encounter && (
         <div className="world-encounter">
           <div className={`world-encounter-text${encounter.kind === 'boss' || encounter.kind === 'mythic' || encounter.target === 'jefe' ? ' world-encounter-text--boss' : ''}`}>
-            <small>{encounter.kind === 'refuerzo' ? '¡Refuerzos!' : encounter.kind === 'espectar' ? 'Modo espectador' : encounter.kind === 'cripta' ? (encounter.target === 'jefe' ? 'Jefe de la mazmorra' : '¡Un guardián te vio!') : encounter.kind === 'retomar' ? 'Tu combate seguía abierto' : encounter.kind === 'grupo' ? '¡Combate en grupo!' : encounter.kind === 'esbirro' ? 'Esbirro de Aullaluna' : encounter.kind === 'mythic' ? 'Jefe mítico' : encounter.kind === 'boss' ? (encounter.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe') : '¡Combate!'}</small>
+            <small>{encounter.kind === 'refuerzo' ? '¡Refuerzos!' : encounter.kind === 'espectar' ? 'Modo espectador' : encounter.kind === 'cripta' ? (encounter.target === 'jefe' ? 'Jefe de la mazmorra' : '¡Un guardián te vio!') : encounter.kind === 'emboscada' ? '¡Emboscada!' : encounter.kind === 'retomar' ? 'Tu combate seguía abierto' : encounter.kind === 'grupo' ? '¡Combate en grupo!' : encounter.kind === 'esbirro' ? 'Esbirro de Aullaluna' : encounter.kind === 'mythic' ? 'Jefe mítico' : encounter.kind === 'boss' ? (encounter.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe') : '¡Combate!'}</small>
             {encounter.kind === 'refuerzo' ? `Corres a ayudar a ${encounter.name}` : encounter.kind === 'espectar' ? `Miras el combate de ${encounter.name}` : encounter.kind === 'cripta' ? encounter.name : encounter.kind === 'retomar' ? '¡Vuelves a la pelea!' : encounter.kind === 'grupo' ? `${encounter.name ?? 'Tu grupo'} necesita tu ayuda` : encounter.kind === 'boss' || encounter.kind === 'mythic' ? encounter.name : (encounter.name ? `Un ${encounter.name} te ataca` : '¡Algo se mueve entre la hierba!')}
           </div>
         </div>

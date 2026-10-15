@@ -7,6 +7,17 @@ import { gearArt, objetoArt } from '../../game/gear';
 const I = (name, artist) => ({ name, artist });
 
 const RULES = [
+  // objetos de misión de la Pradera (van primero: "collar de cristal" no es un collar de equipo)
+  [/carta/, I('love-letter', 'delapouite')],
+  [/engranaje/, I('gears', 'lorc')],
+  [/mapa/, I('treasure-map', 'lorc')],
+  [/saco de/, I('swap-bag', 'lorc')],
+  [/palo de/, I('wood-stick', 'delapouite')],
+  [/hacha de/, I('wood-axe', 'lorc')],
+  [/muneca de trapo/, I('voodoo-doll', 'lorc')],
+  [/unguento/, I('bottle-vapors', 'lorc')],
+  [/fragmento de sello/, I('crystal-eye', 'lorc')],
+  [/collar de cristal|cristal enterrado|cristal del capitan/, I('crystal-cluster', 'lorc')],
   // armas
   [/arco/, I('bow-arrow', 'delapouite')],
   [/baculo sagrado|cetro|sagrad/, I('holy-symbol', 'lorc')],
@@ -108,4 +119,5 @@ export const TYPE_LABELS = { EQUIPMENT: 'Equipo', CONSUMABLE: 'Consumible', MATE
 export const STAT_LABELS = {
   ATK: 'Ataque', DEF: 'Defensa', MAG: 'Inteligencia', MAGIC_DEF: 'Defensa mágica', SPD: 'Velocidad',
   CRIT_CHANCE: 'Prob. de crítico', CRIT_DAMAGE: 'Daño crítico', EVASION: 'Evasión', HP: 'Vida', LUCK: 'Suerte',
+  RESIST_DARK: 'Resistencia a oscuridad',
 };

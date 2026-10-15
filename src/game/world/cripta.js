@@ -110,7 +110,7 @@ export const criptaMethods = {
       fontFamily: TAG_FONT, fontSize: '7px', fontStyle: 'bold', color: '#9af4ff', stroke: '#141420', strokeThickness: 3,
     }).setOrigin(0.5, 1).setDepth(21).setResolution(TAG_RES);
     this.minimap?.ignore(tag);
-    this.crypt.boss = { code, name: info.name, x, y, sprite };
+    this.crypt.boss = { code, name: info.name, x, y, sprite, aura, tag, block };
     this.pois.push({ id: 'cripta_vigia', x, y: y + 12, label: `Desafiar ${/^El /.test(info.name) ? info.name.replace(/^El /, 'al ') : `a ${info.name}`}`, action: 'crypt-boss', radius: 56 });
   },
 
@@ -142,9 +142,19 @@ export const criptaMethods = {
         label: `Puerta sellada (${st.guardians.length}/${st.totalGuardians} guardianes)`,
       });
     }
+    // cripta completada (venciste al Vigía): el jefe ya no está mientras sigas adentro
+    const b = crypt.boss;
+    if (b) {
+      const gone = !!st.cleared;
+      [b.sprite, b.aura, b.tag].forEach((o) => o?.setVisible(!gone));
+      if (b.block?.body) b.block.body.enable = !gone;
+      this.pois = this.pois.filter((p) => p.id !== 'cripta_vigia');
+      if (!gone) this.pois.push({ id: 'cripta_vigia', x: b.x, y: b.y + 12, label: `Desafiar ${/^El /.test(b.name) ? b.name.replace(/^El /, 'al ') : `a ${b.name}`}`, action: 'crypt-boss', radius: 56 });
+    }
     if (this.nearPoi && !this.pois.includes(this.nearPoi)) { this.nearPoi = null; bus.emit('poi', null); }
     // guardianes: los vencidos desaparecen, los que faltan aparecen en el inicio de su ronda
-    const down = new Set(st.guardians);
+    // completada: no vuelve a salir ningún guardián hasta que salgas y vuelvas a entrar
+    const down = new Set(st.cleared ? (crypt.guardianPoints ?? []).map((o) => o.name).concat(st.guardians) : st.guardians);
     for (const g of crypt.guardians) if (down.has(g.id)) this.removeGuardian(g);
     crypt.guardians = crypt.guardians.filter((g) => !down.has(g.id));
     for (const o of crypt.guardianPoints ?? []) {

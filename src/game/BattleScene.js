@@ -817,6 +817,22 @@ export default class BattleScene extends Phaser.Scene {
       if (hits > 1) return { kind: 'flurry', hits };
       return { kind: 'slash', heavy, holy };
     }
+    // monstruos: el back dice qué habilidad usaron (combat_log.skill_code) y cada una tiene su efecto
+    const mcode = log.skill_code ?? '';
+    if (mcode) {
+      if (/MORDIDA/.test(mcode)) return { kind: 'bite', color: 0xff5a5a };
+      if (/PICADURA|MORDISCO/.test(mcode)) return { kind: 'bite', color: 0x7be05a, small: /MORDISCO/.test(mcode) };
+      if (/PIEDRAZO/.test(mcode)) return { kind: 'throw' };
+      if (/LENGUA/.test(mcode)) return { kind: 'tongue' };
+      if (/EMBESTIDA/.test(mcode)) return { kind: 'charge' };
+      if (/ESCUDO/.test(mcode)) return { kind: 'buff', shield: true };
+      if (/AULLIDO/.test(mcode)) return { kind: 'buff', shout: true };
+      if (/TERREMOTO/.test(mcode)) return { kind: 'quake' };
+      if (/MALDICION/.test(mcode)) return { kind: 'curse' };
+      if (/RAYO|ALIENTO|TORRENTE|VENTISCA|CADENA/.test(mcode)) return { kind: 'bolt' };
+      if (/EXPLOSION|ERUPCION|MAELSTROM/.test(mcode)) return { kind: 'storm' };
+      if (/BRUTAL/.test(mcode)) return { kind: 'slash', heavy: true };
+    }
     // monstruos (y habilidades sin datos): se deduce de la frase y del resultado
     const desc = log.description ?? '';
     if (/revivid/i.test(desc)) return { kind: 'revive' };
@@ -862,10 +878,19 @@ export default class BattleScene extends Phaser.Scene {
 
   async skill(actor, target, log, element, sk) {
     const style = this.skillStyle(sk, actor, target, log);
-    this.lastSkillCode = sk?.code ?? null;
+    this.lastSkillCode = sk?.code ?? log.skill_code ?? null;
     const hits = this.skillHits(log, actor, target);
     const main = hits[0]?.unit ?? target;
+    // los monstruos anuncian su habilidad (el jugador ya la eligió en su barra)
+    if (actor.kind === 'monster' && log.skill_code) {
+      const name = (log.description ?? '').match(/ usa (.+?)(?: sobre | y cura a |:)/)?.[1];
+      if (name) this.skillBanner(actor, name);
+    }
     switch (style.kind) {
+      case 'bite': return this.fxBite(actor, main, hits, style);
+      case 'throw': return this.fxThrow(actor, main, hits);
+      case 'tongue': return this.fxTongue(actor, main, hits);
+      case 'charge': return this.fxCharge(actor, main, hits);
       case 'slash': return this.fxSlash(actor, main, hits, element, style);
       case 'flurry': return this.fxFlurry(actor, main, hits, element, style.hits);
       case 'quake': return this.fxQuake(actor, hits, element);
@@ -1273,6 +1298,146 @@ export default class BattleScene extends Phaser.Scene {
     if (damaging.length) await this.hitAll(damaging, null, null, actor);
     else await wait(this, 350);
     if (!style.thrown) await this.moveUnit(actor, actor.home.x, actor.home.y, 240);
+    if (actor.alive) this.playUnit(actor, 'idle');
+    this.resetFocus();
+  }
+
+  // ---- habilidades de los monstruos
+  // nombre de la habilidad en un cartelito sobre el que la usa
+  skillBanner(u, name) {
+    const y = u.home.y - 84;
+    const t = this.add.text(u.home.x, y, name, {
+      fontFamily: 'Cinzel, Georgia, serif', fontSize: '9px', fontStyle: 'bold', color: '#ffe0a0', stroke: '#141420', strokeThickness: 4,
+    }).setOrigin(0.5).setDepth(1201).setResolution(6).setAlpha(0);
+    this.tweens.add({ targets: t, alpha: 1, y: y - 4, duration: 160 });
+    this.tweens.add({ targets: t, alpha: 0, delay: 1000, duration: 300, onComplete: () => t.destroy() });
+  }
+
+  // mandíbulas que se cierran sobre el objetivo (mordida: rojo; veneno: verde)
+  jaws(x, y, color, size = 1) {
+    const g = this.add.graphics().setDepth(1057).setPosition(x, y);
+    const draw = (open) => {
+      g.clear();
+      for (const side of [-1, 1]) {
+        const cy = side * (6 + 14 * open) * size;
+        g.lineStyle(3 * size, 0xf4f0e0, 1).beginPath()
+          .arc(0, cy, 16 * size, side < 0 ? 0.15 * Math.PI : 1.15 * Math.PI, side < 0 ? 0.85 * Math.PI : 1.85 * Math.PI).strokePath();
+        for (let i = -2; i <= 2; i++) {
+          const tx = i * 6 * size;
+          const ty = cy - side * 3 * size;
+          g.fillStyle(0xffffff, 1).fillTriangle(tx - 2 * size, ty, tx + 2 * size, ty, tx, ty - side * 6 * size);
+        }
+      }
+      g.lineStyle(2, color, 0.6).strokeCircle(0, 0, 20 * size);
+    };
+    const o = { open: 1 };
+    draw(1);
+    this.tweens.add({ targets: o, open: 0, duration: 120, ease: 'Quad.easeIn', onUpdate: () => draw(o.open) });
+    this.tweens.add({ targets: g, alpha: 0, delay: 220, duration: 220, onComplete: () => g.destroy() });
+  }
+
+  async fxBite(actor, target, hits, style) {
+    if (!target) return;
+    this.focusOn(actor, target);
+    await this.dashTo(actor, target, 40);
+    this.playUnit(actor, 'attack');
+    await wait(this, 120);
+    this.jaws(target.home.x, target.home.y - 32, style.color, style.small ? 0.75 : 1);
+    await wait(this, 120);
+    this.emit(target.home.x, target.home.y - 30, 'chispa', {
+      speedX: { min: -70, max: 70 }, speedY: { min: -90, max: -20 }, gravityY: 300, lifespan: 600,
+      scale: { start: 1.2, end: 0.4 }, tint: style.color === 0xff5a5a ? [0xc0343a, 0x7a1f2a] : [0x7be05a, 0x2a7a2a], blendMode: 'NORMAL',
+    }, 12);
+    await this.hitAll(hits, null, null, actor);
+    await wait(this, 100);
+    await this.moveUnit(actor, actor.home.x, actor.home.y, 240);
+    if (actor.alive) this.playUnit(actor, 'idle');
+    this.resetFocus();
+  }
+
+  // piedra lanzada en arco (goblins)
+  async fxThrow(actor, target, hits) {
+    if (!target) return;
+    this.focusOn(actor, target);
+    this.playUnit(actor, 'attack');
+    await wait(this, 200);
+    const sx = actor.body.x + (actor.side === 'PLAYER' ? 14 : -14);
+    const sy = actor.body.y - 40;
+    const rock = this.add.image(sx, sy, 'roca').setScale(2.6).setTint(0x8a6a4a).setDepth(1050);
+    const o = { t: 0 };
+    await tween(this, {
+      targets: o,
+      t: 1,
+      duration: 360,
+      onUpdate: () => {
+        rock.x = sx + (target.home.x - sx) * o.t;
+        rock.y = sy + (target.home.y - 36 - sy) * o.t - Math.sin(o.t * Math.PI) * 46;
+        rock.angle += 18;
+      },
+    });
+    rock.destroy();
+    this.emit(target.home.x, target.home.y - 34, 'roca', {
+      speedX: { min: -80, max: 80 }, speedY: { min: -120, max: -30 }, gravityY: 380, lifespan: 500,
+      scale: { start: 1, end: 0.4 }, tint: [0x8a6a4a, 0x5a4030], blendMode: 'NORMAL', rotate: { min: 0, max: 360 },
+    }, 8);
+    await this.hitAll(hits, null, null, actor);
+    if (actor.alive) this.playUnit(actor, 'idle');
+    this.resetFocus();
+  }
+
+  // lengua que se estira hasta el objetivo y vuelve (sapos)
+  async fxTongue(actor, target, hits) {
+    if (!target) return;
+    this.focusOn(actor, target);
+    this.playUnit(actor, 'attack');
+    await wait(this, 160);
+    const sx = actor.body.x + (actor.side === 'PLAYER' ? 16 : -16);
+    const sy = actor.body.y - 24;
+    const ex = target.home.x;
+    const ey = target.home.y - 30;
+    const g = this.add.graphics().setDepth(1050);
+    const draw = (t) => {
+      const x = sx + (ex - sx) * t;
+      const y = sy + (ey - sy) * t;
+      g.clear().lineStyle(5, 0xd86a7a, 1).lineBetween(sx, sy, x, y).lineStyle(2, 0xf0a0b0, 1).lineBetween(sx, sy - 1, x, y - 1);
+      g.fillStyle(0xe07a8a, 1).fillCircle(x, y, 5);
+    };
+    const o = { t: 0 };
+    await tween(this, { targets: o, t: 1, duration: 150, ease: 'Quad.easeOut', onUpdate: () => draw(o.t) });
+    this.emit(ex, ey, 'humo', {
+      speedX: { min: -30, max: 30 }, speedY: { min: -40, max: 10 }, gravityY: 120, lifespan: 600,
+      scale: { start: 0.3, end: 0.8 }, alpha: { start: 0.8, end: 0 }, tint: [0x8a9a52, 0x5e7034], blendMode: 'NORMAL',
+    }, 10);
+    const hit = this.hitAll(hits, null, null, actor);
+    await tween(this, { targets: o, t: 0, duration: 200, delay: 120, ease: 'Quad.easeIn', onUpdate: () => draw(o.t) });
+    g.destroy();
+    await hit;
+    if (actor.alive) this.playUnit(actor, 'idle');
+    this.resetFocus();
+  }
+
+  // carga a toda velocidad con estela y temblor (jabalíes)
+  async fxCharge(actor, target, hits) {
+    if (!target) return;
+    this.focusOn(actor, target);
+    const dir = actor.side === 'PLAYER' ? 1 : -1;
+    const parts = [actor.body, actor.weapon, actor.offhand].filter(Boolean);
+    // toma impulso hacia atrás
+    await tween(this, { targets: parts, x: `-=${dir * 14}`, duration: 220, ease: 'Quad.easeOut' });
+    this.emit(actor.home.x, actor.home.y, 'humo', {
+      speedX: { min: -40 * dir, max: -10 * dir }, speedY: { min: -30, max: -5 }, lifespan: 500,
+      scale: { start: 0.4, end: 1 }, alpha: { start: 0.6, end: 0 }, tint: [0xc8a070, 0x8a6a4a], blendMode: 'NORMAL',
+    }, 8);
+    const trail = this.time.addEvent({ delay: 30, repeat: 8, callback: () => this.afterimage(actor) });
+    this.playUnit(actor, 'attack');
+    const tx = target.home.x - dir * (actor.body.width > 48 ? 60 : 36);
+    await this.moveUnit(actor, tx, target.home.y + 2, 140, 'Quad.easeIn');
+    trail.remove();
+    this.cameras.main.shake(260, 0.016);
+    this.ring(target.home.x, target.home.y - 20, 0xffd84a, 30, 380);
+    await this.hitAll(hits, null, null, actor);
+    await wait(this, 100);
+    await this.moveUnit(actor, actor.home.x, actor.home.y, 280);
     if (actor.alive) this.playUnit(actor, 'idle');
     this.resetFocus();
   }

@@ -16,6 +16,7 @@ import { guideMethods } from './world/guide';
 import { exploreMethods } from './world/explore';
 import { eventsMethods } from './world/events';
 import { criptaMethods } from './world/cripta';
+import { questsMethods } from './world/quests';
 
 // Mundo abierto continuo (estilo MMO): public/assets/mundo/etheria.json coloca cada zona
 // (public/assets/mundo/<zona>/mundo.json) en su lugar del continente. Todas las zonas viven en
@@ -409,6 +410,10 @@ export default class WorldScene extends Phaser.Scene {
         this.monsters.getChildren().forEach((m) => { const t = m.getData('tag'); if (t) t.setColor(this.levelColor(t.text.replace('Nv ', ''))); });
       },
       'npc-marks': (marks) => this.setNpcMarks(marks),
+      'quest-npc-spots': (spots) => this.setQuestNpcSpots(spots),
+      'quest-points': (points) => this.setQuestPoints(points),
+      'quest-ambush': (a) => this.startQuestAmbush(a),
+      'cripta-abrir': (e) => this.changeZone(e.dest, e.tx, e.ty),
       'resources-state': (list) => this.setResourceStates(list),
       'resource-gathered': (r) => this.onGathered(r),
       'float-loot': (lines) => this.floatLoot(lines),
@@ -1056,6 +1061,15 @@ export default class WorldScene extends Phaser.Scene {
     if (!this.exits?.length || this.changingZone || time < this.exitsArmedAt) return;
     const { x, y } = this.player;
     const e = this.exits.find((ex) => Phaser.Geom.Rectangle.Contains(ex.rect, x, y + 8));
+    // la Cripta del Vigía puede estar sellada (se abre con la llave de Aldren): React le pregunta
+    // al servidor y, si está abierta, manda 'cripta-abrir'; mientras, el héroe da un paso atrás
+    if (e?.dest === 'cripta') {
+      this.exitsArmedAt = time + 2500;
+      this.stopPlayer();
+      this.player.setPosition(this.player.x, this.player.y + 28);
+      bus.emit('cripta-puerta', { dest: e.dest, tx: e.tx, ty: e.ty });
+      return;
+    }
     if (e?.dest) this.changeZone(e.dest, e.tx, e.ty);
   }
 
@@ -1383,6 +1397,7 @@ export default class WorldScene extends Phaser.Scene {
     if (vx || vy) this.scareFauna();
 
     this.updatePoi();
+    this.checkQuestVisits();
     const touchE = this.touchInteract;
     this.touchInteract = false;
     if (this.nearPoi && (touchE || Phaser.Input.Keyboard.JustDown(k.interact) || Phaser.Input.Keyboard.JustDown(k.interact2))) {
@@ -1391,6 +1406,7 @@ export default class WorldScene extends Phaser.Scene {
       else if (this.nearPoi.resource) this.gather(this.nearPoi.resource);
       else if (this.nearPoi.secret) bus.emit('secret-open', this.nearPoi.secret);
       else if (this.nearPoi.action) this.cryptAction(this.nearPoi);
+      else if (this.nearPoi.questPoint) bus.emit('quest-point', this.nearPoi.questPoint);
       else bus.emit('interact', this.nearPoi);
     }
     if (vx || vy || !this.subzone) this.checkGrassEncounter();
@@ -1410,4 +1426,4 @@ export default class WorldScene extends Phaser.Scene {
 }
 
 // Partes de la escena que viven en su propio archivo (game/world/*)
-Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods);
+Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods);
