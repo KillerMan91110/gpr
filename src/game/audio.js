@@ -296,6 +296,12 @@ class AudioEngine {
         this.burst(t + 0.08, 1.6, { gain: 0.32, filter: 'lowpass', from: 420, to: 60, q: 0.7 });
         this.tone(55, t + 0.05, 1.2, { wave: 'sine', gain: 0.25, slide: 30 });
         break;
+      case 'brasa':
+        // la piedra ardiente que revienta contra el suelo: golpe sordo y chisporroteo
+        this.burst(t, 0.5, { gain: 0.3, filter: 'lowpass', from: 900, to: 80, q: 0.8 });
+        this.tone(70, t, 0.35, { wave: 'sine', gain: 0.28, slide: 35 });
+        this.burst(t + 0.06, 0.3, { gain: 0.08, filter: 'bandpass', from: 3500, to: 1800, q: 2 });
+        break;
       case 'trueno_lejos':
         this.burst(t, 2.2, { gain: 0.14, filter: 'lowpass', from: 260, to: 50, q: 0.7 });
         break;

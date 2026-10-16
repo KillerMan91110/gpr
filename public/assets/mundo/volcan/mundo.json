@@ -1,0 +1,217 @@
+{
+ "nombre": "Volcán Rojo",
+ "zona": 3,
+ "tileset": "pradera",
+ "terrenos": [
+  "basalto",
+  "ceniza",
+  "lava",
+  "azufre",
+  "quemado",
+  "obsidiana",
+  "camino",
+  "hierbaq",
+  "mesetav",
+  "carav",
+  "escalera",
+  "puentev",
+  "losav"
+ ],
+ "tile": 32,
+ "chunkWidth": 40,
+ "chunkHeight": 30,
+ "columns": 4,
+ "rows": 4,
+ "encuentroHierba": 0.07,
+ "gidHierba": 785,
+ "inicio": {
+  "x": 2832,
+  "y": 144
+ },
+ "clima": {
+  "estacion": "verano",
+  "lluvia": 0,
+  "nieve": 0,
+  "ceniza": 1
+ },
+ "gids": {
+  "flores": [],
+  "agua": [],
+  "prado": [
+   684,
+   783,
+   781
+  ],
+  "arboles": [
+   807,
+   808
+  ],
+  "dorados": [],
+  "seco": []
+ },
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 1,
+   "cy": 0,
+   "file": "chunk_1_0.json"
+  },
+  {
+   "cx": 2,
+   "cy": 0,
+   "file": "chunk_2_0.json"
+  },
+  {
+   "cx": 3,
+   "cy": 0,
+   "file": "chunk_3_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
+  },
+  {
+   "cx": 1,
+   "cy": 1,
+   "file": "chunk_1_1.json"
+  },
+  {
+   "cx": 2,
+   "cy": 1,
+   "file": "chunk_2_1.json"
+  },
+  {
+   "cx": 3,
+   "cy": 1,
+   "file": "chunk_3_1.json"
+  },
+  {
+   "cx": 0,
+   "cy": 2,
+   "file": "chunk_0_2.json"
+  },
+  {
+   "cx": 1,
+   "cy": 2,
+   "file": "chunk_1_2.json"
+  },
+  {
+   "cx": 2,
+   "cy": 2,
+   "file": "chunk_2_2.json"
+  },
+  {
+   "cx": 3,
+   "cy": 2,
+   "file": "chunk_3_2.json"
+  },
+  {
+   "cx": 0,
+   "cy": 3,
+   "file": "chunk_0_3.json"
+  },
+  {
+   "cx": 1,
+   "cy": 3,
+   "file": "chunk_1_3.json"
+  },
+  {
+   "cx": 2,
+   "cy": 3,
+   "file": "chunk_2_3.json"
+  },
+  {
+   "cx": 3,
+   "cy": 3,
+   "file": "chunk_3_3.json"
+  }
+ ],
+ "subzonas": [
+  {
+   "name": "Ascuaria",
+   "x0": 3008,
+   "y0": 576,
+   "x1": 4192,
+   "y1": 1376,
+   "levels": null,
+   "safe": true
+  },
+  {
+   "name": "Campos de Azufre",
+   "x0": 0,
+   "y0": 0,
+   "x1": 1600,
+   "y1": 1408,
+   "levels": "32-35"
+  },
+  {
+   "name": "Bosque Calcinado",
+   "x0": 0,
+   "y0": 1408,
+   "x1": 1600,
+   "y1": 2752,
+   "levels": "33-36"
+  },
+  {
+   "name": "Cantera de Obsidiana",
+   "x0": 3840,
+   "y0": 1376,
+   "x1": 5120,
+   "y1": 2752,
+   "levels": "36-40"
+  },
+  {
+   "name": "Ríos de Lava",
+   "x0": 1600,
+   "y0": 1376,
+   "x1": 3840,
+   "y1": 2752,
+   "levels": "35-39"
+  },
+  {
+   "name": "Grieta Ardiente",
+   "x0": 0,
+   "y0": 2752,
+   "x1": 1920,
+   "y1": 3840,
+   "levels": "39-42"
+  },
+  {
+   "name": "Nido del Dragón",
+   "x0": 3712,
+   "y0": 2752,
+   "x1": 5120,
+   "y1": 3840,
+   "levels": "38-41"
+  },
+  {
+   "name": "Caldera del Titán",
+   "x0": 1920,
+   "y0": 2752,
+   "x1": 3712,
+   "y1": 3840,
+   "levels": "43-45"
+  },
+  {
+   "name": "Ladera de Ceniza",
+   "x0": 1600,
+   "y0": 0,
+   "x1": 5120,
+   "y1": 1376,
+   "levels": "31-33"
+  },
+  {
+   "name": "Volcán Rojo",
+   "x0": 0,
+   "y0": 0,
+   "x1": 5120,
+   "y1": 3840,
+   "levels": "31-45"
+  }
+ ]
+}

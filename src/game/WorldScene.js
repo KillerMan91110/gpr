@@ -18,6 +18,7 @@ import { eventsMethods } from './world/events';
 import { criptaMethods } from './world/cripta';
 import { questsMethods } from './world/quests';
 import { tormentaMethods } from './world/tormenta';
+import { brasasMethods } from './world/brasas';
 import { trackingMethods } from './world/tracking';
 
 // Mundo abierto continuo (estilo MMO): public/assets/mundo/etheria.json coloca cada zona
@@ -97,6 +98,7 @@ export default class WorldScene extends Phaser.Scene {
     this.load.spritesheet('recursos2', `${ASSETS}/mundo/recursos2.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos3', `${ASSETS}/mundo/recursos3.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos4', `${ASSETS}/mundo/recursos4.png`, { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('recursos5', `${ASSETS}/mundo/recursos5.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('mascotas', `${ASSETS}/mundo/mascotas.png`, { frameWidth: 24, frameHeight: 24 });
     this.load.spritesheet('f_mariposa', `${ASSETS}/mundo/fauna/mariposa.png`, { frameWidth: 8, frameHeight: 8 });
     this.load.spritesheet('f_pajaro', `${ASSETS}/mundo/fauna/pajaro.png`, { frameWidth: 16, frameHeight: 16 });
@@ -725,6 +727,8 @@ export default class WorldScene extends Phaser.Scene {
       if (this.shade.width !== v.width + 96 || this.shade.height !== v.height + 96) this.shade.setSize(v.width + 96, v.height + 96);
       this.rain?.setPosition(v.x + v.width / 2, v.y - 20);
       this.snow?.setPosition(v.x + v.width / 2, v.y - 20);
+      this.ash?.setPosition(v.x + v.width / 2, v.y - 20);
+      this.sparks?.setPosition(v.x + v.width / 2, v.y + v.height + 10);
     };
     this.events.on('postupdate', cover);
     this.events.once('shutdown', () => this.events.off('postupdate', cover));
@@ -769,11 +773,25 @@ export default class WorldScene extends Phaser.Scene {
     }).setDepth(22);
     this.minimap.ignore(this.snow);
     this.snow.setPosition(cam.worldView.x, cam.worldView.y);
+    // en el Volcán (clima.ceniza) cae ceniza gris y suben chispas de los ríos de lava
+    this.ash = this.add.particles(0, 0, 'copo', {
+      x: { min: -460, max: 460 }, y: { min: -40, max: 0 }, speedY: { min: 25, max: 55 }, speedX: { min: 10, max: 40 },
+      lifespan: 11000, frequency: 55, quantity: 2, scale: { min: 0.6, max: 1.3 }, alpha: { start: 0.75, end: 0.15 },
+      tint: [0x8a8480, 0x6a6460, 0xa8a09a], accelerationX: { min: -5, max: 5 }, emitting: false,
+    }).setDepth(22);
+    this.minimap.ignore(this.ash);
+    this.sparks = this.add.particles(0, 0, 'mota_mundo', {
+      x: { min: -460, max: 460 }, y: 0, speedY: { min: -70, max: -30 }, speedX: { min: -15, max: 25 },
+      lifespan: 6000, frequency: 260, scale: { start: 0.35, end: 0.1 }, alpha: { start: 0.95, end: 0 },
+      tint: [0xff9a2a, 0xffe060, 0xe05a1a], blendMode: 'ADD', emitting: false,
+    }).setDepth(22);
+    this.minimap.ignore(this.sparks);
     this.rollWeather = () => {
       // durante la noche eterna manda la niebla: ni llueve ni nieva
       const clima = this.world.clima ?? {};
       const frozen = this.frozenNight();
-      if (!frozen && Math.random() < (clima.nieve ?? 0)) this.setWeather('nieve');
+      if (!frozen && Math.random() < (clima.ceniza ?? 0)) this.setWeather('ceniza');
+      else if (!frozen && Math.random() < (clima.nieve ?? 0)) this.setWeather('nieve');
       else this.setWeather(!frozen && Math.random() < (clima.lluvia ?? 0) ? 'lluvia' : 'despejado');
     };
     const roll = () => {
@@ -782,7 +800,7 @@ export default class WorldScene extends Phaser.Scene {
     };
     this.time.delayedCall(Phaser.Math.Between(60000, 120000), roll);
     // en las zonas de invierno el clima se ve desde que llegas
-    if (this.world.clima?.nieve) this.rollWeather();
+    if (this.world.clima?.nieve || this.world.clima?.ceniza) this.rollWeather();
   }
 
   setWeather(kind) {
@@ -790,6 +808,8 @@ export default class WorldScene extends Phaser.Scene {
     this.weather = kind;
     this.rain.emitting = kind === 'lluvia';
     if (this.snow) this.snow.emitting = kind === 'nieve';
+    if (this.ash) this.ash.emitting = kind === 'ceniza';
+    if (this.sparks) this.sparks.emitting = kind === 'ceniza';
     bus.emit('weather', kind);
   }
 
@@ -811,6 +831,7 @@ export default class WorldScene extends Phaser.Scene {
     this.setMythicFog(frozen);
     if (this.weather === 'lluvia') color = mulColor(color, 0xb4bccc);
     else if (this.weather === 'nieve') color = mulColor(color, 0xdce4f0);
+    else if (this.weather === 'ceniza') color = mulColor(color, 0xf0c8b0);
     this.shade.setFillStyle(color);
     // cuánto "de noche" es (0 de día, 1 en plena noche) para las luces
     const c = Phaser.Display.Color.IntegerToColor(color);
@@ -1398,6 +1419,7 @@ export default class WorldScene extends Phaser.Scene {
     this.city?.update(delta);
     this.updateNpcs(time, delta);
     this.updateStorm(time);
+    this.updateEmbers(time);
     this.reportPosition(time);
     this.checkExits(time);
     this.checkRefuge(time);
@@ -1482,4 +1504,4 @@ export default class WorldScene extends Phaser.Scene {
 }
 
 // Partes de la escena que viven en su propio archivo (game/world/*)
-Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods, tormentaMethods);
+Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods, tormentaMethods, brasasMethods);

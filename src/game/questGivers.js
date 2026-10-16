@@ -132,4 +132,16 @@ export const NPC_LUGAR = {
   ulfa: 'el Último Refugio, al pie de la Cumbre del Rey',
   guardia_enano: 'la puerta oeste del Bastión de Hierro',
   brin: 'la Aldea Espiga, en el puesto de Ren',
+  // Volcán Rojo (Ascuaria y alrededores)
+  brokk: 'la forja de Aurelia',
+  gaspar_volcan: 'el pie del Paso del Humo, en la Ladera de Ceniza',
+  ascalia: 'la plaza de Ascuaria',
+  ignar: 'la Gran Forja de Ascuaria',
+  tuli: 'la parrilla de la plaza de Ascuaria',
+  chispa: 'las calles de Ascuaria',
+  sulfo: 'el laboratorio de los Campos de Azufre',
+  ceniza: 'el Bosque Calcinado',
+  pumo: 'el muelle de los Ríos de Lava',
+  kessa: 'la Cantera de Obsidiana',
+  escamas: 'el Nido del Dragón',
 };

@@ -225,6 +225,9 @@ export const api = {
   // vagonetas de las Montañas y los rayos de la tormenta (gprback/lib/tormenta.js)
   vagoneta: (playerId, destino, token) => request(`/api/player/${playerId}/world/vagoneta`, { method: 'POST', body: { destino }, token }),
   rayo: (playerId, token) => request(`/api/player/${playerId}/world/rayo`, { method: 'POST', token }),
+  // balsas de los Ríos de Lava y la lluvia de brasas del Volcán (gprback/lib/brasas.js)
+  balsa: (playerId, destino, token) => request(`/api/player/${playerId}/world/balsa`, { method: 'POST', body: { destino }, token }),
+  brasa: (playerId, token) => request(`/api/player/${playerId}/world/brasa`, { method: 'POST', token }),
   getPiedra: (playerId, token) => request(`/api/player/${playerId}/world/piedra`, { token }),
   // muñecos de venta (puestos de jugador en el Barrio del Mercado de Aurelia)
   getPuestos: (playerId, zona, token) => request(`/api/player/${playerId}/puestos?zona=${zona}`, { token }),

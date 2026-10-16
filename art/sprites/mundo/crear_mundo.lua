@@ -37,6 +37,14 @@ local ORDER = {
   {"rq1","a8a6b2"},{"rq2","86848f"},{"rq3","64626e"},{"rq4","42404c"},
   {"hl1","e4f8ff"},{"hl2","a8dcf0"},{"hl3","6aaed0"},
   {"ab1","34303e"},{"ab2","1a1822"},{"ab3","4a4654"},
+  -- v6 (Volcán): ceniza, basalto, lava, azufre, obsidiana, tierra quemada y el rojo y oro dracónido
+  {"ce1","bcb6ae"},{"ce2","9c968e"},{"ce3","767068"},
+  {"bs1","4e4852"},{"bs2","3a3440"},{"bs3","26222c"},
+  {"lv1","ffe070"},{"lv2","ff9a2a"},{"lv3","e05a1a"},{"lv4","9a2a12"},
+  {"su1","f4e46a"},{"su2","d8bf3e"},{"su3","a88e22"},
+  {"ob1","2c2638"},{"ob2","17131f"},{"obh","9a8ccc"},
+  {"qm1","4a3a30"},{"qm2","33281f"},{"qm3","221912"},{"em","ffb050"},
+  {"dr1","b03a2a"},{"dr2","7a2418"},{"dg","e8b040"},
 }
 local C = {}
 for _,e in ipairs(ORDER) do C[e[1]] = hex(e[2]) end
@@ -801,6 +809,10 @@ local function wallFill(V, x0, y0, x1, y1, style)
   elseif style == "enano" then
     V.rect(x0, y0, x1, y1, "sd"); V.rect(x1 - 3, y0, x1, y1, "sk")
     for y = y0, y1, 7 do V.rect(x0, y, x1, y, "sk"); for x = x0 + ((y - y0) // 7 % 2) * 7, x1, 14 do V.rect(x, y, x, y + 7, "sk") end end
+  elseif style == "basalto" then
+    -- bloques de basalto con juntas rojas (la lava ilumina las grietas)
+    V.rect(x0, y0, x1, y1, "bs1"); V.rect(x1 - 3, y0, x1, y1, "bs2")
+    for y = y0, y1, 7 do V.rect(x0, y, x1, y, "bs3"); for x = x0 + ((y - y0) // 7 % 2) * 8, x1, 16 do V.rect(x, y, x, y + 7, "bs3"); V.px(x, y + 3, "lv4") end end
   elseif style == "elfico" then
     V.rect(x0, y0, x1, y1, "Ph"); V.rect(x1 - 3, y0, x1, y1, "p")
     for x = x0 + 6, x1, 16 do for y = y0, y1, 3 do V.px(x + (y // 3) % 2, y, "lp") end end
@@ -837,7 +849,7 @@ local function building(name, w, h, o)
   addGrid(name, w, h, function(V)
     local W, H = w * 32, h * 32
     local wallTop = o.wallTop or math.floor(H * 0.42)
-    V.ellipse(W // 2, H - 4, W // 2 - 2, 5, "c4")
+    V.ellipse(W // 2, H - 4, W // 2 - 2, 5, o.shadow or "c4")
     wallFill(V, 4, wallTop, W - 5, H - 3, o.wall)
     -- ventanas en dos filas si hay altura
     local rows = o.rows or 1
@@ -1337,6 +1349,340 @@ local function rockPathTile(mask)
 end
 for m=0,15 do TILES[#TILES+1] = {"caminor_" .. m, rockPathTile(m)} end
 
+-- ---------------------------------------------------------------------------------------
+-- v6 (Volcán Rojo): suelo de basalto, ceniza, ríos de lava con puentes de basalto, costras de
+-- azufre, tierra quemada, campos de obsidiana, meseta de basalto con su pared, árboles calcinados,
+-- agujas de obsidiana, huesos de dragón, picos volcánicos, la ciudad dracónida de Ascuaria (casas de
+-- basalto, la Gran Forja, estandartes y faroles de lava), la tienda de los Ocultos, el portal de la
+-- Fisura y los arcos de basalto donde uno se refugia de la lluvia de brasas.
+-- Los tiles nuevos van al FINAL para no cambiar los ids viejos.
+-- ---------------------------------------------------------------------------------------
+local function basaltPx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 8 and "bs1" or (n < 13 and "bs3" or "bs2"))
+end
+local function basaltBase(G, seed)
+  for y=0,31 do for x=0,31 do basaltPx(G, x, y, seed) end end
+  for i=0,4 do local x, y = noise(i, 1, seed) % 28, noise(i, 2, seed) % 28; G.px(x, y, "bs3"); G.px(x+1, y, "bs1") end
+end
+local function ashPx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 9 and "ce1" or (n < 14 and "ce3" or "ce2"))
+end
+local function ashBase(G, seed) for y=0,31 do for x=0,31 do ashPx(G, x, y, seed) end end end
+local function burntPx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 6 and "qm1" or (n < 10 and "qm3" or "qm2"))
+  if n == 97 then G.px(x, y, "em") end
+end
+local function burntBase(G, seed) for y=0,31 do for x=0,31 do burntPx(G, x, y, seed) end end end
+
+-- ceniza sobre el basalto: el borde deja ver la piedra oscura de forma irregular
+local function ashTile(mask)
+  return function(G)
+    ashBase(G, 211)
+    local depth = function(i, side) return 3 + (noise(i, side, 213 + mask) % 5) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "ce3") end)
+    sideBand(G, mask, depth, function(x, y) basaltPx(G, x, y, 214) end)
+  end
+end
+-- río de lava: lava que brilla con remolinos y una costra negra en la orilla de basalto
+local function lavaTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"lv2")
+    for y=0,31 do for x=0,31 do local n = noise(x, y, 221); if n < 7 then G.px(x, y, "lv1") elseif n < 12 then G.px(x, y, "lv3") end end end
+    for _,p in ipairs({{5,8},{18,5},{10,20},{22,24}}) do G.rect(p[1],p[2],p[1]+4,p[2],"lv1"); G.px(p[1]+5,p[2]+1,"lv3") end
+    local depth = function(i, side) return 4 + (noise(i, side, 223 + mask) % 3) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 2 end, function(x, y) G.px(x, y, "lv3") end)
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "lv4") end)
+    sideBand(G, mask, depth, function(x, y) basaltPx(G, x, y, 224) end)
+  end
+end
+-- costra de azufre: amarillo con grietas y cristalitos; el borde deja ver el basalto
+local function sulfurTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"su2")
+    for y=0,31 do for x=0,31 do local n = noise(x, y, 231); if n < 10 then G.px(x, y, "su1") elseif n < 15 then G.px(x, y, "su3") end end end
+    for _,p in ipairs({{6,7},{20,12},{11,22},{25,26}}) do G.px(p[1],p[2],"W"); G.px(p[1],p[2]+1,"su1"); G.px(p[1]+1,p[2]+1,"su3") end
+    local depth = function(i, side) return 3 + (noise(i, side, 233 + mask) % 4) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "su3") end)
+    sideBand(G, mask, depth, function(x, y) basaltPx(G, x, y, 234) end)
+  end
+end
+-- tierra quemada del Bosque Calcinado: negra con brasas; el borde se funde con la ceniza
+local function burntTile(mask)
+  return function(G)
+    burntBase(G, 241)
+    local depth = function(i, side) return 3 + (noise(i, side, 243 + mask) % 5) end
+    sideBand(G, mask, depth, function(x, y) ashPx(G, x, y, 244) end)
+  end
+end
+-- campo de obsidiana: vidrio negro liso con reflejos violeta; borde de basalto
+local function obsidianTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"ob1")
+    for y=0,31 do for x=0,31 do if noise(x, y, 251) < 9 then G.px(x, y, "ob2") end end end
+    for i=0,6 do G.px(5 + i, 6 + i // 2, "obh"); G.px(19 + i // 2, 17 + i, "obh") end
+    G.px(24,8,"W"); G.px(9,24,"obh")
+    local depth = function(i, side) return 3 + (noise(i, side, 253 + mask) % 4) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "bs3") end)
+    sideBand(G, mask, depth, function(x, y) basaltPx(G, x, y, 254) end)
+  end
+end
+-- camino de ceniza pisada (marrón grisáceo) con orilla de basalto
+local function ashPathTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"x2")
+    for y=0,31 do for x=0,31 do local n = noise(x,y,261); if n < 8 then G.px(x,y,"x1") elseif n < 12 then G.px(x,y,"x3") end end end
+    local depth = function(i, side) return 3 + (noise(i, side, 263 + mask) % 4) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "x3") end)
+    sideBand(G, mask, depth, function(x, y) basaltPx(G, x, y, 264) end)
+  end
+end
+-- meseta de basalto (Ascuaria): losas oscuras con un filo de luz donde termina (debajo va la pared)
+local function basaltPlateauTile(mask)
+  return function(G)
+    basaltBase(G, 271)
+    for y=0,31,8 do G.rect(0,y,31,y,"bs3") end
+    if mask & 1 == 0 then G.rect(0,0,31,0,"bs3"); G.rect(0,1,31,2,"ce2") end
+    if mask & 2 == 0 then G.rect(31,0,31,31,"bs3"); G.rect(29,0,30,31,"bs1") end
+    if mask & 8 == 0 then G.rect(0,0,0,31,"bs3"); G.rect(1,0,2,31,"ce2") end
+    if mask & 4 == 0 then G.rect(0,30,31,31,"bs3") end
+  end
+end
+
+for m=0,15 do TILES[#TILES+1] = {"ceniza_" .. m, ashTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"lava_" .. m, lavaTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"azufre_" .. m, sulfurTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"quemado_" .. m, burntTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"obsidiana_" .. m, obsidianTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"caminov_" .. m, ashPathTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"mesetav_" .. m, basaltPlateauTile(m)} end
+
+-- suelos llenos y variantes (el generador las mezcla al azar)
+TILES[#TILES+1] = {"basalto", function(G) basaltBase(G, 281) end}
+TILES[#TILES+1] = {"basalto_grieta", function(G)
+  basaltBase(G, 282)
+  for i=0,12 do G.px(4 + i, 9 + (i % 3), "lv4"); G.px(5 + i, 9 + (i % 3), "lv3") end
+  for i=0,8 do G.px(18 + (i % 2), 16 + i, "lv4"); G.px(19 + (i % 2), 16 + i, "lv2") end
+end}
+TILES[#TILES+1] = {"ceniza_pomez", function(G)
+  ashBase(G, 283)
+  for _,p in ipairs({{6,7},{20,5},{12,18},{25,22},{5,26}}) do G.ellipse(p[1],p[2],2,1.5,"T"); G.px(p[1],p[2],"t"); G.px(p[1]+1,p[2]+1,"ce3") end
+end}
+TILES[#TILES+1] = {"ceniza_huellas", function(G)
+  ashBase(G, 284)
+  for i=0,5 do local x, y = 6 + i * 4, 4 + i * 5; G.rect(x,y,x+1,y+2,"ce3"); G.rect(x+3,y+1,x+4,y+3,"ce3") end
+end}
+-- hierba quemada: matas secas y negras con brasas donde salen monstruos
+TILES[#TILES+1] = {"hierba_quemada", function(G)
+  ashBase(G, 285)
+  for x=1,31,4 do for y=3,31,8 do
+    local o = (y // 8) % 2 * 2
+    G.rect(x+o,y,x+o,y+5,"qm2"); G.rect(x+o+1,y+1,x+o+1,y+5,"qm1"); G.px(x+o,y-1,"em"); G.px(x+o+2,y+2,"qm2"); G.px(x+o+1,y,"qm3")
+  end end
+end}
+-- losas de la plaza de Ascuaria: basalto pulido; la otra con una runa encendida
+TILES[#TILES+1] = {"losa_basalto", function(G)
+  G.rect(0,0,31,31,"bs1")
+  for y=0,31,16 do G.rect(0,y,31,y,"bs3") end
+  for y=0,31 do local o = (y // 16) % 2 * 16; G.px(o, y, "bs3"); G.px(o + 15, y, "bs2") end
+  G.rect(2,2,13,2,"ce3"); G.rect(18,18,29,18,"ce3")
+end}
+TILES[#TILES+1] = {"losa_basalto_runa", function(G)
+  G.rect(0,0,31,31,"bs1")
+  for y=0,31,16 do G.rect(0,y,31,y,"bs3") end
+  G.ellipse(16,16,8,8,"bs2"); G.ellipse(16,16,6,6,"lv4")
+  G.rect(16,10,16,22,"lv2"); G.rect(10,16,22,16,"lv2"); G.px(16,16,"lv1"); G.px(12,12,"lv3"); G.px(20,20,"lv3"); G.px(12,20,"lv3"); G.px(20,12,"lv3")
+end}
+
+-- pared de la meseta de basalto (alta: con el borde de ceniza arriba; baja: con sombra)
+local function basaltCliff(row, side)
+  return function(G)
+    G.rect(0,0,31,31,"bs2")
+    for x=0,31 do
+      local n = noise(x, row, 291)
+      if x % 6 == 0 then G.rect(x,0,x,31,"bs3") end
+      if n < 14 then G.px(x, n % 31, "bs1") end
+    end
+    for y=5,31,9 do G.rect(0,y,31,y,"bs3") end
+    if row == 1 then G.rect(0,0,31,3,"ce2"); for x=0,31,3 do G.px(x,4,"ce3") end end
+    if row == 2 then G.rect(0,26,31,31,"bs3"); G.rect(0,24,31,25,"ob2"); G.px(8,22,"lv4"); G.px(24,20,"lv4") end
+    if side == "i" then G.rect(0,0,2,31,"bs3") end
+    if side == "d" then G.rect(29,0,31,31,"bs3") end
+  end
+end
+for _, side in ipairs({"i", "c", "d"}) do
+  TILES[#TILES+1] = {"cara_v_a_" .. side, basaltCliff(1, side)}
+  TILES[#TILES+1] = {"cara_v_b_" .. side, basaltCliff(2, side)}
+end
+
+-- puentes de basalto sobre la lava (se camina por encima)
+TILES[#TILES+1] = {"puente_basalto_h", function(G)
+  G.rect(0,0,31,31,"lv2"); for x=0,31,5 do G.px(x,2,"lv1"); G.px(x+2,28,"lv1") end
+  G.rect(0,7,31,24,"bs1"); for x=0,31,8 do G.rect(x,7,x,24,"bs3") end
+  G.rect(0,7,31,8,"ce2"); G.rect(0,23,31,24,"bs3"); G.rect(0,5,31,6,"bs3"); G.rect(0,25,31,26,"lv4")
+end}
+TILES[#TILES+1] = {"puente_basalto_v", function(G)
+  G.rect(0,0,31,31,"lv2"); for y=0,31,5 do G.px(2,y,"lv1"); G.px(28,y+2,"lv1") end
+  G.rect(7,0,24,31,"bs1"); for y=0,31,8 do G.rect(7,y,24,y,"bs3") end
+  G.rect(7,0,8,31,"ce2"); G.rect(23,0,24,31,"bs3"); G.rect(5,0,6,31,"bs3"); G.rect(25,0,26,31,"lv4")
+end}
+
+-- decoración pequeña
+deco("tocon_humeante", function(G)
+  G.ellipse(16,26,8,3,"ce3"); G.rect(11,17,21,26,"qm2"); G.ellipse(16,17,5,2,"qm1"); G.ellipse(16,17,3,1,"em")
+  G.ellipse(15,11,3,2,"ce1"); G.ellipse(17,7,2,2,"ce2"); G.px(16,3,"ce1")
+end)
+deco("arbusto_calcinado", function(G)
+  G.ellipse(16,27,9,3,"ce3")
+  for _,b in ipairs({{16,26,10,12},{16,26,5,9},{16,26,22,10},{16,26,26,16},{16,26,7,17}}) do
+    for t=0,10 do local f = t / 10; G.px(b[1] + (b[3] - b[1]) * f, b[2] + (b[4] - b[2]) * f, "qm2") end
+  end
+  G.px(10,12,"em"); G.px(22,10,"em"); G.px(5,9,"qm1")
+end)
+deco("roca_pomez", function(G)
+  G.ellipse(16,26,11,3,"ce3"); G.ellipse(16,19,10,7,"T"); G.ellipse(14,17,7,5,"T")
+  for _,p in ipairs({{11,17},{16,15},{20,19},{14,21},{18,22}}) do G.px(p[1],p[2],"t") end
+end)
+deco("cristal_eclipse", function(G)
+  G.ellipse(16,28,9,3,"bs3")
+  for t=0,18 do local f = t / 18; local w = math.floor(4 * (1 - f) + 0.5); G.rect(16 - w, 26 - t, 16 + w, 26 - t, "ob2"); G.px(16 - w, 26 - t, "V") end
+  G.ellipse(16,16,3,3,"K"); G.ellipse(16,16,2,2,"V"); G.px(16,16,"fv"); G.px(15,8,"obh")
+end)
+deco("farol_lava", function(G)
+  G.ellipse(16,29,5,2,"bs3"); G.rect(15,12,17,29,"bs3"); G.rect(11,4,21,13,"bs2"); G.rect(12,5,20,12,"lv3"); G.rect(13,6,19,11,"lv2"); G.rect(15,7,17,10,"lv1")
+  G.rect(10,3,22,4,"dg"); G.rect(10,13,22,13,"dg")
+end)
+deco("brasero_dracon", function(G)
+  G.ellipse(16,29,8,2,"bs3"); G.rect(13,20,19,28,"dr2"); G.rect(8,15,24,20,"dg"); G.rect(9,16,23,19,"dr1")
+  G.ellipse(16,12,6,5,"lv3"); G.ellipse(16,13,4,3,"lv2"); G.ellipse(16,14,2,2,"lv1"); G.px(14,6,"lv2"); G.px(18,8,"lv3")
+end)
+deco("parrilla", function(G)
+  G.ellipse(16,29,11,2,"bs3"); G.rect(5,18,27,26,"bs2"); G.rect(6,19,26,25,"lv4"); G.rect(7,20,25,24,"lv3")
+  for x=6,26,3 do G.rect(x,16,x,18,"sd") end; G.rect(5,16,27,17,"sk")
+  G.rect(8,12,14,15,"Oh"); G.rect(18,11,25,14,"O"); G.px(10,11,"ce1"); G.px(21,9,"ce1"); G.px(22,7,"ce2")
+end)
+deco("balsa_pomez", function(G)
+  G.rect(0,0,31,31,"lv2"); for _,p in ipairs({{3,4},{24,6},{6,26},{26,27}}) do G.px(p[1],p[2],"lv1"); G.px(p[1]+1,p[2],"lv1") end
+  G.ellipse(16,17,13,8,"lv4"); G.ellipse(16,15,13,8,"T"); G.ellipse(14,13,9,5,"T")
+  for _,p in ipairs({{8,14},{14,11},{20,16},{12,18},{24,13}}) do G.px(p[1],p[2],"t") end
+  G.rect(15,4,16,14,"b"); G.rect(17,5,22,10,"fw")
+end)
+deco("respiradero", function(G)
+  G.ellipse(16,26,9,3,"bs3"); G.ellipse(16,24,6,3,"bs2"); G.ellipse(16,24,3,1.5,"lv4"); G.px(16,24,"lv2")
+  G.ellipse(14,17,3,2,"ce1"); G.ellipse(17,12,2,2,"ce2")
+end)
+deco("huevo_dragon", function(G)
+  G.ellipse(16,28,9,3,"ce3"); G.ellipse(16,18,8,11,"dr2"); G.ellipse(15,17,7,10,"dr1")
+  for _,p in ipairs({{12,12},{18,15},{14,22},{19,22}}) do G.px(p[1],p[2],"dg") end
+  G.ellipse(13,12,2,3,"Oh"); G.px(16,10,"lv2"); G.px(17,26,"lv3")
+end)
+deco("huesos_dragon", function(G)
+  G.ellipse(16,26,12,3,"ce3")
+  G.rect(4,20,27,22,"m2"); G.rect(4,20,27,20,"m1")
+  for x=6,26,5 do G.rect(x,13,x+1,20,"m2"); G.px(x,12,"m1") end
+  G.ellipse(28,21,3,3,"m2"); G.ellipse(4,21,2,2,"m3")
+end)
+
+-- objetos grandes
+addGrid("arbol_calcinado", 2, 2, function(V)
+  V.ellipse(32,58,14,4,"ce3"); V.rect(28,28,35,57,"qm2"); V.rect(28,28,29,57,"qm3"); V.rect(34,36,35,52,"qm1")
+  for i=0,14 do V.px(28 - i, 32 - i, "qm2"); V.px(27 - i, 32 - i, "qm3"); V.px(36 + i, 28 - i, "qm2"); V.px(37 + i, 28 - i, "qm3") end
+  for i=0,8 do V.px(20 - i, 20 - i // 2, "qm2"); V.px(46 + i // 2, 16 - i, "qm2"); V.px(32, 28 - i * 2, "qm2"); V.px(33, 28 - i * 2, "qm3") end
+  for _,p in ipairs({{14,13},{50,6},{20,16},{44,18},{32,10},{30,44}}) do V.px(p[1],p[2],"em"); V.px(p[1]+1,p[2],"lv3") end
+  V.ellipse(38,8,3,2,"ce2"); V.ellipse(40,3,2,2,"ce1")
+end)
+addGrid("roca_volcanica", 2, 2, function(V)
+  V.ellipse(32,56,28,6,"ce3"); V.ellipse(32,40,28,20,"bs3"); V.ellipse(30,36,26,18,"bs2"); V.ellipse(24,30,15,11,"bs1")
+  V.ellipse(44,44,9,5,"bs3"); for i=0,10 do V.px(20 + i, 40 + (i % 3), "lv4"); V.px(21 + i, 40 + (i % 3), "lv3") end
+  V.ellipse(26,24,9,4,"ce2"); V.px(18,26,"ce1")
+end)
+addGrid("aguja_obsidiana", 1, 2, function(V)
+  V.ellipse(16,60,10,3,"bs3")
+  for y=4,58 do local w = math.floor((y - 4) * 0.16) + 1; V.rect(16 - w, y, 16 + w, y, "ob1"); V.rect(16, y, 16 + w, y, "ob2") end
+  for i=0,12 do V.px(14 - i // 6, 14 + i * 3, "obh") end
+  V.px(16,4,"W"); V.px(16,5,"obh")
+end)
+-- costillas de un dragón muerto hace siglos: se pasa por debajo
+addGrid("costillas_dragon", 3, 2, function(V)
+  V.ellipse(48,58,44,5,"ce3")
+  for i=0,4 do
+    local x = 8 + i * 19
+    for y=10,56 do
+      local t = (56 - y) / 46
+      local dx = math.floor(math.sin(t * math.pi) * 9)
+      V.rect(x + dx, y, x + dx + 4, y, "m2"); V.px(x + dx, y, "m1"); V.px(x + dx + 1, y, "m1"); V.px(x + dx + 4, y, "m3")
+    end
+    V.ellipse(x + 2, 56, 4, 2, "m3")
+  end
+  V.rect(2,6,94,12,"m2"); V.rect(2,6,94,7,"m1"); V.rect(2,12,94,12,"m3")
+  for x=6,90,8 do V.ellipse(x, 9, 2, 3, "m1") end
+end)
+addGrid("craneo_dragon", 3, 2, function(V)
+  V.ellipse(48,58,42,5,"ce3")
+  V.ellipse(40,38,30,16,"m2"); V.ellipse(38,34,28,14,"m1"); V.rect(64,34,90,48,"m2"); V.rect(64,34,90,36,"m1")
+  for x=68,88,5 do V.rect(x,48,x+1,54,"W") end
+  V.ellipse(34,32,7,6,"K"); V.ellipse(34,32,3,3,"lv4"); V.ellipse(56,40,4,3,"K")
+  for _,p in ipairs({{14,22},{22,16},{30,14}}) do V.rect(p[1],p[2] - 10,p[1]+2,p[2],"m3"); V.px(p[1],p[2] - 11,"m1") end
+end)
+-- pico volcánico (3x3): la cima humea y brilla; pasa por encima del héroe
+addGrid("pico_volcan", 3, 3, function(V)
+  V.ellipse(48,92,46,5,"bs3")
+  for y=8,90 do local half = math.floor((y - 8) * 0.55); V.rect(48 - half, y, 48 + half, y, "bs2"); V.rect(48, y, 48 + half, y, "bs3") end
+  V.rect(40,8,56,12,"bs1"); V.ellipse(48,9,7,2,"lv3"); V.ellipse(48,9,4,1,"lv1")
+  for i=0,20 do V.px(46 - i // 3, 14 + i * 2, "lv4"); V.px(45 - i // 3, 14 + i * 2, "lv3") end
+  V.ellipse(44,2,6,3,"ce2"); V.ellipse(52,0,5,2,"ce1")
+  for _,p in ipairs({{30,60},{62,52},{40,76},{64,80}}) do V.rect(p[1],p[2],p[1]+6,p[2],"bs3") end
+end)
+-- casas dracónidas: basalto con juntas encendidas, tejado rojo y oro, puerta en arco
+building("casa_basalto", 3, 3, {wall="basalto", roof={"dr1","dr2"}, hip=true, shadow="ce3", glow=true, doorC="lv4", arch=true, chimney=true})
+building("casa_basalto_b", 3, 3, {wall="basalto", roof={"dg","dr2"}, shadow="ce3", glow=true, doorC="lv4", arch=true, extra=function(V, W, H, wt)
+  V.rect(W // 2 - 5, wt - 10, W // 2 + 5, wt - 4, "dg"); V.ellipse(W // 2, wt - 7, 3, 2, "lv2")
+end})
+-- la Gran Forja de Ignar: nave de basalto con dos chimeneas, el horno encendido y un yunque en la puerta
+building("gran_forja", 4, 3, {wall="basalto", roof={"dr2","bs3"}, hip=true, shadow="ce3", doorC="lv2", doorW=22, doorH=24, arch=true, extra=function(V, W, H, wt)
+  for _, cx in ipairs({24, W - 24}) do V.rect(cx - 6, 0, cx + 6, wt - 4, "bs3"); V.rect(cx - 7, 0, cx + 7, 3, "dg"); V.ellipse(cx, 0, 6, 3, "ce2") end
+  V.rect(W // 2 - 9, H - 25, W // 2 + 9, H - 4, "lv3"); V.rect(W // 2 - 6, H - 18, W // 2 + 6, H - 4, "lv1")
+  V.rect(W // 2 - 10, wt + 4, W // 2 + 10, wt + 8, "dg"); V.ellipse(W // 2, wt + 6, 4, 3, "dr1")
+end})
+-- tienda de los Ocultos: tela morada con el eclipse negro
+addGrid("tienda_ocultos", 2, 2, function(V)
+  V.ellipse(32,58,26,4,"bs3")
+  for y=10,56 do local half = math.floor((y - 10) * 0.5); V.rect(32 - half, y, 32 + half, y, (y // 6) % 2 == 0 and "v" or "V") end
+  V.rect(26,42,38,56,"K"); V.rect(31,2,33,12,"bs3")
+  V.ellipse(32,28,7,7,"W"); V.ellipse(34,27,7,7,"K")
+end)
+-- el portal de la Fisura Infernal: una grieta en la roca con luz roja y un portón de hierro
+addGrid("portal_fisura", 3, 3, function(V)
+  V.rect(0,0,95,95,"bs2")
+  for y=0,95,8 do V.rect(0,y,95,y,"bs3") end
+  for x=0,95,12 do V.rect(x,0,x,95,"bs3") end
+  V.ellipse(48,64,24,32,"lv4"); V.rect(24,64,72,95,"lv4"); V.ellipse(48,66,20,28,"K"); V.rect(28,66,68,95,"K")
+  for y=40,95,6 do V.rect(30,y,66,y,"dr2") end; for x=32,64,8 do V.rect(x,40,x+1,95,"sk") end
+  V.ellipse(48,48,6,6,"W"); V.ellipse(50,47,6,6,"K")
+  for i=0,10 do V.px(20 - i, 30 + i * 6, "lv3"); V.px(76 + i, 30 + i * 6, "lv3") end
+end)
+-- estandarte dracónido: dragón dorado sobre rojo
+addGrid("estandarte_dracon", 1, 2, function(V)
+  V.ellipse(16,60,6,2,"bs3"); V.rect(15,4,17,60,"bs3"); V.rect(8,4,24,6,"dg")
+  V.rect(8,6,24,34,"dr1"); V.rect(8,6,9,34,"dr2"); V.rect(8,34,16,40,"dr1"); V.rect(16,34,24,38,"dr1")
+  V.ellipse(16,18,6,5,"dg"); V.rect(12,14,20,15,"dr1"); V.px(14,18,"dr2"); V.px(19,17,"dr2"); V.rect(10,24,22,25,"dg")
+end)
+-- grúa de la cantera (madera y cadenas)
+addGrid("grua_cantera", 2, 2, function(V)
+  V.ellipse(32,58,22,4,"bs3"); V.rect(14,10,18,57,"B"); V.rect(14,10,15,57,"b"); V.rect(14,10,58,13,"B"); V.rect(14,13,58,13,"b")
+  for i=0,12 do V.px(18 + i * 2, 24 - i, "b") end
+  V.rect(52,13,53,40,"sk"); V.rect(46,40,58,48,"ob1"); V.rect(46,40,58,41,"obh")
+end)
+-- arco de basalto: refugio de la lluvia de brasas (el techo pasa por encima del héroe)
+addGrid("arco_basalto", 3, 2, function(V)
+  V.ellipse(48,58,44,5,"ce3")
+  V.rect(6,14,18,58,"bs2"); V.rect(78,14,90,58,"bs2"); V.rect(6,14,8,58,"bs1"); V.rect(78,14,80,58,"bs1")
+  V.rect(2,4,94,16,"bs2"); V.rect(2,4,94,6,"ce2"); V.rect(2,16,94,17,"bs3")
+  for x=10,86,12 do V.px(x,10,"lv4") end
+end)
+
 local COLLIDE = {arbol=true, roca=true, arbusto=true, valla=true, agua=true, cartel=true, fogata=true, orilla_agua_arriba=true,
   arbol_grande_bi=true, arbol_grande_bd=true, carpa_ai=true, carpa_ad=true, carpa_bi=true, carpa_bd=true,
   puesto_ai=true, puesto_ad=true, puesto_bi=true, puesto_bd=true, yunque=true, barril=true, caja=true, farol=true}
@@ -1382,6 +1728,24 @@ for r=0,1 do for c=0,2 do COLLIDE[string.format("entrada_mina_%d_%d", r, c)] = t
 COLLIDE["entrada_mina_2_0"] = true; COLLIDE["entrada_mina_2_2"] = true
 ABOVE["pino_nevado_0_0"] = true; ABOVE["pino_nevado_0_1"] = true; ABOVE["estandarte_enano_0_0"] = true
 for c=0,2 do ABOVE[string.format("pico_0_%d", c)] = true end
+
+-- v6 (Volcán): choques y lo que tapa al héroe
+for m=0,15 do COLLIDE["lava_" .. m] = true end
+for _, n in ipairs({"cara_v_a_i","cara_v_a_c","cara_v_a_d","cara_v_b_i","cara_v_b_c","cara_v_b_d","tocon_humeante","arbusto_calcinado",
+  "roca_pomez","cristal_eclipse","farol_lava","brasero_dracon","parrilla","balsa_pomez","huevo_dragon","huesos_dragon"}) do COLLIDE[n] = true end
+bigCollide("arbol_calcinado", 2, 2, 1); bigCollide("roca_volcanica", 2, 2, 0); bigCollide("aguja_obsidiana", 1, 2, 1)
+bigCollide("craneo_dragon", 3, 2, 1); bigCollide("pico_volcan", 3, 3, 1); bigCollide("tienda_ocultos", 2, 2, 1)
+bigCollide("estandarte_dracon", 1, 2, 1); bigCollide("grua_cantera", 2, 2, 1)
+for _, b in ipairs({{"casa_basalto",3},{"casa_basalto_b",3},{"gran_forja",4}}) do bigCollide(b[1], b[2], 3, 1); aboveRows(b[1], b[2], 1) end
+-- costillas y arco: se pasa por debajo; solo chocan los pilares
+COLLIDE["costillas_dragon_1_0"] = true; COLLIDE["costillas_dragon_1_2"] = true; aboveRows("costillas_dragon", 3, 1)
+COLLIDE["arco_basalto_1_0"] = true; COLLIDE["arco_basalto_1_2"] = true; aboveRows("arco_basalto", 3, 1)
+-- el portal de la Fisura: se entra por el centro de abajo
+for r=0,1 do for c=0,2 do COLLIDE[string.format("portal_fisura_%d_%d", r, c)] = true end end
+COLLIDE["portal_fisura_2_0"] = true; COLLIDE["portal_fisura_2_2"] = true
+for _, n in ipairs({"arbol_calcinado","tienda_ocultos","grua_cantera"}) do ABOVE[n .. "_0_0"] = true; ABOVE[n .. "_0_1"] = true end
+ABOVE["aguja_obsidiana_0_0"] = true; ABOVE["estandarte_dracon_0_0"] = true
+for c=0,2 do ABOVE[string.format("pico_volcan_0_%d", c)] = true; ABOVE[string.format("craneo_dragon_0_%d", c)] = true end
 
 local COLS = 8
 local ROWS = math.ceil(#TILES / COLS)

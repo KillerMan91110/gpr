@@ -87,6 +87,9 @@ for _, e in ipairs({
   {"a1","4a8ad8"},{"a3","6aa8ec"},{"a4","2a5a9c"},{"sd","8a847a"},{"sw","b8b2a8"},{"sk","4c4a46"},
   {"P","eeecf4"},{"p","b4b0c8"},{"Ph","ffffff"},{"fw","f4f4f4"},{"L","434352"},{"l","2e2e3a"},{"Lh","62627a"},
   {"ad","a8501e"},{"au","d87a3a"},{"m","1d2770"},{"Mh","5070e0"},{"lp","5aa040"},{"bb","4a5ad8"},{"t1","c9a46a"},
+  -- dracónidos (Volcán Rojo): escamas rojizas, carmín y grises de los viejos, cuernos de marfil y ojos dorados
+  {"Dr","c4553a"},{"Drd","8e3424"},{"Dc","a83a3a"},{"Dcd","6e2222"},{"Dg","a8826a"},{"Dgd","74584a"},
+  {"Hn","e8dcc0"},{"Hnd","b8a888"},{"Ey","f0c040"},{"Ab","d8c060"},{"Cs","5a5e6a"},{"Csd","3a3e48"},
 }) do C[e[1]] = hex(e[2]) end
 
 -- st: skin/skinD, hair/hairD, style (corto|largo|mono|calvo|capucha|gorra|casco|sombrero|mago), top/topD/topL,
@@ -121,6 +124,12 @@ local function headFront(G, st, bob)
     for i=0,3 do G.rect(10+i//2,1+i+bob,12-i//2+1,1+i+bob,st.ears or h); G.rect(19+i//2,1+i+bob,21-i//2+1,1+i+bob,st.ears or h) end
     G.px(11,3+bob,"fr"); G.px(20,3+bob,"fr"); G.px(9,15+bob,"W"); G.px(22,15+bob,"W")
   end
+  if st.race == "draco" or st.horns then
+    G.rect(10,2+bob,11,5+bob,"Hn"); G.px(9,1+bob,"Hn"); G.px(11,5+bob,"Hnd")
+    G.rect(20,2+bob,21,5+bob,"Hn"); G.px(22,1+bob,"Hn"); G.px(20,5+bob,"Hnd")
+    G.rect(12,13+bob,13,14+bob,"Ey"); G.rect(18,13+bob,19,14+bob,"Ey"); G.px(13,13+bob,"E"); G.px(13,14+bob,"E"); G.px(18,13+bob,"E"); G.px(18,14+bob,"E")
+    G.px(11,16+bob,"f"); G.px(20,16+bob,"f"); G.px(10,12+bob,"f"); G.px(21,12+bob,"f")
+  end
 end
 
 local function headBack(G, st, bob)
@@ -136,6 +145,7 @@ local function headBack(G, st, bob)
   if s == "mago" then G.rect(5,6+bob,26,7+bob,st.hat); for y=0,6 do G.rect(11+y//2,-1+y+bob,20-y//2,-1+y+bob,st.hat) end end
   if st.race == "elfo" then G.rect(6,10+bob,8,11+bob,"F"); G.rect(23,10+bob,25,11+bob,"F") end
   if st.race == "felino" then for i=0,3 do G.rect(10,1+i+bob,12,1+i+bob,st.ears or h); G.rect(19,1+i+bob,21,1+i+bob,st.ears or h) end end
+  if st.race == "draco" or st.horns then G.rect(10,2+bob,11,5+bob,"Hn"); G.px(9,1+bob,"Hn"); G.rect(20,2+bob,21,5+bob,"Hn"); G.px(22,1+bob,"Hn") end
 end
 
 local function legs(G, st, step, bob)
@@ -169,6 +179,7 @@ local function body(G, st, step, bob, back)
   G.rect(a0,19+bob-swing,a0+1,24+bob-swing,st.top); G.rect(a0,25+bob-swing,a0+1,26+bob-swing,"F")
   G.rect(x1+1,19+bob+swing,x1+2,24+bob+swing,st.topD); G.rect(x1+1,25+bob+swing,x1+2,26+bob+swing,"F")
   if back and st.race == "felino" then for i=0,6 do G.px(15+math.floor(math.sin(i/2)*2), 26+i//2, st.ears or st.hair); G.px(16+math.floor(math.sin(i/2)*2), 26+i//2, st.ears or st.hair) end end
+  if back and st.race == "draco" then for i=0,5 do local x = 14 + math.floor(math.sin(i/2) * 2); G.rect(x, 25 + i, x + 3 - i // 2, 25 + i, "F"); G.px(x, 25 + i, "f") end end
 end
 
 local function sideView(G, st, step, bob)
@@ -201,6 +212,10 @@ local function sideView(G, st, step, bob)
   if st.beard then G.rect(17,15+bob,22,20+bob,st.beard); G.rect(18,21+bob,21,22+bob,st.beard) end
   if st.race == "elfo" then G.rect(11,9+bob,12,11+bob,"F"); G.px(10,8+bob,"F") end
   if st.race == "felino" then for i=0,3 do G.rect(11+i//2,1+i+bob,13,1+i+bob,st.ears or h) end; G.px(23,15+bob,"W") end
+  if st.race == "draco" or st.horns then
+    G.rect(13,2+bob,14,5+bob,"Hn"); G.px(12,1+bob,"Hn"); G.rect(19,13+bob,19,14+bob,"Ey"); G.px(19,14+bob,"E")
+    for i=0,6 do G.rect(10-i,22+i//2,11-i,23+i//2,"F") end
+  end
   local sw = -fwd // 2
   G.rect(15+sw,19+bob,17+sw,24+bob,st.topL or st.top); G.rect(15+sw,25+bob,17+sw,26+bob,"F")
 end
@@ -276,6 +291,14 @@ local function portrait(st)
   if st.style == "casco" then G.ellipse(32,18,18,11,"S"); G.rect(14,18,50,22,"s"); G.rect(30,2,34,10,st.hat or "R"); G.rect(30,22,34,34,"s") end
   if st.style == "mago" then G.rect(6,14,58,17,st.hat); for y=0,14 do G.rect(22+y//2,y,42-y//2,y,st.hat) end; G.px(32,1,"go") end
   if st.beard then G.ellipse(32,47,15,9,st.beard); G.rect(18,36,22,46,st.beard); G.rect(42,36,46,46,st.beard); G.rect(26,39,38,41,st.beard); G.rect(30,43,34,44,"R") end
+  if st.race == "draco" or st.horns then
+    local hb = st.hornBig and 4 or 0
+    for i=0,9+hb do G.rect(19-i//3,18-i,22-i//3,19-i,"Hn"); G.rect(42+i//3,18-i,45+i//3,19-i,"Hn") end
+    G.rect(19,18,22,19,"Hnd"); G.rect(42,18,45,19,"Hnd")
+    for _,p in ipairs({{28,22},{32,20},{36,22},{22,34},{24,37},{42,34},{40,37},{30,25},{34,25}}) do G.px(p[1],p[2],skd); G.px(p[1]+1,p[2],skd) end
+    G.rect(25,31,28,35,"Ey"); G.rect(37,31,40,35,"Ey"); G.rect(26,31,26,35,"K"); G.rect(38,31,38,35,"K")
+    G.rect(29,38,30,38,skd); G.rect(34,38,35,38,skd)
+  end
   return G
 end
 
@@ -336,6 +359,25 @@ local NPCS = {
   npc_vagonetero = {race="enano", style="gorra", hat="Cr", hatD="r", hair="Y", hairD="y", beard="Y", top="A", topD="a", topL="Ah", apron="N", pants="b", boots="b", belt="b", skin=P, skinD=Pd},
   -- guardia del Bastión: casco con penacho rojo, cota de malla y tabardo rojo
   npc_guardia_enano = {race="enano", style="casco", hat="R", hair="Hd", beard="Hd", top="S", topD="s", topL="W", tabard="Cr", pants="b", boots="b", belt="N", skin=D, skinD=Dd},
+  -- Volcán Rojo: los dracónidos de Ascuaria y la gente de los puestos
+  -- Ignar, el Forjador de Fuego: dracónido calvo de escamas rojas, delantal de cuero sobre camisa carmín y brazos de herrero
+  npc_ignar = {race="draco", style="calvo", hair="Dcd", top="Dc", topD="Dcd", topL="R", apron="n", pants="Cn", boots="b", belt="b", skin="Dr", skinD="Drd"},
+  -- Ascalia, la matriarca de Ascuaria: escamas carmín, cresta larga oscura, túnica roja con ribete dorado
+  npc_ascalia = {race="draco", style="largo", hair="Dcd", hairD="Hd", top="Cr", topD="r", topL="R", robe=true, trim="go", neck="go", skin="Dc", skinD="Dcd", hornBig=true},
+  -- Tuli, la parrillera: pañuelo naranja en la cabeza, delantal manchado y camisa amarilla
+  npc_tuli = {race="draco", style="gorra", hat="Co", hatD="o", hair="Dcd", top="Cy", topD="y", topL="Y", apron="T", pants="Cn", boots="b", skin="Dr", skinD="Drd"},
+  -- Chispa, la niña que quiere un dragón: pelo corto rojizo, cuernitos y túnica amarilla
+  npc_chispa = {race="nino", style="corto", hair="Ho", hairD="o", top="Cy", topD="y", topL="Ab", pants="Cn", boots="b", belt="N", skin="Dr", skinD="Drd", horns=true},
+  -- el Viejo Escamas: dracónido anciano de escamas grises, barba blanca y túnica parda
+  npc_escamas = {race="draco", style="calvo", hair="Hs", beard="Hs", top="Cn", topD="b", topL="N", robe=true, trim="T", skin="Dg", skinD="Dgd", hornBig=true},
+  -- Kessa, la talladora de obsidiana: gorro gris de cantera, delantal de cuero y ropa de trabajo
+  npc_kessa = {race="draco", style="gorra", hat="Cs", hatD="Csd", hair="Hd", top="Cs", topD="Csd", topL="Ah", apron="N", pants="b", boots="b", belt="b", skin="Dr", skinD="Drd"},
+  -- Ceniza, la guardabosque: capucha gris verdosa y ropa de cuero para el bosque quemado
+  npc_ceniza = {race="draco", style="capucha", hair="Cs", hairD="Csd", top="Cg", topD="g", topL="Gh", pants="Cn", boots="b", belt="b", skin="Dc", skinD="Dcd"},
+  -- Pumo, el balsero: mediano con sombrero de paja, pañuelo rojo y chaleco remendado
+  npc_pumo = {race="mediano", style="sombrero", hat="T", hatD="t", pluma="Cr", hair="B", top="Cr", topD="r", topL="R", vest="N", pants="Cn", boots="b", belt="b", skin=D, skinD=Dd},
+  -- Sulfo, el alquimista: humano calvo con barba amarillenta de azufre y túnica verde manchada
+  npc_sulfo = {race="humano", style="calvo", hair="Hg", beard="Ab", top="Cg", topD="g", topL="Y", robe=true, trim="Cy", skin=P, skinD=Pd},
 }
 -- solo=npc_a,npc_b genera solo esos (para no rehacer los que ya tienen retoques)
 local solo = app.params.solo

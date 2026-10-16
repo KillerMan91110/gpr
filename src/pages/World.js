@@ -592,6 +592,17 @@ export default function World() {
         audio.sfx('error');
         bus.emit('social-toast', { text: err.message, kind: 'error' });
       }
+    } else if (o.action === 'balsa') {
+      try {
+        const r = await api.balsa(player.id, o.destino, token);
+        audio.sfx('monedas');
+        bus.emit('social-toast', { text: `🛶 ¡Sube y no toques la lava! La balsa te lleva a ${r.nombre}.`, kind: 'tour' });
+        loadHud();
+        bus.emit('zone-change', { zoneDir: r.zona, x: r.x, y: r.y });
+      } catch (err) {
+        audio.sfx('error');
+        bus.emit('social-toast', { text: err.message, kind: 'error' });
+      }
     } else if (o.action === 'viaje') {
       try {
         const r = await api.travel(player.id, o.destino, token);
@@ -738,8 +749,18 @@ export default function World() {
         loadHud();
       }).catch(() => {});
     };
+    // la lluvia de brasas del Volcán: lo mismo, con piedras ardientes
+    const onBrasa = () => {
+      api.brasa(player.id, token).then((r) => {
+        if (!r?.damage) return;
+        audio.sfx('golpe');
+        bus.emit('social-toast', { text: `🔥 ¡Te cayó una brasa! −${r.damage} de vida. Bajo los arcos de basalto estás a salvo.`, kind: 'error' });
+        loadHud();
+      }).catch(() => {});
+    };
     bus.on('rayo-golpe', onRayo);
-    return () => bus.off('rayo-golpe', onRayo);
+    bus.on('brasa-golpe', onBrasa);
+    return () => { bus.off('rayo-golpe', onRayo); bus.off('brasa-golpe', onBrasa); };
   }, [player, token, loadHud]);
 
   // aceptaste una misión que te compartió tu grupo: se recargan el rastreador y las marcas
@@ -1019,6 +1040,7 @@ export default function World() {
             {weather === 'lluvia' && <GameIcon name="raining" artist="lorc" />}
             {weather === 'niebla' && <GameIcon name="fog" artist="delapouite" />}
             {weather === 'nieve' && <GameIcon name="snowflake-1" artist="lorc" />}
+            {weather === 'ceniza' && <GameIcon name="volcano" artist="lorc" />}
           </span>
         )}
       </div>

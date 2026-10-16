@@ -83,6 +83,14 @@ export const RESOURCES = {
   cristal_lago: { sheet: 'recursos4', frames: [6, 7], label: 'Recoger el cristal del lago', glint: 0xa8e4ff },
   restos_montana: { sheet: 'recursos2', frames: [8, 9], label: 'Registrar los restos', glint: 0xffd84a },
   cofre_montana: { sheet: 'recursos', frames: [4, 5], label: 'Abrir el cofre', glint: 0xffd84a },
+  // Volcán Rojo (art/sprites/mundo/crear_recursos5.lua)
+  veta_obsidiana: { sheet: 'recursos5', frames: [0, 1], label: 'Picar la veta de obsidiana', glint: 0xb8a8ff },
+  fumarola: { sheet: 'recursos5', frames: [2, 3], label: 'Raspar el azufre de la fumarola', glint: 0xf4e868 },
+  flor_ceniza: { sheet: 'recursos5', frames: [4, 5], label: 'Recoger la flor de ceniza', glint: 0xffb060 },
+  nido_salamandra: { sheet: 'recursos5', frames: [6, 7], label: 'Revisar el nido de salamandra', glint: 0xf8b070 },
+  geoda_ardiente: { sheet: 'recursos5', frames: [8, 9], label: 'Partir la geoda ardiente', glint: 0xff8a20 },
+  restos_volcan: { sheet: 'recursos2', frames: [8, 9], label: 'Registrar los restos', glint: 0xffd84a },
+  cofre_volcan: { sheet: 'recursos', frames: [4, 5], label: 'Abrir el cofre', glint: 0xffd84a },
 };
 // mascotas.png: 2 frames por especie, en este orden
 export const PET_SPECIES = ['lobo', 'ave', 'limo', 'gato', 'dragon', 'zorro', 'tortuga', 'arana'];

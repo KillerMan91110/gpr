@@ -31,6 +31,27 @@ const vagonetero = (aqui, name, saludo, ambient) => ({
   },
 });
 
+// Las balseras de pómez del Volcán (Pumo y sus primas Toba y Lapilli): cada una atiende un muelle y te
+// lleva a los otros dos (gprback/lib/brasas.js).
+const MUELLES = { rios: 'los Ríos de Lava', cantera: 'la Cantera de Obsidiana', caldera: 'la Caldera del Titán' };
+const balsaOpciones = (aqui) => Object.entries(MUELLES).filter(([k]) => k !== aqui)
+  .map(([k, lugar]) => ({ label: `Cruzar a ${lugar} (20 de oro)`, action: 'balsa', destino: k }));
+const balsera = (aqui, name, role, saludo, ambient) => ({
+  name,
+  role,
+  portrait: PORTRAIT('pumo'),
+  ambient,
+  greet: () => pick(saludo),
+  options: () => [
+    ...balsaOpciones(aqui),
+    { label: '¿Es seguro cruzar la lava?', next: 'seguro' },
+    { label: 'Adiós', close: true },
+  ],
+  lines: {
+    seguro: 'La pómez flota hasta en la lava, y nosotras remamos con remos de basalto que no se queman. Lo peligroso es lo que cae del cielo, no lo que corre abajo. Solo te llevamos a un muelle que ya pisaste: no frenamos en medio de la lava para preguntar el camino.',
+  },
+});
+
 export const DIALOGUES = {
   ren: {
     name: 'Ren',
@@ -817,6 +838,310 @@ export const DIALOGUES = {
     ],
     lines: {
       vigila: 'Al norte, la Guarida: el Capitán de los Lobos manda ahí y la manada le obedece como nunca. Al sur, las Tierras Heridas: la tierra se abrió en grietas y de ahí salen lobos deformes con cristales en el lomo. Alguien está detrás de todo esto. Yo solo cuento cuántos salen cada día.',
+    },
+  },
+  // ---------------------------------------------------------------- Volcán Rojo (Ascuaria y alrededores)
+  // las balseras de pómez: Pumo y sus primas Toba y Lapilli (gprback/lib/brasas.js)
+  balsero_cantera: balsera('cantera', 'Toba', 'Balsera',
+    ['¿A los Ríos o a la Caldera? Súbete, que la pómez flota y yo remo.', 'Soy Toba, prima de Pumo. La que rema derecho.'],
+    ['¡Balsa al agua! Bueno, a la lava.', 'Pumo cobra lo mismo y rema peor.', 'No metas la mano. En serio.']),
+  balsero_caldera: balsera('caldera', 'Lapilli', 'Balsera',
+    ['Desde aquí se oye el corazón del Titán. Bum… bum… ¿Nos vamos?', 'Soy Lapilli, la prima chica. Remo rápido porque me da miedo la Caldera.'],
+    ['¿Oíste eso? Fue el Titán. O mi panza.', 'Rápido, rápido, que hace calor.', 'Toba dice que soy miedosa. Toba tiene razón.']),
+  // Gaspar: el cochero de Aurelia, que bajó por el Paso del Humo persiguiendo a Trueno (otra vez)
+  gaspar_volcan: {
+    name: 'Gaspar',
+    role: 'Cochero (sin diligencia)',
+    portrait: PORTRAIT('cochero'),
+    ambient: [
+      '¡Truenooo! ¡Ven, bonito!',
+      'Este caballo me va a matar de un susto.',
+      'Ni una diligencia baja por aquí. Ni una.',
+      'Huele a huevo podrido. ¿O soy yo?',
+    ],
+    greet: (ctx) => {
+      const { mark } = ctx;
+      if (mark === '?') return '¿Y bien? ¿Lo encontraste? ¿Está entero? ¿Está gordo? ¡Dime algo!';
+      if (mark === '!') return '¡Tú! ¡Por fin una cara conocida! Tengo un problema. Bueno, dos. Uno tiene cuatro patas.';
+      if (hecho(ctx, 'VOLCAN_SEC_TRUENO')) return pick(['Trueno ya no se escapa. Le compré unas herraduras de basalto. Ahora no puede correr: pesan una tonelada.', 'Los dracónidos dicen que Trueno es el primer caballo que pisa Ascuaria. Está insoportable de orgulloso.']);
+      if (hecho(ctx, 'VOLCAN_HISTORIA_03_PUERTAS')) return pick(['¿Ya te dejaron entrar a Ascuaria? A mí me miraron como a una salchicha en la parrilla.', 'Algún día voy a poner una diligencia hasta aquí. Cuando dejen de llover piedras.']);
+      return pick(['La salamandra me miró feo. Y después me quemó la bota. Ten cuidado en la Ladera.', 'Bajé por el paso persiguiendo a Trueno. Ahora no sé subir. Ni él tampoco.']);
+    },
+    options: () => [
+      { label: '¿Qué haces aquí abajo?', next: 'aqui' },
+      { label: '¿Qué hay en el Volcán?', next: 'volcan' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      aqui: 'Trueno se asustó con un rayo en las Montañas y salió disparado por el Paso del Humo. Yo detrás, claro. Él corre más. Yo me caigo más. Así llegamos los dos, más o menos al mismo tiempo, al lugar más caliente de Etheria.',
+      volcan: 'Bajando la Ladera de Ceniza está Ascuaria, el pueblo de los dracónidos: gente con escamas y cuernos que no quiere forasteros. Al oeste hay campos de azufre que huelen peor que mis botas. Al este, una cantera de vidrio negro. Y al sur, ríos de lava y una montaña que respira. No vayas al sur. Bueno, ve. Pero no me pidas que te acompañe.',
+    },
+  },
+  // Ascalia: la matriarca de Ascuaria, fría con los forasteros hasta que te ganas su respeto
+  ascalia: {
+    name: 'Ascalia',
+    role: 'Matriarca de Ascuaria',
+    portrait: PORTRAIT('ascalia'),
+    ambient: [
+      'Ascuaria no se arrodilla. Ni ante el fuego.',
+      'Hmm. Otro forastero.',
+      'Las brasas caen. Nosotros seguimos.',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return 'Has vuelto. Habla, y que tus palabras pesen lo que pesaron tus pasos.';
+      if (mark === '!') return hecho(ctx, 'VOLCAN_HISTORIA_11_DRAGON') ? 'Es la hora. Las puertas de la Caldera tienen guardián, y Ascuaria no puede pedirle esto a nadie más.' : 'Forastero. Si quieres mi permiso, gánatelo.';
+      if (hecho(ctx, 'VOLCAN_Q3_TITAN_FUEGO')) return pick(['El volcán duerme tranquilo por primera vez en años. Los niños preguntan tu nombre. Se lo digo.', 'En Ascuaria no hay estatuas de forasteros. Todavía.']);
+      if (hecho(ctx, 'VOLCAN_Q2_CORAZON_CALDERA')) return pick(['El Señor de la Caldera cayó. Tú abriste la puerta. Ahora termina lo que empezaste.', 'Mi madre decía que el Titán era el corazón del volcán. Que alguien le haya puesto cadenas es una ofensa a todos nosotros.']);
+      if (hecho(ctx, 'VOLCAN_HISTORIA_03_PUERTAS')) return pick(['Puedes andar por Ascuaria. No confundas eso con confianza.', 'Ignar habla mucho de ti. Ignar habla mucho de todo.']);
+      return night
+        ? pick(['De noche la lava ilumina las calles. No necesitamos faroles. Ni visitas.', 'Es tarde, forastero. ¿Qué buscas en mi plaza?'])
+        : pick(['Estás en Ascuaria. Aquí se trabaja el fuego y se respeta la palabra.', 'Los forasteros traen problemas. ¿Cuál traes tú?']);
+    },
+    options: () => [
+      { label: '¿Quiénes son los dracónidos?', next: 'draconidos' },
+      { label: '¿Por qué caen brasas?', next: 'brasas' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      draconidos: 'Somos los hijos del volcán. Nuestros abuelos dicen que el primer dracónido nació de un huevo de dragón que cayó en la lava y no se quemó. Yo digo que somos gente que aprendió a vivir donde nadie más se atreve. Las escamas ayudan. Los cuernos, para el orgullo.',
+      brasas: 'El volcán siempre escupió fuego, pero ahora escupe con rabia. Desde que el Titán despertó, en los Ríos de Lava, la Grieta y la Caldera llueven piedras ardientes. Si ves una sombra en el suelo, muévete. Bajo los arcos de basalto y junto a las fogatas estarás a salvo: los construyeron nuestros abuelos para eso.',
+    },
+  },
+  // Ignar: el Forjador de Fuego, el mejor herrero de Etheria (según él) y rival de Brokk
+  ignar: {
+    name: 'Ignar',
+    role: 'Forjador de Fuego · Gran Forja',
+    portrait: PORTRAIT('ignar'),
+    ambient: [
+      '*CLANG* ¡Perfecto! *CLANG* ¡Más perfecto!',
+      'Brokk forja con carbón. Yo forjo con un volcán.',
+      'El fuego no miente. La gente sí.',
+      '¡No toques el yunque! … Bueno, tócalo. Está tibio.',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return '¡Ajá! Vuelves. Déjame ver qué traes. Si está bien, lo digo. Si está mal, también.';
+      if (mark === '!') return hecho(ctx, 'VOLCAN_HISTORIA_09_MAESTRO') ? 'Tengo que arreglar lo que hice. Y no puedo hacerlo solo. Eso me cuesta decirlo.' : '¡Tú! Tienes brazos. Bien. Necesito brazos que no se quemen fácil.';
+      if (hecho(ctx, 'VOLCAN_SEC_RIVALES_4') && Math.random() < 0.5) return pick(['Brokk y yo forjamos una espada juntos. No se lo cuentes a nadie. Bueno, cuéntaselo a todos: quedó perfecta.', 'Le mandé a Brokk un poco de obsidiana. Me mandó una carta que dice «bonita piedra». De él, eso es un abrazo.']);
+      if (hecho(ctx, 'VOLCAN_HISTORIA_10_FISURA')) return pick(['Morvak usaba mis moldes. MIS moldes. Ya no queda ni uno en la Fisura. Me aseguré.', 'Ahora forjo cada pieza mirándola dos veces. Antes la miraba una y me aplaudía.']);
+      if (hecho(ctx, 'VOLCAN_HISTORIA_09_MAESTRO')) return pick(['Yo forjé esos cristales. Sin saberlo, pero los forjé. El fuego no perdona eso. Yo tampoco.', 'Si el Encapuchado vuelve por aquí, que traiga un buen escudo.']);
+      return night
+        ? pick(['La Gran Forja no duerme. Yo tampoco. Bueno, a veces. Sobre el yunque.', '¿A estas horas? Bien. El metal sale mejor de noche. No sé por qué. Pero sale.'])
+        : pick(['Bienvenido a la Gran Forja. Aquí el fuego viene directo del volcán: ni carbón, ni fuelle, ni excusas.', '¿Esa espada la hizo Brokk? Se nota. Ven, déjame mostrarte lo que es forjar.']);
+    },
+    options: () => [
+      { label: 'Usar la Gran Forja', window: 'taller' },
+      { label: 'Encantar mi equipo', window: 'encantador' },
+      { label: '¿Qué tiene de especial tu forja?', next: 'forja' },
+      { label: '¿Conoces a Brokk?', next: 'brokk' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      forja: 'La Gran Forja está construida sobre una chimenea del volcán: el fuego sube solo, más caliente que cualquier carbón. Con él se trabaja la obsidiana y el basalto, que en Aurelia ni se pueden calentar. Aquí salen las armas de obsidiana y, si me traes lo de la Fisura, las de Forja Negra. Ojo: solo forjo para quien pueda levantarlas.',
+      brokk: '¿Brokk? ¿El enano de Aurelia? Buen herrero. Para ser enano. Para ser de ciudad. Para usar carbón. Hace treinta años competimos en la Feria de Aethra: él hizo una espada que cortaba el viento, yo hice una que cortaba su espada. Él dice que empatamos. Mentira. Pero lo respeto. No le digas.',
+    },
+  },
+  // Tuli: la parrillera de la plaza; cocina todo lo que tenga escamas
+  tuli: {
+    name: 'Tuli',
+    role: 'Parrillera',
+    portrait: PORTRAIT('tuli'),
+    ambient: [
+      '¡Colas de salamandra a la brasa! ¡Calentitas!',
+      '¿Picante? ¿Muy picante? ¿O picante de verdad?',
+      'La brasa del volcán da otro sabor. Créeme.',
+      '¡Ay! Me quemé. Otra vez. Ni lo sentí.',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return '¡Lo trajiste! A ver, a ver… huele bien. Huele MUY bien.';
+      if (mark === '!') return '¡Eh, forastero! ¿Tienes estómago fuerte? Necesito a alguien valiente. Para cocinar. Y para probar.';
+      if (hecho(ctx, 'VOLCAN_SEC_PICANTE')) return pick(['Mi chile de azufre ya es famoso. Ignar lloró. Dijo que era el humo. No era el humo.', '¿Otra ración de chile? Tú sí que tienes escamas por dentro.']);
+      return night
+        ? pick(['La parrilla no se apaga ni de noche. La lava la mantiene caliente.', 'Siéntate. A esta hora todo sabe mejor.'])
+        : pick(['¡Bienvenido a la mejor parrilla de Etheria! También es la única de Ascuaria, pero eso no importa.', 'Tráeme carne de salamandra, colas o lo que tenga escamas y te preparo algo que te dure todo el camino.']);
+    },
+    options: () => [
+      { label: 'Cocinar', window: 'taller' },
+      { label: '¿Qué se come en Ascuaria?', next: 'comida' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      comida: 'Todo lo que tenga escamas y no te coma primero. La salamandra es tierna si la cocinas despacio sobre basalto. Las colas, crujientes. Y si le pones chile de azufre, te dura el calor en la panza horas: aguantas más los golpes. Los forasteros lloran. Los dracónidos piden más.',
+    },
+  },
+  // Chispa: niña dracónida obsesionada con los dragones
+  chispa: {
+    name: 'Chispa',
+    role: 'Niña dracónida',
+    portrait: PORTRAIT('chispa'),
+    ambient: [
+      '¡Grrr! Soy un dragón. ¡GRRR!',
+      '¿Viste un dragón? ¿Uno de verdad?',
+      'Cuando sea grande voy a volar. Ya verás.',
+      '¡Mis cuernos crecieron! … Un poquito.',
+    ],
+    greet: (ctx) => {
+      const { mark } = ctx;
+      if (mark === '?') return '¿Lo hiciste? ¿Sí? ¿SÍ? ¡Cuéntame todo y despacito!';
+      if (mark === '!') return hecho(ctx, 'VOLCAN_SEC_HUEVO_1') ? '¡Psst! El huevo se movió. Bueno, creo. ¡Necesito ayuda otra vez!' : '¡Oye! ¿Sabes guardar un secreto? Uno grande. Uno con cáscara.';
+      if (hecho(ctx, 'VOLCAN_SEC_HUEVO_3')) return pick(['¡Brasita ya escupe chispas! Bueno, escupe humo. Pero va a escupir chispas.', '¡Mamá dejó que Brasita duerma en mi cuarto! Bueno, no sabe. ¡No le digas!']);
+      if (hecho(ctx, 'VOLCAN_SEC_HUEVO_1')) return pick(['El huevo está calentito. Lo tapo con mi manta. Bueno, con la de mamá.', 'Le canto al huevo todas las noches. Creo que le gusta. O se aburre.']);
+      return pick(['¿Sabías que los dragones duermen en lava? ¡Yo también quiero!', 'El Viejo Escamas dice que crió un dragón. ¡UN DRAGÓN! Cuando sea grande, yo también.']);
+    },
+    options: () => [
+      { label: 'Háblame de los dragones', next: 'dragones' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      dragones: '¡Son lo mejor que existe! Tienen escamas como nosotros pero más grandes, y alas, y fuego de verdad. Antes había muchos en el Nido, al sureste. Ahora queda uno solo y está enfermo. El Viejo Escamas llora cuando habla de él. A mí no me deja ir. Pero yo sé el camino.',
+    },
+  },
+  // Sulfo: el alquimista humano que vive entre las fumarolas y ya no siente el olor
+  sulfo: {
+    name: 'Sulfo',
+    role: 'Alquimista',
+    portrait: PORTRAIT('sulfo'),
+    ambient: [
+      '¿Qué olor? Yo no huelo nada.',
+      'El azufre amarillo para pociones. El verde para… no toques el verde.',
+      '*cof cof* Es por el clima.',
+      'Treinta años aquí. Los mejores de mi vida. Creo.',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return '¡Volviste! ¿Lo traes? Ponlo ahí, junto al caldero. No, ahí no. Ahí tampoco. Bueno, dámelo.';
+      if (mark === '!') return 'Ah, un visitante. Raro. Muy raro. Nadie viene a los Campos de Azufre. No entiendo por qué.';
+      if (hecho(ctx, 'VOLCAN_SEC_OLOR')) return pick(['Ahora huelo a flor de ceniza. Ascalia me dejó entrar al pueblo. ¡Por primera vez en diez años!', 'El perfume funciona. Tuli dice que todavía huelo a huevo. Pero a huevo fresco.']);
+      return night
+        ? pick(['De noche las fumarolas brillan. Es precioso. Y tóxico. Pero precioso.', 'No duermo mucho. Las pociones no se vigilan solas.'])
+        : pick(['Bienvenido a mi laboratorio. Todo el campo es mi laboratorio. Y mi casa. Y mi jardín.', 'Las fumarolas dan el mejor azufre de Etheria. Si las picas con cuidado.']);
+    },
+    options: () => [
+      { label: '¿Para qué sirve el azufre?', next: 'azufre' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      azufre: 'Para todo. Pociones, pólvora, tintes, remedios para la tos… bueno, no para la tos. En las fumarolas se junta el mejor, amarillo y limpio. Tráemelo y con él se hacen las pociones de resistencia al fuego que te van a salvar la piel en el sur. Ah, y si ves un elemental de azufre, no respires cerca. Hazme caso.',
+    },
+  },
+  // Ceniza: la guardabosque dracónida que replanta el Bosque Calcinado
+  ceniza: {
+    name: 'Ceniza',
+    role: 'Guardabosque',
+    portrait: PORTRAIT('ceniza'),
+    ambient: [
+      'Un brote. Otro brote. Shh, no los pises.',
+      'El bosque se quemó. No se murió.',
+      'Los bandidos pisan todo. Todo.',
+      'Algún día aquí habrá sombra otra vez.',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return 'Volviste. ¿Cómo quedó? ¿Siguen vivos los brotes?';
+      if (mark === '!') return hecho(ctx, 'VOLCAN_SEC_BOSQUE_1') ? 'Tengo semillas nuevas. Y un problema nuevo.' : 'Tú. Mira dónde pisas. Ahí. Exacto. Ese es un brote. Y necesito ayuda para que siga así.';
+      if (hecho(ctx, 'VOLCAN_SEC_BOSQUE_3')) return pick(['Los bandidos ya no vuelven. El bosque te lo agradece. Yo también.', 'Mira: el primer árbol que plantamos ya me llega a la rodilla. A mi rodilla, que es alta.']);
+      if (hecho(ctx, 'VOLCAN_HISTORIA_06_MOLDES')) return pick(['Las cajas que enterraron los bandidos tenían ese símbolo raro. El eclipse. No me gustó nada.', 'Desde que te llevaste los moldes, los bandidos están nerviosos. Bien.']);
+      return night
+        ? pick(['De noche las brasas del suelo brillan. Parecen luciérnagas. No lo son.', 'Los bandidos se mueven de noche. Yo también.'])
+        : pick(['Este es el Bosque Calcinado. Antes se llamaba Bosque Rojo, por las hojas. Ahora es rojo por otra cosa.', 'Los dracónidos dicen que el bosque no vuelve. Yo digo que sí. Tarda, pero vuelve.']);
+    },
+    options: () => [
+      { label: '¿Qué le pasó al bosque?', next: 'bosque' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      bosque: 'Hace unos años el volcán rugió y un río de lava bajó por aquí. Los árboles se quemaron de pie. Algunos todavía humean. Pero mira la ceniza: cada tanto sale una flor. La flor de ceniza solo crece donde hubo fuego. Es la primera en volver. Después, si nadie la pisa, vuelven los demás.',
+    },
+  },
+  // Pumo: el balsero pícaro de los Ríos de Lava (sus primas Toba y Lapilli atienden los otros muelles)
+  pumo: {
+    name: 'Pumo',
+    role: 'Balsero',
+    portrait: PORTRAIT('pumo'),
+    ambient: [
+      '¡Balsas de pómez! ¡Flotan en la lava! ¡Casi siempre!',
+      'Precio especial para ti. Igual que para todos.',
+      'Mis primas reman peor. No se lo digas.',
+      'Si se hunde, te devuelvo el oro. Si puedes pedirlo.',
+    ],
+    greet: (ctx) => {
+      const { mark } = ctx;
+      if (mark === '?') return '¡Mi cliente favorito! ¿Lo trajiste? ¿Sí? Entonces el próximo viaje… lo pagas igual. Pero con una sonrisa.';
+      if (mark === '!') return hecho(ctx, 'VOLCAN_Q1_DOMADOR_FUEGO') ? '¡Ey! Tengo un negocio para ti. Uno honesto. Bueno, casi.' : '¿Cruzar la lava? Claro. ¿Ayudarme con un asuntito? También, ¿no?';
+      if (hecho(ctx, 'VOLCAN_SEC_POMEZ')) return pick(['La pómez nueva flota el doble. Ahora puedo llevar a Tuli. Y su parrilla.', '¡Las balsas ya no crujen! Bueno, crujen menos. Es el sonido de la calidad.']);
+      return pick(['¿Vas a la Cantera o a la Caldera? Mis primas Toba y Lapilli te esperan del otro lado.', 'La pómez es piedra que flota. La lava es piedra que corre. Juntas, un negocio redondo.']);
+    },
+    options: () => [
+      ...balsaOpciones('rios'),
+      { label: '¿Cómo funcionan las balsas?', next: 'como' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      como: 'La pómez es piedra del volcán llena de agujeros: tan liviana que flota hasta en la lava. Mi abuelo hizo la primera balsa; yo hice el negocio. Mis primas y yo cuidamos tres muelles: el de los Ríos de Lava, el de la Cantera de Obsidiana y el de la Caldera. Solo te llevamos a un muelle que ya pisaste: si no, ¿cómo sé que no me vas a pedir que frene en medio de la lava?',
+    },
+  },
+  // Kessa: la talladora de obsidiana; odia que Ignar la llame «artesana»
+  kessa: {
+    name: 'Kessa',
+    role: 'Talladora de obsidiana',
+    portrait: PORTRAIT('kessa'),
+    ambient: [
+      'Tallar no es forjar. Es mejor.',
+      'Ignar me dijo «artesana». ARTESANA.',
+      'El vidrio negro corta hasta la mirada.',
+      'Shh. Los gólems escuchan el golpe del cincel.',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return 'Has vuelto. Déjame ver. Hmm. Sí. Esto sirve.';
+      if (mark === '!') return 'Tú. ¿Sabes lo que es la paciencia? Yo sí. Y se me está acabando.';
+      if (hecho(ctx, 'VOLCAN_SEC_ARTESANA')) return pick(['Ignar ahora me llama «maestra talladora». Le cuesta. Se le nota en la cara. Me encanta.', 'Mi daga de obsidiana está en la Gran Forja, colgada al lado de su mejor espada. Brilla más.']);
+      if (hecho(ctx, 'VOLCAN_HISTORIA_09_MAESTRO')) return pick(['Los gólems ya no se despiertan solos. El Maestro de la Lava los llamaba. Ya no llama a nadie.', 'Ignar forjó esos cristales sin saberlo. No me alegro. Bueno, un poquito.']);
+      return night
+        ? pick(['De noche la obsidiana refleja la lava. Parece que la cantera arde por dentro.', 'No tallo de noche. Solo miro. La piedra te dice dónde cortar.'])
+        : pick(['Bienvenido a la Cantera de Obsidiana. No toques los bordes. No te lo repito.', 'Cada pieza de obsidiana tiene un filo escondido. Mi trabajo es encontrarlo.']);
+    },
+    options: () => [
+      { label: '¿Qué es la obsidiana?', next: 'obsidiana' },
+      { label: '¿Y los gólems?', next: 'golems' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      obsidiana: 'Lava que se enfrió tan rápido que no tuvo tiempo de volverse piedra. Es vidrio: negro, duro y con un filo que ningún acero alcanza. Pero se rompe si no sabes tallarla. Ignar la calienta y le pega con el martillo. Yo la escucho y la corto. Adivina cuál de los dos hace las mejores armas.',
+      golems: 'Siempre hubo gólems de obsidiana en la cantera, dormidos dentro de la roca. Se despiertan si alguien les pega muy fuerte, y entonces vuelven a dormirse. Pero ahora están despiertos todo el tiempo, con los ojos rojos. Alguien los despertó a propósito. Y no fui yo.',
+    },
+  },
+  // el Viejo Escamas: el anciano que crió al dragón cuando era cría
+  escamas: {
+    name: 'Viejo Escamas',
+    role: 'Guardián del Nido',
+    portrait: PORTRAIT('escamas'),
+    ambient: [
+      'Llamita… ¿me oyes todavía?',
+      'Mis huesos crujen como la roca del nido.',
+      'Antes el cielo tenía dragones. Muchos.',
+      '*tararea una canción muy vieja*',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return 'Has vuelto. Siéntate. Cuéntamelo despacio: mis oídos ya no son lo que eran.';
+      if (mark === '!') return hecho(ctx, 'VOLCAN_HISTORIA_11_DRAGON') ? 'Tengo que pedirte una última cosa. La más difícil. Para Llamita.' : '¿Tienes un momento para un viejo? Es por mi dragón. Está sufriendo.';
+      if (hecho(ctx, 'VOLCAN_SEC_ULTIMO_VUELO')) return pick(['Llamita voló una última vez. Sobre la Caldera, sobre Ascuaria, sobre mí. Gracias. De verdad.', 'Ahora le canto a las nubes. Creo que ella me escucha desde ahí.']);
+      if (hecho(ctx, 'VOLCAN_HISTORIA_11_DRAGON')) return pick(['El cristal ya no está. Llamita vuelve a ser ella. Cansada, pero ella.', 'Lloraba fuego, ¿sabes? Por el cristal. Ya no llora.']);
+      return night
+        ? pick(['De noche Llamita gime en el nido. Antes cantaba. Yo le cantaba a ella.', 'Duerme tú. Yo me quedo despierto. Alguien tiene que hacerle compañía.'])
+        : pick(['Este es el Nido del Dragón. Ya no quedan huevos. Solo huesos. Y ella.', 'Crié a Llamita cuando era así de chiquita. Cabía en mi sombrero. Ahora yo cabría en su boca.']);
+    },
+    options: () => [
+      { label: '¿Quién es Llamita?', next: 'llamita' },
+      { label: '¿Qué pasó con los dragones?', next: 'dragones' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      llamita: 'La última cría del Nido. Su madre no volvió de la Caldera y yo la encontré temblando entre los huesos. La alimenté con carbón y canciones durante cuarenta años. Ahora la llaman Dragón Menor y le tienen miedo. Algo le clavaron en el pecho: un cristal oscuro que la quema por dentro. Por eso ataca. No es mala. Le duele.',
+      dragones: 'Hubo un tiempo en que los dragones anidaban aquí cada verano. Los dracónidos dicen que venimos de ellos. Después vino la guerra de los dioses, el Titán se durmió y los dragones se fueron. No sé a dónde. Llamita se quedó conmigo. Mira los huesos del Nido: algunos son de dragones más grandes que una casa.',
     },
   },
   // Aurelia (dialoguesCiudad.js)

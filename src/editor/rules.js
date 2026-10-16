@@ -8,7 +8,9 @@ export const TERRAIN_LIST = ['pasto', 'dorado', 'camino', 'agua', 'hierba', 'pla
   // v4 (ciudad)
   'adoquin', 'losa', 'mosaico', 'canal', 'puentep',
   // v5 (Montañas Grises)
-  'roca', 'nieve', 'abismo', 'hielo', 'hierban', 'mesetan', 'caran', 'colgante'];
+  'roca', 'nieve', 'abismo', 'hielo', 'hierban', 'mesetan', 'caran', 'colgante',
+  // v6 (Volcán Rojo)
+  'basalto', 'ceniza', 'lava', 'azufre', 'quemado', 'obsidiana', 'hierbaq', 'mesetav', 'carav', 'puentev', 'losav'];
 
 // Pinceles de terreno de la paleta (orden y nombre que se ven)
 export const TERRAIN_BRUSHES = [
@@ -38,14 +40,40 @@ export const TERRAIN_BRUSHES = [
   { id: 'colgante', label: 'Puente colgante', icon: 'colgante_h' },
   { id: 'mesetan', label: 'Meseta nevada (con pared)', icon: 'mesetan_4' },
   { id: 'caran', label: 'Pared de roca nevada', icon: 'cara_n_a_c' },
+  { id: 'basalto', label: 'Basalto', icon: 'basalto' },
+  { id: 'ceniza', label: 'Ceniza', icon: 'ceniza_15' },
+  { id: 'hierbaq', label: 'Hierba quemada (combates)', icon: 'hierba_quemada' },
+  { id: 'lava', label: 'Lava', icon: 'lava_15' },
+  { id: 'puentev', label: 'Puente de basalto', icon: 'puente_basalto_h' },
+  { id: 'azufre', label: 'Azufre', icon: 'azufre_15' },
+  { id: 'quemado', label: 'Tierra quemada', icon: 'quemado_15' },
+  { id: 'obsidiana', label: 'Obsidiana', icon: 'obsidiana_15' },
+  { id: 'losav', label: 'Losas de basalto', icon: 'losa_basalto' },
+  { id: 'mesetav', label: 'Meseta de basalto (con pared)', icon: 'mesetav_4' },
+  { id: 'carav', label: 'Pared de basalto', icon: 'cara_v_a_c' },
 ];
 
-const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_[hv]|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_[hv]|caminor_\d+|roca_(\d+|grava|musgo)|nieve_(\d+|huellas)|abismo_\d+|hielo_\d+|mesetan_\d+|cara_n_[ab]_[icd]|colgante_[hv]|hierba_nevada)$/;
+const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_[hv]|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_[hv]|caminor_\d+|roca_(\d+|grava|musgo)|nieve_(\d+|huellas)|abismo_\d+|hielo_\d+|mesetan_\d+|cara_n_[ab]_[icd]|colgante_[hv]|hierba_nevada|basalto(_grieta)?|ceniza_(\d+|pomez|huellas)|lava_\d+|azufre_\d+|quemado_\d+|obsidiana_\d+|caminov_\d+|mesetav_\d+|cara_v_[ab]_[icd]|hierba_quemada|losa_basalto(_runa)?|puente_basalto_[hv])$/;
 
 const MOUNTAIN = ['roca', 'nieve', 'mesetan', 'hierban', 'abismo', 'hielo'];
+// el camino entre el basalto del volcán lleva orilla de basalto (caminov_*)
+const VOLCANO = ['basalto', 'ceniza', 'lava', 'azufre', 'quemado', 'obsidiana', 'hierbaq', 'mesetav', 'puentev'];
 
 export function terrainOfName(name) {
   if (!name) return 'pasto';
+  // v6 (Volcán): antes que las reglas generales (losa_basalto no es losa, cara_v no es cara)
+  if (/^basalto/.test(name)) return 'basalto';
+  if (/^ceniza_/.test(name)) return 'ceniza';
+  if (/^lava_\d+$/.test(name)) return 'lava';
+  if (/^azufre_\d+$/.test(name)) return 'azufre';
+  if (/^quemado_\d+$/.test(name)) return 'quemado';
+  if (/^obsidiana_\d+$/.test(name)) return 'obsidiana';
+  if (/^caminov_/.test(name)) return 'camino';
+  if (/^mesetav_/.test(name)) return 'mesetav';
+  if (/^cara_v_/.test(name)) return 'carav';
+  if (name === 'hierba_quemada') return 'hierbaq';
+  if (/^losa_basalto/.test(name)) return 'losav';
+  if (/^puente_basalto_/.test(name)) return 'puentev';
   if (/^adoquin/.test(name)) return 'adoquin';
   if (/^losa/.test(name)) return 'losa';
   if (name === 'mosaico') return 'mosaico';
@@ -89,6 +117,9 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
   const randomRock = () => { const r = Math.random(); return r < 0.08 ? T.roca_grava : r < 0.12 ? T.roca_musgo : T.roca_15; };
   const randomSnow = () => (Math.random() < 0.06 ? T.nieve_huellas : T.nieve_15);
   const randomCobble = () => { const r = Math.random(); return r < 0.12 ? T.adoquin_musgo : r < 0.4 ? T.adoquin_b : T.adoquin; };
+  const ashFamily = new Set([T.ceniza_15, T.ceniza_pomez, T.ceniza_huellas].filter(Boolean));
+  const randomAsh = () => { const r = Math.random(); return r < 0.06 ? T.ceniza_pomez : r < 0.1 ? T.ceniza_huellas : T.ceniza_15; };
+  const basaltFamily = new Set([T.basalto, T.basalto_grieta].filter(Boolean));
 
   const randomPasto = () => {
     const r = Math.random();
@@ -115,11 +146,38 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
     const rockLike = (n) => ['roca', 'nieve', 'hierban', 'camino', 'plaza', 'muro', 'abismo', 'colgante', 'hielo', 'mesetan', 'caran', 'escalera', null].includes(n);
     const snowLike = (n) => ['nieve', 'hierban', 'hielo', 'mesetan', null].includes(n);
     const isWater = (n) => n === 'agua' || n === 'puente';
+    // como en art/mapas/generar_volcan.js
+    const isLava = (n) => n === 'lava' || n === 'puentev';
+    const ashLike = (n) => ['ceniza', 'hierbaq', 'quemado', 'camino', 'losav', null].includes(n);
     switch (t) {
       case 'camino': {
+        const around = [tAt(x, y - 1), tAt(x + 1, y), tAt(x, y + 1), tAt(x - 1, y)];
+        const volcanPath = (n) => ['camino', 'losav', 'puentev', 'escalera', null].includes(n);
+        // entre el basalto del volcán, el camino lleva orilla de basalto (caminov_*)
+        if (T.caminov_0 && around.some((n) => VOLCANO.includes(n))) return T[`caminov_${mask(volcanPath)}`];
         // entre la roca de la montaña, el camino lleva orilla de roca (caminor_*)
-        const rock = T.caminor_0 && [tAt(x, y - 1), tAt(x + 1, y), tAt(x, y + 1), tAt(x - 1, y)].some((n) => MOUNTAIN.includes(n));
+        const rock = T.caminor_0 && around.some((n) => MOUNTAIN.includes(n));
         return T[`${rock ? 'caminor' : 'camino'}_${mask(isPath)}`];
+      }
+      case 'basalto': return basaltFamily.has(cur) ? cur : (Math.random() < 0.05 ? T.basalto_grieta : T.basalto);
+      case 'ceniza': {
+        const m = mask(ashLike);
+        if (m === 15) return ashFamily.has(cur) ? cur : randomAsh();
+        return T[`ceniza_${m}`];
+      }
+      case 'lava': return T[`lava_${mask(isLava)}`];
+      case 'puentev': return isLava(tAt(x - 1, y)) && isLava(tAt(x + 1, y)) ? T.puente_basalto_v : T.puente_basalto_h;
+      case 'azufre': return T[`azufre_${mask((n) => n === 'azufre')}`];
+      case 'quemado': return T[`quemado_${mask((n) => n === 'quemado' || n === 'hierbaq')}`];
+      case 'obsidiana': return T[`obsidiana_${mask((n) => n === 'obsidiana')}`];
+      case 'hierbaq': return T.hierba_quemada;
+      case 'losav': return [T.losa_basalto, T.losa_basalto_runa].includes(cur) ? cur : (Math.random() < 0.06 ? T.losa_basalto_runa : T.losa_basalto);
+      case 'mesetav': return T[`mesetav_${mask((n) => ['mesetav', 'carav', 'escalera', 'losav'].includes(n))}`];
+      case 'carav': {
+        const top = tAt(x, y - 1) === 'mesetav';
+        const sideOk = (n) => n === 'carav' || n === 'escalera';
+        const side = !sideOk(tAt(x - 1, y)) ? 'i' : (!sideOk(tAt(x + 1, y)) ? 'd' : 'c');
+        return T[`cara_v_${top ? 'a' : 'b'}_${side}`];
       }
       case 'agua': return T[`agua_${mask(isWater)}`];
       case 'puente': return isWater(tAt(x - 1, y)) && isWater(tAt(x + 1, y)) ? T.puente_v : T.puente_h;

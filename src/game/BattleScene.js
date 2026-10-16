@@ -33,9 +33,12 @@ const BACKGROUNDS = {
   cripta: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
   // Montañas Grises (art/sprites/mundo/crear_fondo_montanas.lua): picos nevados y cielo de tormenta
   montanas: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
+  // Volcán Rojo y la Fisura Infernal (art/sprites/mundo/crear_fondo_volcan.lua)
+  volcan: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
+  fisura: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
 };
 // colores para rellenar arriba y abajo del escenario en pantalla vertical
-const FILL_COLORS = { pradera: [0x4f86d6, 0xc9a46a], cripta: [0x0c0a16, 0x3a3650], montanas: [0x5a6478, 0xf4f8fc] };
+const FILL_COLORS = { pradera: [0x4f86d6, 0xc9a46a], cripta: [0x0c0a16, 0x3a3650], montanas: [0x5a6478, 0xf4f8fc], volcan: [0x3a1e22, 0x8e8680], fisura: [0x1e181c, 0x6e5e5c] };
 // cuánto se mueve cada capa respecto de la cámara (parallax)
 const LAYER_SCROLL = [0.05, 0.18, 0.4, 1, 1.25];
 

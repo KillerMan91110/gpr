@@ -1,0 +1,122 @@
+[
+ {
+  "id": "flor_ladera",
+  "tipo": "flor_ceniza",
+  "spots": 6
+ },
+ {
+  "id": "nido_ladera",
+  "tipo": "nido_salamandra",
+  "spots": 6
+ },
+ {
+  "id": "restos_ladera",
+  "tipo": "restos_volcan",
+  "spots": 3
+ },
+ {
+  "id": "fumarola_campos",
+  "tipo": "fumarola",
+  "spots": 9
+ },
+ {
+  "id": "flor_campos",
+  "tipo": "flor_ceniza",
+  "spots": 3
+ },
+ {
+  "id": "cofre_campos",
+  "tipo": "cofre_volcan",
+  "spots": 2
+ },
+ {
+  "id": "flor_bosque",
+  "tipo": "flor_ceniza",
+  "spots": 6
+ },
+ {
+  "id": "restos_bosque",
+  "tipo": "restos_volcan",
+  "spots": 3
+ },
+ {
+  "id": "cofre_bosque",
+  "tipo": "cofre_volcan",
+  "spots": 2
+ },
+ {
+  "id": "nido_rios",
+  "tipo": "nido_salamandra",
+  "spots": 6
+ },
+ {
+  "id": "veta_rios",
+  "tipo": "veta_obsidiana",
+  "spots": 6
+ },
+ {
+  "id": "cofre_rios",
+  "tipo": "cofre_volcan",
+  "spots": 2
+ },
+ {
+  "id": "veta_cantera",
+  "tipo": "veta_obsidiana",
+  "spots": 9
+ },
+ {
+  "id": "geoda_cantera",
+  "tipo": "geoda_ardiente",
+  "spots": 2
+ },
+ {
+  "id": "nido_dragon",
+  "tipo": "nido_salamandra",
+  "spots": 3
+ },
+ {
+  "id": "geoda_nido",
+  "tipo": "geoda_ardiente",
+  "spots": 2
+ },
+ {
+  "id": "restos_nido",
+  "tipo": "restos_volcan",
+  "spots": 3
+ },
+ {
+  "id": "cofre_nido",
+  "tipo": "cofre_volcan",
+  "spots": 1
+ },
+ {
+  "id": "veta_grieta",
+  "tipo": "veta_obsidiana",
+  "spots": 3
+ },
+ {
+  "id": "fumarola_grieta",
+  "tipo": "fumarola",
+  "spots": 2
+ },
+ {
+  "id": "restos_grieta",
+  "tipo": "restos_volcan",
+  "spots": 3
+ },
+ {
+  "id": "cofre_grieta",
+  "tipo": "cofre_volcan",
+  "spots": 2
+ },
+ {
+  "id": "geoda_caldera",
+  "tipo": "geoda_ardiente",
+  "spots": 2
+ },
+ {
+  "id": "cofre_caldera",
+  "tipo": "cofre_volcan",
+  "spots": 2
+ }
+]

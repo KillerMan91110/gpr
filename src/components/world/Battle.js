@@ -13,7 +13,9 @@ import { statusesOf } from '../../game/statuses';
 import { isDungeon } from '../../game/world/shared';
 import './Battle.css';
 
-const ZONE_BACKGROUND = { 1: 'pradera', 2: 'montanas' };
+const ZONE_BACKGROUND = { 1: 'pradera', 2: 'montanas', 3: 'volcan' };
+// mazmorras con fondo propio (las demás pelean sobre la piedra de la cripta)
+const DUNGEON_BACKGROUND = { fisura: 'fisura' };
 // combate en grupo: a partir de cuándo se puede saltar el turno de un compañero que no responde
 // (el servidor exige lo mismo, ver IDLE_TURN_MS en routes/combat.js) y cada cuánto se pregunta
 // por el estado mientras actúa otro (por si se pierde un aviso del socket)
@@ -337,7 +339,8 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
           heroHasWeapon,
           playerId: player.id,
           // las mazmorras pelean sobre piedra bajo tierra (el fondo de la cripta)
-          background: encounter.kind === 'cripta' || isDungeon(encounter.position?.zona) ? 'cripta' : ZONE_BACKGROUND[encounter.zoneId] ?? 'pradera',
+          background: DUNGEON_BACKGROUND[encounter.position?.zona]
+            ?? (encounter.kind === 'cripta' || isDungeon(encounter.position?.zona) ? 'cripta' : ZONE_BACKGROUND[encounter.zoneId] ?? 'pradera'),
         });
         await ready;
         if (cancelled) return;
