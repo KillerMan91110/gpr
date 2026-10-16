@@ -8,7 +8,8 @@ import './MythicHunt.css';
 
 // Jefe mítico de zona (gprback/lib/mythic.js) del lado de React: escucha el socket, le pasa el
 // estado a la escena (para que lo ponga en el mapa) y muestra el aviso, la barra de vida
-// compartida y lo que te tocó cuando cae.
+// compartida y lo que te tocó cuando cae. El contador, la barra y los carteles solo se ven en la
+// zona del jefe; desde otro lado te enteras por el chat General (ChatBox: la línea dorada).
 const PHASE_TEXT = ['vida compartida', 'aullido: esbirros sueltos', 'herido y huyendo', '¡luna roja!'];
 const PHASE_TITLE = { 1: 'Aullido', 2: 'Huida', 3: 'Luna roja' };
 
@@ -17,7 +18,7 @@ function left(ms) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-export default function MythicHunt({ worldReady, inBattle }) {
+export default function MythicHunt({ worldReady, inBattle, zoneDir }) {
   const { socket } = useSocket();
   const [state, setState] = useState(null);
   const [banner, setBanner] = useState(null); // { kind: 'spawn' | 'killed', ... }
@@ -35,7 +36,11 @@ export default function MythicHunt({ worldReady, inBattle }) {
   const queue = useRef([]);
   const inBattleRef = useRef(inBattle);
   inBattleRef.current = inBattle;
+  const zoneRef = useRef(zoneDir);
+  zoneRef.current = zoneDir;
   const show = (b) => {
+    // el cartel grande, solo si estás en su zona (los demás lo leen en el chat)
+    if (b.zoneDir && zoneRef.current && b.zoneDir !== zoneRef.current) return;
     if (inBattleRef.current) { queue.current.push(b); return; }
     setBanner(b);
     setTimeout(() => setBanner((cur) => (cur === b ? null : cur)), 6000);
@@ -92,8 +97,9 @@ export default function MythicHunt({ worldReady, inBattle }) {
   }, []);
 
   if (inBattle) return null;
-  const hunt = state?.hunt;
-  const zone = state?.zones?.[0];
+  // solo lo de la zona donde estás: la cacería activa y el contador de esta zona
+  const hunt = state?.hunt && (!state.hunt.zoneDir || state.hunt.zoneDir === zoneDir) ? state.hunt : null;
+  const zone = state?.zones?.find((z) => z.zoneDir === zoneDir);
   const near = !hunt && zone && zone.kills >= zone.needed * 0.5;
 
   return (

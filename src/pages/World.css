@@ -428,6 +428,13 @@
   color: var(--cream);
   text-transform: uppercase;
 }
+/* la subzona dentro del cartel de la zona (cuando llegan juntos), debajo y más chica */
+.hud-zone-title .hud-zone-sub {
+  margin-top: 6px;
+  font: 700 1rem 'Cinzel', serif;
+  letter-spacing: 0.08em;
+  color: #ffe9a8;
+}
 
 @keyframes hud-zone-title {
   0% { opacity: 0; transform: translateX(-50%) translateY(-8px); }

@@ -134,8 +134,9 @@ const POS_KEY = 'mundo_posicion_v2';
 // los aventureros empiezan en Aurelia, la capital
 const DEFAULT_ZONE_ID = 0;
 const DEFAULT_ZONE_DIR = 'aurelia';
-const ZONE_TITLES = { aurelia: ['La capital', 'Aurelia'], pradera: ['Zona 1', 'Pradera Dorada'], cripta: ['Mazmorra', 'La Cripta del Vigía'],
-  montanas: ['Zona 2', 'Montañas Grises'], mina_profunda: ['Mazmorra', 'La Mina Profunda'] };
+// [línea chica de arriba, nombre]: las zonas abiertas van sin línea chica (solo su nombre)
+const ZONE_TITLES = { aurelia: ['La capital', 'Aurelia'], pradera: ['', 'Pradera Dorada'], cripta: ['Mazmorra', 'La Cripta del Vigía'],
+  montanas: ['', 'Montañas Grises'], mina_profunda: ['Mazmorra', 'La Mina Profunda'] };
 // recorrido del guía Tomás por Aurelia (lugar, posición en píxeles y qué hay ahí)
 const AURELIA_TOUR = [
   { name: 'Catedral de Aethra', x: 59.5 * 32, y: 16 * 32, info: 'Aquí te curan y aquí despiertas si caes en combate.' },
@@ -263,6 +264,9 @@ export default function World() {
   // subzona donde está el héroe (cartel al entrar y nombre en el minimapa) y clima
   const [subzone, setSubzone] = useState(null);
   const [subzoneBanner, setSubzoneBanner] = useState(null);
+  // la subzona llegó junto con el nombre de la zona (cruzaste a otra zona): van en el mismo cartel
+  const subzoneWithZone = !!subzoneBanner && subzoneBanner.name !== zoneInfo.name && !!zoneInfo.at
+    && Math.abs(subzoneBanner.key - zoneInfo.at) < 3500;
   const [weather, setWeather] = useState('despejado');
 
   // ---- datos del HUD ----
@@ -512,7 +516,7 @@ export default function World() {
       if (z?.zoneDir) setZoneDir(z.zoneDir);
       if (z?.zoneIds) setContinentZoneIds((cur) => (cur.join() === z.zoneIds.join() ? cur : z.zoneIds));
       setBuffs(z?.buffs ?? []);
-      setZoneInfo((cur) => ({ name: z?.name, dir: z?.zoneDir, music: z?.music ?? 'pradera', key: cur.key + 1 }));
+      setZoneInfo((cur) => ({ name: z?.name, dir: z?.zoneDir, music: z?.music ?? 'pradera', key: cur.key + 1, at: Date.now() }));
       setWorldReady(true);
     };
     const onClock = (c) => setClock(c);
@@ -1082,7 +1086,7 @@ export default function World() {
       {/* otros jugadores, globitos, gestos, emojis (T) y menú al hacer clic en alguien */}
       <WorldSocial worldReady={worldReady} zoneDir={zoneDir} baseClass={baseClass} inBattle={!!battle} watching={battle?.kind === 'espectar'} level={stats?.level} coop={coop} onCoopChanged={loadCoop} />
       {/* jefe mítico de zona: aviso, barra de vida compartida y botín */}
-      <MythicHunt worldReady={worldReady} inBattle={!!battle} />
+      <MythicHunt worldReady={worldReady} inBattle={!!battle} zoneDir={zoneDir} />
 
       {/* ---- barra de acciones con experiencia (abajo al centro) ---- */}
       <div className="hud-actionbar">
@@ -1225,14 +1229,20 @@ export default function World() {
         </div>
       )}
 
-      {/* ---- nombre de la zona al entrar y de cada subzona al cruzarla (como en WoW) ---- */}
+      {/* ---- nombre de la zona al entrar y de cada subzona al cruzarla (como en WoW). Si llegan
+           juntos (cruzaste a otra zona) van en un solo cartel: antes se encimaban en el mismo lugar ---- */}
       {zoneInfo.name && (
         <div className="hud-zone-title" aria-hidden="true" key={zoneInfo.key}>
-          <small>{ZONE_TITLES[zoneInfo.dir]?.[0] ?? ''}</small>
+          {ZONE_TITLES[zoneInfo.dir]?.[0] && <small>{ZONE_TITLES[zoneInfo.dir][0]}</small>}
           {ZONE_TITLES[zoneInfo.dir]?.[1] ?? zoneInfo.name}
+          {subzoneWithZone && (
+            <span className="hud-zone-sub">
+              {subzoneBanner.name} · {subzoneBanner.safe ? 'Zona segura' : `Niveles ${subzoneBanner.levels}`}
+            </span>
+          )}
         </div>
       )}
-      {subzoneBanner && subzoneBanner.name !== zoneInfo.name && (
+      {subzoneBanner && subzoneBanner.name !== zoneInfo.name && !subzoneWithZone && (
         <div className={`hud-subzone${subzoneBanner.safe ? ' hud-subzone--safe' : ''}`} key={subzoneBanner.key} aria-hidden="true">
           {subzoneBanner.name}
           <small>{subzoneBanner.safe ? 'Zona segura' : `Niveles ${subzoneBanner.levels}`}</small>
