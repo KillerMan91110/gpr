@@ -2,6 +2,7 @@
 // encima su marca:
 //   ?      (verde)    tienes una misión suya lista para entregar
 //   !      (amarillo) tiene una misión que ya puedes aceptar
+//   !!     (rojo)     tiene una misión de HISTORIA (principal) que ya puedes aceptar; se dibuja como un ! rojo
 //   gris   (! gris)   tiene una misión para dentro de poco (te faltan SOON_LEVELS niveles o menos)
 // Las misiones de muy bajo nivel para ti (TRIVIAL_LEVELS por encima de su máximo) no se marcan,
 // igual que WoW esconde las triviales.
@@ -65,7 +66,7 @@ export const readyToDeliver = (o) => pendingDelivery(o) && (o.have ?? 0) >= o.ta
 // { ren: '?', lyra: '!', ... } a partir de las misiones activas y disponibles del jugador
 export function questMarks({ active = [], available = [], level = 1, continentZoneIds = [] }) {
   const marks = {};
-  const rank = { gris: 1, '!': 2, '?': 3 };
+  const rank = { gris: 1, '!': 2, '!!': 3, '?': 4 };
   const put = (id, m) => { if (id && (rank[m] > (rank[marks[id]] ?? 0))) marks[id] = m; };
   // el ? lo lleva quien la recibe (en las de historia puede no ser quien la dio)
   for (const q of active) if (objectivesDone(q)) put(turnInOf(q, continentZoneIds), '?');
@@ -73,7 +74,7 @@ export function questMarks({ active = [], available = [], level = 1, continentZo
     if (q.accepted || q.prerequisite_met === false) continue;
     if (q.max_level && level > q.max_level + TRIVIAL_LEVELS) continue;
     const giver = giverOf(q, continentZoneIds);
-    if (q.meets_level !== false) put(giver, '!');
+    if (q.meets_level !== false) put(giver, q.quest_type === 'PRINCIPAL' ? '!!' : '!');
     else if ((q.min_level ?? 1) - level <= SOON_LEVELS) put(giver, 'gris');
   }
   return marks;
@@ -144,4 +145,5 @@ export const NPC_LUGAR = {
   pumo: 'el muelle de los Ríos de Lava',
   kessa: 'la Cantera de Obsidiana',
   escamas: 'el Nido del Dragón',
+  mercader_ascuaria: 'el puesto de la plaza de Ascuaria',
 };

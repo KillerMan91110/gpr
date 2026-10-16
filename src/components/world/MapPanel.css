@@ -117,9 +117,10 @@
 }
 
 .mp-npc i { color: #ffd84a; font-size: 0.8rem; }
-/* marcas de misión (estilo WoW): ! amarillo, ? verde para entregar, ! gris para dentro de poco */
+/* marcas de misión (estilo WoW): ! amarillo, ! rojo de la historia, ? verde para entregar, ! gris para dentro de poco */
 .mp-npc--mision i { font: 900 1.05rem 'Cinzel', serif; text-shadow: 0 0 4px #000, 0 0 8px rgba(255, 216, 74, 0.7); }
 .mp-npc--entrega i { color: #7dff9a; font: 900 1.05rem 'Cinzel', serif; text-shadow: 0 0 4px #000, 0 0 8px rgba(125, 255, 154, 0.7); }
+.mp-npc--historia i { color: #ff5a4a; font: 900 1.1rem 'Cinzel', serif; text-shadow: 0 0 4px #000, 0 0 8px rgba(255, 90, 74, 0.75); }
 .mp-npc--gris i { color: #a8a8b0; font: 900 1rem 'Cinzel', serif; text-shadow: 0 0 4px #000; }
 .mp-poi i { color: #6fc3ff; font-size: 0.75rem; }
 .mp-boss i { color: #ff5a5a; font-size: 1rem; }

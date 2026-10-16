@@ -3,7 +3,8 @@
 // monster_zones; la capital todavía no es una zona de combate.
 //
 // Norte arriba: la capital al norte de la Pradera (Puerta Norte), las Montañas Grises al este
-// (Camino del Este), y desde ahí el resto del continente.
+// (Camino del Este), el Volcán Rojo al sur de las Montañas (Paso del Humo) y la costa más abajo.
+// Tiene que coincidir con public/assets/mundo/etheria.json y gprback/docs/mapa_etheria.md.
 
 export const ATLAS_ZONES = {
   capital: {
@@ -16,8 +17,8 @@ export const ATLAS_ZONES = {
     route: 'Tierras de cultivo al sur de la capital. Aldea Espiga está en el cruce de caminos.',
   },
   2: { dir: 'montanas', x: 420, y: 214, color: '#9aa0a8', icon: ['stone-pile', 'delapouite'], route: 'Al este de la Pradera, siguiendo el Camino del Este. El Bastión de Hierro está en el corazón de la sierra.' },
-  3: { x: 528, y: 118, color: '#d0603a', icon: ['fireball', 'lorc'], route: 'Al noreste, atravesando los pasos de las Montañas Grises.' },
-  4: { x: 476, y: 334, color: '#5a8cae', icon: ['water-flask', 'delapouite'], route: 'Bajando hacia el mar desde el Volcán Rojo, por la costa este.' },
+  3: { dir: 'volcan', x: 420, y: 296, color: '#d0603a', icon: ['fireball', 'lorc'], route: 'Al sur de las Montañas Grises, bajando por el Paso del Humo. Ascuaria, la ciudad de los dracónidos, está sobre una meseta de basalto.' },
+  4: { x: 318, y: 356, color: '#5a8cae', icon: ['water-flask', 'delapouite'], route: 'Toda la costa sur, donde los ríos de lava del Volcán Rojo bajan al mar.' },
   5: { x: 330, y: 50, color: '#bfe2f2', icon: ['ice-bolt', 'lorc'], route: 'Lejos al norte, más allá de la capital.' },
   6: { x: 112, y: 298, color: '#7a5aa0', icon: ['ghost', 'lorc'], route: 'Al oeste, bajo las colinas que hay pasadas las Ruinas del Vigía.' },
   7: { x: 96, y: 102, color: '#5fb39a', icon: ['crystal-ball', 'lorc'], route: 'En el extremo noroeste, al final de la Tundra.' },
@@ -25,7 +26,7 @@ export const ATLAS_ZONES = {
 
 // caminos entre zonas (para dibujarlos en el mapa)
 export const ATLAS_ROADS = [
-  ['capital', 1], [1, 2], [2, 3], [3, 4], [2, 4], ['capital', 5], [1, 6], [5, 7], ['capital', 7],
+  ['capital', 1], [1, 2], [2, 3], [3, 4], ['capital', 5], [1, 6], [5, 7], ['capital', 7],
 ];
 
 // salidas de cada zona del mundo abierto (nombre del punto en el mapa → zona a la que lleva)

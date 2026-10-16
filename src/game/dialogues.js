@@ -1113,6 +1113,34 @@ export const DIALOGUES = {
       golems: 'Siempre hubo gólems de obsidiana en la cantera, dormidos dentro de la roca. Se despiertan si alguien les pega muy fuerte, y entonces vuelven a dormirse. Pero ahora están despiertos todo el tiempo, con los ojos rojos. Alguien los despertó a propósito. Y no fui yo.',
     },
   },
+  // Marga: la mercader de la plaza de Ascuaria; compra el botín y vende lo de los artesanos de Aurelia
+  mercader_ascuaria: {
+    name: 'Marga',
+    role: 'Mercader de Ascuaria',
+    portrait: PORTRAIT('marga'),
+    ambient: [
+      '¡Escamas, colmillos, azufre! Todo se compra, todo se vende.',
+      'Una moneda, dos monedas… ¿y esa? Esa es mía.',
+      'Ignar me debe tres martillos. Tres.',
+      'Lo que traes del Volcán, en Aurelia vale el doble. Aquí, lo justo.',
+    ],
+    greet: (ctx) => {
+      const { night } = ctx;
+      if (hecho(ctx, 'VOLCAN_Q3_TITAN_FUEGO')) return pick(['¡El héroe de la Caldera en mi puesto! Hoy te atiendo yo misma. Bueno, siempre te atiendo yo misma.', 'Desde que cayó el Titán, las caravanas vuelven a subir. Y con ellas, el buen negocio.']);
+      if (!hecho(ctx, 'VOLCAN_HISTORIA_03_PUERTAS')) return 'Un forastero. Mmm. Ascalia no te dejó entrar todavía, pero el oro no tiene escamas. ¿Qué traes?';
+      return night
+        ? pick(['¿A estas horas? Para un buen cliente el puesto no cierra nunca.', 'De noche se vende poco y se cuenta mucho. ¿Vienes a vender o a comprar?'])
+        : pick(['Bienvenido a mi puesto. Si viene del Volcán, te lo compro; si lo necesitas para el camino, te lo vendo.', 'Las caravanas de Aurelia me traen hierbas, aceite y carbón. Lo que te falte, pregúntame.']);
+    },
+    options: () => [
+      { label: 'Comerciar', window: 'artesanos' },
+      { label: '¿Cómo llegan tus cosas hasta aquí?', next: 'caravanas' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      caravanas: 'Con las caravanas que bajan por el Paso del Humo, cuando los bandidos del Bosque las dejan pasar. Traigo lo mismo que venden los artesanos de Aurelia, para que nadie tenga que subir la montaña por un frasco. Y me llevo escamas, obsidiana y azufre: en la capital pagan bien por todo lo que huele a volcán.',
+    },
+  },
   // el Viejo Escamas: el anciano que crió al dragón cuando era cría
   escamas: {
     name: 'Viejo Escamas',

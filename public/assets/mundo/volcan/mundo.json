@@ -1,6 +1,7 @@
 {
  "nombre": "Volcán Rojo",
  "zona": 3,
+ "musica": "volcan",
  "tileset": "pradera",
  "terrenos": [
   "basalto",

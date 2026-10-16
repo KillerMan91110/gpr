@@ -374,6 +374,9 @@ local NPCS = {
   npc_kessa = {race="draco", style="gorra", hat="Cs", hatD="Csd", hair="Hd", top="Cs", topD="Csd", topL="Ah", apron="N", pants="b", boots="b", belt="b", skin="Dr", skinD="Drd"},
   -- Ceniza, la guardabosque: capucha gris verdosa y ropa de cuero para el bosque quemado
   npc_ceniza = {race="draco", style="capucha", hair="Cs", hairD="Csd", top="Cg", topD="g", topL="Gh", pants="Cn", boots="b", belt="b", skin="Dc", skinD="Dcd"},
+  -- Marga, la mercader de Ascuaria: sombrero violeta de ala ancha con pluma dorada, chaleco violeta,
+  -- collar y cinturón de oro (cuenta monedas todo el día)
+  npc_marga = {race="draco", style="sombrero", hat="V", hatD="v", pluma="Y", hair="Dcd", top="V", topD="v", topL="Vh", vest="N", neck="go", pants="Cn", boots="b", belt="go", skin="Dc", skinD="Dcd"},
   -- Pumo, el balsero: mediano con sombrero de paja, pañuelo rojo y chaleco remendado
   npc_pumo = {race="mediano", style="sombrero", hat="T", hatD="t", pluma="Cr", hair="B", top="Cr", topD="r", topL="R", vest="N", pants="Cn", boots="b", belt="b", skin=D, skinD=Dd},
   -- Sulfo, el alquimista: humano calvo con barba amarillenta de azufre y túnica verde manchada

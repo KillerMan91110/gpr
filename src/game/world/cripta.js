@@ -42,6 +42,8 @@ export const criptaMethods = {
     const crypt = { state: null, guardians: [], braziers: [], door: null, boss: null, ready: false, dir: this.zoneDir };
     const arte = { brasero: 'brasero', puerta: 'puerta_sello', luzPuerta: 0x7ff8ff, ...(this.world.mazmorraArte ?? {}) };
     crypt.keys = { brasero: `mz_${arte.brasero}`, puerta: `mz_${arte.puerta}`, luzPuerta: arte.luzPuerta };
+    // qué se hace con el punto de control: encender un brasero o un farol, volcar una cuba (la Fisura)
+    crypt.accion = arte.accion ?? 'Encender';
     this.crypt = crypt;
     const catalog = this.cache.json.get('enemigos').monsters;
     const gPoints = all.filter((o) => o.type === 'guardian');
@@ -129,7 +131,7 @@ export const criptaMethods = {
       if (!lit && b.lit) b.sprite.stop().setFrame(0);
       b.lit = lit;
       this.pois = this.pois.filter((p) => p.id !== `brasero_${b.orden}`);
-      if (!lit) this.pois.push({ id: `brasero_${b.orden}`, x: b.x, y: b.y + 6, label: `Encender: ${b.label}`, action: 'crypt-brazier', arg: b.orden, radius: 46 });
+      if (!lit) this.pois.push({ id: `brasero_${b.orden}`, x: b.x, y: b.y + 6, label: `${crypt.accion}: ${b.label}`, action: 'crypt-brazier', arg: b.orden, radius: 46 });
     }
     const d = crypt.door;
     if (d && d.open !== st.doorOpen) {

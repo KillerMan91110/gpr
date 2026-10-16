@@ -138,15 +138,15 @@ export const npcsMethods = {
     return null;
   },
 
-  // marks: { ren: '!' | '?' | 'gris' | null } (ver game/questGivers.js) — ? algo para entregar,
-  // ! misión que ya puedes aceptar, gris: misión para dentro de poco
+  // marks: { ren: '!' | '!!' | '?' | 'gris' | null } (ver game/questGivers.js) — ? algo para entregar,
+  // ! misión que ya puedes aceptar (!! rojo si es de la historia), gris: misión para dentro de poco
   setNpcMarks(marks) {
     this.marks = marks ?? {};
-    const COLORS = { '?': ['#7dff9a', 0x7dff9a], '!': ['#ffd84a', 0xffd84a], gris: ['#a8a8b0', 0x8a8a94] };
+    const COLORS = { '?': ['#7dff9a', 0x7dff9a], '!': ['#ffd84a', 0xffd84a], '!!': ['#ff5a4a', 0xff5a4a], gris: ['#a8a8b0', 0x8a8a94] };
     for (const n of this.npcs.values()) {
       const m = this.marks[n.id] ?? null;
       const [css, hex] = COLORS[m] ?? COLORS['!'];
-      n.mark.setText(m ? (m === 'gris' ? '!' : m) : '');
+      n.mark.setText(m ? (m === 'gris' || m === '!!' ? '!' : m) : '');
       n.mark.setColor(css);
       n.mark.setAlpha(m === 'gris' ? 0.85 : 1);
       n.dot.setVisible(!!m && !n.hidden);

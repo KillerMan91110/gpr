@@ -136,7 +136,8 @@ const DEFAULT_ZONE_ID = 0;
 const DEFAULT_ZONE_DIR = 'aurelia';
 // [línea chica de arriba, nombre]: las zonas abiertas van sin línea chica (solo su nombre)
 const ZONE_TITLES = { aurelia: ['La capital', 'Aurelia'], pradera: ['', 'Pradera Dorada'], cripta: ['Mazmorra', 'La Cripta del Vigía'],
-  montanas: ['', 'Montañas Grises'], mina_profunda: ['Mazmorra', 'La Mina Profunda'] };
+  montanas: ['', 'Montañas Grises'], mina_profunda: ['Mazmorra', 'La Mina Profunda'],
+  volcan: ['', 'Volcán Rojo'], fisura: ['Mazmorra', 'La Fisura Infernal'] };
 // recorrido del guía Tomás por Aurelia (lugar, posición en píxeles y qué hay ahí)
 const AURELIA_TOUR = [
   { name: 'Catedral de Aethra', x: 59.5 * 32, y: 16 * 32, info: 'Aquí te curan y aquí despiertas si caes en combate.' },
@@ -1088,7 +1089,7 @@ export default function World() {
         <DialogueBox
           key={`${dialogue}:${dlgKey}`}
           id={dialogue}
-          ctx={{ night: !!clock?.night, mark: npcMarks[dialogue] ?? null, done: storySet }}
+          ctx={{ night: !!clock?.night, mark: npcMarks[dialogue] === '!!' ? '!' : (npcMarks[dialogue] ?? null), story: npcMarks[dialogue] === '!!', done: storySet }}
           questLines={questLines}
           readyQuests={readyQuestsFor(quests.active, dialogue, continentZoneIds)}
           hasWork={hasWorkFor(quests.available, dialogue, continentZoneIds)}

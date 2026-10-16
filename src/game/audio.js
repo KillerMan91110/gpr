@@ -73,6 +73,46 @@ const TRACKS = {
       ) },
     ],
   },
+  // Montañas Grises: mi menor, lento y grave; un bordón de gaita, un cuerno que llama entre los
+  // picos y un tambor de marcha lejano (los enanos del Bastión)
+  montanas: {
+    bpm: 84,
+    drums: 'k - - - s - - -',
+    voices: [
+      { wave: 'triangle', gain: 0.17, steps: bars(
+        'E2 . . . . . . .', 'E2 . . . B1 . . .', 'C2 . . . . . . .', 'D2 . . . B1 . . .',
+        'E2 . . . . . . .', 'G2 . . . D2 . . .', 'C2 . . . D2 . . .', 'E2 . . . . . . .',
+      ) },
+      { wave: 'square', gain: 0.018, short: true, steps: bars(
+        'E3 B3 E4 B3 E3 B3 E4 B3', 'E3 B3 E4 B3 B2 F#3 B3 F#3', 'C3 G3 C4 G3 C3 G3 C4 G3', 'D3 A3 D4 A3 B2 F#3 B3 F#3',
+        'E3 B3 E4 B3 E3 B3 E4 B3', 'G3 D4 G4 D4 D3 A3 D4 A3', 'C3 G3 C4 G3 D3 A3 D4 A3', 'E3 B3 E4 B3 E4 - - -',
+      ) },
+      { wave: 'triangle', gain: 0.08, steps: bars(
+        'B4 . . . E5 . . .', 'D5 . B4 . A4 . G4 .', 'G4 . . . E4 . G4 .', 'A4 . . . F#4 . . .',
+        'B4 . . . E5 . G5 .', 'F#5 . E5 . D5 . B4 .', 'C5 . B4 . A4 . F#4 .', 'E4 . . . - - - -',
+      ) },
+    ],
+  },
+  // Volcán Rojo: mi frigio (el fa natural le da el aire de fuego y desierto), tambores pesados de la
+  // forja de Ascuaria y un bajo que golpea como un martillo
+  volcan: {
+    bpm: 100,
+    drums: 'k - k s - k s -',
+    voices: [
+      { wave: 'sawtooth', gain: 0.06, short: true, steps: bars(
+        'E2 E2 - E2 F2 - E2 -', 'E2 E2 - E2 G2 - F2 -', 'D2 D2 - D2 E2 - D2 -', 'C2 C2 - C2 D2 - E2 -',
+        'E2 E2 - E2 F2 - E2 -', 'E2 E2 - E2 G2 - F2 -', 'A1 A1 - A1 C2 - B1 -', 'E2 . . . F2 . E2 .',
+      ) },
+      { wave: 'square', gain: 0.045, steps: bars(
+        'E4 . F4 . G#4 . . .', 'A4 . G#4 F4 E4 . . .', 'D4 . E4 . F4 . E4 D4', 'C4 . . . E4 . . .',
+        'B4 . C5 . B4 . G#4 .', 'A4 . B4 A4 G#4 . F4 .', 'E4 . F4 . E4 . D4 .', 'E4 . . . - - - -',
+      ) },
+      { wave: 'triangle', gain: 0.06, steps: bars(
+        'B3 . . . . . . .', 'C4 . . . B3 . . .', 'A3 . . . . . . .', 'G3 . . . G#3 . . .',
+        'B3 . . . . . . .', 'C4 . . . B3 . . .', 'C4 . . . D4 . . .', 'B3 . . . . . . .',
+      ) },
+    ],
+  },
   batalla: {
     bpm: 150,
     drums: 'k h s h k k s h',

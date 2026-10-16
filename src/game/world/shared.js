@@ -13,6 +13,7 @@ export const DEFAULT_ZONE = 'pradera';
 export const DUNGEONS = {
   cripta: { min: 5, max: 12, codePrefix: 'CRIPTA_' },
   mina_profunda: { min: 18, max: 24, codePrefix: 'MINA_' },
+  fisura: { min: 36, max: 42, codePrefix: 'FISURA_' },
 };
 export const isDungeon = (dir) => !!DUNGEONS[dir];
 export const SPEED = 110;

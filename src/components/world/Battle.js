@@ -339,7 +339,7 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
           heroHasWeapon,
           playerId: player.id,
           // las mazmorras pelean sobre piedra bajo tierra (el fondo de la cripta)
-          background: DUNGEON_BACKGROUND[encounter.position?.zona]
+          background: DUNGEON_BACKGROUND[encounter.dungeon ?? encounter.position?.zona]
             ?? (encounter.kind === 'cripta' || isDungeon(encounter.position?.zona) ? 'cripta' : ZONE_BACKGROUND[encounter.zoneId] ?? 'pradera'),
         });
         await ready;

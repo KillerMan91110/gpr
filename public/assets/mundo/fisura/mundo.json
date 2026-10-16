@@ -1,0 +1,116 @@
+{
+ "nombre": "La Fisura Infernal",
+ "zona": 3,
+ "interior": true,
+ "mazmorra": "fisura",
+ "musica": "cripta",
+ "tileset": "fisura",
+ "terrenos": [
+  "suelo",
+  "muro",
+  "lava",
+  "puente",
+  "puentev",
+  "escalera",
+  "forja"
+ ],
+ "tile": 32,
+ "mazmorraArte": {
+  "brasero": "cuba",
+  "puerta": "porton_forja",
+  "luzPuerta": 16747044,
+  "accion": "Volcar"
+ },
+ "chunkWidth": 40,
+ "chunkHeight": 30,
+ "columns": 1,
+ "rows": 2,
+ "encuentroHierba": 0,
+ "gidHierba": 0,
+ "inicio": {
+  "x": 640,
+  "y": 208
+ },
+ "clima": {
+  "estacion": "interior",
+  "lluvia": 0
+ },
+ "gids": {
+  "flores": [],
+  "agua": [],
+  "prado": [],
+  "arboles": [],
+  "dorados": [],
+  "seco": []
+ },
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
+  }
+ ],
+ "subzonas": [
+  {
+   "name": "Entrada",
+   "x0": 416,
+   "y0": 96,
+   "x1": 864,
+   "y1": 480,
+   "levels": "36-42"
+  },
+  {
+   "name": "Sala de Fundición",
+   "x0": 128,
+   "y0": 480,
+   "x1": 1152,
+   "y1": 768,
+   "levels": "36-42"
+  },
+  {
+   "name": "Puente de Escoria",
+   "x0": 128,
+   "y0": 768,
+   "x1": 1152,
+   "y1": 960,
+   "levels": "36-42"
+  },
+  {
+   "name": "Galería de los Moldes",
+   "x0": 320,
+   "y0": 960,
+   "x1": 1088,
+   "y1": 1248,
+   "levels": "36-42"
+  },
+  {
+   "name": "El Foso",
+   "x0": 288,
+   "y0": 1248,
+   "x1": 992,
+   "y1": 1568,
+   "levels": "36-42"
+  },
+  {
+   "name": "Cámara de Morvak",
+   "x0": 224,
+   "y0": 1568,
+   "x1": 1056,
+   "y1": 1888,
+   "levels": "36-42"
+  },
+  {
+   "name": "La Fisura Infernal",
+   "x0": 0,
+   "y0": 0,
+   "x1": 1280,
+   "y1": 1920,
+   "levels": null
+  }
+ ]
+}

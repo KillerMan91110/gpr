@@ -997,6 +997,7 @@ body.en-mundo .bgm-control { display: none; }
 .hud-target-mark { font: 900 1.05rem 'Cinzel', serif; line-height: 1; text-shadow: 0 0 4px #000; color: #ffd84a; }
 .hud-target-mark--entrega { color: #7dff9a; }
 .hud-target-mark--gris { color: #a8a8b0; }
+.hud-target-mark--historia { color: #ff5a4a; }
 
 .hud-target-portrait {
   position: relative;

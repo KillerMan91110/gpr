@@ -347,6 +347,10 @@ function placeTown() {
   placeGrid('casa_basalto', 3, 3, 120, 23);
   put(objects, 117, 25, T.yunque); put(objects, 118, 26, T.barril); put(objects, 112, 25, T.caja);
   put(objects, 108, 36, T.parrilla); put(objects, 107, 36, T.barril);
+  // el puesto de Marga, la mercader, en la esquina de la plaza
+  put(objects, 115, 27, T.puesto_rojo_ai); put(objects, 116, 27, T.puesto_rojo_ad);
+  put(objects, 115, 28, T.puesto_rojo_bi); put(objects, 116, 28, T.puesto_rojo_bd);
+  put(objects, 117, 29, T.caja); put(objects, 117, 30, T.barril);
   placeGrid('estandarte_dracon', 1, 2, 105, 26); placeGrid('estandarte_dracon', 1, 2, 117, 26);
   for (const [x, y] of [[104, 28], [118, 28], [104, 34], [118, 34], [110, 21], [124, 28]]) { put(objects, x, y, T.farol_lava); lights.push([x, y, 'farol']); }
   // el brasero de la plaza es el refugio de Ascuaria (como la fogata del Bastión)
@@ -540,6 +544,8 @@ npc('escamas', 'Viejo Escamas', P.nest.x, P.nest.y + 2, 1);
 // las balseras, primas de Pumo (mismo sprite): los muelles de la Cantera y de la Caldera (lib/brasas.js)
 npc('balsero_cantera', 'Toba, balsera', 122, 62, 1, [], 'npc_pumo');
 npc('balsero_caldera', 'Lapilli, balsera', 79, 93, 1, [], 'npc_pumo');
+// Marga, la mercader de Ascuaria: compra el botín y vende lo de los artesanos (servicio "artesanos")
+npc('mercader_ascuaria', 'Marga, mercader', 115, 29, 0, [], 'npc_marga');
 // luces de noche: faroles de lava de Ascuaria, el muelle y la cantera, fogatas y braseros (refugios)
 lights.forEach(([x, y, tipo], i) => pt({ name: `luz_${i + 1}`, type: 'luz', x: px(x) + 16, y: px(y) + 12, properties: [prop('tipo', 'string', tipo)] }));
 // zonas de encuentro
@@ -668,7 +674,7 @@ for (let cy = 0; cy < ROWS; cy++) {
 }
 
 const world = {
-  nombre: 'Volcán Rojo', zona: 3, tileset: 'pradera', terrenos: TERRENOS, tile: 32, chunkWidth: CW, chunkHeight: CH, columns: COLS, rows: ROWS,
+  nombre: 'Volcán Rojo', zona: 3, musica: 'volcan', tileset: 'pradera', terrenos: TERRENOS, tile: 32, chunkWidth: CW, chunkHeight: CH, columns: COLS, rows: ROWS,
   encuentroHierba: 0.07, gidHierba: T.hierba_quemada,
   inicio: { x: px(P.spawn.x) + 16, y: px(P.spawn.y) + 16 },
   // ceniza que cae todo el día (game/world/brasas.js) y la lluvia de brasas de vez en cuando

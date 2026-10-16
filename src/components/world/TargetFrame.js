@@ -45,7 +45,7 @@ export default function TargetFrame({ poi, marks = {} }) {
       <div className="hud-target-body">
         <div className="hud-target-name">
           <span>{name}</span>
-          {mark && <b className={`hud-target-mark hud-target-mark--${mark === '?' ? 'entrega' : mark === 'gris' ? 'gris' : 'mision'}`}>{mark === 'gris' ? '!' : mark}</b>}
+          {mark && <b className={`hud-target-mark hud-target-mark--${mark === '?' ? 'entrega' : mark === 'gris' ? 'gris' : mark === '!!' ? 'historia' : 'mision'}`}>{mark === 'gris' || mark === '!!' ? '!' : mark}</b>}
         </div>
         <small>{sub}{level ? ` · Nv ${level}` : ''}</small>
         <div className={`hud-target-bar hud-target-bar--${kind}`} />

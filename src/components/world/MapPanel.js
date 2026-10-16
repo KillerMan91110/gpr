@@ -224,8 +224,8 @@ function ZoneMap({ onWorld, orden, coop }) {
             if (p.type === 'npc') {
               const mark = data.marks?.[p.dialogue];
               return (
-                <span key={p.name} className={`mp-pin mp-npc${mark ? ` mp-npc--${mark === '?' ? 'entrega' : mark === 'gris' ? 'gris' : 'mision'}` : ''}`} style={{ left: p.x * scale, top: p.y * scale }} title={p.label}>
-                  <i>{mark === 'gris' ? '!' : (mark || '●')}</i>{zoom > 1 && <em>{String(p.label).split(',')[0]}</em>}
+                <span key={p.name} className={`mp-pin mp-npc${mark ? ` mp-npc--${mark === '?' ? 'entrega' : mark === 'gris' ? 'gris' : mark === '!!' ? 'historia' : 'mision'}` : ''}`} style={{ left: p.x * scale, top: p.y * scale }} title={p.label}>
+                  <i>{mark === 'gris' || mark === '!!' ? '!' : (mark || '●')}</i>{zoom > 1 && <em>{String(p.label).split(',')[0]}</em>}
                 </span>
               );
             }
