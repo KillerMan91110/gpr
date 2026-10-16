@@ -394,8 +394,8 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
       {tab === 'dismantle' && (
         <div className="wp-craft">
           <div className="wp-bag-grid wp-sell-grid">
-            {/* solo el equipo se desmantela (gprback/lib/desmantelar.js): devuelve la mitad de sus materiales
-                en promedio, nunca las piezas de jefe */}
+            {/* solo el equipo se desmantela (gprback/lib/desmantelar.js): devuelve 1 o 2 de sus materiales al
+                azar, nunca las piezas de jefe, y según la rareza a veces una piedra de encantamiento */}
             {(inventory ?? []).filter((i) => i.quantity > 0 && i.item_type === 'EQUIPMENT').map((it) => {
               const icon = iconForItem(it);
               return (
@@ -413,7 +413,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
             {inventory === null && <p className="wp-empty">Cargando…</p>}
           </div>
           <section className="wp-craft-detail">
-            {!selItem && !result && <p className="wp-deal-hint">Elige un equipo de la mochila para romperlo: recuperas más o menos la mitad de sus materiales. Las piezas de jefe (coronas, yelmos, núcleos…) no vuelven.</p>}
+            {!selItem && !result && <p className="wp-deal-hint">Elige un equipo de la mochila para romperlo: recuperas uno o dos de sus materiales, al azar. Las piezas raras, épicas y legendarias a veces dejan una piedra de encantamiento. Las piezas de jefe (coronas, yelmos, núcleos…) no vuelven.</p>}
             {selItem && (
               <>
                 <header className="wp-craft-head">
