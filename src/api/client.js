@@ -69,7 +69,10 @@ export const api = {
     request(`/api/player/${playerId}/artisan-shop/buy`, { method: 'POST', body: { artisanCode, itemCode, quantity }, token }),
   sellArtisanItem: (playerId, itemId, quantity, enchantLevel = 0, token) =>
     request(`/api/player/${playerId}/artisan-shop/sell`, { method: 'POST', body: { itemId, quantity, enchantLevel }, token }),
-  getCraftAvailable: (playerId, token) => request(`/api/player/${playerId}/craft/available`, { token }),
+  // libro=true (Taller del mundo): también las de pergamino con candado y las básicas por descubrir
+  getCraftAvailable: (playerId, token, libro = false) => request(`/api/player/${playerId}/craft/available${libro ? '?libro=1' : ''}`, { token }),
+  getCraftNovedades: (playerId, token) => request(`/api/player/${playerId}/craft/novedades`, { token }),
+  markCraftSeen: (playerId, recipeCode, token) => request(`/api/player/${playerId}/craft/seen`, { method: 'POST', body: { recipeCode }, token }),
   craft: (playerId, recipeCode, quantity, token) =>
     request(`/api/player/${playerId}/craft`, { method: 'POST', body: { recipeCode, quantity }, token }),
   dismantle: (playerId, itemId, quantity, token) =>

@@ -100,7 +100,8 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
         const r = await api.useRecipeScroll(player.id, it.item_id, token);
         const names = (r?.learnedRecipes ?? []).map((x) => x.resultName);
         audio.sfx('mision');
-        setMessage({ ok: true, text: names.length ? `Aprendiste a fabricar: ${names.join(', ')}. Búscalas en el Taller (U).` : (r?.message ?? 'Leíste el pergamino') });
+        if (names.length) audio.sfx('descubrir');
+        setMessage({ ok: true, text: names.length ? `📜 ¡Aprendiste ${names.length > 1 ? `${names.length} crafteos nuevos` : 'un crafteo nuevo'}! ${names.join(', ')}. Búscalos en el Taller (U).` : (r?.message ?? 'Leíste el pergamino') });
       } else if (it.item_type === 'EQUIPMENT') {
         await api.equipItem(player.id, it.item_id, it.enchant_level, it.quality_tier, token);
         setMessage({ ok: true, text: `Equipaste ${it.name}` });

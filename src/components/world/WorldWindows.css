@@ -308,6 +308,31 @@
 .wp-recipe:hover { background: rgba(255, 255, 255, 0.04); }
 .wp-recipe--sel { background: linear-gradient(90deg, rgba(212, 175, 55, 0.28), rgba(212, 175, 55, 0.02)); border-color: rgba(212, 175, 55, 0.45); }
 .wp-recipe--missing { opacity: 0.55; }
+.wp-recipe--locked { opacity: 0.45; filter: grayscale(0.6); }
+.wp-recipe-lock { font-size: 0.75rem; }
+/* libro de recetas: lo recién descubierto y lo que falta descubrir */
+.wp-recipe-new {
+  padding: 0 5px;
+  border-radius: 8px;
+  background: rgba(255, 216, 74, 0.18);
+  border: 1px solid rgba(255, 216, 74, 0.6);
+  font: 700 0.6rem/14px 'Cinzel', serif;
+  color: #ffd84a;
+  letter-spacing: 0.04em;
+}
+.wp-cat-hidden { color: #b9a77c; font-style: italic; }
+.wp-craft-locked {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 6px 0;
+  padding: 6px 8px;
+  border: 1px dashed rgba(212, 175, 55, 0.45);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  font: 0.82rem 'EB Garamond', serif;
+  color: var(--cream);
+}
 .wp-recipe-name { flex: 1; min-width: 0; overflow: hidden; font: 600 0.86rem 'EB Garamond', serif; white-space: nowrap; text-overflow: ellipsis; }
 .wp-recipe-name:not([class*='wp-text-']) { color: var(--cream); }
 

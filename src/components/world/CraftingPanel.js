@@ -62,7 +62,13 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
   // ¿estás junto a una forja / al Pilar? (se pregunta cada pocos segundos mientras caminas)
   const [stations, setStations] = useState(null);
 
-  const loadRecipes = useCallback(() => api.getCraftAvailable(player.id, token).then(setRecipes), [player, token]);
+  // el libro de recetas (gprback/lib/recetas.js): las básicas descubiertas, las de pergamino (con
+  // candado si no las aprendiste) y una fila "hidden" por cada básica sin descubrir (solo se cuentan)
+  const [hidden, setHidden] = useState([]);
+  const loadRecipes = useCallback(() => api.getCraftAvailable(player.id, token, true).then((list) => {
+    setRecipes(list.filter((r) => !r.hidden));
+    setHidden(list.filter((r) => r.hidden));
+  }), [player, token]);
   const loadInventory = useCallback(() => api.getPlayerInventory(player.id, token).then(setInventory), [player, token]);
 
   useEffect(() => { loadRecipes().catch((e) => setError(e.message)); }, [loadRecipes]);
@@ -83,23 +89,35 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
   const categories = useMemo(() => {
     const list = [{ code: 'todo', name: 'Todas', icon: ['hammer-drop', 'lorc'] }];
     const seen = new Set();
-    for (const r of recipes ?? []) {
+    for (const r of [...(recipes ?? []), ...hidden]) {
       if (r.classCode && !seen.has(r.classCode)) {
         seen.add(r.classCode);
         list.push({ code: r.classCode, name: r.className, icon: CLASS_ICON[r.classCode] ?? ['anvil', 'lorc'] });
       }
     }
-    if ((recipes ?? []).some((r) => r.resultType === 'CONSUMABLE')) list.push({ code: 'CONSUMABLE', name: 'Consumibles', icon: ['standing-potion', 'lorc'] });
-    if ((recipes ?? []).some((r) => r.resultType === 'MATERIAL')) list.push({ code: 'MATERIAL', name: 'Materiales y refinados', icon: ['metal-bar', 'lorc'] });
+    const all = [...(recipes ?? []), ...hidden];
+    if (all.some((r) => r.resultType === 'CONSUMABLE')) list.push({ code: 'CONSUMABLE', name: 'Consumibles', icon: ['standing-potion', 'lorc'] });
+    if (all.some((r) => r.resultType === 'MATERIAL')) list.push({ code: 'MATERIAL', name: 'Materiales y refinados', icon: ['metal-bar', 'lorc'] });
     return list;
-  }, [recipes]);
+  }, [recipes, hidden]);
+  const inCat = useCallback((r) => cat === 'todo' || (cat === 'CONSUMABLE' || cat === 'MATERIAL' ? r.resultType === cat : r.classCode === cat), [cat]);
+  // cuántas básicas faltan por descubrir en esta categoría (no se muestran: se descubren consiguiendo sus materiales)
+  const undiscovered = hidden.filter(inCat).length;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return (recipes ?? []).filter((r) => (cat === 'todo' || (cat === 'CONSUMABLE' || cat === 'MATERIAL' ? r.resultType === cat : r.classCode === cat))
-      && (!q || r.resultName.toLowerCase().includes(q)))
-      .sort((a, b) => Number(b.canCraft) - Number(a.canCraft));
-  }, [recipes, cat, search]);
+    // primero las nuevas, después las que se pueden hacer, y al final las de candado
+    return (recipes ?? []).filter((r) => inCat(r) && (!q || r.resultName.toLowerCase().includes(q)))
+      .sort((a, b) => Number(!!a.locked) - Number(!!b.locked) || Number(!!b.isNew) - Number(!!a.isNew) || Number(b.canCraft) - Number(a.canCraft));
+  }, [recipes, inCat, search]);
+  // al abrir una receta nueva deja de ser "NUEVO"
+  const openRecipe = (r) => {
+    setSelCode(r.code);
+    if (r.isNew) {
+      setRecipes((list) => list.map((x) => (x.code === r.code ? { ...x, isNew: false } : x)));
+      api.markCraftSeen(player.id, r.code, token).catch(() => {});
+    }
+  };
 
   const recipe = recipes?.find((r) => r.code === selCode) ?? filtered[0] ?? null;
   const craftable = recipe ? Math.min(99, ...recipe.ingredients.map((i) => Math.floor(i.have / Math.max(1, i.need)))) : 0;
@@ -208,13 +226,16 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                 <GameIcon name={c.icon[0]} artist={c.icon[1]} />
               </button>
             ))}
-            <span className="wp-cat-name">{categories.find((c) => c.code === cat)?.name}</span>
+            <span className="wp-cat-name">
+              {categories.find((c) => c.code === cat)?.name}
+              {undiscovered > 0 && <small className="wp-cat-hidden" title="Se descubren al conseguir alguno de sus materiales"> · {undiscovered} por descubrir</small>}
+            </span>
             <input className="wp-search wp-search--inline" type="search" placeholder="Buscar receta…" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <div className="wp-craft">
             <ul className="wp-recipe-list">
               {!recipes && <li className="wp-empty">Cargando…</li>}
-              {recipes && filtered.length === 0 && <li className="wp-empty">Sin recetas. Desbloquea zonas y derrota jefes para aprender más.</li>}
+              {recipes && filtered.length === 0 && <li className="wp-empty">{undiscovered > 0 ? 'Todavía no descubriste ninguna: consigue materiales (cazando, recolectando o comprando) y aparecen solas.' : 'Sin recetas. Desbloquea zonas y derrota jefes para aprender más.'}</li>}
               {filtered.map((r) => {
                 const icon = iconForItem({ name: r.resultName, slot: r.resultSlot, item_type: r.resultType });
                 const n = Math.min(...r.ingredients.map((i) => Math.floor(i.have / Math.max(1, i.need))));
@@ -222,11 +243,13 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                   <li key={r.id}>
                     <button
                       type="button"
-                      className={`wp-recipe${recipe?.code === r.code ? ' wp-recipe--sel' : ''}${r.canCraft ? '' : ' wp-recipe--missing'}`}
-                      onClick={() => { if (busy) return; setSelCode(r.code); setQty(1); setResult(null); setRun(null); }}
+                      className={`wp-recipe${recipe?.code === r.code ? ' wp-recipe--sel' : ''}${r.canCraft ? '' : ' wp-recipe--missing'}${r.locked ? ' wp-recipe--locked' : ''}`}
+                      onClick={() => { if (busy) return; openRecipe(r); setQty(1); setResult(null); setRun(null); }}
                     >
                       <span className={`wp-slot wp-slot--sm wp-rarity-${(r.rarity || 'COMUN').toLowerCase()}`}><ItemIcon icon={icon} /></span>
                       <span className={`wp-recipe-name wp-text-${(r.rarity || 'COMUN').toLowerCase()}`}>{r.resultName}</span>
+                      {r.locked && <span className="wp-recipe-lock" title={`Se aprende con ${r.scrollName}`}>🔒</span>}
+                      {r.isNew && <span className="wp-recipe-new">NUEVO</span>}
                       {r.canCraft && <span className="wp-recipe-count" title="Puedes fabricar">{n}</span>}
                     </button>
                   </li>
@@ -252,6 +275,15 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                     </div>
                   </header>
                   {recipe.description && <p className="wp-craft-desc">{recipe.description}</p>}
+                  {recipe.locked && (
+                    <div className="wp-craft-locked">
+                      <b>🔒 Receta sin aprender</b>
+                      <span>Se aprende leyendo <b>{recipe.scrollName}</b>.</span>
+                      {(recipe.scrollSources ?? []).map((s) => (
+                        <span key={s.monster}>Lo suelta <b>{s.monster}</b> · {s.chance}%</span>
+                      ))}
+                    </div>
+                  )}
                   <div className="wp-craft-stats">
                     <span>Éxito <b>{recipe.successRate}%</b></span>
                     <span>Obtienes <b>x{recipe.resultQuantity}</b></span>
@@ -283,7 +315,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                     <Stepper value={qty} max={Math.max(1, craftable)} onChange={setQty} />
                     {busy
                       ? <button type="button" className="wp-btn" onClick={() => { stopRef.current = true; }}>Detener</button>
-                      : <button type="button" className="wp-btn wp-btn--gold" disabled={!recipe.canCraft || !!stationNote} onClick={craft}>Fabricar</button>}
+                      : <button type="button" className="wp-btn wp-btn--gold" disabled={!recipe.canCraft || !!stationNote || recipe.locked} onClick={craft}>{recipe.locked ? '🔒 Sin aprender' : 'Fabricar'}</button>}
                   </div>
                 </>
               )}

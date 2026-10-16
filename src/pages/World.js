@@ -287,6 +287,15 @@ export default function World() {
         bus.emit('social-toast', { text: `🧬 ¡Descubriste una nueva senda de evolución: ${name}! Mírala en Evolución (Y).`, kind: 'ok' });
       }
     }).catch(() => {});
+    // crafteos descubiertos (conseguiste un material que usan: lib/recetas.js en el back)
+    api.getCraftNovedades(player.id, token).then(({ discovered }) => {
+      if (!discovered?.length) return;
+      audio.sfx('descubrir');
+      const text = discovered.length > 3
+        ? `🔔 ¡Descubriste ${discovered.length} crafteos nuevos! Míralos en el Taller (U).`
+        : `🔔 ¡Descubriste un crafteo nuevo: ${discovered.map((d) => d.name).join(', ')}! Míralo en el Taller (U).`;
+      bus.emit('social-toast', { text, kind: 'ok' });
+    }).catch(() => {});
     loadCoop();
   }, [player, token, loadCoop]);
   useEffect(() => {

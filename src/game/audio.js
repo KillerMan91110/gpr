@@ -379,6 +379,12 @@ class AudioEngine {
         this.burst(t, 0.12, { gain: 0.08, filter: 'bandpass', from: 800, to: 2400, q: 1.5 });
         break;
       // aviso suave (invitaciones, misiones compartidas, alguien te busca)
+      // el «tin» de descubrir o aprender un crafteo: dos campanitas agudas
+      case 'descubrir':
+        this.tone(freq('E6'), t, 0.35, { wave: 'sine', gain: 0.1 });
+        this.tone(freq('B6'), t + 0.07, 0.5, { wave: 'sine', gain: 0.08 });
+        this.tone(freq('E7'), t + 0.07, 0.3, { wave: 'triangle', gain: 0.025 });
+        break;
       case 'mision':
         ['G5', 'C6', 'E6'].forEach((n, i) => this.tone(freq(n), t + i * 0.09, 0.22, { wave: 'triangle', gain: 0.07 }));
         break;
