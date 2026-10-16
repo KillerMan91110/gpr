@@ -337,6 +337,12 @@
 .wp-recipe-name { flex: 1; min-width: 0; overflow: hidden; font: 600 0.86rem 'EB Garamond', serif; white-space: nowrap; text-overflow: ellipsis; }
 .wp-recipe-name:not([class*='wp-text-']) { color: var(--cream); }
 
+/* nivel para equipar la pieza: verde si ya llegas, rojo si todavía no */
+.wp-recipe-lv { flex: none; font: 700 0.66rem 'Cinzel', serif; color: #7dff9a; opacity: 0.9; }
+.wp-recipe-lv--high { color: #ff8a7a; opacity: 1; }
+.wp-craft-head .wp-craft-lv { display: block; color: #7dff9a; }
+.wp-craft-head .wp-craft-lv--high { color: #ff8a7a; }
+
 .wp-recipe-count {
   min-width: 18px;
   padding: 0 5px;

@@ -258,6 +258,11 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                         </>
                       )}
                       {r.isNew && <span className="wp-recipe-new">NUEVO</span>}
+                      {r.requiredLevel && (
+                        <span className={`wp-recipe-lv${r.levelOk ? '' : ' wp-recipe-lv--high'}`} title={r.levelOk ? `Se equipa desde el nivel ${r.requiredLevel}` : `Necesitas nivel ${r.requiredLevel} para equiparlo`}>
+                          Nv {r.requiredLevel}
+                        </span>
+                      )}
                       {r.canCraft && <span className="wp-recipe-count" title="Puedes fabricar">{n}</span>}
                     </button>
                   </li>
@@ -272,7 +277,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                     <span className="wp-slot wp-slot--lg wp-slot--locked"><GameIcon name="padlock" artist="lorc" /></span>
                     <div>
                       <strong>???</strong>
-                      <small>Receta de pergamino{recipe.className ? ` · ${recipe.className}` : ''}</small>
+                      <small>Receta de pergamino{recipe.className ? ` · ${recipe.className}` : ''}{recipe.requiredLevel ? ` · Nivel ${recipe.requiredLevel}` : ''}</small>
                     </div>
                   </header>
                   <div className="wp-craft-locked">
@@ -298,6 +303,11 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                     <div>
                       <strong className={`wp-text-${(recipe.rarity || 'COMUN').toLowerCase()}`}>{recipe.resultName}</strong>
                       <small>{RARITY_LABELS[recipe.rarity] ?? recipe.rarity}{recipe.className ? ` · ${recipe.className}` : ''}{recipe.artisanName ? ` · ${recipe.artisanName}` : ''}</small>
+                      {recipe.requiredLevel && (
+                        <small className={recipe.levelOk ? 'wp-craft-lv' : 'wp-craft-lv wp-craft-lv--high'}>
+                          Requiere nivel {recipe.requiredLevel}{recipe.levelOk ? '' : ' · todavía no puedes equiparlo'}
+                        </small>
+                      )}
                     </div>
                   </header>
                   {recipe.description && <p className="wp-craft-desc">{recipe.description}</p>}
