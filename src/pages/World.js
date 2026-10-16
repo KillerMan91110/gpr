@@ -881,7 +881,7 @@ export default function World() {
   const calendar = useEvents(worldReady);
   // la Cripta del Vigía: avance del recorrido (solo dentro de la mazmorra)
   const crypt = useCrypt({ player, token, worldReady, zoneDir, onChanged: loadHud });
-  const { guide, skip: skipGuide } = useGuide({ player, token, worldReady, open, dialogue, zoneDir, onReward: onGuideReward });
+  const { guide, skip: skipGuide } = useGuide({ player, token, worldReady, open, dialogue, zoneDir, poi, onReward: onGuideReward });
   // jugador nuevo: la barra se va encendiendo con la guía (null = todo encendido)
   const unlocked = guide?.unlocked ?? null;
   const unlockedRef = useRef(unlocked);

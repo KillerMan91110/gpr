@@ -4,6 +4,9 @@ import { propOf } from './shared';
 
 // Guía del aventurero (components/world/GuideTracker.js): dónde queda el objetivo de cada paso
 // para que la flecha de rastreo lleve al jugador.
+// el maestro de cada clase base en el Barrio de las Órdenes (su "dialogo" en el mapa de Aurelia)
+export const MASTER_OF = { guerrero: 'aldric', mago: 'isolde', arquero: 'sylwen', picaro: 'nox', sacerdote: 'anselm' };
+
 // Métodos de WorldScene (se mezclan en la escena con Object.assign, ver WorldScene.js).
 export const guideMethods = {
   guideTarget(id) {
@@ -22,6 +25,13 @@ export const guideMethods = {
       case 'piedra': {
         const o = all.find((p) => p.type === 'vinculo');
         return o && { x: o.x + 16, y: o.y + 40, name: 'la Estatua del Viajero' };
+      }
+      // los tres de Aurelia: el maestro de tu clase, Elenya en la Catedral y Brokk en su forja
+      case 'maestro': case 'catedral': case 'brokk': {
+        const npc = id === 'maestro' ? MASTER_OF[this.heroClass] ?? 'aldric' : id === 'catedral' ? 'elenya' : 'brokk';
+        const o = all.find((p) => p.type === 'npc' && propOf(p, 'dialogo') === npc);
+        const name = id === 'maestro' ? 'tu maestro' : id === 'catedral' ? 'Elenya, en la Catedral' : 'Brokk, en su forja';
+        return o && { x: o.x + 16, y: o.y + 16, name };
       }
       case 'puerta': {
         // la puerta abierta de la muralla sur de Aurelia (casillas 58-61, filas 87-89)

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { DIALOGUES } from '../../game/dialogues';
-import { turnInOf } from '../../game/questGivers';
+import { turnInOf, objectiveCount, readyToDeliver, npcFor } from '../../game/questGivers';
 import { trackColorCss } from '../../game/questTracking';
 
 // Seguimiento de misiones (como el de WoW, a la derecha bajo el minimapa): tus misiones en curso
@@ -44,7 +44,8 @@ export default function QuestTracker({ active = [], continentZoneIds = [], track
                 // solo el paso actual: los siguientes no se adelantan
                 : objs.filter((o) => !o.future).map((o) => (
                   <span key={o.objective_id}>
-                    - {o.description}: {Math.min(o.current_count ?? 0, o.target_count)}/{o.target_count}
+                    - {o.description}: {objectiveCount(o)}/{o.target_count}
+                    {readyToDeliver(o) && <em> · ¡llévaselo a {DIALOGUES[npcFor(o.target_code)]?.name ?? 'quien lo pide'}!</em>}
                   </span>
                 ))}
             </button>

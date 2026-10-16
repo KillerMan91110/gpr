@@ -54,6 +54,14 @@ export const turnInOf = (q, continentZoneIds) => (q.turn_in_npc ? npcFor(q.turn_
 
 export const objectivesDone = (q) => q.objectives?.length > 0 && q.objectives.every((o) => (o.current_count ?? 0) >= o.target_count);
 
+// Qué número mostrar en un objetivo. En las entregas (DELIVER) el progreso guardado queda en 0 hasta
+// que el NPC las recibe todas juntas: mientras tanto se muestra lo que llevas en la mochila (have),
+// que es lo mismo que te dice el NPC al hablarle.
+const pendingDelivery = (o) => o.objective_type === 'DELIVER' && (o.current_count ?? 0) < o.target_count;
+export const objectiveCount = (o) => Math.min(pendingDelivery(o) ? (o.have ?? 0) : (o.current_count ?? 0), o.target_count);
+// ya tienes todo lo que pide la entrega: falta llevárselo (a quién: el NPC del objetivo)
+export const readyToDeliver = (o) => pendingDelivery(o) && (o.have ?? 0) >= o.target_count;
+
 // { ren: '?', lyra: '!', ... } a partir de las misiones activas y disponibles del jugador
 export function questMarks({ active = [], available = [], level = 1, continentZoneIds = [] }) {
   const marks = {};

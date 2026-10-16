@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
 import FloatingPanel from './FloatingPanel';
-import { questsOfGiver, needsTurnInPerson, NPC_LUGAR, npcFor } from '../../game/questGivers';
+import { questsOfGiver, needsTurnInPerson, NPC_LUGAR, npcFor, objectiveCount, readyToDeliver } from '../../game/questGivers';
 import { DIALOGUES } from '../../game/dialogues';
 import audio from '../../game/audio';
 import bus from '../../game/bus';
@@ -31,11 +31,13 @@ function Objectives({ q }) {
   return (
     <ul className="wp-objectives">
       {(q.objectives ?? []).filter((o) => !o.future).map((o) => {
-        const cur = Math.min(o.current_count ?? 0, o.target_count);
-        const done = cur >= o.target_count;
+        // entregas: lo que llevas en la mochila hasta dárselo al NPC (ver objectiveCount)
+        const cur = objectiveCount(o);
+        const done = (o.current_count ?? 0) >= o.target_count;
+        const ready = readyToDeliver(o);
         return (
           <li key={o.objective_id} className={done ? 'done' : ''}>
-            <span>{done ? '✔' : '◇'} {o.description}</span>
+            <span>{done ? '✔' : ready ? '➜' : '◇'} {o.description}{ready ? ` (¡ya las tienes! llévaselas a ${DIALOGUES[npcFor(o.target_code)]?.name ?? 'quien las pide'})` : ''}</span>
             <span className="wp-objective-bar"><span style={{ width: `${(cur / o.target_count) * 100}%` }} /></span>
             <small>{cur}/{o.target_count}</small>
           </li>

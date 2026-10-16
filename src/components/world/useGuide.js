@@ -9,7 +9,9 @@ import audio from '../../game/audio';
 //   pilar    → pararse junto al Pilar (refugio)   piedra  → vincular la piedra ('guide-event')
 //   puerta   → entrar a la Pradera                combate → ganar un combate ('guide-event')
 //   recurso  → recoger un recurso                 aldea   → llegar a la fogata de la Aldea Espiga
-export default function useGuide({ player, token, worldReady, open, dialogue, zoneDir, onReward }) {
+//   maestro, catedral, brokk → acercarse a tu maestro, a Elenya o a Brokk (en Aurelia; el servidor
+//   comprueba que estés al lado y que sea el maestro de tu clase)
+export default function useGuide({ player, token, worldReady, open, dialogue, zoneDir, poi, onReward }) {
   const [guide, setGuide] = useState(null);
   const ref = useRef(null);
   ref.current = guide;
@@ -47,6 +49,13 @@ export default function useGuide({ player, token, worldReady, open, dialogue, zo
   }, [player, token]);
 
   useEffect(() => { if (dialogue === 'tomas') advance('tomas'); }, [dialogue, advance]);
+  // al acercarte (o hablar) con tu maestro, Elenya o Brokk
+  useEffect(() => {
+    const who = poi?.dialogue ?? dialogue;
+    if (['aldric', 'isolde', 'sylwen', 'nox', 'anselm'].includes(who)) advance('maestro');
+    if (who === 'elenya') advance('catedral');
+    if (who === 'brokk') advance('brokk');
+  }, [poi?.dialogue, dialogue, advance, guide]);
   useEffect(() => { if (open.includes('inventario')) advance('mochila'); }, [open, advance]);
   useEffect(() => { if (zoneDir === 'pradera') advance('puerta'); }, [zoneDir, advance, guide]);
   useEffect(() => {
