@@ -1,70 +1,24 @@
-# Getting Started with Create React App
+# GPR · Reino de Etheria — front
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Juego RPG web con un mundo 2D tipo MMO. Está hecho con React 19 (Create React App), Phaser 3.80 para el mundo y el combate, y `socket.io-client` para el multijugador. El back está en el repo `gprback`.
 
-## Available Scripts
+## Correr
 
-In the project directory, you can run:
+```bash
+npm install
+npm start                 # http://localhost:3000, usa el back de REACT_APP_API_URL (por defecto http://localhost:5000)
+npm run revisar           # revisión antes de dar algo por terminado: mapas, sprites, íconos, sonidos y lint
+```
 
-### `npm start`
+## Dónde está cada cosa
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- `src/pages/World.js` y `src/game/`: el mundo 2D (escena de Phaser, módulos en `src/game/world/`), el combate (`BattleScene.js`), los diálogos y las misiones.
+- `src/components/world/`: las ventanas del mundo (mochila, taller, mercado, bestiario…).
+- `public/assets/`: mapas (`mundo/<zona>/`), tilesets, sprites, fondos e íconos.
+- `art/`: los scripts de Aseprite (`art/sprites/…`) y los generadores de mapas (`art/mapas/`). Todo el arte es propio.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Documentación
 
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Guía para trabajar en el front: `D:\vscode\CLAUDE.gpr.md`.
+- Cómo se hace una zona del juego (mapa, monstruos, equipo, equilibrio, misiones, arte): `gprback/docs/zona3_volcan_traspaso.md`.
+- Historia y continente: `gprback/docs/historia_etheria.md` y `gprback/docs/mapa_etheria.md`.
