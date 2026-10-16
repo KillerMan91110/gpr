@@ -892,6 +892,11 @@ Se puede usar cada ${s.cooldownRounds} rondas.` : '';
                   </span>
                 ))}
                 {result.rewards.mythic?.killed && <span className="bt-levelup">¡Derribaste al jefe mítico! El botín se reparte entre todos los cazadores.</span>}
+                {result.rewards.dungeonRepeat && (
+                  <span className="bt-bestiary">
+                    <GameIcon name="sands-of-time" artist="lorc" /> Ya venciste al jefe de esta mazmorra hoy: esta pasada da la mitad de experiencia y oro. El botín y el cofre salen igual.
+                  </span>
+                )}
                 {result.rewards.crypt?.guardian && (
                   <span className="bt-bestiary">
                     <GameIcon name="dungeon-gate" artist="delapouite" /> Cayó un {result.rewards.crypt.guardianWord ?? 'guardián de la cripta'} ({result.rewards.crypt.guardians.length}/{result.rewards.crypt.totalGuardians})

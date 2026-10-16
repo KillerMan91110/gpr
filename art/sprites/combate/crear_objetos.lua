@@ -1132,6 +1132,26 @@ icon("olla_hilda", function(G)
   G.px(13, 8, "W"); G.px(15, 6, "W"); G.px(19, 7, "W"); G.px(10, 18, "W")
 end)
 
+-- el cuerno de señales de Astrid: cuerno de cabra con boquilla y aros de bronce, y su cordón
+icon("cuerno_astrid", function(G)
+  G.poly({{5, 22}, {9, 16}, {17, 11}, {26, 9}, {28, 12}, {19, 16}, {11, 21}, {8, 26}}, "gh2")
+  G.poly({{17, 11}, {26, 9}, {28, 12}, {19, 14}}, "gh1")
+  G.poly({{5, 22}, {9, 16}, {11, 19}, {8, 26}}, "gh3")
+  G.line(12, 14, 13, 19, "bz2"); G.line(20, 11, 21, 15, "bz2"); G.px(12, 15, "bz1"); G.px(20, 12, "bz1")
+  G.ellipse(27, 10.5, 1.6, 2, "au2")
+  G.line(9, 24, 14, 28, "rb2"); G.line(14, 28, 21, 26, "rb2"); G.px(24, 10, "W")
+end)
+
+-- la carta sellada del Rey: pergamino enrollado con lacre azul de tormenta y una cinta
+icon("carta_rey", function(G)
+  G.rect(6, 9, 26, 23, "pa"); G.rect(22, 9, 26, 23, "ln2")
+  G.ellipse(6, 16, 2.5, 7, "ln2"); G.ellipse(26, 16, 2.5, 7, "ln3")
+  for i = 0, 2 do G.line(10, 12 + i * 3, 20, 12 + i * 3, "gl3") end
+  G.rect(4, 15, 28, 16, "az2")
+  G.ellipse(16, 20, 4, 4, "az2"); G.ellipse(16, 20, 2.5, 2.5, "az1")
+  G.line(17, 18, 15, 20, "zz2"); G.line(15, 20, 17, 22, "zz2")
+end)
+
 -- ---------------------------------------------------------------- atlas (una fila)
 local n = #ICONS
 local img = Image(n * 32, 32, ColorMode.RGB)

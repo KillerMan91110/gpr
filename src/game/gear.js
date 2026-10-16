@@ -164,7 +164,7 @@ export const OBJETOS = ['pocion_vida_menor', 'pocion_vida_mayor', 'pocion_mana_m
   'carne_cabra', 'lomo_oso', 'asado_cabra', 'te_flor_nieve', 'caldo_oso', 'elixir_tormenta', 'insignia_guardia_real',
   // la Mina Profunda y los objetos de misión de la historia de las Montañas
   'mena_hierro_negro', 'corazon_hierro_negro', 'llave_mina', 'carta_elenya', 'hacha_orco', 'cristal_veta', 'esquirla_sello',
-  'nota_brujo', 'corazon_tormenta', 'fragmento_sello_montanas', 'anillo_durgan', 'olla_hilda'];
+  'nota_brujo', 'corazon_tormenta', 'fragmento_sello_montanas', 'anillo_durgan', 'olla_hilda', 'cuerno_astrid', 'carta_rey'];
 const OBJETO_BY_NAME = {
   'pocion de vida menor': 'pocion_vida_menor', 'pocion de vida mayor': 'pocion_vida_mayor',
   'pocion de mana menor': 'pocion_mana_menor', 'pocion de mana mayor': 'pocion_mana_mayor',
@@ -204,6 +204,7 @@ const OBJETO_BY_NAME = {
   'cristal de la veta': 'cristal_veta', 'esquirla del segundo sello': 'esquirla_sello', 'nota del brujo': 'nota_brujo',
   'corazon de la tormenta': 'corazon_tormenta', 'segundo fragmento de sello': 'fragmento_sello_montanas',
   'anillo de durgan': 'anillo_durgan', 'olla de hilda': 'olla_hilda',
+  'cuerno de astrid': 'cuerno_astrid', 'carta sellada del rey': 'carta_rey',
 };
 
 // índice en el atlas de objetos, o null

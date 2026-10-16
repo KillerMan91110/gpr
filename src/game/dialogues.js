@@ -616,7 +616,8 @@ export const DIALOGUES = {
     greet: (ctx) => {
       const { night, mark } = ctx;
       if (mark === '?') return 'Vienes de revisar mis pararrayos. ¿Qué encontraste? Habla fuerte, que estoy un poco sordo.';
-      if (mark === '!') return '¡Tú! Algo me rompe los pararrayos. Y no es la tormenta.';
+      if (mark === '!') return hecho(ctx, 'MONTANAS_SEC_PARARRAYOS') ? 'Tengo que pedirte algo. Y esta vez no es de pararrayos… es de una voz.' : '¡Tú! Algo me rompe los pararrayos. Y no es la tormenta.';
+      if (hecho(ctx, 'MONTANAS_SEC_ASTRID')) return pick(['Cada tormenta soplo el cuerno de Astrid. Las arpías ahora repiten el cuerno, no su voz. Así está mejor.', 'Ya no oigo a Astrid en las peñas. Oigo su cuerno. Y los viajeros llegan a salvo.']);
       if (hecho(ctx, 'MONTANAS_SEC_PARARRAYOS')) return pick(['El troll ya tiene su pararrayos de madera. Lo usa todas las mañanas. Parece feliz.', 'Desde que el troll se rasca con madera, mis pararrayos duran el triple.']);
       return night
         ? pick(['De noche las tormentas son más bonitas. Y más peligrosas.', 'Si se te paran los pelos, agáchate. Hazme caso.'])
@@ -670,7 +671,8 @@ export const DIALOGUES = {
     greet: (ctx) => {
       const { night, mark } = ctx;
       if (mark === '?') return 'Volviste de las tumbas. Lo veo en tu cara.';
-      if (mark === '!') return 'Los guardias de la Cumbre no descansan. Necesito a alguien que no les tenga miedo.';
+      if (mark === '!') return hecho(ctx, 'MONTANAS_SEC_RONDA') ? 'Los gigantes de hielo están rompiendo las tumbas. Otra vez necesito tu ayuda.' : 'Los guardias de la Cumbre no descansan. Necesito a alguien que no les tenga miedo.';
+      if (hecho(ctx, 'MONTANAS_SEC_ORDEN')) return pick(['Leí la carta del Rey frente a las tumbas. Esa noche, la ronda pasó en silencio.', 'Ahora entiendo a los guardias. No los voy a llamar malditos nunca más.']);
       if (hecho(ctx, 'MONTANAS_SEC_RONDA')) return pick(['La tumba de mi abuelo ya no tiene nieve. Ni un copo. Creo que está contento.', 'Algunas noches todavía se oye la ronda. Pero ahora son menos pasos.']);
       return night
         ? pick(['De noche se oyen los pasos de la guardia. Tres siglos haciendo la misma ronda.', 'No subas de noche. La Cumbre es de ellos de noche.'])
