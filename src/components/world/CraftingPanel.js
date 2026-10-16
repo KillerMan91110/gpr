@@ -107,7 +107,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     // primero las nuevas, después las que se pueden hacer, y al final las de candado
-    return (recipes ?? []).filter((r) => inCat(r) && (!q || r.resultName.toLowerCase().includes(q)))
+    return (recipes ?? []).filter((r) => inCat(r) && (!q || (!r.locked && r.resultName.toLowerCase().includes(q))))
       .sort((a, b) => Number(!!a.locked) - Number(!!b.locked) || Number(!!b.isNew) - Number(!!a.isNew) || Number(b.canCraft) - Number(a.canCraft));
   }, [recipes, inCat, search]);
   // al abrir una receta nueva deja de ser "NUEVO"
@@ -246,9 +246,17 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                       className={`wp-recipe${recipe?.code === r.code ? ' wp-recipe--sel' : ''}${r.canCraft ? '' : ' wp-recipe--missing'}${r.locked ? ' wp-recipe--locked' : ''}`}
                       onClick={() => { if (busy) return; openRecipe(r); setQty(1); setResult(null); setRun(null); }}
                     >
-                      <span className={`wp-slot wp-slot--sm wp-rarity-${(r.rarity || 'COMUN').toLowerCase()}`}><ItemIcon icon={icon} /></span>
-                      <span className={`wp-recipe-name wp-text-${(r.rarity || 'COMUN').toLowerCase()}`}>{r.resultName}</span>
-                      {r.locked && <span className="wp-recipe-lock" title={`Se aprende con ${r.scrollName}`}>🔒</span>}
+                      {r.locked ? (
+                        <>
+                          <span className="wp-slot wp-slot--sm wp-slot--locked"><GameIcon name="padlock" artist="lorc" /></span>
+                          <span className="wp-recipe-name" title={`Se aprende con ${r.scrollName}`}>???</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className={`wp-slot wp-slot--sm wp-rarity-${(r.rarity || 'COMUN').toLowerCase()}`}><ItemIcon icon={icon} /></span>
+                          <span className={`wp-recipe-name wp-text-${(r.rarity || 'COMUN').toLowerCase()}`}>{r.resultName}</span>
+                        </>
+                      )}
                       {r.isNew && <span className="wp-recipe-new">NUEVO</span>}
                       {r.canCraft && <span className="wp-recipe-count" title="Puedes fabricar">{n}</span>}
                     </button>
@@ -258,7 +266,25 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
             </ul>
 
             <section className="wp-craft-detail">
-              {recipe && (
+              {recipe?.locked && (
+                <>
+                  <header className="wp-craft-head">
+                    <span className="wp-slot wp-slot--lg wp-slot--locked"><GameIcon name="padlock" artist="lorc" /></span>
+                    <div>
+                      <strong>???</strong>
+                      <small>Receta de pergamino{recipe.className ? ` · ${recipe.className}` : ''}</small>
+                    </div>
+                  </header>
+                  <div className="wp-craft-locked">
+                    <b>🔒 Receta sin aprender</b>
+                    <span>Se aprende leyendo <b>{recipe.scrollName}</b>.</span>
+                    {(recipe.scrollSources ?? []).map((s) => (
+                      <span key={s.monster}>Lo suelta <b>{s.monster}</b> · {s.chance}%</span>
+                    ))}
+                  </div>
+                </>
+              )}
+              {recipe && !recipe.locked && (
                 <>
                   <header className="wp-craft-head">
                     <span
@@ -275,15 +301,6 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                     </div>
                   </header>
                   {recipe.description && <p className="wp-craft-desc">{recipe.description}</p>}
-                  {recipe.locked && (
-                    <div className="wp-craft-locked">
-                      <b>🔒 Receta sin aprender</b>
-                      <span>Se aprende leyendo <b>{recipe.scrollName}</b>.</span>
-                      {(recipe.scrollSources ?? []).map((s) => (
-                        <span key={s.monster}>Lo suelta <b>{s.monster}</b> · {s.chance}%</span>
-                      ))}
-                    </div>
-                  )}
                   <div className="wp-craft-stats">
                     <span>Éxito <b>{recipe.successRate}%</b></span>
                     <span>Obtienes <b>x{recipe.resultQuantity}</b></span>
@@ -315,7 +332,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                     <Stepper value={qty} max={Math.max(1, craftable)} onChange={setQty} />
                     {busy
                       ? <button type="button" className="wp-btn" onClick={() => { stopRef.current = true; }}>Detener</button>
-                      : <button type="button" className="wp-btn wp-btn--gold" disabled={!recipe.canCraft || !!stationNote || recipe.locked} onClick={craft}>{recipe.locked ? '🔒 Sin aprender' : 'Fabricar'}</button>}
+                      : <button type="button" className="wp-btn wp-btn--gold" disabled={!recipe.canCraft || !!stationNote} onClick={craft}>Fabricar</button>}
                   </div>
                 </>
               )}
@@ -422,7 +439,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
           </section>
         </div>
       )}
-      {hover && recipe && (
+      {hover && recipe && !recipe.locked && (
         <ItemTooltip item={{ itemId: recipe.resultItemId, name: recipe.resultName, rarity: recipe.rarity, itemType: recipe.resultType, slot: recipe.resultSlot }} x={hover.x} y={hover.y} token={token} />
       )}
     </FloatingPanel>

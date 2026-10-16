@@ -81,7 +81,15 @@
 
 .wp-panel-close:hover { filter: brightness(1.25); }
 
-.wp-panel-body { flex: 1; min-height: 0; padding: 10px 12px; overflow: auto; overscroll-behavior: contain; }
+.wp-panel-body {
+  flex: 1; min-height: 0; padding: 10px 12px; overflow: auto; overscroll-behavior: contain;
+  /* la misma barra fina dorada que la lista del Ranking (no la gris del navegador) */
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+.wp-panel-body::-webkit-scrollbar { width: 8px; height: 8px; }
+.wp-panel-body::-webkit-scrollbar-track { background: transparent; }
+.wp-panel-body::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
 .wp-panel-head, .wp-panel-foot { flex: none; }
 
 .wp-panel-foot {

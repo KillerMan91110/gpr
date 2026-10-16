@@ -309,7 +309,8 @@
 .wp-recipe--sel { background: linear-gradient(90deg, rgba(212, 175, 55, 0.28), rgba(212, 175, 55, 0.02)); border-color: rgba(212, 175, 55, 0.45); }
 .wp-recipe--missing { opacity: 0.55; }
 .wp-recipe--locked { opacity: 0.45; filter: grayscale(0.6); }
-.wp-recipe-lock { font-size: 0.75rem; }
+.wp-slot--locked { display: inline-flex; align-items: center; justify-content: center; color: #b9a77c; background: rgba(0, 0, 0, 0.35); }
+.wp-slot--locked .game-icon, .wp-slot--locked img { opacity: 0.8; }
 /* libro de recetas: lo recién descubierto y lo que falta descubrir */
 .wp-recipe-new {
   padding: 0 5px;
