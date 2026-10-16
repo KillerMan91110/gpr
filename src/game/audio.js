@@ -201,6 +201,8 @@ class AudioEngine {
   burst(start, dur, { gain = 0.2, filter = 'bandpass', from = 2000, to, q = 1, out } = {}) {
     const src = this.ctx.createBufferSource();
     src.buffer = this.noise;
+    // el ruido dura 1 s: los sonidos largos (el retumbo del trueno) lo repiten
+    src.loop = dur > 0.4;
     const f = this.ctx.createBiquadFilter();
     f.type = filter;
     f.frequency.setValueAtTime(from, start);
@@ -288,6 +290,15 @@ class AudioEngine {
     if (!this.ctx || this.prefs.muted) return;
     const t = this.ctx.currentTime + 0.005;
     switch (name) {
+      case 'trueno':
+        // el rayo: chasquido seco y después el retumbo largo y grave de la montaña
+        this.burst(t, 0.12, { gain: 0.45, from: 5000, to: 900, q: 1 });
+        this.burst(t + 0.08, 1.6, { gain: 0.32, filter: 'lowpass', from: 420, to: 60, q: 0.7 });
+        this.tone(55, t + 0.05, 1.2, { wave: 'sine', gain: 0.25, slide: 30 });
+        break;
+      case 'trueno_lejos':
+        this.burst(t, 2.2, { gain: 0.14, filter: 'lowpass', from: 260, to: 50, q: 0.7 });
+        break;
       case 'golpe':
         this.burst(t, 0.09, { gain: 0.3, from: 1200, to: 300, q: 2 });
         this.tone(160, t, 0.1, { wave: 'sine', gain: 0.3, slide: 60 });

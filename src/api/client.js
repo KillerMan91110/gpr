@@ -219,6 +219,9 @@ export const api = {
   saltarGuia: (playerId, token) => request(`/api/player/${playerId}/world/guia/saltar`, { method: 'POST', token }),
   revive: (playerId, token) => request(`/api/player/${playerId}/world/revivir`, { method: 'POST', token }),
   travel: (playerId, destino, token) => request(`/api/player/${playerId}/world/viaje`, { method: 'POST', body: { destino }, token }),
+  // vagonetas de las Montañas y los rayos de la tormenta (gprback/lib/tormenta.js)
+  vagoneta: (playerId, destino, token) => request(`/api/player/${playerId}/world/vagoneta`, { method: 'POST', body: { destino }, token }),
+  rayo: (playerId, token) => request(`/api/player/${playerId}/world/rayo`, { method: 'POST', token }),
   getPiedra: (playerId, token) => request(`/api/player/${playerId}/world/piedra`, { token }),
   // muñecos de venta (puestos de jugador en el Barrio del Mercado de Aurelia)
   getPuestos: (playerId, zona, token) => request(`/api/player/${playerId}/puestos?zona=${zona}`, { token }),

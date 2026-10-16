@@ -332,6 +332,8 @@ local NPCS = {
   npc_nori = {race="enano", style="gorra", hat="A", hatD="a", hair="Ho", beard="Ho", top="Cg", topD="g", topL="Gh", vest="N", pants="b", boots="b", belt="b", skin=D, skinD=Dd},
   -- Brin, la aprendiza de Ren: se queda con su puesto de guardabosque cuando Ren se va a las Montañas
   npc_brin = {race="humano", style="mono", hair="B", hairD="b", top="Cg", topD="g", topL="Gh", vest="N", pants="Cn", boots="b", belt="b", skin=D, skinD=Dd},
+  -- Grun, Grat y Grot, los trillizos vagoneteros (un mismo sprite): gorra roja, barba rubia y delantal de cuero
+  npc_vagonetero = {race="enano", style="gorra", hat="Cr", hatD="r", hair="Y", hairD="y", beard="Y", top="A", topD="a", topL="Ah", apron="N", pants="b", boots="b", belt="b", skin=P, skinD=Pd},
   -- guardia del Bastión: casco con penacho rojo, cota de malla y tabardo rojo
   npc_guardia_enano = {race="enano", style="casco", hat="R", hair="Hd", beard="Hd", top="S", topD="s", topL="W", tabard="Cr", pants="b", boots="b", belt="N", skin=D, skinD=Dd},
 }

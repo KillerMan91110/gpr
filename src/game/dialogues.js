@@ -12,6 +12,25 @@ const pick = (list) => list[Math.floor(Math.random() * list.length)];
 // dicen los NPCs sigue la historia de cada jugador: nadie te agradece algo que no hiciste.
 const hecho = (ctx, code) => !!ctx?.done?.has?.(code);
 
+// Los trillizos vagoneteros de las Montañas (Grun, Grat y Grot): cada uno atiende una estación y te
+// lleva a las otras dos (gprback/lib/tormenta.js). Se distinguen por cómo hablan… un poco.
+const ESTACIONES = { bastion: 'el Bastión de Hierro', minas: 'las Minas Abandonadas', garganta: 'la Garganta del Eco' };
+const vagonetero = (aqui, name, saludo, ambient) => ({
+  name,
+  role: 'Vagonetero',
+  portrait: PORTRAIT('vagonetero'),
+  ambient,
+  greet: () => pick(saludo),
+  options: () => [
+    ...Object.entries(ESTACIONES).filter(([k]) => k !== aqui).map(([k, lugar]) => ({ label: `Viajar a ${lugar} (15 de oro)`, action: 'vagoneta', destino: k })),
+    { label: '¿Cómo funcionan las vagonetas?', next: 'como' },
+    { label: 'Adiós', close: true },
+  ],
+  lines: {
+    como: 'Los túneles viejos de los enanos unen el Bastión, las Minas y la Garganta. Te subes, te agarras fuerte y en un suspiro llegas. Eso sí: solo te llevo a donde ya fuiste caminando. Si no conoces la estación, no sé dónde frenar contigo adentro.',
+  },
+});
+
 export const DIALOGUES = {
   ren: {
     name: 'Ren',
@@ -684,6 +703,16 @@ export const DIALOGUES = {
     options: () => [{ label: 'Adiós', close: true }],
     lines: {},
   },
+  // vagonetas de las Montañas: los trillizos
+  vagonetero_bastion: vagonetero('bastion', 'Grun',
+    ['¡Vagonetas! ¡A las Minas o a la Garganta! Agárrate el sombrero.', 'Soy Grun, el mayor. Por tres minutos. Grat y Grot atienden las otras estaciones.'],
+    ['¡Vagoneta sale!', 'Grat siempre frena tarde. Grot frena temprano. Yo freno justo.', '¡Agárrate el sombrero!']),
+  vagonetero_minas: vagonetero('minas', 'Grat',
+    ['¡Sube, sube! Las vagonetas no esperan. Bueno, sí esperan, pero yo no.', 'Soy Grat, el del medio. El más simpático. Pregúntale a cualquiera. Menos a Grun.'],
+    ['¡Frenos revisados! Más o menos.', 'Los murciélagos odian el ruido de las ruedas. Mejor.', '¡Siguiente parada, donde tú digas!']),
+  vagonetero_garganta: vagonetero('garganta', 'Grot',
+    ['Hola. Soy Grot. Llevo vagonetas. Despacio. Muy despacio. Seguro.', 'El eco repite el chirrido de las ruedas tres veces. A Lío le encanta.'],
+    ['Despacio se llega.', 'Las arpías no alcanzan a una vagoneta. Casi nunca.', '…Grat frena tarde. No le digas que te lo dije.']),
   // Nilo: el pescador viejo del Lago Cristalino
   nilo: {
     name: 'Nilo',

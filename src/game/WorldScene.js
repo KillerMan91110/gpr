@@ -17,6 +17,7 @@ import { exploreMethods } from './world/explore';
 import { eventsMethods } from './world/events';
 import { criptaMethods } from './world/cripta';
 import { questsMethods } from './world/quests';
+import { tormentaMethods } from './world/tormenta';
 import { trackingMethods } from './world/tracking';
 
 // Mundo abierto continuo (estilo MMO): public/assets/mundo/etheria.json coloca cada zona
@@ -1396,6 +1397,7 @@ export default class WorldScene extends Phaser.Scene {
     this.social?.update(delta);
     this.city?.update(delta);
     this.updateNpcs(time, delta);
+    this.updateStorm(time);
     this.reportPosition(time);
     this.checkExits(time);
     this.checkRefuge(time);
@@ -1480,4 +1482,4 @@ export default class WorldScene extends Phaser.Scene {
 }
 
 // Partes de la escena que viven en su propio archivo (game/world/*)
-Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods);
+Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods, tormentaMethods);

@@ -568,6 +568,17 @@ export default function World() {
         audio.sfx('error');
         bus.emit('social-toast', { text: err.message, kind: 'error' });
       }
+    } else if (o.action === 'vagoneta') {
+      try {
+        const r = await api.vagoneta(player.id, o.destino, token);
+        audio.sfx('monedas');
+        bus.emit('social-toast', { text: `🛒 ¡Agárrate! La vagoneta te lleva a ${r.nombre}.`, kind: 'tour' });
+        loadHud();
+        bus.emit('zone-change', { zoneDir: r.zona, x: r.x, y: r.y });
+      } catch (err) {
+        audio.sfx('error');
+        bus.emit('social-toast', { text: err.message, kind: 'error' });
+      }
     } else if (o.action === 'viaje') {
       try {
         const r = await api.travel(player.id, o.destino, token);
@@ -702,6 +713,21 @@ export default function World() {
       }
     }).catch(() => {});
   }, [worldReady, player, token, zoneId]);
+
+  // la tormenta de las Montañas: un rayo te alcanzó (el servidor te quita vida, nunca hasta 0)
+  useEffect(() => {
+    if (!player) return undefined;
+    const onRayo = () => {
+      api.rayo(player.id, token).then((r) => {
+        if (!r?.damage) return;
+        audio.sfx('golpe');
+        bus.emit('social-toast', { text: `⚡ ¡Te alcanzó un rayo! −${r.damage} de vida. Cuando veas la sombra en el suelo, ¡muévete!`, kind: 'error' });
+        loadHud();
+      }).catch(() => {});
+    };
+    bus.on('rayo-golpe', onRayo);
+    return () => bus.off('rayo-golpe', onRayo);
+  }, [player, token, loadHud]);
 
   // aceptaste una misión que te compartió tu grupo: se recargan el rastreador y las marcas
   useEffect(() => {
