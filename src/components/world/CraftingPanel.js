@@ -394,7 +394,9 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
       {tab === 'dismantle' && (
         <div className="wp-craft">
           <div className="wp-bag-grid wp-sell-grid">
-            {(inventory ?? []).filter((i) => i.quantity > 0).map((it) => {
+            {/* solo el equipo se desmantela (gprback/lib/desmantelar.js): devuelve la mitad de sus materiales
+                en promedio, nunca las piezas de jefe */}
+            {(inventory ?? []).filter((i) => i.quantity > 0 && i.item_type === 'EQUIPMENT').map((it) => {
               const icon = iconForItem(it);
               return (
                 <button
@@ -411,7 +413,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
             {inventory === null && <p className="wp-empty">Cargando…</p>}
           </div>
           <section className="wp-craft-detail">
-            {!selItem && !result && <p className="wp-deal-hint">Elige un objeto de la mochila para romperlo y recuperar materiales.</p>}
+            {!selItem && !result && <p className="wp-deal-hint">Elige un equipo de la mochila para romperlo: recuperas más o menos la mitad de sus materiales. Las piezas de jefe (coronas, yelmos, núcleos…) no vuelven.</p>}
             {selItem && (
               <>
                 <header className="wp-craft-head">

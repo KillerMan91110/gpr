@@ -875,6 +875,10 @@ Se puede usar cada ${s.cooldownRounds} rondas.` : '';
                 {result.rewards.itemsDropped?.map((d) => (
                   <span key={`${d.itemName}-${d.quantity}`} className="bt-drop"><GameIcon name="swap-bag" artist="lorc" /> {d.itemName} x{d.quantity}</span>
                 ))}
+                {/* pieza de set de un monstruo raro: la tuya (cada héroe tira por su cuenta, de su clase) */}
+                {result.rewards.setPieces?.filter((p) => p.playerId === player.id).map((p) => (
+                  <span key={`pieza-${p.itemId}`} className="bt-levelup"><GameIcon name="crossed-swords" artist="lorc" /> ¡Pieza de equipo! {p.name}</span>
+                ))}
                 {result.rewards.levelUps?.map((l) => (
                   <span key={`${l.playerId ?? l.npcId}`} className="bt-levelup">¡{l.npcName ?? player.nickname} sube a nivel {l.newLevel}!</span>
                 ))}
