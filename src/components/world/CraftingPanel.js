@@ -8,7 +8,7 @@ import bus from '../../game/bus';
 import { CraftSprite, STATION_SOUND, sheetLength, stationFor } from './CraftAnim';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
-import { iconForItem, RARITY_LABELS } from './itemIcons';
+import { iconForItem, RARITY_LABELS, STAT_LABELS } from './itemIcons';
 
 // dónde se fabrica cada receta (crafting_recipes.station en el back)
 const STATION_LABEL = {
@@ -42,6 +42,51 @@ function Stepper({ value, max, onChange }) {
 // Se abre en cualquier lado (tecla U): pociones, comidas y refinados simples se hacen donde sea;
 // el equipo y los lingotes piden estar en una forja y el agua, junto al Pilar de Aethra. Se
 // fabrica uno por uno, con la animación de la estación y el efecto de cada resultado.
+// filtros por tipo de pieza (los huecos del equipo que entran en cada uno)
+const SLOT_FILTERS = [
+  { code: 'todo', name: 'Todo', slots: [] },
+  { code: 'arma', name: 'Armas', slots: ['WEAPON'] },
+  { code: 'izq', name: 'Mano izq.', slots: ['OFFHAND'] },
+  { code: 'armadura', name: 'Armadura', slots: ['HELMET', 'ARMOR', 'GLOVES', 'BOOTS'] },
+  { code: 'joya', name: 'Accesorios', slots: ['ACCESSORY'] },
+];
+
+// la pieza frente a lo que llevas puesto en ese hueco (un arma a dos manos también quita la mano izquierda)
+const statKey = (s) => `${s.stat}${s.percent ? '%' : ''}`;
+const fmtStat = (v, percent) => `${Math.round(v * 10) / 10}${percent ? '%' : ''}`;
+function StatCompare({ recipe }) {
+  const sumBy = (list) => {
+    const m = new Map();
+    for (const s of list ?? []) m.set(statKey(s), { ...s, amount: (m.get(statKey(s))?.amount ?? 0) + Number(s.amount) });
+    return m;
+  };
+  const now = sumBy(recipe.resultStats);
+  const worn = sumBy(recipe.equipped?.stats);
+  const keys = [...new Set([...now.keys(), ...worn.keys()])];
+  return (
+    <div className="wp-compare">
+      <div className="wp-compare-head">
+        {recipe.equipped ? <>Frente a lo que llevas: <b>{recipe.equipped.names.join(' + ')}</b></> : 'No llevas nada en ese hueco'}
+        {recipe.twoHanded && recipe.equipped?.names.length > 1 && <small> (a dos manos: también se quita la mano izquierda)</small>}
+      </div>
+      <ul>
+        {keys.map((k) => {
+          const a = now.get(k); const b = worn.get(k);
+          const s = a ?? b; const diff = (a?.amount ?? 0) - (b?.amount ?? 0);
+          const cls = Math.abs(diff) < 0.05 ? 'same' : diff > 0 ? 'up' : 'down';
+          return (
+            <li key={k} className={`wp-compare--${cls}`}>
+              <span>{STAT_LABELS[s.stat] ?? s.stat}</span>
+              <b>{a ? `+${fmtStat(a.amount, s.percent)}` : '—'}</b>
+              {recipe.equipped && <em>{cls === 'same' ? '=' : `${cls === 'up' ? '▲' : '▼'} ${fmtStat(Math.abs(diff), s.percent)}`}</em>}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, defaultPos, args }) {
   const { player, token } = useAuth();
   const [tab, setTab] = useState('craft');
@@ -49,6 +94,11 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
   const [inventory, setInventory] = useState(null);
   const [cat, setCat] = useState('todo');
   const [search, setSearch] = useState('');
+  // filtros de la lista: tipo de pieza y los interruptores (puedo fabricar, para mi nivel, sin candado)
+  const [slotFilter, setSlotFilter] = useState('todo');
+  const [onlyCraftable, setOnlyCraftable] = useState(false);
+  const [onlyMyLevel, setOnlyMyLevel] = useState(false);
+  const [hideLocked, setHideLocked] = useState(false);
   const [selCode, setSelCode] = useState(null);
   const [selItem, setSelItem] = useState(null);
   const [qty, setQty] = useState(1);
@@ -80,7 +130,10 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
   }, [player, token]);
   // abierta desde el Pilar ("Llenar frascos"): con esa receta elegida
   useEffect(() => {
-    if (args?.recipe) { setTab('craft'); setCat('todo'); setSearch(''); setSelCode(args.recipe); setResult(null); }
+    if (args?.recipe) {
+      setTab('craft'); setCat('todo'); setSearch(''); setSlotFilter('todo'); setOnlyCraftable(false); setOnlyMyLevel(false); setHideLocked(false);
+      setSelCode(args.recipe); setResult(null);
+    }
   }, [args]);
   // si se cierra la ventana a mitad, se deja de fabricar
   useEffect(() => () => { stopRef.current = true; bus.emit('crafting', false); }, []);
@@ -107,9 +160,12 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     // primero las nuevas, después las que se pueden hacer, y al final las de candado
-    return (recipes ?? []).filter((r) => inCat(r) && (!q || (!r.locked && r.resultName.toLowerCase().includes(q))))
+    const slotOk = (r) => slotFilter === 'todo' || (r.resultType === 'EQUIPMENT' && SLOT_FILTERS.find((f) => f.code === slotFilter)?.slots.includes(r.resultSlot));
+    return (recipes ?? []).filter((r) => inCat(r) && (!q || (!r.locked && r.resultName.toLowerCase().includes(q)))
+      && slotOk(r) && (!onlyCraftable || r.canCraft) && (!onlyMyLevel || r.levelOk !== false) && (!hideLocked || !r.locked))
       .sort((a, b) => Number(!!a.locked) - Number(!!b.locked) || Number(!!b.isNew) - Number(!!a.isNew) || Number(b.canCraft) - Number(a.canCraft));
-  }, [recipes, inCat, search]);
+  }, [recipes, inCat, search, slotFilter, onlyCraftable, onlyMyLevel, hideLocked]);
+  const anyFilter = slotFilter !== 'todo' || onlyCraftable || onlyMyLevel || hideLocked;
   // al abrir una receta nueva deja de ser "NUEVO"
   const openRecipe = (r) => {
     setSelCode(r.code);
@@ -232,10 +288,23 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
             </span>
             <input className="wp-search wp-search--inline" type="search" placeholder="Buscar receta…" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
+          <div className="wp-filter-bar">
+            {SLOT_FILTERS.map((f) => (
+              <button key={f.code} type="button" className={`wp-filter${slotFilter === f.code ? ' wp-filter--on' : ''}`} onClick={() => setSlotFilter(f.code)}>{f.name}</button>
+            ))}
+            <span className="wp-filter-sep" />
+            <button type="button" className={`wp-filter${onlyCraftable ? ' wp-filter--on' : ''}`} title="Solo las que tienes materiales para fabricar" onClick={() => setOnlyCraftable((v) => !v)}>Puedo fabricar</button>
+            <button type="button" className={`wp-filter${onlyMyLevel ? ' wp-filter--on' : ''}`} title="Oculta el equipo que todavía no puedes equipar" onClick={() => setOnlyMyLevel((v) => !v)}>Para mi nivel</button>
+            <button type="button" className={`wp-filter${hideLocked ? ' wp-filter--on' : ''}`} title="Oculta las recetas de pergamino que no aprendiste" onClick={() => setHideLocked((v) => !v)}>Sin candado</button>
+            {anyFilter && (
+              <button type="button" className="wp-filter wp-filter--clear" title="Quitar los filtros" onClick={() => { setSlotFilter('todo'); setOnlyCraftable(false); setOnlyMyLevel(false); setHideLocked(false); }}>✕</button>
+            )}
+          </div>
           <div className="wp-craft">
             <ul className="wp-recipe-list">
               {!recipes && <li className="wp-empty">Cargando…</li>}
-              {recipes && filtered.length === 0 && <li className="wp-empty">{undiscovered > 0 ? 'Todavía no descubriste ninguna: consigue materiales (cazando, recolectando o comprando) y aparecen solas.' : 'Sin recetas. Desbloquea zonas y derrota jefes para aprender más.'}</li>}
+              {recipes && filtered.length === 0 && anyFilter && <li className="wp-empty">Ninguna receta con estos filtros.</li>}
+              {recipes && filtered.length === 0 && !anyFilter && <li className="wp-empty">{undiscovered > 0 ? 'Todavía no descubriste ninguna: consigue materiales (cazando, recolectando o comprando) y aparecen solas.' : 'Sin recetas. Desbloquea zonas y derrota jefes para aprender más.'}</li>}
               {filtered.map((r) => {
                 const icon = iconForItem({ name: r.resultName, slot: r.resultSlot, item_type: r.resultType });
                 const n = Math.min(...r.ingredients.map((i) => Math.floor(i.have / Math.max(1, i.need))));
@@ -302,7 +371,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                     </span>
                     <div>
                       <strong className={`wp-text-${(recipe.rarity || 'COMUN').toLowerCase()}`}>{recipe.resultName}</strong>
-                      <small>{RARITY_LABELS[recipe.rarity] ?? recipe.rarity}{recipe.className ? ` · ${recipe.className}` : ''}{recipe.artisanName ? ` · ${recipe.artisanName}` : ''}</small>
+                      <small>{RARITY_LABELS[recipe.rarity] ?? recipe.rarity}{recipe.className ? ` · ${recipe.className}` : ''}{recipe.twoHanded ? ' · Dos manos' : ''}{recipe.artisanName ? ` · ${recipe.artisanName}` : ''}</small>
                       {recipe.requiredLevel && (
                         <small className={recipe.levelOk ? 'wp-craft-lv' : 'wp-craft-lv wp-craft-lv--high'}>
                           Requiere nivel {recipe.requiredLevel}{recipe.levelOk ? '' : ' · todavía no puedes equiparlo'}
@@ -311,6 +380,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                     </div>
                   </header>
                   {recipe.description && <p className="wp-craft-desc">{recipe.description}</p>}
+                  {recipe.resultStats && <StatCompare recipe={recipe} />}
                   <div className="wp-craft-stats">
                     <span>Éxito <b>{recipe.successRate}%</b></span>
                     <span>Obtienes <b>x{recipe.resultQuantity}</b></span>

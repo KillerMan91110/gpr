@@ -226,6 +226,12 @@
 .wp-tooltip-name { font: 700 0.95rem 'Cinzel', serif; }
 .wp-tooltip-sub { color: var(--text-soft); font-size: 0.76rem; margin-bottom: 4px; }
 .wp-tooltip-stat { color: #7dff9a; }
+/* frente a lo que llevas puesto: verde mejor, rojo peor, gris igual */
+.wp-tooltip-stat--up { color: #7dff9a; }
+.wp-tooltip-stat--down { color: #ff8a7a; }
+.wp-tooltip-stat--same { color: #c9bfa6; }
+.wp-tooltip-stat small { opacity: 0.85; font-size: 0.85em; }
+.wp-tooltip-vs { margin-top: 3px; font: italic 0.72rem 'EB Garamond', serif; color: #a89c80; }
 .wp-tooltip-req { color: var(--text-soft); font-size: 0.76rem; }
 .wp-tooltip-desc { margin-top: 5px; color: var(--gold-bright); font-style: italic; }
 .wp-tooltip-hint { margin-top: 6px; color: #8fc9ff; font-size: 0.74rem; }

@@ -277,6 +277,34 @@
 .wp-cat-name { margin-left: 6px; font: 700 0.8rem 'Cinzel', serif; color: var(--gold-bright); }
 .wp-search--inline { width: 170px; margin: 0 0 0 auto; }
 
+/* Taller: la pieza frente a lo que llevas puesto */
+.wp-compare { margin: 6px 0 8px; padding: 6px 8px; border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 6px; background: rgba(0, 0, 0, 0.25); }
+.wp-compare-head { margin-bottom: 4px; font: italic 0.78rem 'EB Garamond', serif; color: var(--text-soft, #b9ac8e); }
+.wp-compare-head b { font-style: normal; color: var(--cream); }
+.wp-compare ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.wp-compare li { display: grid; grid-template-columns: 1fr auto 64px; gap: 8px; align-items: baseline; font: 0.8rem 'EB Garamond', serif; color: var(--cream); }
+.wp-compare li b { font: 700 0.78rem 'Cinzel', serif; }
+.wp-compare li em { font: 700 0.74rem 'Cinzel', serif; font-style: normal; text-align: right; }
+.wp-compare--up em { color: #7dff9a; }
+.wp-compare--down em { color: #ff8a7a; }
+.wp-compare--same em { color: var(--text-soft, #b9ac8e); }
+
+/* filtros del Taller: tipo de pieza e interruptores */
+.wp-filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: -2px 0 8px; }
+.wp-filter {
+  padding: 2px 9px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  font: 600 0.72rem 'Cinzel', serif;
+  color: var(--text-soft, #b9ac8e);
+  cursor: pointer;
+}
+.wp-filter:hover { color: var(--cream); border-color: rgba(212, 175, 55, 0.6); }
+.wp-filter--on { color: #1a1206; background: linear-gradient(180deg, #e6c45a, #b8912e); border-color: var(--gold-bright); }
+.wp-filter--clear { padding: 2px 7px; color: #ff8a7a; border-color: rgba(255, 138, 122, 0.4); }
+.wp-filter-sep { width: 1px; height: 16px; margin: 0 4px; background: rgba(212, 175, 55, 0.3); }
+
 .wp-craft { display: flex; gap: 10px; min-height: 300px; }
 
 .wp-recipe-list {
