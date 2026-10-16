@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
 import FloatingPanel from './FloatingPanel';
-import { questsOfGiver, needsTurnInPerson, NPC_LUGAR } from '../../game/questGivers';
+import { questsOfGiver, needsTurnInPerson, NPC_LUGAR, npcFor } from '../../game/questGivers';
 import { DIALOGUES } from '../../game/dialogues';
 import audio from '../../game/audio';
 import bus from '../../game/bus';
@@ -165,8 +165,8 @@ export function QuestLogPanel({ onChanged, tracked = [], onToggleTrack, ...props
                 {needsTurnInPerson(current) ? (
                   // se entrega en persona: hablando con quien la recibe (marca ? en el mapa)
                   <span className={`wp-quest-turnin${objectivesDone(current) ? ' wp-quest-turnin--ready' : ''}`}>
-                    {objectivesDone(current) ? '❔ Entrégasela' : 'Se entrega'} a {DIALOGUES[current.turn_in_npc]?.name ?? 'quien te la dio'}
-                    {NPC_LUGAR[current.turn_in_npc] ? `, en ${NPC_LUGAR[current.turn_in_npc]}` : ''}
+                    {objectivesDone(current) ? '❔ Entrégasela' : 'Se entrega'} a {DIALOGUES[npcFor(current.turn_in_npc)]?.name ?? 'quien te la dio'}
+                    {NPC_LUGAR[npcFor(current.turn_in_npc)] ? `, en ${NPC_LUGAR[npcFor(current.turn_in_npc)]}` : ''}
                   </span>
                 ) : (
                   <button

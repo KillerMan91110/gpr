@@ -31,6 +31,13 @@ for k, v in pairs({
   ec1="5a4878", ec2="2e2440", ec3="171222", ev="c890ff", ev2="8a50d8",
   -- muñeca
   d1="f0d070", d2="c89a38", dr="c0343a",
+  -- Montañas Grises: nieve, oso, orco, rayo, fuego de almas y agua helada
+  sn1="f6f9fc", sn2="cad6e6", sn3="94a4bc",
+  br1="a87850", br2="704c32", br3="3e2a1a",
+  oc1="7aa04a", oc2="4e7032",
+  zz1="fff7a0", zz2="ffd23a",
+  bl1="c8f0ff", bl2="7ec8ff", bl3="3a7ad0",
+  dk="1c2a3a",
 }) do PAL[k] = hex(v) end
 
 local function newGrid(W, H)
@@ -331,6 +338,212 @@ sprite("muneca_suelo", 32, 32, function(G, f)
   G.rect(15, 22, 17, 24, "dr")
   G.thick(24, 23, 28, 23, 2, "pa"); G.thick(13, 19, 15, 15, 2, "pa")
   if f == 1 then G.px(20, 18, "W") end
+end)
+
+-- ================================================================ Montañas Grises
+-- el dibujo de los orcos: un cuero clavado con carbón: una cabra enorme con corona y orcos de rodillas
+sprite("dibujo_orco", 32, 32, function(G, f)
+  G.ellipse(16, 28, 11, 2.5, "t2")
+  G.thick(4, 28, 6, 4, 2, "wd2"); G.thick(27, 28, 25, 4, 2, "wd2")
+  G.poly({{5, 6}, {27, 5}, {26, 23}, {6, 24}}, "le1")
+  G.poly({{20, 6}, {27, 5}, {26, 23}, {21, 23}}, "le2")
+  -- la cabra reina
+  G.ellipse(15, 13, 5, 3, "K"); G.line(11, 15, 11, 18, "K"); G.line(18, 15, 18, 18, "K")
+  G.line(19, 11, 21, 9, "K"); G.line(21, 9, 23, 7, "K"); G.line(20, 9, 19, 6, "K")
+  G.rect(13, 8, 17, 9, "y2"); G.px(13, 7, "y2"); G.px(15, 7, "y2"); G.px(17, 7, "y2")
+  -- los orcos de rodillas
+  for _, x in ipairs({8, 12, 16, 20}) do G.ellipse(x, 21, 1.5, 1.5, "K"); G.line(x, 22, x + 1, 22, "K") end
+  if f == 1 then G.px(23, 18, "oc1") end
+end)
+
+-- el nido de los murciélagos: ramitas, monedas, gemas y un anillo que brilla
+sprite("nido_brillos", 32, 32, function(G, f)
+  G.ellipse(16, 24, 13, 6, "wd3")
+  G.ellipse(16, 22, 11, 4, "t2")
+  for i = 0, 7 do local a = i * math.pi / 4; G.line(16 + math.cos(a) * 9, 23 + math.sin(a) * 3, 16 + math.cos(a) * 13, 24 + math.sin(a) * 5, "wd2") end
+  for _, p in ipairs({{10, 21}, {13, 23}, {19, 22}, {22, 20}, {15, 20}}) do G.ellipse(p[1], p[2], 1.6, 1.2, "y1"); G.px(p[1], p[2], "y2") end
+  G.poly({{24, 21}, {26, 19}, {27, 22}}, "az")
+  G.ellipse(17, 18, 2.4, 2.4, "y1"); G.ellipse(17, 18, 1.1, 1.1, "t2")
+  if f == 0 then G.px(18, 16, "W"); G.px(10, 19, "W") else G.px(23, 18, "W"); G.px(13, 21, "W") end
+end)
+
+-- la trampa vacía de Sven: cepo de hierro saltado sobre la nieve y huellas enormes
+sprite("trampa_vacia", 32, 32, function(G, f)
+  G.ellipse(16, 22, 15, 8, "sn1")
+  G.ellipse(16, 23, 6, 3, "fe2"); G.ellipse(16, 23, 4, 1.6, "sn2")
+  for i = -2, 2 do G.line(16 + i * 2, 20, 16 + i * 2, 18, "fe1") end
+  G.line(22, 23, 28, 26, "fe2")
+  for _, p in ipairs({{5, 13}, {9, 9}, {25, 12}}) do
+    G.ellipse(p[1], p[2], 2.5, 2, "sn3")
+    for k = -1, 1 do G.px(p[1] + k * 2, p[2] - 3, "sn3") end
+  end
+  if f == 1 then G.px(14, 21, "dr"); G.px(17, 22, "dr") end
+end)
+
+-- los oseznos: dos cachorros de oso comiéndose los conejos de Sven
+sprite("oseznos", 32, 32, function(G, f)
+  G.ellipse(16, 27, 13, 3, "sn2")
+  local function cub(x, y, look)
+    G.ellipse(x, y + 3, 5, 4, "br2"); G.ellipse(x, y + 4, 3, 2, "br1")
+    G.ellipse(x, y - 2 + look, 3.6, 3.2, "br2")
+    G.px(x - 3, y - 5 + look, "br3"); G.px(x + 3, y - 5 + look, "br3")
+    G.px(x - 1, y - 2 + look, "K"); G.px(x + 1, y - 2 + look, "K"); G.px(x, y + look, "br3")
+  end
+  cub(10, 20, 0); cub(22, 20, f)
+  G.ellipse(16, 25, 3, 1.5, "c1"); G.px(18, 24, "pk")
+end)
+
+-- el farol de almas: farol de piedra con una llama azul que guía a los espectros
+sprite("farol_almas", 32, 32, function(G, f)
+  G.ellipse(16, 28, 7, 2, "sn3")
+  G.rect(13, 18, 19, 27, "rk2"); G.rect(17, 18, 19, 27, "rk3")
+  G.rect(11, 9, 21, 17, "rk2"); G.rect(13, 11, 19, 16, "dk")
+  G.poly({{10, 9}, {22, 9}, {16, 3}}, "rk3")
+  local h = f == 0 and 0 or 1
+  G.ellipse(16, 14 - h, 2, 3, "bl2"); G.ellipse(16, 15 - h, 1, 1.5, "bl1")
+  G.px(9, 6 + h, "bl1"); G.px(23, 8 - h, "bl2")
+end)
+
+-- un agujero en el hielo, con el agua negra y algo que se mueve abajo
+sprite("agujero_hielo", 32, 32, function(G, f)
+  G.ellipse(16, 20, 15, 9, "bl1")
+  G.ellipse(16, 20, 9, 5, "bl3"); G.ellipse(16, 20, 7, 3.5, "dk")
+  G.line(3, 15, 8, 18, "bl2"); G.line(25, 25, 30, 22, "bl2")
+  if f == 0 then G.ellipse(14, 20, 3, 1, "aq3"); G.px(19, 19, "W") else G.ellipse(18, 20, 3, 1, "aq3"); G.px(12, 21, "W"); G.px(20, 14, "W") end
+end)
+
+-- un pararrayos de hierro doblado, con chispas
+sprite("pararrayos_roto", 32, 32, function(G, f)
+  G.ellipse(16, 28, 9, 2.5, "rk3")
+  G.rect(13, 23, 19, 28, "rk2")
+  G.thick(16, 23, 16, 13, 2, "fe2")
+  G.thick(16, 13, 22, 7, 2, "fe2"); G.line(15, 23, 15, 13, "fe1")
+  G.poly({{22, 7}, {25, 4}, {24, 8}}, "fe1")
+  if f == 0 then G.line(23, 9, 27, 12, "zz2"); G.px(26, 5, "zz1") else G.line(9, 14, 13, 16, "zz2"); G.px(21, 4, "zz1"); G.px(28, 10, "zz2") end
+end)
+
+-- la piedra del eco: un menhir con espirales enanas; las ondas de sonido se mueven
+sprite("piedra_eco", 32, 32, function(G, f)
+  G.ellipse(16, 28, 8, 2.5, "t2")
+  G.poly({{10, 28}, {22, 28}, {21, 7}, {16, 4}, {11, 7}}, "rk2")
+  G.poly({{17, 28}, {22, 28}, {21, 7}, {18, 6}}, "rk3")
+  G.ellipse(15, 14, 3, 3, "rk3"); G.ellipse(15, 14, 1.5, 1.5, "rk2"); G.px(15, 14, "ru")
+  G.line(13, 20, 18, 20, "rk3"); G.line(14, 23, 17, 23, "rk3")
+  local r = f == 0 and 0 or 2
+  G.line(5 - r, 10, 5 - r, 16, "bl2"); G.line(27 + r, 10, 27 + r, 16, "bl2")
+  G.line(2 - r, 8, 2 - r, 18, "bl1"); G.line(30 + r, 8, 30 + r, 18, "bl1")
+end)
+
+-- una tumba enana: losa de piedra con un hacha tallada, nieve encima
+sprite("tumba_enana", 32, 32, function(G, f)
+  G.ellipse(16, 28, 11, 2.5, "sn2")
+  G.rect(8, 10, 24, 28, "rk2"); G.rect(20, 10, 24, 28, "rk3")
+  G.ellipse(16, 10, 8, 4, "rk2")
+  G.ellipse(16, 8, 8, 3, "sn1"); G.rect(8, 8, 24, 9, "sn1")
+  G.line(14, 14, 14, 24, "rk3"); G.poly({{14, 14}, {19, 13}, {19, 18}, {14, 17}}, "rk3")
+  if f == 1 then G.px(12, 21, "bl1"); G.px(19, 22, "bl2") end
+end)
+
+-- la olla de Hilda, volcada en la nieve, con guiso derramado y huellas de orco
+sprite("olla_robada", 32, 32, function(G, f)
+  G.ellipse(16, 24, 14, 6, "sn1")
+  G.ellipse(19, 25, 7, 2.5, "wd2")
+  G.ellipse(12, 20, 7, 6, "fe2"); G.ellipse(10, 20, 4, 4, "dk"); G.rect(16, 15, 20, 16, "fe1")
+  for _, p in ipairs({{24, 14}, {27, 18}, {6, 28}}) do G.ellipse(p[1], p[2], 2, 1.5, "oc2"); G.px(p[1] - 1, p[2] - 2, "oc2"); G.px(p[1] + 1, p[2] - 2, "oc2") end
+  local h = f == 0 and 0 or 1
+  G.px(20, 21 - h, "sn3"); G.px(22, 19 - h, "sn3")
+end)
+
+-- ---------------------------------------------------------------- huellas y rastros
+-- una huella (planta + dedos) centrada en x, y; s = tamaño, c = color
+local function footprint(G, x, y, s, c, toes)
+  G.ellipse(x, y, 1.6 * s, 2.2 * s, c)
+  for k = -1, 1 do G.ellipse(x + k * 1.6 * s, y - 3 * s, 0.7 * s, 0.8 * s, c) end
+  if toes == 4 then G.ellipse(x + 2.6 * s, y - 2 * s, 0.6 * s, 0.7 * s, c) end
+end
+
+-- huellas verdes y enormes de orco en la nieve, con gotas de guiso (la olla de Hilda)
+sprite("huellas_orco", 32, 32, function(G, f)
+  G.ellipse(16, 20, 15, 10, "sn1")
+  footprint(G, 9, 25, 1.7, "oc2"); footprint(G, 20, 16, 1.7, "oc2")
+  G.ellipse(9, 25, 1.4, 2, "oc1"); G.ellipse(20, 16, 1.4, 2, "oc1")
+  for _, p in ipairs({{14, 22}, {25, 12}, {27, 20}}) do G.px(p[1], p[2], "wd2") end
+  if f == 1 then G.px(5, 18, "wd2"); G.px(24, 23, "wd2") end
+end)
+
+-- huellas de botas y, al lado, los agujeritos redondos de un bastón (el Brujo)
+sprite("huellas_baston", 32, 32, function(G, f)
+  G.ellipse(16, 20, 15, 10, "sn1")
+  for i, p in ipairs({{7, 27}, {13, 21}, {19, 15}, {25, 9}}) do
+    G.ellipse(p[1], p[2], 1.6, 2.6, "sn3"); G.ellipse(p[1], p[2] + 2, 1.2, 0.8, "sn2")
+    G.ellipse(p[1] + 4, p[2] - 1, 1, 1, "sk3")
+  end
+  if f == 1 then G.px(28, 6, "zz2") end
+end)
+
+-- huellas pequeñas de un chico que bajan por la roca (Tilo)
+sprite("huellas_nino", 32, 32, function(G, f)
+  G.ellipse(16, 21, 14, 8, "rk1")
+  for i, p in ipairs({{6, 26}, {11, 21}, {16, 25}, {21, 19}, {26, 23}}) do G.ellipse(p[1], p[2], 1.2, 1.8, "t2"); G.px(p[1], p[2] - 2, "t2") end
+  if f == 1 then G.px(27, 12, "W"); G.px(5, 14, "W") end
+end)
+
+-- huellas de lobo frente a una puerta de granja rota
+sprite("huellas_lobo", 32, 32, function(G, f)
+  G.ellipse(16, 27, 14, 3, "t2")
+  G.rect(6, 6, 17, 25, "wd2"); G.rect(6, 6, 17, 7, "wd3"); G.line(11, 7, 11, 25, "wd3")
+  G.poly({{17, 8}, {24, 13}, {23, 26}, {17, 25}}, "wd1"); G.line(20, 12, 20, 25, "wd2")
+  G.line(8, 14, 14, 20, "dk"); G.line(14, 14, 9, 21, "dk")
+  for _, p in ipairs({{21, 29}, {27, 26}}) do footprint(G, p[1], p[2], 1.1, "l3", 4) end
+  if f == 1 then G.px(9, 11, "dr"); G.px(13, 11, "dr") end
+end)
+
+-- Bram, el minero enano, atrapado bajo unas piedras (agita la mano)
+sprite("bram_atrapado", 32, 32, function(G, f)
+  G.ellipse(16, 27, 14, 3, "rk3")
+  G.ellipse(10, 18, 5, 5, "le1"); G.ellipse(10, 21, 5, 3, "br2") -- cara y barba
+  G.ellipse(10, 14, 5, 3, "fe1"); G.px(10, 11, "y1") -- casco con vela
+  G.px(8, 17, "K"); G.px(12, 17, "K")
+  G.rect(13, 21, 28, 26, "wd2")
+  G.ellipse(19, 21, 5, 4, "rk2"); G.ellipse(25, 22, 4, 4, "rk1"); G.ellipse(22, 17, 3, 3, "rk2")
+  local h = f == 0 and 0 or 2
+  G.thick(4, 22, 2, 15 - h, 2, "le1")
+end)
+
+-- Kili, escondido en una grieta: solo se le ven los ojos y la vela del casco
+sprite("kili_escondido", 32, 32, function(G, f)
+  G.poly({{4, 30}, {9, 4}, {23, 3}, {28, 30}}, "rk2")
+  G.poly({{13, 28}, {14, 9}, {18, 9}, {19, 28}}, "dk")
+  G.ellipse(16, 15, 2.5, 2, "fe1"); G.px(16, 12, "y1"); G.px(16, 11, f == 0 and "zz1" or "y1")
+  G.px(15, 18, "W"); G.px(17, 18, "W"); G.ellipse(16, 21, 2.5, 1.5, "br2")
+end)
+
+-- una nota quemada sobre una roca, con un eclipse dibujado
+sprite("nota_suelo", 32, 32, function(G, f)
+  G.ellipse(16, 25, 12, 5, "rk2"); G.ellipse(16, 23, 10, 4, "rk1")
+  G.poly({{8, 21}, {22, 16}, {25, 22}, {11, 27}}, "pa")
+  G.line(8, 21, 11, 27, "sk3"); G.line(22, 16, 25, 22, "sk3")
+  G.ellipse(17, 21, 2.6, 2.6, "ec2"); G.ellipse(16.3, 20.4, 1.8, 1.8, "pa")
+  if f == 1 then G.px(20, 18, "ev") end
+end)
+
+-- la red de Nilo tirada en la orilla, con algo que se mueve adentro
+sprite("red_pesca", 32, 32, function(G, f)
+  G.ellipse(16, 25, 15, 5, "aq2")
+  G.ellipse(16, 22, 11, 6, "t1")
+  for i = 0, 5 do G.line(6 + i * 4, 17, 8 + i * 3, 27, "y2") end
+  for i = 0, 2 do G.line(6, 19 + i * 3, 26, 19 + i * 3, "y2") end
+  local x = f == 0 and 14 or 17
+  G.ellipse(x, 22, 2.5, 1.5, "sp1"); G.px(x - 1, 21, "K")
+end)
+
+-- una rama recta de roble entre las raíces
+sprite("rama_suelo", 32, 32, function(G, f)
+  G.ellipse(16, 26, 13, 3.5, "t2")
+  G.thick(5, 25, 27, 20, 2, "wd2"); G.line(5, 24, 27, 19, "wd1")
+  G.line(18, 22, 21, 17, "wd2"); G.poly({{21, 17}, {25, 14}, {23, 18}}, "v2")
+  G.line(3, 28, 9, 26, "wd3"); G.line(24, 28, 29, 26, "wd3")
+  if f == 1 then G.px(14, 19, "W") end
 end)
 
 -- ---------------------------------------------------------------- salida

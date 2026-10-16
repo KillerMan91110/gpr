@@ -15,7 +15,7 @@ import DialogueBox from '../components/world/DialogueBox';
 import { DIALOGUES } from '../game/dialogues';
 import QuestTracker from '../components/world/QuestTracker';
 import TargetFrame from '../components/world/TargetFrame';
-import { questMarks, readyQuestsFor, hasWorkFor } from '../game/questGivers';
+import { questMarks, readyQuestsFor, hasWorkFor, setStoryStandIns, npcFor, questTargetsOf } from '../game/questGivers';
 import { MAX_TRACKED, TRACK_COLORS, trackTargets, loadTracked, saveTracked } from '../game/questTracking';
 import LevelUpBanner from '../components/world/LevelUpBanner';
 import SoundControl from '../components/world/SoundControl';
@@ -207,6 +207,7 @@ export default function World() {
   const [refreshKey, setRefreshKey] = useState(0);
   // conversación con un NPC, marcas de misión, subida de nivel y hora del día
   const [dialogue, setDialogue] = useState(null);
+  const [storyDone, setStoryDone] = useState(null);
   // lo que dice el NPC por una misión al hablarle (antes de su saludo de siempre)
   const [questLines, setQuestLines] = useState(null);
   // sube cuando la conversación tiene que empezar de nuevo con el mismo NPC (al entregarle una misión)
@@ -388,7 +389,14 @@ export default function World() {
     if (r?.events?.length) setRefreshKey((k) => k + 1);
   }, []);
   const talkTo = useCallback(async (id) => {
-    const r = player ? await api.questInteract(player.id, 'TALK', id, token).catch(() => null) : null;
+    let r = null;
+    if (player) {
+      for (const target of questTargetsOf(id)) {
+        const res = await api.questInteract(player.id, 'TALK', target, token).catch(() => null);
+        if (!res) continue;
+        r = r ? { ...r, events: [...(r.events ?? []), ...(res.events ?? [])], notes: [...(r.notes ?? []), ...(res.notes ?? [])] } : res;
+      }
+    }
     showQuestResult(r);
     const lines = (r?.events ?? []).filter((e) => e.dialog).map((e) => ({ speaker: e.speaker, text: e.dialog }));
     setQuestLines(lines.length ? lines : null);
@@ -441,7 +449,7 @@ export default function World() {
       bus.emit('social-toast', { text: `✔ ¡${q.name} completada!`, kind: 'ok' });
       onInventoryChanged();
       bus.emit('quests-changed');
-      const npc = q.turn_in_npc ?? dialogue;
+      const npc = npcFor(q.turn_in_npc) ?? dialogue;
       if (q.dialog?.entrega && npc) {
         setQuestLines([{ speaker: DIALOGUES[npc]?.name ?? null, text: q.dialog.entrega }]);
         setDlgKey((k) => k + 1);
@@ -672,7 +680,15 @@ export default function World() {
     Promise.all([api.getActiveQuests(player.id, token), api.getAvailableQuests(player.id, token)])
       .then(([active, available]) => setQuests({ active, available, loaded: true }))
       .catch(() => {});
+    // la historia de este jugador (qué misiones completó): decide qué NPCs ve y qué le dicen
+    api.getCompletedQuests(player.id, token)
+      .then((list) => setStoryDone((list ?? []).map((q) => q.code).filter(Boolean)))
+      .catch(() => {});
   }, [player, token, refreshKey, stats?.level]);
+  useEffect(() => { if (worldReady && storyDone) bus.emit('story-done', storyDone); }, [worldReady, storyDone]);
+  const storySet = useMemo(() => new Set(storyDone ?? []), [storyDone]);
+  // quién atiende las misiones de quien se fue con la historia (Brin en el puesto de Ren)
+  useMemo(() => setStoryStandIns(storySet), [storySet]);
   // Al entrar al mundo: si quedó un combate abierto (recargaste la página, se cortó la conexión
   // o un compañero sigue peleando el combate de tu grupo) se retoma en vez de dejarte "afuera"
   // pero atrapado en él (el servidor no te dejaría empezar otro ni sumarte al de tu grupo).
@@ -695,7 +711,7 @@ export default function World() {
   }, []);
   useEffect(() => {
     setNpcMarks(questMarks({ ...quests, level: stats?.level ?? 1, continentZoneIds }));
-  }, [quests, stats?.level, continentZoneIds]);
+  }, [quests, stats?.level, continentZoneIds, storySet]);
 
   // ---- rastreo de misiones ----
   useEffect(() => { if (player) setTracked(loadTracked(player.id)); }, [player]);
@@ -1011,7 +1027,7 @@ export default function World() {
         <DialogueBox
           key={`${dialogue}:${dlgKey}`}
           id={dialogue}
-          ctx={{ night: !!clock?.night, mark: npcMarks[dialogue] ?? null }}
+          ctx={{ night: !!clock?.night, mark: npcMarks[dialogue] ?? null, done: storySet }}
           questLines={questLines}
           readyQuests={readyQuestsFor(quests.active, dialogue, continentZoneIds)}
           hasWork={hasWorkFor(quests.available, dialogue, continentZoneIds)}

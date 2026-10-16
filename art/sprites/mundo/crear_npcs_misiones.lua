@@ -309,6 +309,31 @@ local NPCS = {
   npc_hilda = {race="enano", style="mono", hair="Y", hairD="y", top="Cg", topD="g", topL="Gh", apron="Cw", pants="Cn", boots="b", skin=P, skinD=Pd},
   -- Tilo, ahora escudero de los enanos: el mismo pelo naranja, con casco y peto de hierro que le quedan grandes
   npc_tilo_escudero = {race="nino", style="casco", hat="Cb", hair="Ho", hairD="o", top="S", topD="s", topL="W", tabard="Cb", pants="Cn", boots="b", belt="N", skin=D, skinD=Dd},
+  -- puestos de las Montañas Grises (un NPC por subzona)
+  -- Gorm, el carretero enano del Paso: gorra naranja, barba negra y camisa roja con chaleco de cuero
+  npc_gorm = {race="enano", style="gorra", hat="Co", hatD="o", hair="Hd", beard="Hd", top="Cr", topD="r", topL="R", vest="N", pants="Cn", boots="b", belt="b", skin=N, skinD=Nd},
+  -- la vieja Dora, minera de las Minas Abandonadas: casco con vela, pelo blanco y delantal de cuero
+  npc_dora = {race="enano", style="casco", hat="Y", hair="Hs", hairD="Hg", top="Cb", topD="a4", topL="a1", apron="N", pants="b", boots="b", belt="N", skin=P, skinD=Pd},
+  -- Sven, el trampero del Pinar: capucha de piel, barba rubia y abrigo de cuero
+  npc_sven = {race="humano", style="capucha", hair="N", hairD="n", beard="Y", top="N", topD="n", topL="Nh", vest="T", pants="Cn", boots="b", belt="b", skin=P, skinD=Pd},
+  -- Ingrid, la pescadora del Lago Helado: gorro de lana azul, trenzas rubias y chaleco azul
+  npc_ingrid = {race="humano", style="gorra", hat="Cb", hatD="a4", hair="Y", hairD="y", top="Cw", topD="T", topL="W", vest="Cb", pants="Cn", boots="b", belt="N", skin=P, skinD=Pd},
+  -- Halvar, el guardián de los pararrayos: enano canoso con casco, ropa oscura y tabardo amarillo de rayo
+  npc_halvar = {race="enano", style="casco", hat="Mh", hair="Hg", beard="Hs", top="L", topD="l", topL="Lh", tabard="Cy", pants="b", boots="b", belt="N", skin=D, skinD=Dd},
+  -- Lío, el bardo mediano de la Garganta: sombrero morado con pluma y chaleco amarillo
+  npc_lio = {race="mediano", style="sombrero", hat="Cp", hatD="v", pluma="Cy", hair="B", top="Cg", topD="g", topL="Gh", vest="Cy", pants="Cn", boots="b", belt="b", skin=D, skinD=Dd},
+  -- Ulfa, la guardiana de las Tumbas Enanas: capucha gris y túnica oscura con ribete plateado
+  npc_ulfa = {race="enano", style="capucha", hair="A", hairD="a", top="L", topD="l", topL="Lh", robe=true, trim="Hs", skin=P, skinD=Pd},
+  -- Kili, el minero que rescataste en las Minas: casco con vela y barba castaña
+  npc_kili = {race="enano", style="casco", hat="Y", hair="B", beard="B", top="A", topD="a", topL="Ah", vest="N", pants="b", boots="b", belt="N", skin=P, skinD=Pd},
+  -- Pell, el mozo de las carretas: gorra de cuero y camisa amarilla
+  npc_pell = {race="nino", style="gorra", hat="N", hatD="n", hair="Hd", top="Cy", topD="y", topL="Y", pants="Cn", boots="b", belt="b", skin=N, skinD=Nd},
+  -- Nori, el minero que se quedó en el campamento esperando a sus compañeros: gorro de lana gris y barba pelirroja
+  npc_nori = {race="enano", style="gorra", hat="A", hatD="a", hair="Ho", beard="Ho", top="Cg", topD="g", topL="Gh", vest="N", pants="b", boots="b", belt="b", skin=D, skinD=Dd},
+  -- Brin, la aprendiza de Ren: se queda con su puesto de guardabosque cuando Ren se va a las Montañas
+  npc_brin = {race="humano", style="mono", hair="B", hairD="b", top="Cg", topD="g", topL="Gh", vest="N", pants="Cn", boots="b", belt="b", skin=D, skinD=Dd},
+  -- guardia del Bastión: casco con penacho rojo, cota de malla y tabardo rojo
+  npc_guardia_enano = {race="enano", style="casco", hat="R", hair="Hd", beard="Hd", top="S", topD="s", topL="W", tabard="Cr", pants="b", boots="b", belt="N", skin=D, skinD=Dd},
 }
 -- solo=npc_a,npc_b genera solo esos (para no rehacer los que ya tienen retoques)
 local solo = app.params.solo

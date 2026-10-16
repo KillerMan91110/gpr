@@ -22,15 +22,35 @@ export const DEFAULT_GIVER = 'ren';
 export const SOON_LEVELS = 3;
 export const TRIVIAL_LEVELS = 6;
 
+// Reemplazos por historia: cuando completaste la misión, ese NPC ya no está (viajó con la historia)
+// y otro se queda en su lugar con sus misiones. Ren y Tilo se van a las Montañas al terminar «Hacia
+// las montañas»; Brin, la aprendiza de Ren, atiende su puesto (mismo lugar: el servidor cuenta la
+// cercanía con el puesto de Ren). En el mapa: Ren y Tilo con "oculto_tras", Brin con "requiere".
+const STAND_INS = [
+  { npc: 'ren', by: 'brin', after: 'PRADERA_HISTORIA_14_MONTANAS' },
+  { npc: 'tilo', by: 'brin', after: 'PRADERA_HISTORIA_14_MONTANAS' },
+];
+let activeStandIns = {};
+// done: códigos de las misiones que completó el jugador (World.js lo llama al cargarlas)
+export function setStoryStandIns(done) {
+  activeStandIns = Object.fromEntries(STAND_INS.filter((s) => done?.has?.(s.after)).map((s) => [s.npc, s.by]));
+}
+// quién atiende hoy las misiones de este NPC (él mismo, o quien quedó en su lugar)
+export const npcFor = (id) => (id ? activeStandIns[id] ?? id : id);
+// al revés: al hablar con Brin, el servidor tiene que oír «ren» (los pasos de misión apuntan a él)
+export const questTargetsOf = (id) => [id, ...Object.entries(activeStandIns).filter(([, by]) => by === id).map(([npc]) => npc)];
+
 // NPC del mapa que da esta misión (null si su zona no está en el mundo abierto todavía)
 export function giverOf(q, continentZoneIds) {
   // misiones de historia (misiones v2): el back dice directo qué NPC la da
-  if (q.giver_npc) return q.giver_npc;
+  if (q.giver_npc) return npcFor(q.giver_npc);
   const known = QUEST_GIVERS[q.npc_name];
-  if (known) return known;
-  if (q.zone_id == null || continentZoneIds?.includes(q.zone_id)) return DEFAULT_GIVER;
+  if (known) return npcFor(known);
+  if (q.zone_id == null || continentZoneIds?.includes(q.zone_id)) return npcFor(DEFAULT_GIVER);
   return null;
 }
+// quién recibe esta misión al entregarla
+export const turnInOf = (q, continentZoneIds) => (q.turn_in_npc ? npcFor(q.turn_in_npc) : giverOf(q, continentZoneIds));
 
 export const objectivesDone = (q) => q.objectives?.length > 0 && q.objectives.every((o) => (o.current_count ?? 0) >= o.target_count);
 
@@ -40,7 +60,7 @@ export function questMarks({ active = [], available = [], level = 1, continentZo
   const rank = { gris: 1, '!': 2, '?': 3 };
   const put = (id, m) => { if (id && (rank[m] > (rank[marks[id]] ?? 0))) marks[id] = m; };
   // el ? lo lleva quien la recibe (en las de historia puede no ser quien la dio)
-  for (const q of active) if (objectivesDone(q)) put(q.turn_in_npc ?? giverOf(q, continentZoneIds), '?');
+  for (const q of active) if (objectivesDone(q)) put(turnInOf(q, continentZoneIds), '?');
   for (const q of available) {
     if (q.accepted || q.prerequisite_met === false) continue;
     if (q.max_level && level > q.max_level + TRIVIAL_LEVELS) continue;
@@ -63,7 +83,7 @@ export const needsTurnInPerson = (q) => !!q.turn_in_npc;
 
 // misiones listas que este NPC recibe
 export function readyQuestsFor(active, npc, continentZoneIds) {
-  return (active ?? []).filter((q) => objectivesDone(q) && (q.turn_in_npc ?? giverOf(q, continentZoneIds)) === npc);
+  return (active ?? []).filter((q) => objectivesDone(q) && turnInOf(q, continentZoneIds) === npc);
 }
 
 // ¿este NPC tiene alguna misión que ya puedes aceptar?
@@ -94,4 +114,14 @@ export const NPC_LUGAR = {
   hilda: 'la lonja del Bastión de Hierro',
   ren_bastion: 'la entrada oeste del Bastión de Hierro',
   tilo_bastion: 'la forja del Bastión de Hierro',
+  // puestos de las Montañas Grises
+  gorm: 'el Puesto del Paso, a la entrada de las Montañas',
+  dora: 'el campamento minero de las Minas Abandonadas',
+  sven: 'la cabaña del trampero en el Pinar Nevado',
+  ingrid: 'la choza de pesca del Lago Helado',
+  halvar: 'la atalaya de los Acantilados del Trueno',
+  lio: 'el campamento del Eco, junto a la Garganta',
+  ulfa: 'el Último Refugio, al pie de la Cumbre del Rey',
+  guardia_enano: 'la puerta oeste del Bastión de Hierro',
+  brin: 'la Aldea Espiga, en el puesto de Ren',
 };

@@ -32,18 +32,18 @@ export default function DialogueBox({ id, ctx, questLines, readyQuests, hasWork,
   }, [text]);
 
   const done = shown >= text.length;
-  const { night, mark } = ctx;
+  const { night, mark, done: storyDone } = ctx;
   // cualquier NPC que dé misiones (game/questGivers.js) ofrece verlas, aunque su diálogo no lo tenga
   // escrito; las que ya cumpliste se le entregan aquí mismo, en persona (una opción por misión)
   const options = useMemo(() => {
     // la última línea de la misión cierra la conversación (ya te dio lo que tenía que darte)
     if (questLine) return lineIdx < questLines.length - 1 ? [{ label: '▶ Continuar', questNext: true }] : [{ label: '▶ Terminar', close: true }];
-    const base = def ? def.options({ night, mark }) : [];
+    const base = def ? def.options({ night, mark, done: storyDone }) : [];
     const turnIns = (readyQuests ?? []).map((q) => ({ label: `✔ Entregar: ${q.name}`, turnIn: q }));
     const work = hasWork && !base.some((o) => o.window === 'misiones_gremio')
       ? [{ label: '❗ ¿Tienes trabajo para mí?', window: 'misiones_gremio' }] : [];
     return [...turnIns, ...work, ...base];
-  }, [def, night, mark, questLine, lineIdx, questLines, readyQuests, hasWork]);
+  }, [def, night, mark, storyDone, questLine, lineIdx, questLines, readyQuests, hasWork]);
 
   const choose = useCallback((o) => {
     audio.sfx('clic');

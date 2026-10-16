@@ -8,6 +8,9 @@ import { DIALOGUES_CIUDAD } from './dialoguesCiudad';
 const PORTRAIT = (name) => `${process.env.PUBLIC_URL}/assets/mundo/retratos/${name}.png`;
 
 const pick = (list) => list[Math.floor(Math.random() * list.length)];
+// ¿este jugador ya completó esa misión? (ctx.done: códigos de sus misiones completadas). Lo que
+// dicen los NPCs sigue la historia de cada jugador: nadie te agradece algo que no hiciste.
+const hecho = (ctx, code) => !!ctx?.done?.has?.(code);
 
 export const DIALOGUES = {
   ren: {
@@ -46,6 +49,33 @@ export const DIALOGUES = {
       lore: 'La Aldea Espiga es el granero de la capital: todo el trigo que se come tras la Puerta Norte sale de estos campos. Hace unos años el Titán despertó en el sureste y la tierra empezó a secarse a su alrededor. Desde entonces los lobos se organizan en manadas y los goblins saquean las granjas.',
       sur: 'Bajando por el camino del sur llegas al Círculo de Piedras: menhires con runas que brillan de noche. Últimamente un chamán hace rituales ahí. Al suroeste quedan las Ruinas del Vigía, la vieja torre que protegía los campos; ahora es refugio de bandidos.',
       este: 'Sigue el camino al este y cruzarás el río por el puente. Al noreste, pasando el Lago Cristalino, está la Guarida de la Manada: ahí manda el Capitán de los Lobos. Más al este empiezan las Montañas Grises. Y al sureste… las Tierras Heridas y el Corazón de la Pradera, donde duerme el Titán. Ni se te ocurra ir sin un buen grupo.',
+    },
+  },
+  // Brin: la aprendiza de Ren. Aparece en su puesto cuando Ren se va a las Montañas (después de
+  // «Hacia las montañas»); se queda con el tablón y los encargos de Ren (ver STAND_INS en questGivers.js)
+  brin: {
+    name: 'Brin',
+    role: 'Aprendiza de guardabosque',
+    portrait: PORTRAIT('brin'),
+    ambient: [
+      '¡El tablón tiene encargos nuevos!',
+      'Ren dice que las huellas no mienten. Yo todavía no sé leerlas todas.',
+      'Si ves un goblin con un saco, avísame. Ren me dejó la lista.',
+    ],
+    greet: ({ night, mark }) => {
+      if (mark === '?') return '¡Lo hiciste! Ren dice que hay que pagar en el momento. Ven, que te pago.';
+      if (mark === '!') return 'Ren me dejó el tablón lleno de encargos. Yo sola no llego a todos… ¿me ayudas?';
+      return night
+        ? pick(['Ren hacía la ronda de noche. Ahora la hago yo. Con dos faroles, por las dudas.', 'De noche la pradera cruje. Ren decía que no es nada. Ren no está.'])
+        : pick(['Ren se fue a las Montañas Grises detrás del Encapuchado. Me dejó su puesto. Y su arco. Y una lista larguísima.', 'Tilo se escapó detrás de Ren, ¿sabías? Su mamá todavía está enojada.']);
+    },
+    options: () => [
+      { label: 'Ver encargos del gremio', window: 'misiones_gremio' },
+      { label: '¿Dónde está Ren?', next: 'ren' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      ren: 'Cuando Elenya dijo que el Encapuchado subió a las Montañas, Ren agarró su arco y se fue esa misma noche. Me dijo «cuida el puesto, Brin, y no te fíes de la hierba alta». Tilo se coló en la diligencia de Gaspar para seguirlo. Están en el Bastión de Hierro, con los enanos.',
     },
   },
   lyra: {
@@ -190,7 +220,7 @@ export const DIALOGUES = {
     ambient: [
       '¡Ataque giratorio! …Uy, me mareé.',
       '¡Cuando sea grande voy a matar un dragón!',
-      'Mi espada se llama Partelobos.',
+      'Cuando tenga espada, se va a llamar Partelobos.',
       '¿Tú también fuiste niño alguna vez?',
     ],
     greet: ({ night, mark }) => {
@@ -299,9 +329,11 @@ export const DIALOGUES = {
       'Las minas cantaban antes. Ahora solo crujen.',
       'Hmph. Humanos. Siempre con frío.',
     ],
-    greet: ({ night, mark }) => {
+    greet: (ctx) => {
+      const { night, mark } = ctx;
       if (mark === '?') return '¡Volviste! Y con todas las piernas. Cuéntame, que no tengo todo el día.';
       if (mark === '!') return 'Tú. Sí, tú, el alto. Tengo trabajo para alguien que no se asuste de la oscuridad.';
+      if (hecho(ctx, 'MONTANAS_SEC_BARBA') && Math.random() < 0.5) return pick(['¿Qué miras? Es azul. Los enanos importantes llevan la barba azul. Desde ahora.', 'Hilda dice que la boda es en primavera. Yo digo que en invierno, que hay menos trabajo. Va a ser en primavera.']);
       return night
         ? pick(['De noche los rayos caen más cerca. Duerme con un ojo abierto.', 'Hmph. Otro que no duerme. Yo tampoco, desde que la mina se volvió loca.'])
         : pick(['Bienvenido al Bastión de Hierro. No toques nada que brille.', 'Si vienes a cavar, cava. Si vienes a mirar, mira desde lejos.']);
@@ -327,7 +359,9 @@ export const DIALOGUES = {
       'La flor de nieve le da un sabor… mmm.',
       '¿Eso es una costilla de oso? ¡Dámela!',
     ],
-    greet: ({ night }) => (night
+    greet: (ctx) => (hecho(ctx, 'MONTANAS_SEC_BARBA') && Math.random() < 0.5
+      ? pick(['¡Ay, cielo! Estoy probando recetas para la boda. Prueba esto. No, no preguntes qué es.', 'Durgan se peina la barba azul todas las mañanas. ¡Cuarenta años sin peinarse y ahora no suelta el peine!'])
+      : ctx.night
       ? pick(['A estas horas solo queda caldo. Pero es el mejor caldo de la sierra.', 'Siéntate junto al fuego, que se te ve el frío en la cara.'])
       : pick(['Nadie sale a la nieve con la panza vacía. Come antes de irte: te dura un buen rato.', 'Tráeme carne de cabra o un buen lomo de oso y te cocino algo que te haga pelear como tres enanos.'])),
     options: () => [
@@ -386,6 +420,269 @@ export const DIALOGUES = {
     lines: {
       llegada: '¡Me colé en la diligencia de Gaspar! Trueno se escapó a mitad del camino y tuvimos que seguirlo hasta el Paso. Cuando llegamos, Durgan me vio cargar un barril y dijo «este sirve». ¡Así que ahora soy escudero!',
     },
+  },
+  // ---------------------------------------------------------------- puestos de las Montañas Grises
+  // Gorm: el carretero enano del Puesto del Paso, el primero que ves al llegar a las Montañas
+  gorm: {
+    name: 'Gorm',
+    role: 'Carretero',
+    portrait: PORTRAIT('gorm'),
+    ambient: [
+      '¡Carretas al Bastión! ¡Quien quiera subir, que empuje!',
+      'Esa rueda chilla. Todas chillan. Es la montaña.',
+      '¿Para qué querrá un orco tanta sal?',
+      'Pell, ¡deja de darle pan a las cabras!',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return '¡Volviste! Siéntate, que traigo la cerveza del Bastión… bueno, lo que queda.';
+      if (mark === '!') return 'Tú tienes cara de saber pelear. Tengo un problema con cuernos. Y con orcos. Y con sal.';
+      if (hecho(ctx, 'MONTANAS_SEC_CABRA_REINA')) return pick(['Les dejé el saco de sal en el cruce. Ni una carreta volcada desde entonces. ¡Viva la cabra reina!', 'Pell quiere ir a saludar a la cabra reina. Le dije que primero aprenda a correr.']);
+      return night
+        ? pick(['De noche no sale ninguna carreta. Los lobos no respetan los horarios.', 'Quédate cerca del fuego, que en el Paso el viento muerde.'])
+        : pick(['Bienvenido a las Montañas Grises. Sigue el camino al este y llegas al Bastión de Hierro.', 'Si ves una carreta volcada, no es mía. Bueno, seguro sí es mía.']);
+    },
+    options: () => [
+      { label: '¿Qué es este puesto?', next: 'puesto' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      puesto: 'Aquí paran las carretas que suben mineral al Bastión y bajan hierro a Aurelia. Antes era un viaje tranquilo. Ahora hay orcos en el Paso, lobos en la nieve y cabras que embisten como si les debieras plata. Yo sigo subiendo igual. Alguien tiene que hacerlo.',
+    },
+  },
+  // Pell: el mozo de las carretas, un chico que les da de comer a las cabras
+  pell: {
+    name: 'Pell',
+    role: 'Mozo de carretas',
+    portrait: PORTRAIT('pell'),
+    ambient: [
+      '¡Esa cabra me miró feo!',
+      'Un día voy a manejar mi propia carreta.',
+      '¿Eres un héroe? ¿Uno de verdad?',
+    ],
+    greet: (ctx) => (hecho(ctx, 'MONTANAS_SEC_CABRA_REINA')
+      ? pick(['¿Es verdad que la cabra reina tiene corona? ¿De latas? ¡Yo quiero una corona de latas!', '¡Gorm dice que fuiste tú quien encontró a la cabra reina! ¿Te dejó tocarle los cuernos?'])
+      : pick(['Los orcos se llevaron la sal de la carreta otra vez. ¿Para qué querrán tanta sal? ¿Se la comen?', 'Gorm dice que no hable con los viajeros. Pero tú pareces simpático.'])),
+    options: () => [{ label: 'Adiós', close: true }],
+    lines: {},
+  },
+  // Dora: la minera vieja que rescataste en las Minas Abandonadas (M3); se quedó a cuidar el campamento
+  dora: {
+    name: 'Dora',
+    role: 'Minera',
+    portrait: PORTRAIT('dora'),
+    ambient: [
+      'Sesenta años picando piedra y nunca vi vetas negras.',
+      'Esos murciélagos se llevan todo lo que brilla.',
+      'Kili, ¡apaga esa vela que nos quemas la carpa!',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return '¡Mi lámpara! Bueno, cuéntame qué más encontraste en ese nido.';
+      if (mark === '!') return 'Ven, ven. Una vieja como yo no puede trepar hasta el nido de los murciélagos. Tú sí.';
+      if (hecho(ctx, 'MONTANAS_SEC_BARBA')) return pick(['¿Te enteraste? ¡Durgan y Hilda se casan! Cuarenta años esperando. Los enanos somos lentos para el amor.', '¡Una barba azul! Sesenta años en la mina y nunca vi una barba azul.']);
+      return night
+        ? pick(['De noche los mineros de abajo cantan. Ya no saben la letra.', 'No bajes de noche. Ni yo bajo de noche.'])
+        : pick(['Gracias otra vez por sacarme de ahí abajo. Ahora cuido el campamento: alguien tiene que avisar si algo sube.', 'Las Minas Abandonadas no están abandonadas. Están llenas. Ese es el problema.']);
+    },
+    options: () => [
+      { label: '¿Qué pasó en las minas?', next: 'minas' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      minas: 'Encontramos una veta negra, tibia, que latía. Los que picaron más cerca empezaron a olvidarse de cosas: primero de cenar, después de dormir, después de su nombre. Ahora pican la piedra con las manos. Si los ves, no los odies. Eran buenos muchachos.',
+    },
+  },
+  // Nori: el minero que se quedó en el campamento esperando a Bram, Kili y Dora. Antes del rescate
+  // (M3 «Mineros perdidos») está angustiado y te manda con Durgan; después, contento
+  nori: {
+    name: 'Nori',
+    role: 'Minero',
+    portrait: PORTRAIT('nori'),
+    ambient: [
+      'Las vetas negras… no me gustan nada.',
+      'Una vela más, por si acaso.',
+      'Este campamento era más ruidoso antes.',
+    ],
+    greet: (ctx) => (hecho(ctx, 'MONTANAS_HISTORIA_03_MINEROS')
+      ? pick(['¡Volvieron los tres! Bram cojea, Kili no se calla y Dora ya me está dando órdenes. Como siempre. Gracias, de verdad.', 'Desde que trajiste a Dora el campamento vuelve a oler a caldo. Y a gritos. Me encanta.'])
+      : pick(['Bram, Kili y la vieja Dora bajaron a las minas hace tres días y no volvieron. Yo me quedé cuidando el campamento… y no sé qué hacer. Durgan, en el Bastión, sabrá.', '¿Vienes del Bastión? ¿Durgan mandó a alguien a buscar a mis compañeros? Tres días ya… tres días.'])),
+    options: (ctx) => [
+      ...(hecho(ctx, 'MONTANAS_HISTORIA_03_MINEROS') ? [] : [{ label: '¿Qué pasó en las minas?', next: 'minas' }]),
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      minas: 'Encontraron una veta negra, tibia, que latía. Bram dijo que valía una fortuna y bajaron a picarla. Desde entonces se oyen golpes allá abajo, de noche, como si alguien siguiera picando. Y los murciélagos salen a montones. Ve con Durgan: él sabe qué hacer.',
+    },
+  },
+  // Kili: el minero joven que rescataste; habla demasiado
+  kili: {
+    name: 'Kili',
+    role: 'Minero',
+    portrait: PORTRAIT('kili'),
+    ambient: [
+      '¡Dos días escondido en una grieta! ¡Dos!',
+      'El caldo de Hilda me salvó la vida. Bueno, tú también.',
+      'Shhh… ¿escuchaste? Ah, no, era mi panza.',
+    ],
+    greet: () => pick(['¡Mi héroe! Sigo debiéndote un caldo. Cuando Hilda me fíe, te invito.', 'Dora dice que no vuelva a bajar. Yo digo que la próxima vez llevo más velas.']),
+    options: () => [{ label: 'Adiós', close: true }],
+    lines: {},
+  },
+  // Sven: el trampero del Pinar Nevado, duro por fuera
+  sven: {
+    name: 'Sven',
+    role: 'Trampero',
+    portrait: PORTRAIT('sven'),
+    ambient: [
+      'Las huellas no mienten. La gente sí.',
+      'Este frío no es normal. Los espectros lo traen.',
+      'Si oyes un susurro entre los pinos, no contestes.',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return 'Ya volviste. Cuéntame. Y no me endulces nada.';
+      if (mark === '!') return 'Tú. Sí, tú. Alguien me vacía las trampas y no tengo tiempo de vigilarlas todas.';
+      if (hecho(ctx, 'MONTANAS_SEC_NOMBRES')) return pick(['El farol sigue encendido. Algunas noches veo pasar sombras hacia el valle. Ya no susurran.', 'Arne encontró el camino. Yo me quedo un poco más, por si alguien más lo busca.']);
+      if (hecho(ctx, 'MONTANAS_SEC_TRAMPAS')) return pick(['Los oseznos ya están más gorditos. No se lo digas a nadie.', 'La osa me dejó una trucha en la puerta. Creo que es un gracias.']);
+      return night
+        ? pick(['De noche el pinar susurra. No es el viento.', 'Quédate junto al fuego. Los espectros odian la luz.'])
+        : pick(['El Pinar Nevado no perdona a los distraídos. Mira dónde pisas.', 'Pieles, carne, trampas. Así vivo. No me quejo.']);
+    },
+    options: () => [
+      { label: '¿Qué son los espectros?', next: 'espectros' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      espectros: 'Viajeros que se perdieron en la nieve. Se quedan dando vueltas, buscando el camino, y con los años se olvidan de qué buscaban. Algunos solo están tristes. Otros ya están enojados. Desde que llegó el Encapuchado hay muchos más. Y más enojados.',
+    },
+  },
+  // Ingrid: la pescadora del Lago Helado, que busca al Viejo Bigotes de su abuelo
+  ingrid: {
+    name: 'Ingrid',
+    role: 'Pescadora',
+    portrait: PORTRAIT('ingrid'),
+    ambient: [
+      '¡Pica, pica, pica! … No picó.',
+      'Mi abuelo pescó aquí setenta años. Setenta.',
+      'Las sierpes me espantan todo. ¡Fuera, bichas!',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return '¿Lo viste? ¿Lo viste de verdad? ¡Cuéntamelo todo!';
+      if (mark === '!') return '¿Crees en peces gigantes? Yo sí. Y necesito a alguien que me crea.';
+      if (hecho(ctx, 'MONTANAS_SEC_BIGOTES')) return pick(['¡Bigotes ya espanta sierpes solito! Bueno, las espanta un poco. Y después se esconde.', 'Bigotes creció dos dedos. Mi abuelo estaría orgulloso. O asustado.']);
+      return night
+        ? pick(['De noche el hielo cruje. A veces parece que alguien camina debajo.', 'El lago brilla de noche. Mi abuelo decía que es el Viejo Bigotes, que lee con linterna.'])
+        : pick(['Bienvenido al Lago Helado. No pises donde el hielo está gris.', 'El lago no se derrite ni en verano. Pero tampoco se congela del todo. Raro, ¿no?']);
+    },
+    options: () => [
+      { label: '¿Quién es el Viejo Bigotes?', next: 'bigotes' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      bigotes: 'El pez más grande del lago, con bigotes largos como cuerdas de barco. Mi abuelo lo vio tres veces. La tercera se le llevó la caña, el balde y un zapato. Nadie le creyó. Yo sí. Algún día lo voy a ver.',
+    },
+  },
+  // Halvar: el guardián de los pararrayos de los Acantilados del Trueno
+  halvar: {
+    name: 'Halvar',
+    role: 'Guardián de los pararrayos',
+    portrait: PORTRAIT('halvar'),
+    ambient: [
+      'Uno, dos… ¡TRES! Ahí cayó otro.',
+      'Los rayos no se cuentan, se escuchan.',
+      'Este casco ya recibió cuatro rayos. Por eso tengo el pelo así.',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return 'Vienes de revisar mis pararrayos. ¿Qué encontraste? Habla fuerte, que estoy un poco sordo.';
+      if (mark === '!') return '¡Tú! Algo me rompe los pararrayos. Y no es la tormenta.';
+      if (hecho(ctx, 'MONTANAS_SEC_PARARRAYOS')) return pick(['El troll ya tiene su pararrayos de madera. Lo usa todas las mañanas. Parece feliz.', 'Desde que el troll se rasca con madera, mis pararrayos duran el triple.']);
+      return night
+        ? pick(['De noche las tormentas son más bonitas. Y más peligrosas.', 'Si se te paran los pelos, agáchate. Hazme caso.'])
+        : pick(['Mis pararrayos atraen los rayos para que no caigan sobre los viajeros. Treinta años cuidándolos.', 'Los Acantilados del Trueno no se llaman así por adorno.']);
+    },
+    options: () => [
+      { label: '¿Por qué hay tantas tormentas?', next: 'tormentas' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      tormentas: 'Antes el Rey de la Montaña mandaba a los rayos. Con su corona los calmaba. Desde que enloqueció, las tormentas hacen lo que quieren, y los elementales nacen de cada rayo que cae. Mis pararrayos son lo único que mantiene el camino abierto.',
+    },
+  },
+  // Lío: el bardo mediano que vino a la Garganta del Eco a buscar canciones
+  lio: {
+    name: 'Lío',
+    role: 'Bardo',
+    portrait: PORTRAIT('lio'),
+    ambient: [
+      '♪ La la laaa… ♪ No, así no era.',
+      '¡Esas arpías desafinan a propósito!',
+      'Toda canción necesita un final. Esta todavía no lo tiene.',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return '¡Volviste! ¿La escuchaste? ¿Cómo sigue? ¡Cántamela!';
+      if (mark === '!') return 'Ay, ay, ay. Me robaron la canción. No me mires así: se puede robar una canción.';
+      if (hecho(ctx, 'MONTANAS_SEC_CANCION')) return pick(['♪ Thorvald, Thorvald, rey del trueno… ♪ ¡Ya me la sé entera! Gracias a ti.', 'Las arpías ahora cantan MI versión. Desafinada, pero mía.']);
+      return night
+        ? pick(['De noche el eco canta solo. Yo lo anoto.', '♪ Duerme, viajero, que el eco vigila… ♪ Esa es mía.'])
+        : pick(['Vine a la Garganta del Eco a buscar canciones viejas. Encontré arpías. Y trolls. Y frío.', 'Cada piedra de esta garganta guarda una canción. Hay que saber escuchar.']);
+    },
+    options: () => [
+      { label: '¿Qué es la Garganta del Eco?', next: 'garganta' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      garganta: 'Una grieta enorme que parte la montaña. Todo lo que dices rebota y vuelve… a veces cambiado. Las arpías aprendieron a imitar voces: si oyes que alguien pide ayuda, mira bien antes de correr. Y los enanos dejaron piedras talladas que guardan sus canciones.',
+    },
+  },
+  // Ulfa: la guardiana de las Tumbas Enanas, al pie de la Cumbre del Rey
+  ulfa: {
+    name: 'Ulfa',
+    role: 'Guardiana de las tumbas',
+    portrait: PORTRAIT('ulfa'),
+    ambient: [
+      'Los muertos también tienen frío.',
+      'Una flor por cada guardia. Así era la costumbre.',
+      'Escucha. Ahí va la ronda.',
+    ],
+    greet: (ctx) => {
+      const { night, mark } = ctx;
+      if (mark === '?') return 'Volviste de las tumbas. Lo veo en tu cara.';
+      if (mark === '!') return 'Los guardias de la Cumbre no descansan. Necesito a alguien que no les tenga miedo.';
+      if (hecho(ctx, 'MONTANAS_SEC_RONDA')) return pick(['La tumba de mi abuelo ya no tiene nieve. Ni un copo. Creo que está contento.', 'Algunas noches todavía se oye la ronda. Pero ahora son menos pasos.']);
+      return night
+        ? pick(['De noche se oyen los pasos de la guardia. Tres siglos haciendo la misma ronda.', 'No subas de noche. La Cumbre es de ellos de noche.'])
+        : pick(['Este es el último refugio antes de la Cumbre del Rey. Descansa mientras puedas.', 'Mi familia cuida las Tumbas Enanas desde que se cerraron. Ahora quedo yo.']);
+    },
+    options: () => [
+      { label: '¿Quiénes están en las tumbas?', next: 'tumbas' },
+      { label: 'Adiós', close: true },
+    ],
+    lines: {
+      tumbas: 'La guardia del Rey de la Montaña. Cuando el Rey se encerró en su trono, sus guardias juraron no dejar pasar a nadie. Murieron cumpliendo y siguieron cumpliendo. Ahora la tormenta los despierta y los hace marchar. No son malos. Solo están cansados.',
+    },
+  },
+  // guardia en la entrada oeste del Bastión de Hierro
+  guardia_enano: {
+    name: 'Brund',
+    role: 'Guardia del Bastión',
+    portrait: PORTRAIT('guardia_enano'),
+    ambient: [
+      '¡Alto! … Ah, eres tú. Pasa.',
+      'Nadie entra con orcos atrás. Nadie.',
+      'Hace frío hasta en la armadura.',
+      'Es mi primer mes de guardia. Se nota, ¿no?',
+    ],
+    greet: (ctx) => {
+      if (ctx.mark === '!') return '¡Psst! Tengo un problema. Uno grande. Uno con forma de olla.';
+      if (hecho(ctx, 'MONTANAS_SEC_OLLA')) return pick(['Hilda ya no me mira feo. Bueno, menos feo. Gracias por lo de la olla.', 'Los orcos pasan por el cruce a buscar su guiso y se van. ¡Ni un asalto esta semana!']);
+      return pick(['Bienvenido al Bastión de Hierro. Durgan está en la entrada de la mina, Hilda en la lonja.', 'Los puestos del camino tienen fogata. Si caes en la nieve, despiertas en la última junto a la que descansaste.']);
+    },
+    options: () => [{ label: 'Adiós', close: true }],
+    lines: {},
   },
   // Nilo: el pescador viejo del Lago Cristalino
   nilo: {

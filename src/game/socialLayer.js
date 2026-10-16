@@ -458,7 +458,7 @@ export default class SocialLayer {
     s.time.delayedCall(Phaser.Math.Between(...NPC_CHAT_MS), () => {
       if (!s.sys.isActive() || !s.player) { this.scheduleNpcChat(); return; }
       // clave "zona:dialogo" (n.id es el dialogo)
-      const near = [...s.npcs.entries()].filter(([key, n]) => DIALOGUES[n.id]?.ambient?.length
+      const near = [...s.npcs.entries()].filter(([key, n]) => !n.hidden && DIALOGUES[n.id]?.ambient?.length
         && Phaser.Math.Distance.Between(n.sprite.x, n.sprite.y, s.player.x, s.player.y) < 420
         && !this.bubbles.has(`npc:${key}`));
       if (near.length) {

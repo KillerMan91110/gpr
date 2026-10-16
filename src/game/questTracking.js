@@ -1,6 +1,6 @@
 // Rastreo de misiones (botón 📍 del seguidor y del diario): qué tiene que señalar la flecha del mapa
 // según el paso actual de la misión. El mapa (game/world/tracking.js) busca lo más cercano.
-import { giverOf, objectivesDone } from './questGivers';
+import { objectivesDone, npcFor, turnInOf } from './questGivers';
 
 export const MAX_TRACKED = 3;
 // un color por misión rastreada (flecha, marcador y punto del minimapa)
@@ -19,7 +19,7 @@ function sourceTargets(o) {
 export function trackTargets(q, continentZoneIds) {
   const objs = q.objectives ?? [];
   if (objectivesDone(q)) {
-    const npc = q.turn_in_npc ?? giverOf(q, continentZoneIds);
+    const npc = turnInOf(q, continentZoneIds);
     return npc ? [{ kind: 'npc', npc }] : [];
   }
   const out = [];
@@ -31,11 +31,11 @@ export function trackTargets(q, continentZoneIds) {
         if (o.place) out.push({ kind: 'point', zone: o.place.zone, x: o.place.x, y: o.place.y });
         break;
       case 'TALK':
-        if (o.target_code) out.push({ kind: 'npc', npc: o.target_code });
+        if (o.target_code) out.push({ kind: 'npc', npc: npcFor(o.target_code) });
         break;
       case 'DELIVER':
         // con lo que pide en la mochila, a quien se lo entregas; si te falta, adonde conseguirlo
-        if ((o.have ?? 0) >= o.target_count && o.target_code) out.push({ kind: 'npc', npc: o.target_code });
+        if ((o.have ?? 0) >= o.target_count && o.target_code) out.push({ kind: 'npc', npc: npcFor(o.target_code) });
         else out.push(...sourceTargets(o));
         break;
       case 'COLLECT_ITEM':

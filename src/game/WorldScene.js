@@ -416,6 +416,8 @@ export default class WorldScene extends Phaser.Scene {
         this.monsters.getChildren().forEach((m) => { const t = m.getData('tag'); if (t) t.setColor(this.levelColor(t.text.replace('Nv ', ''))); });
       },
       'npc-marks': (marks) => this.setNpcMarks(marks),
+      // misiones que completó este jugador: qué NPCs ve (cada uno ve el mundo según su historia)
+      'story-done': (codes) => this.applyNpcStory(new Set(codes ?? [])),
       'quest-npc-spots': (spots) => this.setQuestNpcSpots(spots),
       'quest-points': (points) => this.setQuestPoints(points),
       'quest-track': (tracks) => this.setTracking(tracks),
@@ -486,7 +488,8 @@ export default class WorldScene extends Phaser.Scene {
         const layer = (n) => d?.layers.find((l) => l.name === n)?.data ?? [];
         return { cx: c.cx, cy: c.cy, suelo: layer('suelo'), objetos: layer('objetos'), encima: layer('encima') };
       }),
-      points: this.allPoints().filter((o) => o.zone === z.dir && ['npc', 'poi', 'jefe', 'salida', 'pilar', 'vinculo', 'buzon'].includes(o.type)).map((o) => ({
+      points: this.allPoints().filter((o) => o.zone === z.dir && ['npc', 'poi', 'jefe', 'salida', 'pilar', 'vinculo', 'buzon'].includes(o.type)
+        && !(o.type === 'npc' && this.npcs.get(`${o.zone}:${propOf(o, 'dialogo') ?? o.name}`)?.hidden)).map((o) => ({
         type: o.type, name: o.name, x: o.x - z.ox + 16, y: o.y - z.oy + 16,
         label: propOf(o, 'nombre') ?? propOf(o, 'etiqueta') ?? o.name,
         monster: propOf(o, 'monstruo'), level: propOf(o, 'nivel'), window: propOf(o, 'ventana'), dialogue: propOf(o, 'dialogo'),
@@ -1466,7 +1469,7 @@ export default class WorldScene extends Phaser.Scene {
   updatePoi() {
     let nearest = null;
     for (const poi of this.pois) {
-      if (poi.boss?.hidden || (poi.resource && !poi.resource.ready)) continue;
+      if (poi.hidden || poi.boss?.hidden || (poi.resource && !poi.resource.ready)) continue;
       if (Phaser.Math.Distance.Between(this.player.x, this.player.y, poi.x, poi.y) < (poi.radius ?? POI_RADIUS)) nearest = poi;
     }
     if (nearest !== this.nearPoi) {

@@ -1116,6 +1116,22 @@ icon("fragmento_sello_montanas", function(G)
   G.ellipse(15, 16, 1.6, 1.6, "W"); G.px(10, 8, "W")
 end)
 
+-- ---------------------------------------------------------------- secundarias de las Montañas
+-- el anillo de compromiso de Durgan: oro con una runa enana y una piedra azul
+icon("anillo_durgan", function(G)
+  ring(G, "au1", "au2", "au3", "sl1", "sl2")
+  G.px(8, 22, "hxb"); G.px(24, 22, "hxb")
+end)
+
+-- la olla de Hilda: olla de hierro con asas y el guiso todavía humeando
+icon("olla_hilda", function(G)
+  G.ellipse(16, 20, 11, 8, "po2"); G.ellipse(16, 18, 10, 6, "po1")
+  G.ellipse(16, 13, 10, 3, "po3"); G.ellipse(16, 13, 8.5, 2.2, "st1"); G.px(13, 13, "mt"); G.px(19, 12, "bn")
+  G.rect(3, 15, 6, 17, "po3"); G.rect(26, 15, 29, 17, "po3")
+  G.ellipse(16, 27, 9, 1.5, "po3")
+  G.px(13, 8, "W"); G.px(15, 6, "W"); G.px(19, 7, "W"); G.px(10, 18, "W")
+end)
+
 -- ---------------------------------------------------------------- atlas (una fila)
 local n = #ICONS
 local img = Image(n * 32, 32, ColorMode.RGB)

@@ -66,12 +66,22 @@ export const questsMethods = {
     this.questPointsToken = token;
     // primero se cargan los dibujos que falten; después se arma cada punto
     const missing = [...new Set(next.map((p) => p.sprite).filter((sp) => sp && !sp.startsWith('mon:') && !this.textures.exists(`qp_${sp}`)))];
+    // las emboscadas muestran a su monstruo ("mon:CODIGO"): su hoja puede no estar cargada todavía
+    const catalog = this.cache.json.get('enemigos')?.monsters ?? {};
+    const missingMon = [...new Set(next.map((p) => p.sprite).filter((sp) => sp?.startsWith('mon:')).map((sp) => sp.slice(4)))]
+      .filter((code) => catalog[code] && !this.textures.exists(`mon_${code}`));
     const build = () => { if (this.questPointsToken === token) next.forEach((p) => this.buildQuestPoint(p)); };
-    if (missing.length) {
-      this.loadThen(() => missing.forEach((sp) => {
-        const [w, h] = POINT_SPRITE_SIZE[sp] ?? [32, 32];
-        this.load.spritesheet(`qp_${sp}`, `${ASSETS}/mundo/mision/${sp}.png`, { frameWidth: w, frameHeight: h });
-      }), build);
+    if (missing.length || missingMon.length) {
+      this.loadThen(() => {
+        missing.forEach((sp) => {
+          const [w, h] = POINT_SPRITE_SIZE[sp] ?? [32, 32];
+          this.load.spritesheet(`qp_${sp}`, `${ASSETS}/mundo/mision/${sp}.png`, { frameWidth: w, frameHeight: h });
+        });
+        missingMon.forEach((code) => {
+          const m = catalog[code];
+          this.load.spritesheet(`mon_${code}`, `${ASSETS}/sprites/combate/${m.sheet}`, { frameWidth: m.frameSize.w, frameHeight: m.frameSize.h });
+        });
+      }, build);
     } else {
       build();
     }

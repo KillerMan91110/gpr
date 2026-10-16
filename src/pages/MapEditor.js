@@ -1190,6 +1190,12 @@ export default function MapEditor() {
                         {dialogueKeys.map((k) => <option key={k} value={k}>{DIALOGUES[k].name}</option>)}
                       </select>
                     </Field>
+                    <Field label="Aparece después de la misión" hint="Código de misión (ej: MONTANAS_HISTORIA_03_MINEROS). Cada jugador lo ve solo si ya la completó">
+                      <input value={getProp(selPoint, 'requiere') ?? ''} placeholder="— siempre —" onChange={(e) => setPointProp('requiere', 'string', e.target.value.trim().toUpperCase())} />
+                    </Field>
+                    <Field label="Se va después de la misión" hint="Código de misión: deja de verse para quien ya la completó">
+                      <input value={getProp(selPoint, 'oculto_tras') ?? ''} placeholder="— nunca —" onChange={(e) => setPointProp('oculto_tras', 'string', e.target.value.trim().toUpperCase())} />
+                    </Field>
                   </>
                 )}
                 {(selPoint.type === 'npc' || selPoint.type === 'poi' || selPoint.type === 'jefe') && (

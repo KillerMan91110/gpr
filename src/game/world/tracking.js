@@ -47,7 +47,7 @@ export const trackingMethods = {
         return [this.toGlobal(target.x * 32 + 16, target.y * 32 + 16, target.zone)];
       }
       case 'npc':
-        return [...(this.npcs?.values() ?? [])].filter((n) => n.id === target.npc).map((n) => ({ x: n.sprite.x, y: n.sprite.y }));
+        return [...(this.npcs?.values() ?? [])].filter((n) => n.id === target.npc && !n.hidden).map((n) => ({ x: n.sprite.x, y: n.sprite.y }));
       case 'monster':
         return (this.encounterAreas ?? [])
           .filter((a) => String(propOf(a, 'monstruos') ?? '').split(',').map((s) => s.trim()).some((c) => target.codes.includes(c)))

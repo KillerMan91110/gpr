@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { DIALOGUES } from '../../game/dialogues';
-import { giverOf } from '../../game/questGivers';
+import { turnInOf } from '../../game/questGivers';
 import { trackColorCss } from '../../game/questTracking';
 
 // Seguimiento de misiones (como el de WoW, a la derecha bajo el minimapa): tus misiones en curso
@@ -23,7 +23,7 @@ export default function QuestTracker({ active = [], continentZoneIds = [], track
         const objs = q.objectives ?? [];
         const done = objs.length > 0 && objs.every((o) => (o.current_count ?? 0) >= o.target_count);
         // a quién se entrega: el que la recibe en persona (misiones de historia) o el que la dio
-        const giver = q.turn_in_npc ?? giverOf(q, continentZoneIds);
+        const giver = turnInOf(q, continentZoneIds);
         const ti = tracked.indexOf(q.id);
         return (
           <div key={q.id} className={`hud-tracker-row${ti >= 0 ? ' tracked' : ''}`}>
