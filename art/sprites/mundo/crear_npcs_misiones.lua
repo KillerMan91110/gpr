@@ -380,6 +380,9 @@ local NPCS = {
   -- Pumo, el balsero: mediano con sombrero de paja, pañuelo rojo y chaleco remendado
   npc_pumo = {race="mediano", style="sombrero", hat="T", hatD="t", pluma="Cr", hair="B", top="Cr", topD="r", topL="R", vest="N", pants="Cn", boots="b", belt="b", skin=D, skinD=Dd},
   -- Sulfo, el alquimista: humano calvo con barba amarillenta de azufre y túnica verde manchada
+  -- Lucio, el sobrino de Gaspar: atiende la diligencia cuando su tío se va con la historia. Joven, sin
+  -- barba, gorra verde de cochero y camisa azul con chaleco pardo (Gaspar va todo de pardo)
+  npc_lucio = {race="humano", style="gorra", hat="Cg", hatD="g", hair="Ho", hairD="o", top="Cb", topD="a4", topL="a1", vest="Cn", pants="Hd", boots="b", belt="b", skin=D, skinD=Dd},
   npc_sulfo = {race="humano", style="calvo", hair="Hg", beard="Ab", top="Cg", topD="g", topL="Y", robe=true, trim="Cy", skin=P, skinD=Pd},
 }
 -- solo=npc_a,npc_b genera solo esos (para no rehacer los que ya tienen retoques)

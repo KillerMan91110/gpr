@@ -1,0 +1,31 @@
+/* «¿Dónde?» de un material en el Taller (MaterialSources.js) */
+.wp-mat-where {
+  padding: 1px 7px; border-radius: 9px; border: 1px solid var(--gold-dim, #6a5a3a);
+  background: rgba(20, 16, 10, 0.7); color: var(--gold-bright, #ffd86a);
+  font: 600 0.72rem 'EB Garamond', serif; cursor: pointer;
+}
+.wp-mat-where:hover, .wp-mat-where.on { background: rgba(255, 216, 106, 0.15); }
+
+.mat-src {
+  margin: 2px 0 6px 52px; padding: 6px 9px; border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35); border-left: 2px solid var(--gold-dim, #6a5a3a);
+  font: 0.8rem 'EB Garamond', serif; color: var(--text-soft, #cbbf9f);
+}
+.mat-src b { color: var(--cream, #f2e6c8); font-weight: 700; }
+.mat-src ul { margin: 2px 0 4px; padding: 0; list-style: none; }
+.mat-src li { display: flex; justify-content: space-between; gap: 8px; color: var(--cream, #f2e6c8); }
+.mat-src li em { color: #ffc06a; font-style: normal; }
+.mat-src li span { color: var(--text-soft, #cbbf9f); white-space: nowrap; }
+.mat-src p { margin: 2px 0; }
+.mat-src small { display: block; color: #9af4ff; opacity: 0.85; }
+.mat-src--empty { font-style: italic; }
+
+@media (max-width: 760px) {
+  body.en-mundo .mat-src { margin-left: 8px; }
+  body.en-mundo .mat-src li { flex-direction: column; gap: 0; }
+}
+
+/* la fila que se abre debajo del material con sus fuentes */
+.wp-mats li.wp-mat-src-row { display: block; padding: 0; border: 0; background: none; }
+/* las filas de adentro no llevan la raya ni el relleno de la lista de materiales */
+.wp-mats .mat-src li { border: 0; padding: 0; align-items: baseline; }

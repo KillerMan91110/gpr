@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import bus from './bus';
-import { DIALOGUES } from './dialogues';
+import { ambientOf } from './dialogues';
 import { socialStore } from './socialStore';
 import { PET_SPECIES } from './world/shared';
 
@@ -131,6 +131,8 @@ export default class SocialLayer {
       return o ? { sprite: o.sprite, top: o.name.y - 8 } : null;
     }
     if (key.startsWith('cit:')) return this.scene.city?.entity(key.slice(4)) ?? null;
+    // quien te acompaña en una misión de escolta (world/escolta.js)
+    if (key === 'escolta') return s.escort ? { sprite: s.escort.sprite, top: s.escort.sprite.y - 30 } : null;
     if (key.startsWith('npc:')) {
       const n = s.npcs.get(key.slice(4));
       return n ? { sprite: n.sprite, top: n.sprite.y - 38 } : null;
@@ -458,12 +460,13 @@ export default class SocialLayer {
     s.time.delayedCall(Phaser.Math.Between(...NPC_CHAT_MS), () => {
       if (!s.sys.isActive() || !s.player) { this.scheduleNpcChat(); return; }
       // clave "zona:dialogo" (n.id es el dialogo)
-      const near = [...s.npcs.entries()].filter(([key, n]) => !n.hidden && DIALOGUES[n.id]?.ambient?.length
+      const near = [...s.npcs.entries()].filter(([key, n]) => !n.hidden && ambientOf(n.id, s.storyState).length
         && Phaser.Math.Distance.Between(n.sprite.x, n.sprite.y, s.player.x, s.player.y) < 420
         && !this.bubbles.has(`npc:${key}`));
       if (near.length) {
         const [key, n] = Phaser.Utils.Array.GetRandom(near);
-        this.say(`npc:${key}`, Phaser.Utils.Array.GetRandom(DIALOGUES[n.id].ambient));
+        // lo que dicen sigue la historia de este jugador (dialogues.js ambientOf)
+        this.say(`npc:${key}`, Phaser.Utils.Array.GetRandom(ambientOf(n.id, s.storyState)));
       }
       this.scheduleNpcChat();
     });

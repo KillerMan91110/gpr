@@ -20,6 +20,8 @@ import { questsMethods } from './world/quests';
 import { tormentaMethods } from './world/tormenta';
 import { brasasMethods } from './world/brasas';
 import { trackingMethods } from './world/tracking';
+import { escenaMethods } from './world/escena';
+import { escoltaMethods } from './world/escolta';
 
 // Mundo abierto continuo (estilo MMO): public/assets/mundo/etheria.json coloca cada zona
 // (public/assets/mundo/<zona>/mundo.json) en su lugar del continente. Todas las zonas viven en
@@ -345,6 +347,8 @@ export default class WorldScene extends Phaser.Scene {
     }));
     this.encounterAreas = all.filter((o) => o.type === 'encuentro');
     this.spawnNpcs(present.filter((o) => o.type === 'npc'));
+    // escenario que cambia con la historia de cada jugador (world/escena.js)
+    this.spawnScenery(all.filter((o) => o.type === 'escena'));
     // salidas a zonas que todavía no están en el continente (las que sí, se cruzan caminando)
     this.exits = all.filter((o) => o.type === 'salida' && !this.zoneByDir[propOf(o, 'destino')]).map((o) => ({
       rect: new Phaser.Geom.Rectangle(o.x, o.y, o.width || 64, o.height || 32),
@@ -419,8 +423,8 @@ export default class WorldScene extends Phaser.Scene {
         this.monsters.getChildren().forEach((m) => { const t = m.getData('tag'); if (t) t.setColor(this.levelColor(t.text.replace('Nv ', ''))); });
       },
       'npc-marks': (marks) => this.setNpcMarks(marks),
-      // misiones que completó este jugador: qué NPCs ve (cada uno ve el mundo según su historia)
-      'story-done': (codes) => this.applyNpcStory(new Set(codes ?? [])),
+      // la historia de este jugador (game/story.js): qué NPCs ve (cada uno ve el mundo según la suya)
+      'story-state': (story) => { this.applyNpcStory(story); this.applySceneryStory(story); },
       'quest-npc-spots': (spots) => this.setQuestNpcSpots(spots),
       'quest-points': (points) => this.setQuestPoints(points),
       'quest-track': (tracks) => this.setTracking(tracks),
@@ -1284,7 +1288,8 @@ export default class WorldScene extends Phaser.Scene {
     this.tweens.add({ targets: mon, alpha: 0.3, yoyo: true, repeat: 3, duration: 90 });
     if (mon.getData('minion')) {
       bus.emit('encounter', {
-        kind: 'esbirro', code: mon.getData('code'), name: mon.getData('name'), level: Math.max(1, Math.min(15, this.heroLevel ?? 1)),
+        // el nivel de verdad lo pone el servidor (lib/mythic.js cloneLevel), según la zona del jefe
+        kind: 'esbirro', code: mon.getData('code'), name: mon.getData('name'), level: this.heroLevel ?? 1,
         zoneId: this.zoneId, position: this.toLocal(this.player.x, this.player.y, this.zone),
       });
       return;
@@ -1469,6 +1474,7 @@ export default class WorldScene extends Phaser.Scene {
     this.guildTag.setPosition(this.player.x, this.player.y - 14);
     this.playerDot?.setPosition(this.player.x, this.player.y);
     this.updateFollowers(!!(vx || vy));
+    this.updateEscort(delta);
     this.updateChunks();
     if (vx || vy) this.checkZoneChange();
     if (vx || vy) this.scareFauna();
@@ -1504,4 +1510,4 @@ export default class WorldScene extends Phaser.Scene {
 }
 
 // Partes de la escena que viven en su propio archivo (game/world/*)
-Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods, tormentaMethods, brasasMethods);
+Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods, tormentaMethods, brasasMethods, escenaMethods, escoltaMethods);

@@ -5,6 +5,8 @@
 const PORTRAIT = (name) => `${process.env.PUBLIC_URL}/assets/mundo/retratos/${name}.png`;
 const pick = (list) => list[Math.floor(Math.random() * list.length)];
 const bye = { label: 'Adiós', close: true };
+// ¿este jugador ya completó esa misión? (igual que en dialogues.js)
+const hecho = (ctx, code) => !!ctx?.done?.has?.(code);
 
 export const DIALOGUES_CIUDAD = {
   tomas: {
@@ -23,14 +25,17 @@ export const DIALOGUES_CIUDAD = {
     lines: {
       pilar: 'El Pilar honra a Aethra, la Dama de las Aguas. Dicen que el primer manantial de Etheria brotó justo aquí. Si le ofreces unas monedas, la diosa bendice tu camino durante un rato. Los domingos es el Festival de Aethra y la bendición es el doble.',
       ordenes: 'Al oeste está el Barrio de las Órdenes: el Cuartel del Acero de los guerreros, la Torre Arcana de los magos, el Campo del Halcón de los arqueros y una taberna oscura donde se reúnen los pícaros… si los encuentras. La Capilla de la Luz de los sacerdotes está junto a la catedral.',
-      salir: 'La Puerta Sur da al Camino Real, que baja a la Pradera Dorada y a la Aldea Espiga. Si tienes prisa, Gaspar el cochero te lleva en diligencia por unas monedas.',
+      salir: 'La Puerta Sur da al Camino Real, que baja a la Pradera Dorada y a la Aldea Espiga. Si tienes prisa, la diligencia te lleva por unas monedas.',
     },
   },
   elenya: {
     name: 'Elenya', role: 'Sacerdotisa de Aethra', portrait: PORTRAIT('elenya'),
-    greet: ({ night }) => (night
-      ? 'La catedral nunca cierra. A esta hora el rosetón brilla con la luz de las velas. ¿Vienes herido?'
-      : pick(['Que el agua de Aethra lave tus heridas, viajero.', 'Bienvenido a la Catedral de Aethra. Aquí curamos a quien lo necesite.'])),
+    greet: (ctx) => {
+      if (hecho(ctx, 'PRADERA_HISTORIA_14_MONTANAS') && Math.random() < 0.5) return pick(['El fragmento del Primer Sello descansa bajo el Pilar. El agua lo cuida mejor que cualquier guardia.', 'Rezo por ti cada mañana. Bueno, por ti y por las Montañas. Pero sobre todo por ti.']);
+      return ctx.night
+        ? 'La catedral nunca cierra. A esta hora el rosetón brilla con la luz de las velas. ¿Vienes herido?'
+        : pick(['Que el agua de Aethra lave tus heridas, viajero.', 'Bienvenido a la Catedral de Aethra. Aquí curamos a quien lo necesite.']);
+    },
     options: () => [
       { label: 'Curar a mi grupo', window: 'enfermeria' },
       { label: 'Háblame de Aethra', next: 'aethra' },
@@ -42,9 +47,15 @@ export const DIALOGUES_CIUDAD = {
   },
   marta: {
     name: 'Marta', role: 'Posadera de El Grifo Dorado', portrait: PORTRAIT('marta'),
-    greet: ({ night }) => (night
-      ? pick(['¡Pasa, pasa, que fuera refresca! La sopa todavía está caliente.', 'A estas horas la posada se llena de historias… y de mentiras.'])
-      : pick(['¡Bienvenido a El Grifo Dorado! La mejor cerveza de Aurelia, y lo digo yo.', 'Si quieres dejar unas palabras para la posteridad, ahí está el libro de visitas.'])),
+    greet: (ctx) => {
+      // la cadena de Ren (Pradera): lo que sabe Marta depende de lo que le llevaste
+      if (hecho(ctx, 'PRADERA_SEC_MARTA_4')) return pick(['Ren me escribe desde las Montañas cada semana. Con faltas de ortografía. Me encanta.', 'Le tejí una bufanda a Ren. Dice que no se la saca ni para dormir. Mentiroso. Bueno, ojalá que no.']);
+      if (hecho(ctx, 'PRADERA_SEC_MARTA_2')) return 'Las flores de cierto guardabosque brillan en mi ventana todas las noches. No le digas que las miro.';
+      if (hecho(ctx, 'PRADERA_SEC_MARTA_1')) return '¿Ren te pidió que me trajeras la carta? Qué tímido. Qué… lindo. No le digas que dije lindo.';
+      return ctx.night
+        ? pick(['¡Pasa, pasa, que fuera refresca! La sopa todavía está caliente.', 'A estas horas la posada se llena de historias… y de mentiras.'])
+        : pick(['¡Bienvenido a El Grifo Dorado! La mejor cerveza de Aurelia, y lo digo yo.', 'Si quieres dejar unas palabras para la posteridad, ahí está el libro de visitas.']);
+    },
     options: () => [
       { label: 'Leer el libro de visitas', window: 'libro' },
       { label: '¿Alguna noticia?', next: 'noticias' },
@@ -113,6 +124,34 @@ export const DIALOGUES_CIUDAD = {
       bye,
     ],
     lines: {},
+  },
+  // Lucio, el sobrino de Gaspar: maneja la diligencia cuando su tío se va con la historia (después de
+  // «Hacia las montañas» Gaspar sube con Tilo y termina en el Volcán). Ver STAND_INS en questGivers.js
+  lucio: {
+    name: 'Lucio', role: 'Cochero de la diligencia', portrait: PORTRAIT('lucio'),
+    ambient: ['¡Diligencia a la Aldea Espiga!', 'Los caballos me hacen caso. Casi siempre.', 'Mi tío Gaspar me dejó la diligencia. Y una lista de consejos.'],
+    greet: () => pick(['Soy Lucio, el sobrino de Gaspar. Mi tío se fue a las Montañas y me dejó la diligencia. ¿A la Aldea?', '¿Viaje? Veinte monedas y llegas entero. Mi tío decía «casi siempre». Yo digo siempre.']),
+    options: () => [
+      { label: 'Viajar a la Aldea Espiga (20 de oro)', action: 'viaje', destino: 'aldea' },
+      { label: '¿Dónde está Gaspar?', next: 'gaspar' },
+      bye,
+    ],
+    lines: {
+      gaspar: 'Subió a las Montañas con el chico ese, Tilo, escondido entre las cajas. Y después Trueno se le escapó otra vez. La última carta que mandó venía chamuscada y decía «Volcán». Nada más. Así es mi tío.',
+    },
+  },
+  lucio_aldea: {
+    name: 'Lucio', role: 'Cochero de la diligencia', portrait: PORTRAIT('lucio'),
+    ambient: ['¡Diligencia a la capital!', 'Este caballo no es Trueno. Gracias a los dioses.'],
+    greet: () => '¿Volvemos a la capital? Veinte monedas y te dejo junto a la Puerta Sur. Mi tío te manda saludos. Bueno, me los mandaría si supiera escribir sin quemar el papel.',
+    options: () => [
+      { label: 'Viajar a Aurelia (20 de oro)', action: 'viaje', destino: 'aurelia' },
+      { label: '¿Dónde está Gaspar?', next: 'gaspar' },
+      bye,
+    ],
+    lines: {
+      gaspar: 'Subió a las Montañas con el chico ese, Tilo, escondido entre las cajas. Y después Trueno se le escapó otra vez. La última carta que mandó venía chamuscada y decía «Volcán». Nada más. Así es mi tío.',
+    },
   },
   cochero_aldea: {
     name: 'Gaspar', role: 'Cochero de la diligencia', portrait: PORTRAIT('cochero'),

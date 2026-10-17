@@ -40,6 +40,7 @@ const OBJECT_TYPES = [
   { type: 'estandarte', label: 'Estandarte', hint: 'Estandarte del gremio campeón (se tiñe con su color y emblema)' },
   { type: 'buzon', label: 'Buzón', hint: 'Buzón del correo del reino (la banderita se levanta si tienes cartas)' },
   { type: 'secreto', label: 'Secreto', hint: 'Cofre escondido (se abre una vez). El nombre tiene que estar en SECRETS de gprback/lib/exploracion.js' },
+  { type: 'escena', label: 'Escenario por fase', hint: 'Objeto que cada jugador ve según su historia (escombros, un puente arreglado…). Ver game/world/escena.js' },
   // mazmorras (ver game/world/cripta.js y gprback/lib/cripta.js: las casillas se repiten allá)
   { type: 'guardian', label: 'Guardián', hint: 'Guardián de mazmorra que patrulla (ruta = casillas "x,y;x,y"; vuelta = da la vuelta en vez de ir y volver). El nombre tiene que estar en GUARDIANES de gprback/lib/cripta.js' },
   { type: 'brasero', label: 'Brasero', hint: 'Brasero de control de la mazmorra (orden 1, 2…): al encenderlo, retomas desde ahí' },
@@ -61,6 +62,7 @@ const GENERIC_PROPS = {
   guardian: [['monstruo', 'string', 'CRIPTA_CENTINELA'], ['ruta', 'string', '5,25;34,25'], ['vuelta', 'bool', false]],
   brasero: [['orden', 'int', 1], ['etiqueta', 'string', 'Brasero']],
   sello: [],
+  escena: [['sprite', 'string', ''], ['fase', 'string', ''], ['ancho', 'int', 32], ['alto', 'int', 32], ['cuadros', 'int', 1], ['solido', 'bool', false], ['encima', 'bool', false]],
   vigia: [['monstruo', 'string', 'CRIPTA_VIGIA'], ['etiqueta', 'string', 'El Vigía Caído']],
 };
 const PASO_TOOLS = [
@@ -1197,6 +1199,9 @@ export default function MapEditor() {
                     <Field label="Se va después de la misión" hint="Código de misión: deja de verse para quien ya la completó">
                       <input value={getProp(selPoint, 'oculto_tras') ?? ''} placeholder="— nunca —" onChange={(e) => setPointProp('oculto_tras', 'string', e.target.value.trim().toUpperCase())} />
                     </Field>
+                    <Field label="Fase (avanzado)" hint="Se suma a lo de arriba. CODIGO@activa (la tiene en curso), CODIGO@2 (va en el paso 2), CODIGO@2+, CODIGO@lista, CODIGO@no (ni la empezó), !CODIGO; varias con coma. Ver game/story.js">
+                      <input value={getProp(selPoint, 'fase') ?? ''} placeholder="— sin fase —" onChange={(e) => setPointProp('fase', 'string', e.target.value.trim())} />
+                    </Field>
                   </>
                 )}
                 {(selPoint.type === 'npc' || selPoint.type === 'poi' || selPoint.type === 'jefe') && (
@@ -1282,6 +1287,7 @@ export default function MapEditor() {
                     {selPoint.type === 'salida' && <p className="me-hint">destino = carpeta de la zona (aurelia, pradera…); x/y = casilla donde apareces allí. Arrastra la esquina para cambiar el tamaño.</p>}
                     {selPoint.type === 'ruta' && <p className="me-hint">Los puntos con el mismo nombre forman una ruta; los ciudadanos la recorren en el orden indicado.</p>}
                     {selPoint.type === 'ciudadano' && <p className="me-hint">sprite = hoja de caminar (cit_1…cit_15, npc_guardia…); ruta = nombre de una ruta; horario: siempre, dia, tarde, noche; charla = grupo de conversación; mira: side, sideL, up, down.</p>}
+                    {selPoint.type === 'escena' && <p className="me-hint">sprite = assets/mundo/escena/&lt;sprite&gt;.png; fase = cuándo se ve (ej: MONTANAS_HISTORIA_02_ORCOS, !CODIGO, CODIGO@activa, CODIGO@2, CODIGO@no; varias con coma); solido = tapa el paso mientras se ve.</p>}
                     {selPoint.type === 'cartel' && <p className="me-hint">icono: espada, baston, arco, daga, sol, pocion, yunque, jarra, moneda, pergamino, balanza, gema, ala, rueda, libro, cama.</p>}
                   </>
                 )}

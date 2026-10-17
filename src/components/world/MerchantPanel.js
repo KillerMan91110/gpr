@@ -16,8 +16,20 @@ const ARTISAN_ICON = {
   joyero: ['gem-pendant', 'lorc'],
   peletero: ['animal-hide', 'delapouite'],
   sastre: ['sewing-needle', 'lorc'],
+  fuego: ['shop', 'delapouite'],
 };
 const iconOfArtisan = (a) => ARTISAN_ICON[(a.specialty || '').toLowerCase()] ?? ['shop', 'delapouite'];
+// mercaderes de una zona (solo aparecen ahí): su retrato, cómo se presentan y su saludo
+const LOCAL_MERCHANT = {
+  MERCADER_ASCUARIA: { portrait: 'marga', role: 'Mercader de Ascuaria', greeting: '«Lo del volcán, sin meter la mano en la lava. ¿Qué te llevas?»' },
+};
+const PORTRAITS = `${process.env.PUBLIC_URL}/assets/mundo/retratos`;
+function ArtisanFace({ a }) {
+  const local = LOCAL_MERCHANT[a.code];
+  if (local?.portrait) return <img className="wp-merchant-face" src={`${PORTRAITS}/${local.portrait}.png`} alt="" />;
+  const [n, ar] = iconOfArtisan(a);
+  return <GameIcon name={n} artist={ar} />;
+}
 
 const ROWS_PER_PAGE = 10;
 const cap = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1).toLowerCase() : '');
@@ -159,7 +171,6 @@ export default function MerchantPanel({ gold, onChanged, onClose, zIndex, onActi
           {tab === 'buy' && (
             <nav className="wp-merchant-rail">
               {artisans.map((a) => {
-                const [n, ar] = iconOfArtisan(a);
                 return (
                   <button
                     key={a.code}
@@ -168,7 +179,7 @@ export default function MerchantPanel({ gold, onChanged, onClose, zIndex, onActi
                     title={`${a.name} · ${cap(a.specialty)}`}
                     onClick={() => { setArtisanCode(a.code); setPage(0); setSelected(null); }}
                   >
-                    <GameIcon name={n} artist={ar} />
+                    <ArtisanFace a={a} />
                   </button>
                 );
               })}
@@ -179,10 +190,12 @@ export default function MerchantPanel({ gold, onChanged, onClose, zIndex, onActi
             {tab === 'buy' && artisan && (
               <>
                 <header className="wp-merchant-head">
-                  <span className="wp-merchant-portrait"><GameIcon name={iconOfArtisan(artisan)[0]} artist={iconOfArtisan(artisan)[1]} /></span>
+                  <span className="wp-merchant-portrait"><ArtisanFace a={artisan} /></span>
                   <div>
                     <strong>{artisan.name}</strong>
-                    <small>{cap(artisan.specialty)} · «¿Qué necesitas hoy, aventurero?»</small>
+                    <small>
+                      {LOCAL_MERCHANT[artisan.code]?.role ?? cap(artisan.specialty)} · {LOCAL_MERCHANT[artisan.code]?.greeting ?? '«¿Qué necesitas hoy, aventurero?»'}
+                    </small>
                   </div>
                 </header>
                 <div className="wp-merchant-grid">

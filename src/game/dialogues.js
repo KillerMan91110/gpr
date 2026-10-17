@@ -4,6 +4,7 @@
 // Opción: { label, window? (abre esa ventana), next? (muestra otra línea), close? }
 
 import { DIALOGUES_CIUDAD } from './dialoguesCiudad';
+import { enFase } from './story';
 
 const PORTRAIT = (name) => `${process.env.PUBLIC_URL}/assets/mundo/retratos/${name}.png`;
 
@@ -11,6 +12,13 @@ const pick = (list) => list[Math.floor(Math.random() * list.length)];
 // ¿este jugador ya completó esa misión? (ctx.done: códigos de sus misiones completadas). Lo que
 // dicen los NPCs sigue la historia de cada jugador: nadie te agradece algo que no hiciste.
 const hecho = (ctx, code) => !!ctx?.done?.has?.(code);
+// ¿la tiene en curso? (cualquier paso). Para lo demás (paso N, sin empezar…): enFase(ctx.fase, 'CODE@2'), ver game/story.js
+const enCurso = (ctx, code) => enFase(ctx?.fase, `${code}@activa`);
+// globitos que siguen la historia: ambient puede ser una lista o (ctx) => lista
+export const ambientOf = (id, story) => {
+  const a = DIALOGUES[id]?.ambient;
+  return typeof a === 'function' ? a({ done: story?.done, fase: story }) : a ?? [];
+};
 
 // Los trillizos vagoneteros de las Montañas (Grun, Grat y Grot): cada uno atiende una estación y te
 // lleva a las otras dos (gprback/lib/tormenta.js). Se distinguen por cómo hablan… un poco.
@@ -58,14 +66,16 @@ export const DIALOGUES = {
     role: 'Guardabosque',
     portrait: PORTRAIT('ren'),
     // frases sueltas que dice en un globito cuando pasas cerca
-    ambient: [
+    ambient: (ctx) => [
       'Cuidado con los lobos de noche…',
-      'Las huellas van hacia el lago. Otra vez.',
       '¡El tablón tiene encargos nuevos!',
-      'Hmm… la tierra del sureste huele a ceniza.',
       'Si ves un goblin con un saco, es mío.',
+      ...(hecho(ctx, 'PRADERA_Q3_TITAN_PRADERA')
+        ? ['El sureste ya no huele a ceniza. Huele a hierba.', 'Los lobos vuelven a tenerle miedo al fuego. Bien.']
+        : ['Las huellas van hacia el lago. Otra vez.', 'Hmm… la tierra del sureste huele a ceniza.']),
     ],
-    greet: ({ night, mark }) => {
+    greet: (ctx) => {
+      const { night, mark } = ctx;
       if (mark === '?') return pick([
         'Las huellas no mienten: hiciste lo que te pedí. Revisa tu diario y entrégame el encargo.',
         '¡Bien hecho! La pradera respira un poco mejor gracias a ti. Ven, cobremos esa recompensa.',
@@ -74,21 +84,25 @@ export const DIALOGUES = {
         'Tengo trabajo para alguien con buen pulso. Los monstruos se están acercando demasiado al campamento.',
         'Llegas justo a tiempo. El tablón está lleno de encargos y no me alcanzan las flechas para todos.',
       ]);
+      if (hecho(ctx, 'PRADERA_Q3_TITAN_PRADERA')) return pick(['El Titán ya no ruge. La hierba vuelve a crecer en el sureste, despacito.', 'Los lobos vuelven a temerle al fuego. Como debe ser. Eso lo hiciste tú.']);
+      if (hecho(ctx, 'PRADERA_HISTORIA_10_RITUAL')) return 'Desde que rompiste el ritual, el Círculo ya no brilla rojo. La manada, en cambio, sigue rara.';
       return night
         ? pick(['De noche los lobos se vuelven atrevidos. Quédate cerca de la luz de los faroles.', 'Shh… ¿Oyes eso? Algo se mueve en la hierba alta. Siempre es así cuando cae el sol.'])
         : pick(['La pradera parece tranquila, pero no te fíes de la hierba alta.', 'Buenos días, aventurero. ¿Vienes a ayudar o solo de paso?']);
     },
-    options: () => [
+    options: (ctx) => [
       { label: 'Ver encargos del gremio', window: 'misiones_gremio' },
       { label: 'Háblame de la Pradera', next: 'lore' },
-      { label: '¿Qué hay en el este?', next: 'este' },
-      { label: '¿Y al sur?', next: 'sur' },
+      { label: '¿Qué hay en el este?', next: hecho(ctx, 'PRADERA_HISTORIA_11_MANADA') ? 'este_despues' : 'este' },
+      { label: '¿Y al sur?', next: hecho(ctx, 'PRADERA_HISTORIA_10_RITUAL') ? 'sur_despues' : 'sur' },
       { label: 'Adiós', close: true },
     ],
     lines: {
       lore: 'La Aldea Espiga es el granero de la capital: todo el trigo que se come tras la Puerta Norte sale de estos campos. Hace unos años el Titán despertó en el sureste y la tierra empezó a secarse a su alrededor. Desde entonces los lobos se organizan en manadas y los goblins saquean las granjas.',
       sur: 'Bajando por el camino del sur llegas al Círculo de Piedras: menhires con runas que brillan de noche. Últimamente un chamán hace rituales ahí. Al suroeste quedan las Ruinas del Vigía, la vieja torre que protegía los campos; ahora es refugio de bandidos.',
       este: 'Sigue el camino al este y cruzarás el río por el puente. Al noreste, pasando el Lago Cristalino, está la Guarida de la Manada: ahí manda el Capitán de los Lobos. Más al este empiezan las Montañas Grises. Y al sureste… las Tierras Heridas y el Corazón de la Pradera, donde duerme el Titán. Ni se te ocurra ir sin un buen grupo.',
+      sur_despues: 'Bajando por el camino del sur llegas al Círculo de Piedras. Desde que rompiste el ritual del Chamán, las runas brillan azules otra vez, como cuando yo era chico. Al suroeste quedan las Ruinas del Vigía, la vieja torre que protegía los campos; los bandidos todavía se esconden ahí.',
+      este_despues: 'Sigue el camino al este y cruzarás el río por el puente. Al noreste, pasando el Lago Cristalino, está la Guarida de la Manada: sin el collar del Capitán, los lobos volvieron a ser lobos. Más al este empiezan las Montañas Grises. Y al sureste, las Tierras Heridas y el Corazón de la Pradera, donde duerme el Titán.',
     },
   },
   // Brin: la aprendiza de Ren. Aparece en su puesto cuando Ren se va a las Montañas (después de
@@ -176,9 +190,11 @@ export const DIALOGUES = {
       'Pan de Espiga y pociones para el camino.',
       'Mi cesta pesa más que mi suegra, y eso es decir mucho.',
     ],
-    greet: ({ night, mark }) => {
+    greet: (ctx) => {
+      const { night, mark } = ctx;
       if (mark === '?') return '¡Lo conseguiste! Pasa, pasa, que te pago lo prometido.';
       if (mark === '!') return 'Ay, qué bien que pasas. Necesito unas manos fuertes para un encargo.';
+      if (hecho(ctx, 'PRADERA_SEC_CERCA_4') && Math.random() < 0.5) return pick(['Margarita ya tiene corral. Con candado. Con DOS candados. Igual se escapa.', 'Bruno y Goreth almorzaron juntos ayer. No se hablaron, pero almorzaron. Es un comienzo.']);
       return night
         ? pick(['¿Tan tarde? Bueno, la tienda de una aldea nunca cierra del todo.', 'Los grillos y yo, siempre despiertos. ¿Qué buscas?'])
         : pick(['¡Bienvenido a la Aldea Espiga! Tengo hierbas, pociones y lo que traen los artesanos de la capital.', 'Si traes botín de tus cacerías, te lo compro. Palabra de Mirna.']);
@@ -204,9 +220,12 @@ export const DIALOGUES = {
       '¿Esa espada? Tráemela antes de que se parta.',
       'Hmph. Hace calor en la fragua.',
     ],
-    greet: ({ night }) => (night
-      ? pick(['El fuego de la fragua no se apaga nunca. Como mi mal humor.', 'Hmph. Otro que no duerme. ¿Qué necesitas forjar?'])
-      : pick(['Trae materiales y te forjo algo que no se rompa al primer golpe.', '¿Esa espada? He visto palos más afilados. Déjame ver qué puedo hacer.'])),
+    greet: (ctx) => {
+      if (hecho(ctx, 'PRADERA_SEC_CERCA_4') && Math.random() < 0.4) return pick(['Bruno me saludó ayer. Con la mano entera, no con un dedo. Progreso.', 'La vaca era de Mirna. Todo este tiempo. Hmph. Le debo una disculpa a Bruno. No se la voy a dar.']);
+      return ctx.night
+        ? pick(['El fuego de la fragua no se apaga nunca. Como mi mal humor.', 'Hmph. Otro que no duerme. ¿Qué necesitas forjar?'])
+        : pick(['Trae materiales y te forjo algo que no se rompa al primer golpe.', '¿Esa espada? He visto palos más afilados. Déjame ver qué puedo hacer.']);
+    },
     options: () => [
       { label: 'Usar el taller', window: 'taller' },
       { label: 'Encantar mi equipo', window: 'encantador' },
@@ -222,13 +241,15 @@ export const DIALOGUES = {
     name: 'Aldren',
     role: 'Anciano sabio',
     portrait: PORTRAIT('anciano'),
-    ambient: [
-      'La tierra del sureste está enferma…',
-      'Hmm… las runas del Círculo brillaron otra vez anoche.',
-      'Cuando yo era joven, el Titán dormía tranquilo.',
+    ambient: (ctx) => [
       'Siéntate, siéntate. Las historias no se cuentan de pie.',
+      ...(hecho(ctx, 'PRADERA_Q3_TITAN_PRADERA')
+        ? ['Las luciérnagas volvieron. Las cuento todas las noches.', 'El Titán duerme tranquilo otra vez. Como cuando yo era joven.']
+        : ['La tierra del sureste está enferma…', 'Cuando yo era joven, el Titán dormía tranquilo.']),
+      ...(hecho(ctx, 'PRADERA_HISTORIA_10_RITUAL') ? [] : ['Hmm… las runas del Círculo brillaron otra vez anoche.']),
     ],
-    greet: ({ night, mark }) => {
+    greet: (ctx) => {
+      const { night, mark } = ctx;
       if (mark === '?') return pick([
         'Lo veo en tus ojos: lo hiciste. Ven, cuéntamelo todo y recibe lo que te ganaste.',
         'La pradera ya se siente distinta. Fuiste tú, ¿verdad? Siéntate y hablemos de tu recompensa.',
@@ -238,18 +259,24 @@ export const DIALOGUES = {
         'Te esperaba. Las estrellas dijeron que vendría alguien. Escucha bien lo que te voy a contar.',
       ]);
       if (mark === 'gris') return 'Todavía no estás listo para lo que tengo que pedirte. Vuelve cuando hayas crecido un poco más.';
+      if (hecho(ctx, 'PRADERA_Q3_TITAN_PRADERA')) return pick(['Las luciérnagas volvieron al sureste. Anoche conté tres. ¡Tres!', 'El Titán duerme otra vez. Esta vez, tranquilo. Eso también es obra tuya.']);
+      if (hecho(ctx, 'PRADERA_HISTORIA_10_RITUAL')) return 'Ya no se oyen los tambores del Círculo. Ese silencio me gusta más.';
       return night
         ? pick(['De noche se oyen los tambores del chamán desde el Círculo de Piedras. No vayas solo.', 'Las luciérnagas solo salen donde la tierra está sana. Cada año hay menos.'])
         : pick(['Buen día, joven. La aldea es pequeña, pero sus historias son viejas.', 'Antes de la capital, antes del Pilar, ya había trigo en estos campos.']);
     },
-    options: () => [
-      { label: 'Háblame del Titán', next: 'titan' },
-      { label: '¿Qué pasa en el Círculo de Piedras?', next: 'chaman' },
+    options: (ctx) => [
+      { label: 'Háblame del Titán', next: hecho(ctx, 'PRADERA_Q3_TITAN_PRADERA') ? 'titan_despues' : 'titan' },
+      hecho(ctx, 'PRADERA_HISTORIA_10_RITUAL')
+        ? { label: '¿Quién era ese Chamán?', next: 'chaman_despues' }
+        : { label: '¿Qué pasa en el Círculo de Piedras?', next: 'chaman' },
       { label: 'Adiós', close: true },
     ],
     lines: {
       titan: 'El Titán de la Pradera es tan viejo como las colinas. Dormía bajo la tierra del sureste, en lo que ahora llaman el Corazón de la Pradera, hasta que alguien lo despertó. Desde entonces la tierra se seca a su alrededor y los animales enloquecen. Para enfrentarlo necesitarás nivel, buen equipo… y amigos.',
       chaman: 'Un chamán de túnica negra hace rituales en el Círculo de Piedras, al sur. Las runas brillan rojas cuando canta. Creo que tiene algo que ver con el despertar del Titán, pero nadie que fue a preguntarle volvió para contarlo.',
+      titan_despues: 'El Titán de la Pradera es tan viejo como las colinas. Era el guardián del Primer Sello, y alguien le clavó un cristal en el pecho para usarlo. Tú se lo sacaste. Ahora duerme otra vez bajo el Corazón de la Pradera, y esta vez sueña tranquilo.',
+      chaman_despues: 'Cantaba en el Círculo para despertar al Titán. Le rompiste el ritual y las runas volvieron a brillar azules. Pero no trabajaba solo: llevaba un mapa de la Guarida, y los goblins hablaban de «el hombre de la capucha». Alguien le daba las órdenes.',
     },
   },
   // Tilo: el niño de la Aldea que quiere ser héroe (misiones graciosas, gprback schema.sql)
@@ -263,9 +290,11 @@ export const DIALOGUES = {
       'Cuando tenga espada, se va a llamar Partelobos.',
       '¿Tú también fuiste niño alguna vez?',
     ],
-    greet: ({ night, mark }) => {
+    greet: (ctx) => {
+      const { night, mark } = ctx;
       if (mark === '?') return '¡Volviste! ¡Cuéntame todo, todo, todo!';
       if (mark === '!') return '¡Oye, oye! ¡Tengo una misión importantísima para ti!';
+      if (hecho(ctx, 'PRADERA_SEC_TILO_3')) return pick(['Ya le conté tu aventura a toda la aldea. Le agregué un dragón. Queda mejor.', '¡Partelobos y yo practicamos todos los días! Ayer partí una calabaza. De Bruno. No le digas.']);
       return night
         ? pick(['Mi mamá dice que me vaya a dormir, pero los héroes no duermen. Bueno, un poquito.', 'De noche hago guardia. Desde la ventana. Con la manta.'])
         : pick(['¿Eres un aventurero de verdad? ¿Con espada de verdad? ¡Qué suerte!', '¡Mira mi postura de combate! …¿Está bien así?']);
@@ -289,9 +318,11 @@ export const DIALOGUES = {
       'Ese herrero hace demasiado ruido.',
       'En mis tiempos las calabazas eran más grandes.',
     ],
-    greet: ({ night, mark }) => {
+    greet: (ctx) => {
+      const { night, mark } = ctx;
       if (mark === '?') return 'Hmph. ¿Ya está? Bueno, pasa, pasa.';
       if (mark === '!') return 'Tú. Sí, tú. Necesito a alguien que no sea un inútil. ¿Lo eres?';
+      if (hecho(ctx, 'PRADERA_SEC_CERCA_4')) return pick(['Margarita viene a comerse mi cerca y yo la dejo. Es de Mirna. Con Mirna no se discute.', 'Goreth me arregló la azada. Gratis. Hmph. Sus calabazas siguen siendo normalitas.']);
       return night
         ? pick(['¿No duermes? Yo tampoco. Ese yunque no para ni de noche.', 'Vigilo mi cerca. Por si acaso.'])
         : pick(['¿Qué miras? Es una cerca. Una cerca normal.', 'Si vienes de parte de Goreth, ya te puedes ir.']);
@@ -315,9 +346,12 @@ export const DIALOGUES = {
       'El viento hoy viene del este.',
       '*achís* Perdón, la harina.',
     ],
-    greet: ({ night, mark }) => {
+    greet: (ctx) => {
+      const { night, mark } = ctx;
       if (mark === '?') return '¡Lo lograste! Ven, ven, que te pago con lo que tengo.';
       if (mark === '!') return '¡Ay, qué bueno que subiste! Tengo un problemita… bueno, un problemón.';
+      if (enCurso(ctx, 'PRADERA_HISTORIA_05_MOLINO')) return 'El campamento goblin está al este, pasando las rocas. Mis engranajes, con cuidado, por favor: son de bronce viejo y lloran si se golpean.';
+      if (hecho(ctx, 'PRADERA_HISTORIA_05_MOLINO')) return pick(['¡Los cuatro engranajes en su sitio! Gira, gira, rueda… como debe ser.', 'Desde que me devolviste los engranajes no paro de moler. Harina para todo el Festival.']);
       return night
         ? pick(['De noche el molino descansa. Yo no: cuento los sacos.', 'Escucha el viento entre las aspas. Es la mejor canción de la Pradera.'])
         : pick(['Bienvenido a la Colina del Molino. Si traes trigo, sales con harina.', 'Sin este molino, la aldea no tendría pan. Ni yo trabajo, claro.']);
@@ -342,19 +376,23 @@ export const DIALOGUES = {
       'Los jabalíes ya no respetan ni el hacha.',
       'El roble viejo tiene más años que todos nosotros juntos.',
     ],
-    greet: ({ night, mark }) => {
+    greet: (ctx) => {
+      const { night, mark } = ctx;
       if (mark === '?') return '¡Volviste entero! Ven, siéntate junto al fuego y cuéntame.';
       if (mark === '!') return 'Oye, tú, el de las botas limpias. ¿Sabes usar eso que llevas? Me vendría bien una mano.';
+      if (hecho(ctx, 'PRADERA_SEC_HACHA') && Math.random() < 0.5) return 'Mi hacha volvió a casa. Con un diente de jabalí clavado, de recuerdo. Mi padre se habría reído.';
+      if (hecho(ctx, 'PRADERA_HISTORIA_06_RAICES')) return pick(['El roble viejo echó una hoja nueva. Una sola. Pero verde.', 'Desde que le untaste el ungüento, el bosque suena distinto. Mejor.']);
       return night
         ? pick(['De noche el bosque cruje distinto. Quédate cerca del fuego.', 'No duermo bien desde que los jabalíes enloquecieron.'])
         : pick(['Bienvenido al campamento de leñadores. Cuidado con el tronco, que no es asiento.', 'Si buscas madera de roble, la que cae sola es la mejor.']);
     },
-    options: () => [
-      { label: '¿Qué le pasa al bosque?', next: 'bosque' },
+    options: (ctx) => [
+      { label: '¿Qué le pasa al bosque?', next: hecho(ctx, 'PRADERA_HISTORIA_06_RAICES') ? 'bosque_despues' : 'bosque' },
       { label: 'Adiós', close: true },
     ],
     lines: {
       bosque: 'Desde la primavera los árboles se secan de adentro hacia afuera, como si algo les chupara la savia por las raíces. Y los jabalíes… antes huían del hacha. Ahora la buscan. El roble viejo, más al norte, es el que peor está.',
+      bosque_despues: 'El ungüento salvó al roble viejo, pero lo que te mostró no me deja dormir: un gigante dormido y una mano con guante negro. El bosque no estaba enfermo. Lo estaban usando. Y los jabalíes siguen furiosos, así que algo de eso todavía anda suelto.',
     },
   },
   // ---------------------------------------------------------------- Bastión de Hierro (Montañas Grises)
@@ -373,6 +411,7 @@ export const DIALOGUES = {
       const { night, mark } = ctx;
       if (mark === '?') return '¡Volviste! Y con todas las piernas. Cuéntame, que no tengo todo el día.';
       if (mark === '!') return 'Tú. Sí, tú, el alto. Tengo trabajo para alguien que no se asuste de la oscuridad.';
+      if (hecho(ctx, 'MONTANAS_Q3_REY_MONTANA') && Math.random() < 0.5) return pick(['El Rey Thorvald descansa. Los rayos vuelven a caer donde deben: en los pararrayos de Halvar.', 'Hoy cayó un rayo sobre la Cumbre. Despacito. Mi abuelo decía que así saludaba el Rey.']);
       if (hecho(ctx, 'MONTANAS_SEC_BARBA') && Math.random() < 0.5) return pick(['¿Qué miras? Es azul. Los enanos importantes llevan la barba azul. Desde ahora.', 'Hilda dice que la boda es en primavera. Yo digo que en invierno, que hay menos trabajo. Va a ser en primavera.']);
       return night
         ? pick(['De noche los rayos caen más cerca. Duerme con un ojo abierto.', 'Hmph. Otro que no duerme. Yo tampoco, desde que la mina se volvió loca.'])
@@ -418,10 +457,11 @@ export const DIALOGUES = {
     name: 'Ren',
     role: 'Explorador',
     portrait: PORTRAIT('ren'),
-    ambient: [
-      'Las huellas del Encapuchado siguen hacia el este.',
+    ambient: (ctx) => [
       'Nunca vi tanta nieve junta.',
-      'Marta me dio esta bufanda. No me la saco ni para dormir.',
+      hecho(ctx, 'MONTANAS_Q3_REY_MONTANA') ? 'El Encapuchado bajó al sur. Otra vez un paso detrás de él.' : 'Las huellas del Encapuchado siguen hacia el este.',
+      // la bufanda solo existe si los ayudaste a encontrarse (cadena de Marta)
+      hecho(ctx, 'PRADERA_SEC_MARTA_4') ? 'Marta me tejió esta bufanda. No me la saco ni para dormir.' : 'Debí traer una bufanda. Una de verdad.',
     ],
     greet: ({ mark }) => {
       if (mark === '?') return '¡Ahí estás! Cuéntame qué encontraste.';
@@ -477,6 +517,7 @@ export const DIALOGUES = {
       const { night, mark } = ctx;
       if (mark === '?') return '¡Volviste! Siéntate, que traigo la cerveza del Bastión… bueno, lo que queda.';
       if (mark === '!') return 'Tú tienes cara de saber pelear. Tengo un problema con cuernos. Y con orcos. Y con sal.';
+      if (hecho(ctx, 'MONTANAS_SEC_ORCO_COCINERO') && Math.random() < 0.5) return pick(['¿Un orco cocinero? ¿Que se llama Gruk? Hmph. El guiso que dejó en la puerta estaba bueno. No le digas.', 'Guardé el hacha. Por ahora. Por si acaso. Hmph.']);
       if (hecho(ctx, 'MONTANAS_SEC_CABRA_REINA')) return pick(['Les dejé el saco de sal en el cruce. Ni una carreta volcada desde entonces. ¡Viva la cabra reina!', 'Pell quiere ir a saludar a la cabra reina. Le dije que primero aprenda a correr.']);
       return night
         ? pick(['De noche no sale ninguna carreta. Los lobos no respetan los horarios.', 'Quédate cerca del fuego, que en el Paso el viento muerde.'])
@@ -500,9 +541,15 @@ export const DIALOGUES = {
       'Un día voy a manejar mi propia carreta.',
       '¿Eres un héroe? ¿Uno de verdad?',
     ],
-    greet: (ctx) => (hecho(ctx, 'MONTANAS_SEC_CABRA_REINA')
-      ? pick(['¿Es verdad que la cabra reina tiene corona? ¿De latas? ¡Yo quiero una corona de latas!', '¡Gorm dice que fuiste tú quien encontró a la cabra reina! ¿Te dejó tocarle los cuernos?'])
-      : pick(['Los orcos se llevaron la sal de la carreta otra vez. ¿Para qué querrán tanta sal? ¿Se la comen?', 'Gorm dice que no hable con los viajeros. Pero tú pareces simpático.'])),
+    greet: (ctx) => {
+      if (ctx.mark === '?') return '¿Y? ¿Era un orco? ¿Era grande? ¿Te mordió? ¡Cuéntame!';
+      if (ctx.mark === '!') return '¡Psst! Alguien se come la despensa del Puesto. Gorm ya está afilando el hacha. Yo quiero averiguar antes.';
+      if (enCurso(ctx, 'MONTANAS_SEC_ORCO_COCINERO')) return 'Las huellas iban hacia el campamento orco. De puntillas. ¿Quién camina de puntillas para robar cebollas?';
+      if (hecho(ctx, 'MONTANAS_SEC_ORCO_COCINERO')) return pick(['¡Hoy amaneció un saco de sal en la puerta! Y una zanahoria tallada con forma de cabra. Creo que es un regalo.', 'Gorm guardó el hacha. Dice que no, pero la guardó.']);
+      return hecho(ctx, 'MONTANAS_SEC_CABRA_REINA')
+        ? pick(['¿Es verdad que la cabra reina tiene corona? ¿De latas? ¡Yo quiero una corona de latas!', '¡Gorm dice que fuiste tú quien encontró a la cabra reina! ¿Te dejó tocarle los cuernos?'])
+        : pick(['Los orcos se llevaron la sal de la carreta otra vez. ¿Para qué querrán tanta sal? ¿Se la comen?', 'Gorm dice que no hable con los viajeros. Pero tú pareces simpático.']);
+    },
     options: () => [{ label: 'Adiós', close: true }],
     lines: {},
   },
@@ -544,7 +591,9 @@ export const DIALOGUES = {
       'Una vela más, por si acaso.',
       'Este campamento era más ruidoso antes.',
     ],
-    greet: (ctx) => (hecho(ctx, 'MONTANAS_HISTORIA_03_MINEROS')
+    greet: (ctx) => (enCurso(ctx, 'MONTANAS_HISTORIA_03_MINEROS')
+      ? '¿Bajaste ya? Kili, cuando tiene miedo, se mete en las grietas. Y Dora nunca suelta su lámpara: si ves una luz, es ella.'
+      : hecho(ctx, 'MONTANAS_HISTORIA_03_MINEROS')
       ? pick(['¡Volvieron los tres! Bram cojea, Kili no se calla y Dora ya me está dando órdenes. Como siempre. Gracias, de verdad.', 'Desde que trajiste a Dora el campamento vuelve a oler a caldo. Y a gritos. Me encanta.'])
       : pick(['Bram, Kili y la vieja Dora bajaron a las minas hace tres días y no volvieron. Yo me quedé cuidando el campamento… y no sé qué hacer. Durgan, en el Bastión, sabrá.', '¿Vienes del Bastión? ¿Durgan mandó a alguien a buscar a mis compañeros? Tres días ya… tres días.'])),
     options: (ctx) => [
@@ -611,6 +660,7 @@ export const DIALOGUES = {
       const { night, mark } = ctx;
       if (mark === '?') return '¿Lo viste? ¿Lo viste de verdad? ¡Cuéntamelo todo!';
       if (mark === '!') return '¿Crees en peces gigantes? Yo sí. Y necesito a alguien que me crea.';
+      if (enCurso(ctx, 'MONTANAS_SEC_BIGOTES')) return 'Lo vi otra vez, bajo el hielo gris. Una sombra larga, con bigotes. No me mires así: ¡con bigotes!';
       if (hecho(ctx, 'MONTANAS_SEC_BIGOTES')) return pick(['¡Bigotes ya espanta sierpes solito! Bueno, las espanta un poco. Y después se esconde.', 'Bigotes creció dos dedos. Mi abuelo estaría orgulloso. O asustado.']);
       return night
         ? pick(['De noche el hielo cruje. A veces parece que alguien camina debajo.', 'El lago brilla de noche. Mi abuelo decía que es el Viejo Bigotes, que lee con linterna.'])
@@ -644,12 +694,13 @@ export const DIALOGUES = {
         ? pick(['De noche las tormentas son más bonitas. Y más peligrosas.', 'Si se te paran los pelos, agáchate. Hazme caso.'])
         : pick(['Mis pararrayos atraen los rayos para que no caigan sobre los viajeros. Treinta años cuidándolos.', 'Los Acantilados del Trueno no se llaman así por adorno.']);
     },
-    options: () => [
-      { label: '¿Por qué hay tantas tormentas?', next: 'tormentas' },
+    options: (ctx) => [
+      { label: '¿Por qué hay tantas tormentas?', next: hecho(ctx, 'MONTANAS_Q3_REY_MONTANA') ? 'tormentas_despues' : 'tormentas' },
       { label: 'Adiós', close: true },
     ],
     lines: {
       tormentas: 'Antes el Rey de la Montaña mandaba a los rayos. Con su corona los calmaba. Desde que enloqueció, las tormentas hacen lo que quieren, y los elementales nacen de cada rayo que cae. Mis pararrayos son lo único que mantiene el camino abierto.',
+      tormentas_despues: 'Antes el Rey de la Montaña mandaba a los rayos, y desde que le devolviste su Corazón vuelven a obedecerle. Todavía caen, eh: es una montaña. Pero caen donde deben, en mis pararrayos, y no en la cabeza de los viajeros.',
     },
   },
   // Lío: el bardo mediano que vino a la Garganta del Eco a buscar canciones
@@ -747,9 +798,11 @@ export const DIALOGUES = {
       'Esos sapos me miran feo.',
       'Mi abuelo pescó aquí, y su abuelo también.',
     ],
-    greet: ({ night, mark }) => {
+    greet: (ctx) => {
+      const { night, mark } = ctx;
       if (mark === '?') return '¡Ajá! Sabía que volverías. Los buenos siempre vuelven al muelle.';
-      if (mark === '!') return 'Psst, muchacho. Acércate. Un viejo pescador necesita un favor.';
+      if (mark === '!') return 'Psst, acércate. Un viejo pescador necesita un favor.';
+      if (hecho(ctx, 'PRADERA_SEC_RED')) return pick(['La red aguanta. Hoy pesqué un pez de verdad. Pequeño, pero pez.', 'Los sapos miran la red remendada y se van. Saben que perdieron.']);
       return night
         ? pick(['De noche salen los sapos grandes. Y croan. Toda. La. Noche.', 'Si ves luces sobre el agua, no las sigas. Hazle caso a este viejo.'])
         : pick(['Siéntate un rato. Pescar es esperar, y esperar es la mitad de la vida.', 'Desde que el agua se enturbió, solo pesco botas.']);
@@ -773,9 +826,11 @@ export const DIALOGUES = {
       'Los Vigías escribían en una lengua muy curiosa.',
       'Si solo pudiera leer la última línea…',
     ],
-    greet: ({ night, mark }) => {
+    greet: (ctx) => {
+      const { night, mark } = ctx;
       if (mark === '?') return '¡Excelente! Muéstrame lo que encontraste, con cuidado, con cuidado.';
       if (mark === '!') return 'Ah, justo a tiempo. Necesito a alguien con más músculo que paciencia. Sin ofender.';
+      if (hecho(ctx, 'PRADERA_SEC_INSCRIPCIONES')) return pick(['Mandé tus tres inscripciones a la Biblioteca. No me creen. La Biblioteca nunca me cree.', 'Releo tus notas cada noche. Fascinante. Y un poco aterrador.']);
       return night
         ? pick(['De noche las inscripciones parecen moverse. Seguro es el cansancio. Seguro.', 'Los esqueletos no me dejan dormir. Ni trabajar. Ni pensar.'])
         : pick(['Bienvenido a la excavación de la Torre del Vigía, por encargo de la Biblioteca de Aurelia.', 'Cada piedra de estas ruinas cuenta una historia. La mayoría, tristes.']);
@@ -799,9 +854,12 @@ export const DIALOGUES = {
       '¿Alguien vio a la cabra blanca?',
       'Esas luces del sur no son de nadie bueno.',
     ],
-    greet: ({ night, mark }) => {
+    greet: (ctx) => {
+      const { night, mark } = ctx;
       if (mark === '?') return 'Gracias a ti esta gente duerme un poco más tranquila. Ven, ven.';
       if (mark === '!') return 'Por favor, escúchame. Somos pocos y tenemos miedo, pero no somos cobardes.';
+      if (hecho(ctx, 'PRADERA_Q3_TITAN_PRADERA')) return pick(['Dicen que el Titán se calmó. Mañana vamos a ver las granjas. Con miedo, pero vamos.', 'Los niños ya juegan lejos del fuego. Eso, para mí, es la paz.']);
+      if (hecho(ctx, 'PRADERA_SEC_RECUERDO')) return 'Mi hija duerme abrazada a su muñeca. Y yo, por fin, duermo un poco también.';
       return night
         ? pick(['Hacemos guardia por turnos. Las luces del Círculo se ven desde aquí.', 'Los niños preguntan cuándo volvemos a casa. No sé qué decirles.'])
         : pick(['Bienvenido al campamento. No tenemos mucho, pero el fuego es de todos.', 'Mi granja estaba a una hora de aquí. Ahora es de los lobos.']);
@@ -819,25 +877,29 @@ export const DIALOGUES = {
     name: 'Vera',
     role: 'Cazadora',
     portrait: PORTRAIT('vera'),
-    ambient: [
+    ambient: (ctx) => [
       'Shh. Escucha. ¿Oyes al norte?',
-      'Tres lobos esta mañana. Dos con cristales.',
       'Desde aquí se ve todo: la Guarida y las grietas.',
       'Una flecha bien puesta vale más que diez espadas.',
+      hecho(ctx, 'PRADERA_HISTORIA_11_MANADA') ? 'Cero lobos con cristales hoy. Cero.' : 'Tres lobos esta mañana. Dos con cristales.',
     ],
-    greet: ({ night, mark }) => {
+    greet: (ctx) => {
+      const { night, mark } = ctx;
       if (mark === '?') return 'Buen trabajo. Lo vi todo desde aquí arriba. Casi todo.';
       if (mark === '!') return 'Tú. Tienes pinta de saber pelear. Tengo algo que necesita más de un arco.';
+      if (hecho(ctx, 'PRADERA_HISTORIA_12_HERIDA')) return pick(['Las grietas que cerraste ya no brillan ni de noche. Me quedé sin nada que contar. Es raro. Es bueno.', 'Hoy bajé de la atalaya a cazar un conejo. Para comer. Hacía meses que no cazaba para comer.']);
+      if (hecho(ctx, 'PRADERA_HISTORIA_11_MANADA')) return pick(['La Guarida está en silencio. Sin el collar, la manada volvió a ser manada.', 'Hoy conté cero lobos con cristales. Cero. Hacía meses que no escribía un cero.']);
       return night
         ? pick(['De noche las grietas brillan violeta. No te acerques sin luz.', 'Los aullidos de la Guarida no paran desde hace semanas.'])
         : pick(['Esta es mi atalaya. Desde aquí vigilo a la manada y a lo que sale de la tierra.', 'Si vas al sur, ve armado. Las bestias de la grieta no perdonan.']);
     },
-    options: () => [
-      { label: '¿Qué vigilas?', next: 'vigila' },
+    options: (ctx) => [
+      { label: '¿Qué vigilas?', next: hecho(ctx, 'PRADERA_HISTORIA_11_MANADA') ? 'vigila_despues' : 'vigila' },
       { label: 'Adiós', close: true },
     ],
     lines: {
       vigila: 'Al norte, la Guarida: el Capitán de los Lobos manda ahí y la manada le obedece como nunca. Al sur, las Tierras Heridas: la tierra se abrió en grietas y de ahí salen lobos deformes con cristales en el lomo. Alguien está detrás de todo esto. Yo solo cuento cuántos salen cada día.',
+      vigila_despues: 'Al norte, la Guarida: desde que le quitaste el collar al Capitán, los lobos volvieron a ser lobos. Al sur, las Tierras Heridas: la tierra se abrió en grietas y de ahí salen bestias con cristales en el lomo. Alguien está detrás de todo esto. Yo sigo contando.',
     },
   },
   // ---------------------------------------------------------------- Volcán Rojo (Ascuaria y alrededores)
@@ -863,6 +925,8 @@ export const DIALOGUES = {
       const { mark } = ctx;
       if (mark === '?') return '¿Y bien? ¿Lo encontraste? ¿Está entero? ¿Está gordo? ¡Dime algo!';
       if (mark === '!') return '¡Tú! ¡Por fin una cara conocida! Tengo un problema. Bueno, dos. Uno tiene cuatro patas.';
+      if (enFase(ctx.fase, 'VOLCAN_SEC_TRUENO@4+')) return '¿Ese es…? ¡ES ÉL! ¡Trueno, bribón! No, no, no lo sueltes, que se me escapa otra vez.';
+      if (enCurso(ctx, 'VOLCAN_SEC_TRUENO')) return '¿Lo viste? Gris, mancha blanca, cara de no haber hecho nada. Si huele a trigo quemado, va por ahí.';
       if (hecho(ctx, 'VOLCAN_SEC_TRUENO')) return pick(['Trueno ya no se escapa. Le compré unas herraduras de basalto. Ahora no puede correr: pesan una tonelada.', 'Los dracónidos dicen que Trueno es el primer caballo que pisa Ascuaria. Está insoportable de orgulloso.']);
       if (hecho(ctx, 'VOLCAN_HISTORIA_03_PUERTAS')) return pick(['¿Ya te dejaron entrar a Ascuaria? A mí me miraron como a una salchicha en la parrilla.', 'Algún día voy a poner una diligencia hasta aquí. Cuando dejen de llover piedras.']);
       return pick(['La salamandra me miró feo. Y después me quemó la bota. Ten cuidado en la Ladera.', 'Bajé por el paso persiguiendo a Trueno. Ahora no sé subir. Ni él tampoco.']);
@@ -986,15 +1050,16 @@ export const DIALOGUES = {
       const { mark } = ctx;
       if (mark === '?') return '¿Lo hiciste? ¿Sí? ¿SÍ? ¡Cuéntame todo y despacito!';
       if (mark === '!') return hecho(ctx, 'VOLCAN_SEC_HUEVO_1') ? '¡Psst! El huevo se movió. Bueno, creo. ¡Necesito ayuda otra vez!' : '¡Oye! ¿Sabes guardar un secreto? Uno grande. Uno con cáscara.';
-      if (hecho(ctx, 'VOLCAN_SEC_HUEVO_3')) return pick(['¡Brasita ya escupe chispas! Bueno, escupe humo. Pero va a escupir chispas.', '¡Mamá dejó que Brasita duerma en mi cuarto! Bueno, no sabe. ¡No le digas!']);
+      if (hecho(ctx, 'VOLCAN_SEC_HUEVO_3')) return pick(['¡Brasita ya escupe chispas! Bueno, escupe humo. Pero va a escupir chispas.', '¡Mamá dejó que Brasita duerma en mi cuarto! Bueno, no sabe. ¡No le digas!', 'Le puse Brasita, como el dragón del Viejo Escamas. Cuando se lo dije, lloró. Pero de los buenos.']);
       if (hecho(ctx, 'VOLCAN_SEC_HUEVO_1')) return pick(['El huevo está calentito. Lo tapo con mi manta. Bueno, con la de mamá.', 'Le canto al huevo todas las noches. Creo que le gusta. O se aburre.']);
       return pick(['¿Sabías que los dragones duermen en lava? ¡Yo también quiero!', 'El Viejo Escamas dice que crió un dragón. ¡UN DRAGÓN! Cuando sea grande, yo también.']);
     },
-    options: () => [
-      { label: 'Háblame de los dragones', next: 'dragones' },
+    options: (ctx) => [
+      { label: 'Háblame de los dragones', next: hecho(ctx, 'VOLCAN_HISTORIA_11_DRAGON') ? 'dragones_despues' : 'dragones' },
       { label: 'Adiós', close: true },
     ],
     lines: {
+      dragones_despues: '¡Son lo mejor que existe! El del Viejo Escamas se fue al fuego. Él dice que ahora vuela más alto que nunca, y que ya no le duele nada. Cuando sea grande voy a cuidar dragones como él. Y no voy a dejar que nadie les clave nada.',
       dragones: '¡Son lo mejor que existe! Tienen escamas como nosotros pero más grandes, y alas, y fuego de verdad. Antes había muchos en el Nido, al sureste. Ahora queda uno solo y está enfermo. El Viejo Escamas llora cuando habla de él. A mí no me deja ir. Pero yo sé el camino.',
     },
   },
@@ -1147,7 +1212,7 @@ export const DIALOGUES = {
     role: 'Guardián del Nido',
     portrait: PORTRAIT('escamas'),
     ambient: [
-      'Llamita… ¿me oyes todavía?',
+      'Brasita… ¿me oyes todavía?',
       'Mis huesos crujen como la roca del nido.',
       'Antes el cielo tenía dragones. Muchos.',
       '*tararea una canción muy vieja*',
@@ -1155,21 +1220,24 @@ export const DIALOGUES = {
     greet: (ctx) => {
       const { night, mark } = ctx;
       if (mark === '?') return 'Has vuelto. Siéntate. Cuéntamelo despacio: mis oídos ya no son lo que eran.';
-      if (mark === '!') return hecho(ctx, 'VOLCAN_HISTORIA_11_DRAGON') ? 'Tengo que pedirte una última cosa. La más difícil. Para Llamita.' : '¿Tienes un momento para un viejo? Es por mi dragón. Está sufriendo.';
-      if (hecho(ctx, 'VOLCAN_SEC_ULTIMO_VUELO')) return pick(['Llamita voló una última vez. Sobre la Caldera, sobre Ascuaria, sobre mí. Gracias. De verdad.', 'Ahora le canto a las nubes. Creo que ella me escucha desde ahí.']);
-      if (hecho(ctx, 'VOLCAN_HISTORIA_11_DRAGON')) return pick(['El cristal ya no está. Llamita vuelve a ser ella. Cansada, pero ella.', 'Lloraba fuego, ¿sabes? Por el cristal. Ya no llora.']);
+      if (mark === '!') return hecho(ctx, 'VOLCAN_HISTORIA_11_DRAGON') ? 'Tengo que pedirte una última cosa. La más difícil. Para Brasita.' : '¿Tienes un momento para un viejo? Es por mi dragón. Está sufriendo.';
+      if (hecho(ctx, 'VOLCAN_SEC_ULTIMO_VUELO')) return pick(['Su escama cayó en la lava como una hoja. Brasita voló una última vez. Gracias. De verdad.', 'Ahora le canto a las nubes. Creo que él me escucha desde ahí.']);
+      if (hecho(ctx, 'VOLCAN_HISTORIA_11_DRAGON')) return pick(['Al final me reconoció. Cuando el cristal se rompió, me miró como cuando cabía en mi sombrero.', 'Lloraba fuego, ¿sabes? Por el cristal. Ya no llora. Ya no le duele nada.']);
       return night
-        ? pick(['De noche Llamita gime en el nido. Antes cantaba. Yo le cantaba a ella.', 'Duerme tú. Yo me quedo despierto. Alguien tiene que hacerle compañía.'])
-        : pick(['Este es el Nido del Dragón. Ya no quedan huevos. Solo huesos. Y ella.', 'Crié a Llamita cuando era así de chiquita. Cabía en mi sombrero. Ahora yo cabría en su boca.']);
+        ? pick(['De noche Brasita gime en el nido. Antes cantaba. Yo le cantaba a él.', 'Duerme tú. Yo me quedo despierto. Alguien tiene que hacerle compañía.'])
+        : pick(['Este es el Nido del Dragón. Ya no nacen dragones grandes: solo dracos, que son otra cosa. Y él.', 'Crié a Brasita cuando era así de chiquito. Cabía en mi sombrero. Ahora yo cabría en su boca.']);
     },
-    options: () => [
-      { label: '¿Quién es Llamita?', next: 'llamita' },
+    options: (ctx) => [
+      hecho(ctx, 'VOLCAN_HISTORIA_11_DRAGON')
+        ? { label: '¿Cómo era Brasita?', next: 'brasita_despues' }
+        : { label: '¿Quién es Brasita?', next: 'brasita' },
       { label: '¿Qué pasó con los dragones?', next: 'dragones' },
       { label: 'Adiós', close: true },
     ],
     lines: {
-      llamita: 'La última cría del Nido. Su madre no volvió de la Caldera y yo la encontré temblando entre los huesos. La alimenté con carbón y canciones durante cuarenta años. Ahora la llaman Dragón Menor y le tienen miedo. Algo le clavaron en el pecho: un cristal oscuro que la quema por dentro. Por eso ataca. No es mala. Le duele.',
-      dragones: 'Hubo un tiempo en que los dragones anidaban aquí cada verano. Los dracónidos dicen que venimos de ellos. Después vino la guerra de los dioses, el Titán se durmió y los dragones se fueron. No sé a dónde. Llamita se quedó conmigo. Mira los huesos del Nido: algunos son de dragones más grandes que una casa.',
+      brasita: 'La última cría del Nido. Su madre no volvió de la Caldera y yo lo encontré temblando entre los huesos. Lo alimenté con carbón y canciones durante cuarenta años. Ahora lo llaman Dragón Menor y le tienen miedo. Algo le clavaron en el pecho: un cristal oscuro que lo quema por dentro. Por eso ataca. No es malo. Le duele.',
+      brasita_despues: 'Juguetón. Me quemaba la barba para que le hiciera caso, y se dormía en la lava con la cola afuera, como un gato. Cuarenta años de carbón y canciones. Alguien le clavó un cristal y tú se lo sacaste. Se fue en paz, y eso es más de lo que muchos dragones tuvieron.',
+      dragones: 'Hubo un tiempo en que los dragones anidaban aquí cada verano. Los dracónidos dicen que venimos de ellos. Después vino la guerra de los dioses, el Titán se durmió y los dragones se fueron. No sé a dónde. Brasita se quedó conmigo. Mira los huesos del Nido: algunos son de dragones más grandes que una casa.',
     },
   },
   // Aurelia (dialoguesCiudad.js)

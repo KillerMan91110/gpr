@@ -27,9 +27,12 @@ export const TRIVIAL_LEVELS = 6;
 // y otro se queda en su lugar con sus misiones. Ren y Tilo se van a las Montañas al terminar «Hacia
 // las montañas»; Brin, la aprendiza de Ren, atiende su puesto (mismo lugar: el servidor cuenta la
 // cercanía con el puesto de Ren). En el mapa: Ren y Tilo con "oculto_tras", Brin con "requiere".
+// Gaspar sube a las Montañas con Tilo y termina en el Volcán: su sobrino Lucio maneja la diligencia.
 const STAND_INS = [
   { npc: 'ren', by: 'brin', after: 'PRADERA_HISTORIA_14_MONTANAS' },
   { npc: 'tilo', by: 'brin', after: 'PRADERA_HISTORIA_14_MONTANAS' },
+  { npc: 'cochero_aldea', by: 'lucio_aldea', after: 'PRADERA_HISTORIA_14_MONTANAS' },
+  { npc: 'cochero', by: 'lucio', after: 'PRADERA_HISTORIA_14_MONTANAS' },
 ];
 let activeStandIns = {};
 // done: códigos de las misiones que completó el jugador (World.js lo llama al cargarlas)
@@ -108,6 +111,7 @@ export const NPC_LUGAR = {
   mirna: 'la Aldea Espiga',
   goreth: 'la herrería de la Aldea Espiga',
   cochero_aldea: 'la parada de la diligencia, en la Aldea Espiga',
+  lucio_aldea: 'la parada de la diligencia, en la Aldea Espiga',
   tilo: 'la Aldea Espiga',
   bruno: 'su granja, en la Aldea Espiga',
   tobias: 'el molino de la Colina',
@@ -125,6 +129,7 @@ export const NPC_LUGAR = {
   tilo_bastion: 'la forja del Bastión de Hierro',
   // puestos de las Montañas Grises
   gorm: 'el Puesto del Paso, a la entrada de las Montañas',
+  pell: 'el Puesto del Paso, junto a las carretas de Gorm',
   dora: 'el campamento minero de las Minas Abandonadas',
   sven: 'la cabaña del trampero en el Pinar Nevado',
   ingrid: 'la choza de pesca del Lago Helado',

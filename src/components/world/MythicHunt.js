@@ -10,8 +10,16 @@ import './MythicHunt.css';
 // estado a la escena (para que lo ponga en el mapa) y muestra el aviso, la barra de vida
 // compartida y lo que te tocó cuando cae. El contador, la barra y los carteles solo se ven en la
 // zona del jefe; desde otro lado te enteras por el chat General (ChatBox: la línea dorada).
-const PHASE_TEXT = ['vida compartida', 'aullido: esbirros sueltos', 'herido y huyendo', '¡luna roja!'];
-const PHASE_TITLE = { 1: 'Aullido', 2: 'Huida', 3: 'Luna roja' };
+// cada zona tiene su jefe mítico (gprback/lib/mythic.js MITICOS) y sus fases se llaman distinto
+const PHASES = {
+  pradera: { text: ['vida compartida', 'aullido: esbirros sueltos', 'herido y huyendo', '¡luna roja!'], title: { 1: 'Aullido', 2: 'Huida', 3: 'Luna roja' } },
+  montanas: { text: ['vida compartida', 'bramido: cabras sueltas', 'herido y huyendo', '¡tormenta verde!'], title: { 1: 'Bramido', 2: 'Huida', 3: 'Tormenta verde' } },
+  volcan: { text: ['vida compartida', 'sus crías salen de la lava', 'herida y escondida', '¡erupción!'], title: { 1: 'Crías de fuego', 2: 'Huida', 3: 'Erupción' } },
+};
+const phasesOf = (zoneDir) => PHASES[zoneDir] ?? PHASES.pradera;
+// cómo se nombra la zona en el rumor de la barra
+const ZONE_LABEL = { pradera: 'la Pradera', montanas: 'la montaña', volcan: 'el Volcán' };
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function left(ms) {
   const s = Math.max(0, Math.ceil(ms / 1000));
@@ -114,7 +122,7 @@ export default function MythicHunt({ worldReady, inBattle, zoneDir }) {
               {[75, 50, 25].map((t) => <i key={t} className="mh-bar-tick" style={{ left: `${t}%` }} />)}
             </div>
             <small className="mh-bar-hp">
-              {hunt.hp.toLocaleString()} / {hunt.maxHp.toLocaleString()} · {PHASE_TEXT[hunt.phase ?? 0]}
+              {hunt.hp.toLocaleString()} / {hunt.maxHp.toLocaleString()} · {phasesOf(hunt.zoneDir).text[hunt.phase ?? 0]}
               {hunt.phase >= 1 && ` · ${hunt.minionKills} esbirros cazados (defensa −${hunt.defDown}%)`}
             </small>
           </div>
@@ -130,13 +138,13 @@ export default function MythicHunt({ worldReady, inBattle, zoneDir }) {
         <div className={`mh-rumor${zone.kills >= zone.needed ? ' is-ready' : ''}`} title="Cuando entre todos cacen lo suficiente, al caer la noche aparecerá algo…">
           <MythicMark scale={1} />
           {zone.kills >= zone.needed
-            ? (state.night ? 'Algo despierta en la Pradera…' : 'La Pradera aguarda la noche…')
-            : `La Pradera se inquieta · ${zone.kills}/${zone.needed}`}
+            ? (state.night ? `Algo despierta en ${ZONE_LABEL[zoneDir] ?? 'la zona'}…` : `${cap(ZONE_LABEL[zoneDir] ?? 'la zona')} aguarda la noche…`)
+            : `${cap(ZONE_LABEL[zoneDir] ?? 'la zona')} se inquieta · ${zone.kills}/${zone.needed}`}
         </div>
       )}
       {banner && (
         <div className={`mh-banner mh-banner--${banner.kind}`}>
-          <small>{banner.kind === 'spawn' ? '¡Jefe mítico!' : banner.kind === 'killed' ? 'Cacería terminada' : PHASE_TITLE[banner.phase]}</small>
+          <small>{banner.kind === 'spawn' ? '¡Jefe mítico!' : banner.kind === 'killed' ? 'Cacería terminada' : phasesOf(banner.zoneDir).title[banner.phase]}</small>
           <strong>{banner.name}</strong>
           <span>
             {banner.kind === 'spawn' && `Ha aparecido en ${banner.spot}${banner.zoneName ? `, en ${banner.zoneName}` : ''}. La noche no terminará hasta que caiga.`}
@@ -155,7 +163,7 @@ export default function MythicHunt({ worldReady, inBattle, zoneDir }) {
             <div className="mh-reward-list">
               <span>+{reward.gold.toLocaleString()} oro</span>
               <span>+{reward.xp.toLocaleString()} XP</span>
-              {reward.card && <span className="mh-reward-card"><CardIcon rarity="MYTHIC" /> Carta de Aullaluna</span>}
+              {reward.card && <span className="mh-reward-card"><CardIcon rarity="MYTHIC" /> Carta de {String(reward.boss ?? 'el jefe mítico').split(',')[0]}</span>}
               {reward.guildXp > 0 && <span className="mh-reward-guild">+{reward.guildXp.toLocaleString()} XP para tu gremio</span>}
               {reward.levelUp && <span>¡Subiste a nivel {reward.levelUp}!</span>}
             </div>

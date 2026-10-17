@@ -8,8 +8,10 @@ import { TAG_FONT, TAG_RES, ASSETS } from './shared';
 //   - Puntos de misión: lugares a los que llegar (VISIT), cosas que examinar con la E
 //     (INVESTIGATE) y emboscadas (AMBUSH). Se marcan con un brillo y una marca encima.
 // Métodos de WorldScene (se mezclan en la escena con Object.assign, ver WorldScene.js).
-const POINT_COLORS = { VISIT: 0x7dc8ff, INVESTIGATE: 0xffd84a, AMBUSH: 0xff6a5a };
-const POINT_LABELS = { VISIT: 'Lugar de misión', INVESTIGATE: 'Examinar', AMBUSH: 'Algo te observa…' };
+const POINT_COLORS = { VISIT: 0x7dc8ff, INVESTIGATE: 0xffd84a, AMBUSH: 0xff6a5a, ESCORT: 0x9af4ff };
+const POINT_LABELS = { VISIT: 'Lugar de misión', INVESTIGATE: 'Examinar', AMBUSH: 'Algo te observa…', ESCORT: 'Destino de la escolta' };
+// los que se cumplen solo con llegar (sin la E)
+const ARRIVE_TYPES = ['VISIT', 'ESCORT'];
 // lo que se busca, dibujado en el mapa (art/sprites/mundo/crear_puntos_mision.lua): tiras de 2
 // cuadros en assets/mundo/mision. Tamaño de cada cuadro (si no está aquí, 32x32).
 const POINT_SPRITE_SIZE = { carro_asaltado: [48, 32], roble_enfermo: [48, 48] };
@@ -47,6 +49,9 @@ export const questsMethods = {
       return { ...p, gx: g.x, gy: g.y };
     });
     const nextIds = new Set(next.map((p) => p.objectiveId));
+    // la escolta (world/escolta.js): si ya llegó se despide; si es nueva, aparece a tu lado
+    if (this.escort && !nextIds.has(this.escort.objectiveId)) this.finishEscort(this.escort.objectiveId);
+    this.setQuestEscort(next.find((p) => p.type === 'ESCORT') ?? null);
     // lo que ya se cumplió se borra; lo que «huye» (Trueno) se va corriendo antes de desaparecer
     for (const m of this.questMarkers ?? []) {
       if (m.point.huye && m.sprite && !nextIds.has(m.point.objectiveId)) {
@@ -115,14 +120,14 @@ export const questsMethods = {
     this.tweens.add({ targets: glow, scale: { from: 0.8, to: 1.6 }, alpha: { from: 0.45, to: 0 }, duration: 1200, repeat: -1 });
     // la marca va arriba del dibujo (o del brillo si no hay dibujo)
     const top = sprite ? sprite.y - sprite.displayHeight * 0.9 - 2 : p.gy - 18;
-    const icon = this.add.text(p.gx, top, p.type === 'VISIT' ? '◆' : '?', {
+    const icon = this.add.text(p.gx, top, ARRIVE_TYPES.includes(p.type) ? '◆' : '?', {
       fontFamily: TAG_FONT, fontSize: '11px', fontStyle: 'bold', color: `#${color.toString(16).padStart(6, '0')}`, stroke: '#141420', strokeThickness: 3,
     }).setOrigin(0.5, 1).setDepth(21).setResolution(TAG_RES);
     this.tweens.add({ targets: icon, y: top - 4, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.minimap?.ignore(icon);
     this.questMarkers.push({ point: p, sprite, parts: [glow, icon, sprite].filter(Boolean) });
     // examinar y emboscada se hacen con la E, como cualquier punto del mapa
-    if (p.type !== 'VISIT') {
+    if (!ARRIVE_TYPES.includes(p.type)) {
       this.pois.push({ id: `mision_${p.objectiveId}`, x: p.gx, y: p.gy, label: p.label ?? POINT_LABELS[p.type], questPoint: p });
     }
   },
@@ -137,15 +142,22 @@ export const questsMethods = {
     });
   },
 
-  // llegar a un lugar de misión: se avisa una vez (el servidor confirma que estás ahí)
+  // llegar a un lugar de misión: se avisa una vez (el servidor confirma que estás ahí). En una
+  // escolta, además, el escoltado tiene que llegar contigo
   checkQuestVisits() {
     if (!this.questPoints?.length || !this.player) return;
     for (const p of this.questPoints) {
-      if (p.type !== 'VISIT' || this.questVisited.has(p.objectiveId)) continue;
-      if (Phaser.Math.Distance.Between(this.player.x, this.player.y, p.gx, p.gy) <= (p.radius ?? 3) * 32) {
-        this.questVisited.add(p.objectiveId);
-        bus.emit('quest-point', p);
+      if (!ARRIVE_TYPES.includes(p.type) || this.questVisited.has(p.objectiveId)) continue;
+      if (Phaser.Math.Distance.Between(this.player.x, this.player.y, p.gx, p.gy) > (p.radius ?? 3) * 32) continue;
+      if (p.type === 'ESCORT' && !this.escortArrived(p)) {
+        if (!this.escortWarned || this.time.now - this.escortWarned > 6000) {
+          this.escortWarned = this.time.now;
+          bus.emit('social-toast', { text: `Llegaste, pero ${p.escort?.name ?? 'tu escoltado'} se quedó atrás. Ve a buscarlo.`, kind: 'tour' });
+        }
+        continue;
       }
+      this.questVisited.add(p.objectiveId);
+      bus.emit('quest-point', p);
     }
   },
 };

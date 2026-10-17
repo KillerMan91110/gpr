@@ -28,6 +28,7 @@ export function trackTargets(q, continentZoneIds) {
       case 'VISIT':
       case 'INVESTIGATE':
       case 'AMBUSH':
+      case 'ESCORT':
         if (o.place) out.push({ kind: 'point', zone: o.place.zone, x: o.place.x, y: o.place.y });
         break;
       case 'TALK':

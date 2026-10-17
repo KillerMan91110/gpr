@@ -13,6 +13,15 @@ function wasFound(hunt) {
   try { return sessionStorage.getItem(FOUND_KEY) === foundKey(hunt); } catch { return false; }
 }
 
+// colores de cada jefe mítico (gprback/lib/mythic.js MITICOS): luz de luna en la Pradera, rayo en
+// las Montañas y brasa en el Volcán. En la última fase (luna roja, tormenta, erupción) todos se tiñen.
+const THEMES = {
+  pradera: { glow: 0x7ff8ff, tag: '#c8f4ff', mote: 0xc8f4ff, minion: 0x9ae8ff, fog: 0xc8d8ff, print: 0x9ae8ff },
+  montanas: { glow: 0xffe46a, tag: '#fff2b0', mote: 0xfff7a0, minion: 0xffe46a, fog: 0xd8dce8, print: 0xffe46a },
+  volcan: { glow: 0xff8a3a, tag: '#ffd0a0', mote: 0xffb060, minion: 0xff8a3a, fog: 0xc8a8a0, print: 0xff9a5a },
+};
+const themeOf = (zoneDir) => THEMES[zoneDir] ?? THEMES.pradera;
+
 // Jefe mítico en el mapa: aparece, se muda, sus esbirros, la noche eterna con niebla y el rastreo.
 // Métodos de WorldScene (se mezclan en la escena con Object.assign, ver WorldScene.js).
 export const mythicMethods = {
@@ -35,7 +44,7 @@ export const mythicMethods = {
     this.redMoon = !!hunt?.redMoon;
     if (this.mythic) {
       this.mythic.hunt = hunt;
-      this.mythic.tag?.setColor(hunt.redMoon ? '#ffb0a0' : '#c8f4ff');
+      this.mythic.tag?.setColor(hunt.redMoon ? '#ffb0a0' : themeOf(hunt.zoneDir).tag);
       this.syncMinions();
       return;
     }
@@ -51,7 +60,7 @@ export const mythicMethods = {
     if (hunt.from && !wasFound(hunt)) {
       const from = this.freeTileNear(z, hunt.from.x, hunt.from.y);
       Object.assign(this.mythic, { hidden: true, fromX: from.x, fromY: from.y });
-      this.drawMythicTrail(from.x, from.y, x, y, hunt.redMoon);
+      this.drawMythicTrail(from.x, from.y, x, y, hunt.redMoon, themeOf(hunt.zoneDir).print);
     }
     const build = () => {
       const m = this.mythic;
@@ -62,19 +71,20 @@ export const mythicMethods = {
       if (!this.anims.exists(animKey)) {
         this.anims.create({ key: animKey, frames: info.animations.idle.frames.map((f) => ({ key, frame: f })), frameRate: 2, repeat: -1 });
       }
-      m.glow = this.add.image(x, y - 10, 'luz').setDepth(8).setBlendMode('ADD').setTint(0x7ff8ff).setScale(2.4).setAlpha(0.55);
+      const th = themeOf(hunt.zoneDir);
+      m.glow = this.add.image(x, y - 10, 'luz').setDepth(8).setBlendMode('ADD').setTint(th.glow).setScale(2.4).setAlpha(0.55);
       this.tweens.add({ targets: m.glow, alpha: 0.25, scale: 2.8, duration: 1400, yoyo: true, repeat: -1 });
-      m.aura = this.add.ellipse(x, y + 14, 78, 22, 0x7ff8ff, 0.3).setDepth(8);
+      m.aura = this.add.ellipse(x, y + 14, 78, 22, th.glow, 0.3).setDepth(8);
       this.tweens.add({ targets: m.aura, alpha: 0.1, scaleX: 1.2, duration: 1100, yoyo: true, repeat: -1 });
       m.sprite = this.add.sprite(x, y, key, info.animations.idle.frames[0]).setOrigin(0.5, 0.9).setScale(1.35).setDepth(9).play(animKey);
       m.motes = this.add.particles(x, y - 20, 'mota_mundo', {
         x: { min: -40, max: 40 }, y: { min: -30, max: 20 }, lifespan: 1800, frequency: 140, speedY: { min: -18, max: -6 },
-        scale: { start: 0.6, end: 0 }, alpha: { start: 0.9, end: 0 }, tint: 0xc8f4ff, blendMode: 'ADD',
+        scale: { start: 0.6, end: 0 }, alpha: { start: 0.9, end: 0 }, tint: th.mote, blendMode: 'ADD',
       }).setDepth(9.5);
       m.block = this.add.rectangle(x, y + 4, 44, 20);
       this.blockers.add(m.block);
       m.tag = this.add.text(x, y - m.sprite.displayHeight * 0.9 - 2, `MÍTICO · ${hunt.name}`, {
-        fontFamily: TAG_FONT, fontSize: '7px', fontStyle: 'bold', color: '#c8f4ff', stroke: '#141420', strokeThickness: 3,
+        fontFamily: TAG_FONT, fontSize: '7px', fontStyle: 'bold', color: th.tag, stroke: '#141420', strokeThickness: 3,
       }).setOrigin(0.5, 1).setDepth(21).setResolution(TAG_RES);
       [m.glow, m.tag, m.motes].forEach((o) => this.minimap?.ignore(o));
       if (hunt.redMoon) { m.tag.setColor('#ffb0a0'); m.glow.setTint(0xff7a7a); m.aura.setFillStyle(0xff6a5a, 0.3); }
@@ -109,7 +119,7 @@ export const mythicMethods = {
 
   // Huellas brillantes desde donde huyó hasta su escondite, por el camino caminable (A*), una
   // cada PRINT_GAP px, alternando pata izquierda y derecha; titilan en cadena hacia adelante
-  drawMythicTrail(x0, y0, x1, y1, red) {
+  drawMythicTrail(x0, y0, x1, y1, red, tint = 0x9ae8ff) {
     this.clearMythicTrail();
     if (!this.textures.exists('huella')) {
       const g = this.make.graphics({ x: 0, y: 0 }, false);
@@ -131,7 +141,7 @@ export const mythicMethods = {
         const py = a.y + Math.sin(ang) * d + Math.sin(ang + Math.PI / 2) * 5 * side;
         side = -side;
         prints.push(this.add.image(px, py + 8, 'huella').setRotation(ang + Math.PI / 2).setDepth(20.65)
-          .setBlendMode('ADD').setTint(red ? 0xff9a8a : 0x9ae8ff).setAlpha(0.35));
+          .setBlendMode('ADD').setTint(red ? 0xff9a8a : tint).setAlpha(0.35));
       }
       carry = (carry + len) % PRINT_GAP;
     }
@@ -174,7 +184,8 @@ export const mythicMethods = {
     return true;
   },
 
-  // Esbirros (lobos espectrales): desde la fase 1 rondan alrededor del jefe; cazarlos lo debilita
+  // Esbirros (lobos espectrales, cabras tronadoras, crías de Ignivora): desde la fase 1 rondan
+  // alrededor del jefe; cazarlos lo debilita
   syncMinions() {
     const m = this.mythic;
     const want = m?.hunt?.phase >= 1 ? 6 : 0;
@@ -206,7 +217,7 @@ export const mythicMethods = {
         mon.play(animKey);
         mon.body.setSize(24, 16).setOffset(info.frameSize.w / 2 - 12, info.frameSize.h - 20);
         mon.setData({ code, name: info.name, area, chunk: 'mitico', minion: true });
-        const glow = this.add.image(x, y - 6, 'luz').setDepth(8.5).setBlendMode('ADD').setTint(0x9ae8ff).setScale(0.9).setAlpha(0.35);
+        const glow = this.add.image(x, y - 6, 'luz').setDepth(8.5).setBlendMode('ADD').setTint(themeOf(m.zoneDir).minion).setScale(0.9).setAlpha(0.35);
         this.minimap?.ignore(glow);
         mon.setData('glow', glow);
         mon.once('destroy', () => glow.destroy());
@@ -260,7 +271,7 @@ export const mythicMethods = {
     this.mythicFog.setPosition(v.centerX, v.centerY);
     if (on !== this.mythicFog.emitting) {
       this.mythicFog.emitting = on;
-      this.mythicFog.setParticleTint(this.redMoon ? 0xffc0b8 : 0xc8d8ff);
+      this.mythicFog.setParticleTint(this.redMoon ? 0xffc0b8 : themeOf(this.nightZone).fog);
       if (on && (this.weather === 'lluvia' || this.weather === 'nieve')) this.setWeather('despejado');
       bus.emit('weather', on ? 'niebla' : this.weather);
     }

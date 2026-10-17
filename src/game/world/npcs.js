@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { TAG_FONT, TAG_RES, ASSETS, IDLE, NPC_STROLL_TILES, NPC_STROLL_SPEED, NPC_NOTICE_RADIUS, propOf } from './shared';
+import { enFase, faseDe } from '../story';
 
 // NPCs: aparecen, pasean alrededor de su puesto, miran al héroe y llevan marcas de misión.
 // Métodos de WorldScene (se mezclan en la escena con Object.assign, ver WorldScene.js).
@@ -45,11 +46,11 @@ export const npcsMethods = {
           id, sprite: npc, mark, dot, name: npcName, tag, role, blocker, poi, tex,
           home: { x, y }, pos: { x, y }, radius, dir: 'down', target: null,
           wait: Phaser.Math.Between(1000, 6000), phase: Math.random() * Math.PI * 2,
-          // historia de cada jugador: aparece después de esa misión ("requiere") o se va después de ella ("oculto_tras")
-          story: { requiere: propOf(o, 'requiere') ?? null, ocultoTras: propOf(o, 'oculto_tras') ?? null },
+          // historia de cada jugador (game/story.js): "fase", o los viejos "requiere" / "oculto_tras"
+          fase: faseDe({ fase: propOf(o, 'fase'), requiere: propOf(o, 'requiere'), ocultoTras: propOf(o, 'oculto_tras') }),
         });
       }
-      this.applyNpcStory(this.storyDone);
+      this.applyNpcStory(this.storyState);
       this.setNpcMarks(this.marks);
       // NPCs que una misión mandó a otro lugar (llegaron antes que sus sprites)
       if (this.questSpots?.length) this.setQuestNpcSpots(this.questSpots);
@@ -154,16 +155,15 @@ export const npcsMethods = {
     }
   },
 
-  // Lo que ve cada jugador depende de SU historia (done: códigos de las misiones que completó). Un
-  // NPC con "requiere" no está hasta que completes esa misión (Dora y Kili, perdidos en las minas
-  // hasta que los rescatas); uno con "oculto_tras" se va cuando la completas. Mientras no se sabe la
-  // historia del jugador (done == null), los que dependen de ella no se muestran.
-  applyNpcStory(done) {
-    this.storyDone = done ?? null;
+  // Lo que ve cada jugador depende de SU historia (game/story.js: misiones completadas, en curso y en
+  // qué paso). Un NPC con fase no está mientras no se cumpla: Dora y Kili, perdidos en las minas
+  // hasta que los rescatas; Ren, que se va a las Montañas. Mientras no se sabe la historia del
+  // jugador (story == null), los que dependen de ella no se muestran.
+  applyNpcStory(story) {
+    this.storyState = story ?? null;
     for (const n of this.npcs.values()) {
-      const { requiere, ocultoTras } = n.story ?? {};
-      if (!requiere && !ocultoTras) continue;
-      const visible = !!done && (!requiere || done.has(requiere)) && (!ocultoTras || !done.has(ocultoTras));
+      if (!n.fase) continue;
+      const visible = enFase(story, n.fase);
       n.hidden = !visible;
       [n.sprite, n.tag, n.role].filter(Boolean).forEach((g) => g.setVisible(visible));
       n.mark.setVisible(visible);

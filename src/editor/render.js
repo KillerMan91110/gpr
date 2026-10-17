@@ -36,6 +36,7 @@ export const POINT_STYLE = {
   estandarte: { color: '#ff8a5a', label: 'Estandarte' },
   buzon: { color: '#7ac8ff', label: 'Buzón' },
   secreto: { color: '#ffe08a', label: 'Secreto' },
+  escena: { color: '#c9a0ff', label: 'Escenario por fase' },
   // La Cripta del Vigía (game/world/cripta.js)
   guardian: { color: '#ff6a4a', label: 'Guardián' },
   brasero: { color: '#ff9a4a', label: 'Brasero' },

@@ -16,6 +16,7 @@ import { DIALOGUES } from '../game/dialogues';
 import QuestTracker from '../components/world/QuestTracker';
 import TargetFrame from '../components/world/TargetFrame';
 import { questMarks, readyQuestsFor, hasWorkFor, setStoryStandIns, npcFor, questTargetsOf } from '../game/questGivers';
+import { makeStory } from '../game/story';
 import { MAX_TRACKED, TRACK_COLORS, trackTargets, loadTracked, saveTracked } from '../game/questTracking';
 import LevelUpBanner from '../components/world/LevelUpBanner';
 import SoundControl from '../components/world/SoundControl';
@@ -144,7 +145,7 @@ const AURELIA_TOUR = [
   { name: 'Barrio de las Órdenes', x: 16 * 32, y: 45 * 32, info: 'Las casas de cada clase: tienda y maestro de tu oficio.' },
   { name: 'Barrio del Mercado', x: 76 * 32, y: 47 * 32, info: 'Lyra, los puestos y la casa de subastas de Durin.' },
   { name: 'El Grifo Dorado', x: 76 * 32, y: 63 * 32, info: 'La posada de Marta y el libro de visitas.' },
-  { name: 'Puerta Sur', x: 59.5 * 32, y: 84 * 32, info: 'El Camino Real baja a la Pradera Dorada. La diligencia de Gaspar está al lado.' },
+  { name: 'Puerta Sur', x: 59.5 * 32, y: 84 * 32, info: 'El Camino Real baja a la Pradera Dorada. La diligencia está al lado.' },
   { name: 'Pilar de Aethra', x: 60 * 32, y: 51 * 32, info: '¡Listo! Haz una ofrenda al Pilar para que la diosa bendiga tu viaje.' },
 ];
 const plain = (s) => (s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -721,8 +722,11 @@ export default function World() {
       .then((list) => setStoryDone((list ?? []).map((q) => q.code).filter(Boolean)))
       .catch(() => {});
   }, [player, token, refreshKey, stats?.level]);
-  useEffect(() => { if (worldReady && storyDone) bus.emit('story-done', storyDone); }, [worldReady, storyDone]);
   const storySet = useMemo(() => new Set(storyDone ?? []), [storyDone]);
+  // la historia completa (game/story.js): completadas + en curso y en qué paso. Decide qué NPCs ves
+  // y qué te dicen; se espera a tener las dos listas para no mostrar un mundo a medias
+  const story = useMemo(() => (storyDone && quests.loaded ? makeStory(storySet, quests.active) : null), [storyDone, storySet, quests]);
+  useEffect(() => { if (worldReady && story) bus.emit('story-state', story); }, [worldReady, story]);
   // quién atiende las misiones de quien se fue con la historia (Brin en el puesto de Ren)
   useMemo(() => setStoryStandIns(storySet), [storySet]);
   // Al entrar al mundo: si quedó un combate abierto (recargaste la página, se cortó la conexión
@@ -812,7 +816,7 @@ export default function World() {
     const points = [];
     for (const q of quests.active ?? []) {
       for (const o of q.objectives ?? []) {
-        if (o.future || !o.place || o.current_count >= o.target_count || !['VISIT', 'INVESTIGATE', 'AMBUSH'].includes(o.objective_type)) continue;
+        if (o.future || !o.place || o.current_count >= o.target_count || !['VISIT', 'INVESTIGATE', 'AMBUSH', 'ESCORT'].includes(o.objective_type)) continue;
         points.push({ objectiveId: o.objective_id, type: o.objective_type, ...o.place, questName: q.name });
       }
     }
@@ -1089,7 +1093,7 @@ export default function World() {
         <DialogueBox
           key={`${dialogue}:${dlgKey}`}
           id={dialogue}
-          ctx={{ night: !!clock?.night, mark: npcMarks[dialogue] === '!!' ? '!' : (npcMarks[dialogue] ?? null), story: npcMarks[dialogue] === '!!', done: storySet }}
+          ctx={{ night: !!clock?.night, mark: npcMarks[dialogue] === '!!' ? '!' : (npcMarks[dialogue] ?? null), story: npcMarks[dialogue] === '!!', done: storySet, fase: story }}
           questLines={questLines}
           readyQuests={readyQuestsFor(quests.active, dialogue, continentZoneIds)}
           hasWork={hasWorkFor(quests.available, dialogue, continentZoneIds)}
@@ -1275,7 +1279,7 @@ export default function World() {
       {encounter && (
         <div className="world-encounter">
           <div className={`world-encounter-text${encounter.kind === 'boss' || encounter.kind === 'mythic' || encounter.target === 'jefe' ? ' world-encounter-text--boss' : ''}`}>
-            <small>{encounter.kind === 'refuerzo' ? '¡Refuerzos!' : encounter.kind === 'espectar' ? 'Modo espectador' : encounter.kind === 'cripta' ? (encounter.target === 'jefe' ? 'Jefe de la mazmorra' : '¡Un guardián te vio!') : encounter.kind === 'emboscada' ? '¡Emboscada!' : encounter.kind === 'retomar' ? 'Tu combate seguía abierto' : encounter.kind === 'grupo' ? '¡Combate en grupo!' : encounter.kind === 'esbirro' ? 'Esbirro de Aullaluna' : encounter.kind === 'mythic' ? 'Jefe mítico' : encounter.kind === 'boss' ? (encounter.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe') : '¡Combate!'}</small>
+            <small>{encounter.kind === 'refuerzo' ? '¡Refuerzos!' : encounter.kind === 'espectar' ? 'Modo espectador' : encounter.kind === 'cripta' ? (encounter.target === 'jefe' ? 'Jefe de la mazmorra' : '¡Un guardián te vio!') : encounter.kind === 'emboscada' ? '¡Emboscada!' : encounter.kind === 'retomar' ? 'Tu combate seguía abierto' : encounter.kind === 'grupo' ? '¡Combate en grupo!' : encounter.kind === 'esbirro' ? 'Esbirro del jefe mítico' : encounter.kind === 'mythic' ? 'Jefe mítico' : encounter.kind === 'boss' ? (encounter.rank === 'jefe' ? 'Jefe de zona' : 'Minijefe') : '¡Combate!'}</small>
             {encounter.kind === 'refuerzo' ? `Corres a ayudar a ${encounter.name}` : encounter.kind === 'espectar' ? `Miras el combate de ${encounter.name}` : encounter.kind === 'cripta' ? encounter.name : encounter.kind === 'retomar' ? '¡Vuelves a la pelea!' : encounter.kind === 'grupo' ? `${encounter.name ?? 'Tu grupo'} necesita tu ayuda` : encounter.kind === 'boss' || encounter.kind === 'mythic' ? encounter.name : (encounter.name ? `Un ${encounter.name} te ataca` : '¡Algo se mueve entre la hierba!')}
           </div>
         </div>

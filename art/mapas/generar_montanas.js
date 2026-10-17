@@ -553,6 +553,11 @@ resource('flor_paso', 'flor_nieve', [[10, 40, 6], [30, 52, 6]]);
 // generar_mina.js): la casilla del medio de la entrada es la que se pisa. Las salidas de la mina
 // vuelven a la casilla 22,10, justo debajo.
 pt({ name: 'entrada_mina_profunda', type: 'salida', x: px(P.oldMine.x), y: px(P.oldMine.y), width: 32, height: 32, properties: [prop('destino', 'string', 'mina_profunda'), prop('x', 'int', 19), prop('y', 'int', 6), prop('etiqueta', 'string', 'La Mina Profunda')] });
+// cofres secretos (las mismas casillas que SECRETS en gprback/lib/exploracion.js): rincones fuera
+// de los caminos en el Pinar, la Garganta y los Acantilados
+pt({ name: 'secreto_pinar', type: 'secreto', x: px(57), y: px(7) });
+pt({ name: 'secreto_arpias', type: 'secreto', x: px(62), y: px(85) });
+pt({ name: 'secreto_grieta_trueno', type: 'secreto', x: px(153), y: px(68) });
 // Minas Abandonadas
 resource('mineral_minas', 'veta_montana', [[28, 18, 9], [44, 10, 6]], 4);
 resource('flor_minas', 'flor_nieve', [[8, 26, 5]]);

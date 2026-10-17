@@ -45,6 +45,10 @@ local SETS = {
   {"escarcha",      {"e8f6ff","9cc8e4","4e7ea4", "f4fbff","a8d8f0", "a8805c","7a5638","4e3420","2e1e12", "dcfaff","6cc8f0"}},
   -- Mina Profunda nv 22: hierro negro de los enanos, runas azules y el ascua del Corazón del gólem
   {"hierro_negro",  {"8a94aa","4c5466","262a36", "9ad8ff","4a98d0", "a07850","6e5038","4a3424","2a1e14", "ffc070","e07a20"}},
+  -- Volcán Rojo nv 36: vidrio volcánico negro con reflejo violeta y una gema de brasa
+  {"obsidiana",     {"8a7aa8","3e3650","1a1624", "c4a8f0","6c50b0", "6a5a74","463a52","2c2238","16101e", "ffc080","ff6a2a"}},
+  -- Fisura Infernal nv 37: hierro ennegrecido en la forja de Morvak, con las vetas todavía al rojo
+  {"forja_negra",   {"6e625c","342c2a","161212", "ffd27a","ff8a2a", "8a3a26","5a2214","38140a","1c0a05", "fff6c0","ffae3a"}},
 }
 local WOOD = {"a8703c","6a4428"}
 local SET_INDEX = {}

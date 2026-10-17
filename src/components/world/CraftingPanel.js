@@ -8,6 +8,7 @@ import bus from '../../game/bus';
 import { CraftSprite, STATION_SOUND, sheetLength, stationFor } from './CraftAnim';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
+import MaterialSources from './MaterialSources';
 import { iconForItem, RARITY_LABELS, STAT_LABELS } from './itemIcons';
 
 // dónde se fabrica cada receta (crafting_recipes.station en el back)
@@ -102,6 +103,8 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
   const [selCode, setSelCode] = useState(null);
   const [selItem, setSelItem] = useState(null);
   const [qty, setQty] = useState(1);
+  // material del que se está mirando «¿Dónde?» (sale de dónde conseguirlo)
+  const [whereOpen, setWhereOpen] = useState(null);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -159,11 +162,13 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    // primero las nuevas, después las que se pueden hacer, y al final las de candado
+    // arriba las NUEVAS hasta que las abres; después por nivel de menor a mayor (sin nivel: consumibles
+    // y materiales, primero) y, en el mismo nivel, las que puedes hacer antes que las de candado
     const slotOk = (r) => slotFilter === 'todo' || (r.resultType === 'EQUIPMENT' && SLOT_FILTERS.find((f) => f.code === slotFilter)?.slots.includes(r.resultSlot));
     return (recipes ?? []).filter((r) => inCat(r) && (!q || (!r.locked && r.resultName.toLowerCase().includes(q)))
       && slotOk(r) && (!onlyCraftable || r.canCraft) && (!onlyMyLevel || r.levelOk !== false) && (!hideLocked || !r.locked))
-      .sort((a, b) => Number(!!a.locked) - Number(!!b.locked) || Number(!!b.isNew) - Number(!!a.isNew) || Number(b.canCraft) - Number(a.canCraft));
+      .sort((a, b) => Number(!!b.isNew) - Number(!!a.isNew) || (a.requiredLevel ?? 0) - (b.requiredLevel ?? 0)
+        || Number(!!a.locked) - Number(!!b.locked) || Number(b.canCraft) - Number(a.canCraft) || a.resultName.localeCompare(b.resultName));
   }, [recipes, inCat, search, slotFilter, onlyCraftable, onlyMyLevel, hideLocked]);
   const anyFilter = slotFilter !== 'todo' || onlyCraftable || onlyMyLevel || hideLocked;
   // al abrir una receta nueva deja de ser "NUEVO"
@@ -318,7 +323,7 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                       {r.locked ? (
                         <>
                           <span className="wp-slot wp-slot--sm wp-slot--locked"><GameIcon name="padlock" artist="lorc" /></span>
-                          <span className="wp-recipe-name" title={`Se aprende con ${r.scrollName}`}>???</span>
+                          <span className="wp-recipe-name" title={`Se aprende con ${r.scrollName} o consiguiendo esta pieza`}>???</span>
                         </>
                       ) : (
                         <>
@@ -346,14 +351,14 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                     <span className="wp-slot wp-slot--lg wp-slot--locked"><GameIcon name="padlock" artist="lorc" /></span>
                     <div>
                       <strong>???</strong>
-                      <small>Receta de pergamino{recipe.className ? ` · ${recipe.className}` : ''}{recipe.requiredLevel ? ` · Nivel ${recipe.requiredLevel}` : ''}</small>
+                      <small>Set de jefe{recipe.className ? ` · ${recipe.className}` : ''}{recipe.requiredLevel ? ` · Nivel ${recipe.requiredLevel}` : ''}</small>
                     </div>
                   </header>
                   <div className="wp-craft-locked">
                     <b>🔒 Receta sin aprender</b>
-                    <span>Se aprende leyendo <b>{recipe.scrollName}</b>.</span>
+                    <span><b>{recipe.scrollName}</b> te enseña todo el set. También aprendes esta pieza si la consigues.</span>
                     {(recipe.scrollSources ?? []).map((s) => (
-                      <span key={s.monster}>Lo suelta <b>{s.monster}</b> · {s.chance}%</span>
+                      <span key={s.monster}><b>{s.monster}</b> · pieza del set {s.pieceChance}% · pergamino {s.chance}% por victoria</span>
                     ))}
                   </div>
                 </>
@@ -399,13 +404,25 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                     {recipe.ingredients.map((ing, i) => {
                       const icon = iconForItem({ name: ing.itemName });
                       const ok = ing.have >= ing.need * qty;
-                      return (
+                      const open = whereOpen === ing.itemId;
+                      return [
                         <li key={`${ing.itemId}-${i}`} className={ok ? '' : 'wp-mat--missing'}>
                           <span className="wp-slot wp-slot--sm"><ItemIcon icon={icon} /></span>
                           <span className="wp-mat-name">{ing.itemName}</span>
+                          {/* de dónde sale el material que te falta (monstruos, recursos, forja, tienda) */}
+                          {!ok && (
+                            <button type="button" className={`wp-mat-where${open ? ' on' : ''}`} onClick={() => setWhereOpen(open ? null : ing.itemId)}>
+                              ¿Dónde?
+                            </button>
+                          )}
                           <span className="wp-mat-count"><b>{ing.have}</b> / {ing.need * qty}</span>
-                        </li>
-                      );
+                        </li>,
+                        open && !ok && (
+                          <li key={`${ing.itemId}-${i}-src`} className="wp-mat-src-row">
+                            <MaterialSources playerId={player.id} itemId={ing.itemId} token={token} />
+                          </li>
+                        ),
+                      ];
                     })}
                   </ul>
                   <div className="wp-deal">

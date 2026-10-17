@@ -72,6 +72,8 @@ export const api = {
   // libro=true (Taller del mundo): también las de pergamino con candado y las básicas por descubrir
   getCraftAvailable: (playerId, token, libro = false) => request(`/api/player/${playerId}/craft/available${libro ? '?libro=1' : ''}`, { token }),
   getCraftNovedades: (playerId, token) => request(`/api/player/${playerId}/craft/novedades`, { token }),
+  // de dónde sale un material (monstruos con su %, recursos del mapa, si se fabrica o se compra)
+  getCraftFuentes: (playerId, itemId, token) => request(`/api/player/${playerId}/craft/fuentes/${itemId}`, { token }),
   markCraftSeen: (playerId, recipeCode, token) => request(`/api/player/${playerId}/craft/seen`, { method: 'POST', body: { recipeCode }, token }),
   craft: (playerId, recipeCode, quantity, token) =>
     request(`/api/player/${playerId}/craft`, { method: 'POST', body: { recipeCode, quantity }, token }),
