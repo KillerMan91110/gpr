@@ -16,7 +16,8 @@
   "carav",
   "escalera",
   "puentev",
-  "losav"
+  "losav",
+  "pasto"
  ],
  "tile": 32,
  "chunkWidth": 40,
@@ -24,7 +25,7 @@
  "columns": 4,
  "rows": 4,
  "encuentroHierba": 0.07,
- "gidHierba": 785,
+ "gidHierba": 6,
  "inicio": {
   "x": 2832,
   "y": 144
@@ -36,102 +37,80 @@
   "ceniza": 1
  },
  "gids": {
-  "flores": [],
-  "agua": [],
+  "flores": [
+   145,
+   146,
+   147,
+   3
+  ],
+  "agua": [
+   31,
+   32,
+   33,
+   34,
+   35,
+   36,
+   37,
+   38,
+   39,
+   40,
+   41,
+   42,
+   43,
+   44,
+   45,
+   46
+  ],
   "prado": [
-   684,
-   783,
-   781
+   1,
+   2,
+   97,
+   98,
+   99,
+   100,
+   101,
+   102,
+   103,
+   104,
+   105,
+   106,
+   107,
+   108,
+   109,
+   110,
+   111,
+   112
   ],
   "arboles": [
-   807,
-   808
+   47,
+   48,
+   174,
+   175
   ],
-  "dorados": [],
-  "seco": []
+  "dorados": [
+   178,
+   179
+  ],
+  "seco": [
+   81,
+   82,
+   83,
+   84,
+   85,
+   86,
+   87,
+   88,
+   89,
+   90,
+   91,
+   92,
+   93,
+   94,
+   95,
+   96
+  ]
  },
- "chunks": [
-  {
-   "cx": 0,
-   "cy": 0,
-   "file": "chunk_0_0.json"
-  },
-  {
-   "cx": 1,
-   "cy": 0,
-   "file": "chunk_1_0.json"
-  },
-  {
-   "cx": 2,
-   "cy": 0,
-   "file": "chunk_2_0.json"
-  },
-  {
-   "cx": 3,
-   "cy": 0,
-   "file": "chunk_3_0.json"
-  },
-  {
-   "cx": 0,
-   "cy": 1,
-   "file": "chunk_0_1.json"
-  },
-  {
-   "cx": 1,
-   "cy": 1,
-   "file": "chunk_1_1.json"
-  },
-  {
-   "cx": 2,
-   "cy": 1,
-   "file": "chunk_2_1.json"
-  },
-  {
-   "cx": 3,
-   "cy": 1,
-   "file": "chunk_3_1.json"
-  },
-  {
-   "cx": 0,
-   "cy": 2,
-   "file": "chunk_0_2.json"
-  },
-  {
-   "cx": 1,
-   "cy": 2,
-   "file": "chunk_1_2.json"
-  },
-  {
-   "cx": 2,
-   "cy": 2,
-   "file": "chunk_2_2.json"
-  },
-  {
-   "cx": 3,
-   "cy": 2,
-   "file": "chunk_3_2.json"
-  },
-  {
-   "cx": 0,
-   "cy": 3,
-   "file": "chunk_0_3.json"
-  },
-  {
-   "cx": 1,
-   "cy": 3,
-   "file": "chunk_1_3.json"
-  },
-  {
-   "cx": 2,
-   "cy": 3,
-   "file": "chunk_2_3.json"
-  },
-  {
-   "cx": 3,
-   "cy": 3,
-   "file": "chunk_3_3.json"
-  }
- ],
+ "editado": true,
  "subzonas": [
   {
    "name": "Ascuaria",
@@ -213,6 +192,88 @@
    "x1": 5120,
    "y1": 3840,
    "levels": "31-45"
+  }
+ ],
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 1,
+   "cy": 0,
+   "file": "chunk_1_0.json"
+  },
+  {
+   "cx": 2,
+   "cy": 0,
+   "file": "chunk_2_0.json"
+  },
+  {
+   "cx": 3,
+   "cy": 0,
+   "file": "chunk_3_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
+  },
+  {
+   "cx": 1,
+   "cy": 1,
+   "file": "chunk_1_1.json"
+  },
+  {
+   "cx": 2,
+   "cy": 1,
+   "file": "chunk_2_1.json"
+  },
+  {
+   "cx": 3,
+   "cy": 1,
+   "file": "chunk_3_1.json"
+  },
+  {
+   "cx": 0,
+   "cy": 2,
+   "file": "chunk_0_2.json"
+  },
+  {
+   "cx": 1,
+   "cy": 2,
+   "file": "chunk_1_2.json"
+  },
+  {
+   "cx": 2,
+   "cy": 2,
+   "file": "chunk_2_2.json"
+  },
+  {
+   "cx": 3,
+   "cy": 2,
+   "file": "chunk_3_2.json"
+  },
+  {
+   "cx": 0,
+   "cy": 3,
+   "file": "chunk_0_3.json"
+  },
+  {
+   "cx": 1,
+   "cy": 3,
+   "file": "chunk_1_3.json"
+  },
+  {
+   "cx": 2,
+   "cy": 3,
+   "file": "chunk_2_3.json"
+  },
+  {
+   "cx": 3,
+   "cy": 3,
+   "file": "chunk_3_3.json"
   }
  ]
 }

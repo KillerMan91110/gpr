@@ -18,7 +18,7 @@ export const TERRAIN_BRUSHES = [
   { id: 'dorado', label: 'Pasto dorado', icon: 'dorado_15' },
   { id: 'camino', label: 'Camino', icon: 'camino_15' },
   { id: 'agua', label: 'Agua', icon: 'agua_15' },
-  { id: 'puente', label: 'Puente', icon: 'puente_h' },
+  { id: 'puente', label: 'Puente', icon: 'puente_10' },
   { id: 'trigo', label: 'Trigal', icon: 'trigo_15' },
   { id: 'seco', label: 'Tierra seca', icon: 'seco_15' },
   { id: 'hierba', label: 'Hierba alta (combates)', icon: 'hierba_alta' },
@@ -31,20 +31,20 @@ export const TERRAIN_BRUSHES = [
   { id: 'losa', label: 'Losas de mármol', icon: 'losa' },
   { id: 'mosaico', label: 'Mosaico', icon: 'mosaico' },
   { id: 'canal', label: 'Canal', icon: 'canal_10' },
-  { id: 'puentep', label: 'Puente de piedra', icon: 'puente_piedra_v' },
+  { id: 'puentep', label: 'Puente de piedra', icon: 'puente_piedra_5' },
   { id: 'roca', label: 'Roca de montaña', icon: 'roca_15' },
   { id: 'nieve', label: 'Nieve', icon: 'nieve_15' },
   { id: 'hierban', label: 'Hierba nevada (combates)', icon: 'hierba_nevada' },
   { id: 'hielo', label: 'Hielo', icon: 'hielo_15' },
   { id: 'abismo', label: 'Abismo', icon: 'abismo_15' },
-  { id: 'colgante', label: 'Puente colgante', icon: 'colgante_h' },
+  { id: 'colgante', label: 'Puente colgante', icon: 'colgante_10' },
   { id: 'mesetan', label: 'Meseta nevada (con pared)', icon: 'mesetan_4' },
   { id: 'caran', label: 'Pared de roca nevada', icon: 'cara_n_a_c' },
   { id: 'basalto', label: 'Basalto', icon: 'basalto' },
   { id: 'ceniza', label: 'Ceniza', icon: 'ceniza_15' },
   { id: 'hierbaq', label: 'Hierba quemada (combates)', icon: 'hierba_quemada' },
   { id: 'lava', label: 'Lava', icon: 'lava_15' },
-  { id: 'puentev', label: 'Puente de basalto', icon: 'puente_basalto_h' },
+  { id: 'puentev', label: 'Puente de basalto', icon: 'puente_basalto_10' },
   { id: 'azufre', label: 'Azufre', icon: 'azufre_15' },
   { id: 'quemado', label: 'Tierra quemada', icon: 'quemado_15' },
   { id: 'obsidiana', label: 'Obsidiana', icon: 'obsidiana_15' },
@@ -53,7 +53,7 @@ export const TERRAIN_BRUSHES = [
   { id: 'carav', label: 'Pared de basalto', icon: 'cara_v_a_c' },
 ];
 
-const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_[hv]|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_[hv]|caminor_\d+|roca_(\d+|grava|musgo)|nieve_(\d+|huellas)|abismo_\d+|hielo_\d+|mesetan_\d+|cara_n_[ab]_[icd]|colgante_[hv]|hierba_nevada|basalto(_grieta)?|ceniza_(\d+|pomez|huellas)|lava_\d+|azufre_\d+|quemado_\d+|obsidiana_\d+|caminov_\d+|mesetav_\d+|cara_v_[ab]_[icd]|hierba_quemada|losa_basalto(_runa)?|puente_basalto_[hv])$/;
+const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_(\d+|[hv])|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_(\d+|[hv])|caminor_\d+|roca_(\d+|grava|musgo)|nieve_(\d+|huellas)|abismo_\d+|hielo_\d+|mesetan_\d+|cara_n_[ab]_[icd]|colgante_(\d+|[hv])|hierba_nevada|basalto(_grieta)?|ceniza_(\d+|pomez|huellas)|lava_\d+|azufre_\d+|quemado_\d+|obsidiana_\d+|caminov_\d+|mesetav_\d+|cara_v_[ab]_[icd]|hierba_quemada|losa_basalto(_runa)?|puente_basalto_(\d+|[hv]))$/;
 
 const MOUNTAIN = ['roca', 'nieve', 'mesetan', 'hierban', 'abismo', 'hielo'];
 // el camino entre el basalto del volcán lleva orilla de basalto (caminov_*)
@@ -149,6 +149,9 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
     // como en art/mapas/generar_volcan.js
     const isLava = (n) => n === 'lava' || n === 'puentev';
     const ashLike = (n) => ['ceniza', 'hierbaq', 'quemado', 'camino', 'losav', null].includes(n);
+    // puentes con bordes automáticos (<puente>_<máscara>): el puente sigue por los lados que no dan a
+    // su agua, lava, canal o abismo, y lleva baranda por los demás; sin esos tiles, el viejo _h / _v
+    const bridge = (prefix, liquid, old) => T[`${prefix}_${mask((n) => n !== liquid)}`] ?? old();
     switch (t) {
       case 'camino': {
         const around = [tAt(x, y - 1), tAt(x + 1, y), tAt(x, y + 1), tAt(x - 1, y)];
@@ -166,7 +169,7 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
         return T[`ceniza_${m}`];
       }
       case 'lava': return T[`lava_${mask(isLava)}`];
-      case 'puentev': return isLava(tAt(x - 1, y)) && isLava(tAt(x + 1, y)) ? T.puente_basalto_v : T.puente_basalto_h;
+      case 'puentev': return bridge('puente_basalto', 'lava', () => (isLava(tAt(x - 1, y)) && isLava(tAt(x + 1, y)) ? T.puente_basalto_v : T.puente_basalto_h));
       case 'azufre': return T[`azufre_${mask((n) => n === 'azufre')}`];
       case 'quemado': return T[`quemado_${mask((n) => n === 'quemado' || n === 'hierbaq')}`];
       case 'obsidiana': return T[`obsidiana_${mask((n) => n === 'obsidiana')}`];
@@ -180,7 +183,7 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
         return T[`cara_v_${top ? 'a' : 'b'}_${side}`];
       }
       case 'agua': return T[`agua_${mask(isWater)}`];
-      case 'puente': return isWater(tAt(x - 1, y)) && isWater(tAt(x + 1, y)) ? T.puente_v : T.puente_h;
+      case 'puente': return bridge('puente', 'agua', () => (isWater(tAt(x - 1, y)) && isWater(tAt(x + 1, y)) ? T.puente_v : T.puente_h));
       case 'hierba': return T.hierba_alta;
       case 'plaza': return T.piedra_plaza;
       case 'guarida': return T.suelo_guarida;
@@ -201,7 +204,7 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
       case 'losa': return slabFamily.has(cur) ? cur : (Math.random() < 0.15 ? T.losa_b : T.losa);
       case 'mosaico': return T.mosaico;
       case 'canal': return T[`canal_${mask((n) => n === 'canal' || n === 'puentep')}`];
-      case 'puentep': return tAt(x - 1, y) === 'canal' && tAt(x + 1, y) === 'canal' ? T.puente_piedra_v : T.puente_piedra_h;
+      case 'puentep': return bridge('puente_piedra', 'canal', () => (tAt(x - 1, y) === 'canal' && tAt(x + 1, y) === 'canal' ? T.puente_piedra_v : T.puente_piedra_h));
       case 'roca': {
         const m = mask(rockLike);
         if (m === 15) return rockFamily.has(cur) ? cur : randomRock();
@@ -218,7 +221,7 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
         return T[`mesetan_${m}`];
       }
       case 'abismo': return T[`abismo_${mask(isChasm)}`];
-      case 'colgante': return isChasm(tAt(x - 1, y)) && isChasm(tAt(x + 1, y)) ? T.colgante_v : T.colgante_h;
+      case 'colgante': return bridge('colgante', 'abismo', () => (isChasm(tAt(x - 1, y)) && isChasm(tAt(x + 1, y)) ? T.colgante_v : T.colgante_h));
       case 'hielo': return T[`hielo_${mask((n) => n === 'hielo')}`];
       case 'hierban': return T.hierba_nevada;
       case 'caran': {

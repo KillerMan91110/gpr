@@ -1683,6 +1683,88 @@ addGrid("arco_basalto", 3, 2, function(V)
   for x=10,86,12 do V.px(x,10,"lv4") end
 end)
 
+-- ---------------------------------------------------------------------------------------
+-- v7: puentes con bordes automáticos, como los caminos: "<puente>_<máscara>". La máscara (1 arriba,
+-- 2 derecha, 4 abajo, 8 izquierda) marca los lados por donde el puente SIGUE (otro puente o tierra);
+-- por los demás lados va la baranda. Así salen tramos rectos, curvas, cruces, puentes anchos y
+-- plataformas. Los tablones van atravesados al sentido de la marcha y repiten cada 4 u 8 px, para que
+-- los tiles pegados no muestren cortes. Los viejos (puente_h/v…) quedan para no mover los ids.
+-- ---------------------------------------------------------------------------------------
+local BRIDGES = {
+  -- madera sobre el río
+  {name="puente", bg=waterTile(15), shadow="a4",
+    deck=function(a, b) local p = a % 4; if p == 0 then return "b" end; if (b + (a // 4) * 13) % 32 == 0 then return "b" end; if p == 1 then return "s1" end; return noise(a, b, 301) < 4 and "s2" or "B" end,
+    rail=function(d, i, post) if post then return d == 0 and "s1" or "n" end; if d == 0 or d == 3 then return "b" end; return d == 1 and "s1" or "B" end},
+  -- piedra sobre el canal de Aurelia
+  {name="puente_piedra", bg=canalTile(15), shadow="a4",
+    deck=function(a, b) if a % 8 == 0 then return "sd" end; if (b + (a // 8) * 4) % 8 == 0 then return "sd" end; return noise(a, b, 302) < 5 and "k2" or "sw" end,
+    rail=function(d, i, post) if d == 0 or d == 3 then return "sk" end; if post then return "sd" end; return d == 1 and "m1" or "sw" end},
+  -- colgante sobre el abismo: entre tablón y tablón se ve el vacío
+  {name="colgante", bg=chasmTile(15), shadow="ab2",
+    deck=function(a, b) local p = a % 4; if p == 0 then return nil end; if p == 1 then return "s1" end; return noise(a, b, 303) < 5 and "s2" or "B" end,
+    rail=function(d, i, post) if post then return d == 0 and "t2" or "t3" end; if d == 1 then return "t2" end; if d == 2 then return "t3" end; if d == 3 and i % 4 == 0 then return "t3" end; return nil end},
+  -- basalto sobre la lava
+  {name="puente_basalto", bg=lavaTile(15), shadow="lv4",
+    deck=function(a, b) if a % 8 == 0 then return "bs3" end; if (b + (a // 8) * 4) % 8 == 0 then return "bs3" end; return noise(a, b, 304) < 6 and "bs2" or "bs1" end,
+    rail=function(d, i, post) if d == 0 then return "bs3" end; if d == 3 then return "bs3" end; if post then return "ce3" end; return d == 1 and "ce2" or "bs2" end},
+}
+local function bridgeTile(K, mask)
+  return function(G)
+    K.bg(G)
+    local up, rt, dn, lf = mask & 1 ~= 0, mask & 2 ~= 0, mask & 4 ~= 0, mask & 8 ~= 0
+    -- sentido de la marcha: tablones en filas si se cruza de arriba a abajo
+    local rows
+    if up and dn and not (lf and rt) then rows = true
+    elseif lf and rt and not (up and dn) then rows = false
+    elseif (up or dn) and not (lf or rt) then rows = true
+    elseif (lf or rt) and not (up or dn) then rows = false
+    else rows = true end
+    local R = 6
+    local x0, x1 = lf and 0 or R, rt and 31 or 31 - R
+    local y0, y1 = up and 0 or R, dn and 31 or 31 - R
+    for y = y0, y1 do for x = x0, x1 do
+      local c
+      if rows then c = K.deck(y, x) else c = K.deck(x, y) end
+      if c then G.px(x, y, c) end
+    end end
+    -- baranda (franja de 2 a 5 px del borde) por los lados que dan al agua, la lava o el vacío
+    local post = function(i) return i % 8 >= 3 and i % 8 <= 5 end
+    local function rail(side)
+      for i = 0, 31 do
+        local from = (side == 1 or side == 4) and (lf and 0 or 2) or (up and 0 or 2)
+        local to = (side == 1 or side == 4) and (rt and 31 or 29) or (dn and 31 or 29)
+        if i >= from and i <= to then
+          for d = 0, 3 do
+            local c = K.rail(d, i, post(i))
+            if c then
+              if side == 1 then G.px(i, 2 + d, c) elseif side == 4 then G.px(i, 29 - d, c)
+              elseif side == 8 then G.px(2 + d, i, c) else G.px(29 - d, i, c) end
+            end
+          end
+          -- sombra sobre lo de abajo
+          if side == 4 then G.px(i, 30, K.shadow) end
+        end
+      end
+    end
+    if not up then rail(1) end
+    if not dn then rail(4) end
+    if not lf then rail(8) end
+    if not rt then rail(2) end
+    -- poste en cada esquina donde se juntan dos barandas
+    local function corner(cx, cy) for y = cy, cy + 3 do for x = cx, cx + 3 do
+      local d = math.min(x - cx, y - cy, cx + 3 - x, cy + 3 - y)
+      local c = K.rail(d == 0 and 0 or 1, 4, true); if c then G.px(x, y, c) end
+    end end end
+    if not up and not lf then corner(2, 2) end
+    if not up and not rt then corner(26, 2) end
+    if not dn and not lf then corner(2, 26) end
+    if not dn and not rt then corner(26, 26) end
+  end
+end
+for _, K in ipairs(BRIDGES) do
+  for m = 0, 15 do TILES[#TILES+1] = {K.name .. "_" .. m, bridgeTile(K, m)} end
+end
+
 local COLLIDE = {arbol=true, roca=true, arbusto=true, valla=true, agua=true, cartel=true, fogata=true, orilla_agua_arriba=true,
   arbol_grande_bi=true, arbol_grande_bd=true, carpa_ai=true, carpa_ad=true, carpa_bi=true, carpa_bd=true,
   puesto_ai=true, puesto_ad=true, puesto_bi=true, puesto_bd=true, yunque=true, barril=true, caja=true, farol=true}

@@ -107,6 +107,8 @@
    96
   ]
  },
+ "editado": true,
+ "musica": "montanas",
  "subzonas": [
   {
    "name": "Bastión de Hierro",
@@ -182,7 +184,6 @@
    "levels": "16-30"
   }
  ],
- "editado": true,
  "chunks": [
   {
    "cx": 0,
@@ -264,6 +265,5 @@
    "cy": 3,
    "file": "chunk_3_3.json"
   }
- ],
- "musica": "montanas"
+ ]
 }
