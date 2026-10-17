@@ -124,6 +124,13 @@
 
 .bt-affinities small + .bt-elem { margin-left: -1px; }
 .bt-affinities .bt-elem + small { margin-left: 6px; }
+/* afinidad sin descubrir (lib/afinidades.js): un «?» del mismo tamaño que el ícono de elemento */
+.bt-affinity-unknown {
+  display: inline-grid; place-items: center; width: 18px; height: 18px; flex: none; border-radius: 50%;
+  border: 1px dashed rgba(200, 190, 160, 0.55); color: var(--text-soft);
+  font: 700 0.7rem 'Cinzel', serif; font-style: normal; line-height: 1;
+}
+.bt-affinities .bt-elem + .bt-affinity-unknown, .bt-affinities small + .bt-affinity-unknown { margin-left: 2px; }
 
 .bt-tag {
   margin-left: auto;

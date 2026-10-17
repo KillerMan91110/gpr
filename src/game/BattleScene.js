@@ -833,6 +833,19 @@ export default class BattleScene extends Phaser.Scene {
     // monstruos: el back dice qué habilidad usaron (combat_log.skill_code) y cada una tiene su efecto
     const mcode = log.skill_code ?? '';
     if (mcode) {
+      // Volcán Rojo y Fisura Infernal (el color sale de su elemento: fuego, tierra, oscuridad)
+      if (/LLAMARADA|ESCUPITAJO_IGNEO/.test(mcode)) return { kind: 'bolt' };
+      if (/OLA_MAGMA/.test(mcode)) return { kind: 'quake' };
+      if (/BOTELLA_INCENDIARIA/.test(mcode)) return { kind: 'storm' };
+      if (/NUBE_SULFUROSA/.test(mcode)) return { kind: 'poison', thrown: false };
+      if (/ASTILLAS/.test(mcode)) return { kind: 'volley', hits: 3 };
+      if (/RISA_DIABLILLO/.test(mcode)) return { kind: 'shriek' };
+      if (/REZO_OSCURO/.test(mcode)) return { kind: 'curse' };
+      if (/PIEL_VIDRIO|CORAZA_MAGMA/.test(mcode)) return { kind: 'buff', shield: true };
+      if (/PUNO_LAVA|GOLPE_INFERNAL/.test(mcode)) return { kind: 'slash', heavy: true };
+      if (/PINCHAZO/.test(mcode)) return { kind: 'bite', color: 0xff8a3a, small: true };
+      if (/GOLPE_BAJO/.test(mcode)) return { kind: 'slash' };
+      if (/RESURRECCION/.test(mcode)) return { kind: 'revive' };
       // Montañas Grises
       if (/MORDIDA_HELADA/.test(mcode)) return { kind: 'bite', color: 0x8ad8ff };
       if (/CORNADA|PICADO|LANZAZO/.test(mcode)) return { kind: 'charge' };

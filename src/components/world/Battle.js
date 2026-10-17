@@ -683,12 +683,16 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
                 </span>
                 <Bar value={e.hp} max={e.max_hp} kind="hp" />
                 <StatusRow p={e} />
-                {(weak.length > 0 || strong.length > 0) && (
+                {(weak.length > 0 || strong.length > 0 || e.affinity_hidden > 0) && (
                   <span className="bt-affinities">
                     {weak.length > 0 && <small>Débil</small>}
                     {weak.map((w) => <ElementIcon key={w.code} code={w.code} title={`Débil a ${ELEMENTS[w.code].name} (${w.value}%)`} />)}
                     {strong.length > 0 && <small>Resiste</small>}
                     {strong.map((s) => <ElementIcon key={s.code} code={s.code} dim title={`Resiste ${ELEMENTS[s.code].name} (+${s.value}%)`} />)}
+                    {/* las que todavía no descubriste: golpéalo con elementos (o completa su Bestiario) */}
+                    {Array.from({ length: e.affinity_hidden ?? 0 }, (_, i) => (
+                      <i key={`q${i}`} className="bt-affinity-unknown" title="Afinidad sin descubrir: golpéalo con distintos elementos">?</i>
+                    ))}
                   </span>
                 )}
               </button>
