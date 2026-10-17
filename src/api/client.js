@@ -258,7 +258,8 @@ export const api = {
   combateMazmorra: (playerId, dir, objetivo, token) => request(`/api/player/${playerId}/world/${dir}/combate`, { method: 'POST', body: { objetivo }, token }),
   getCripta: (playerId, token) => request(`/api/player/${playerId}/world/cripta`, { token }),
   combateCripta: (playerId, objetivo, token) => request(`/api/player/${playerId}/world/cripta/combate`, { method: 'POST', body: { objetivo }, token }),
-  enterMitico: (playerId, token) => request(`/api/player/${playerId}/coleccion/mitico/enter`, { method: 'POST', token }),
+  // worldGroup: tus compañeros de grupo que estén cerca entran contigo (si hay lugar en tu formación)
+  enterMitico: (playerId, token, worldGroup = true) => request(`/api/player/${playerId}/coleccion/mitico/enter`, { method: 'POST', body: { worldGroup }, token }),
   // Ventana Social del mundo 2D (tecla O)
   getSocialOverview: (playerId, token) => request(`/api/player/${playerId}/social/overview`, { token }),
   setSocialStatus: (playerId, text, token) => request(`/api/player/${playerId}/social/status`, { method: 'PUT', body: { text }, token }),

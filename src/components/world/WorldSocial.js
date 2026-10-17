@@ -149,7 +149,11 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
     const onBattle = (b) => bus.emit('coop-battle', b);
     const onQuestShare = (q) => { setShared(q); audio.sfx('mision'); };
     // tu grupo entró en combate sin ti (estabas lejos o en otra pelea)
-    const onMissed = (m) => toast(m.why === 'ocupado'
+    const onMissed = (m) => toast(m.why === 'lleno'
+      ? `${m.leaderName ?? 'Tu grupo'} entró con su formación completa: no quedaba lugar para ti. Haz tu propio intento.`
+      : m.why === 'aliento'
+      ? `${m.leaderName ?? 'Tu grupo'} entró sin ti: todavía estabas recuperando el aliento.`
+      : m.why === 'ocupado'
       ? `${m.leaderName ?? 'Tu grupo'} entró en otro combate mientras peleabas.`
       : m.why === 'observando'
       ? `${m.leaderName ?? 'Tu grupo'} entró en combate mientras mirabas otra pelea.`
