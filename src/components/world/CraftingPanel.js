@@ -332,6 +332,11 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                         </>
                       )}
                       {r.isNew && <span className="wp-recipe-new">NUEVO</span>}
+                      {r.otherClass && (
+                        <span className="wp-recipe-other" title={`Es para ${r.className ?? 'otra clase'}: tú no te la puedes equipar. Sirve para venderla o regalarla.`}>
+                          {r.className ?? 'Otra clase'}
+                        </span>
+                      )}
                       {r.requiredLevel && (
                         <span className={`wp-recipe-lv${r.levelOk ? '' : ' wp-recipe-lv--high'}`} title={r.levelOk ? `Se equipa desde el nivel ${r.requiredLevel}` : `Necesitas nivel ${r.requiredLevel} para equiparlo`}>
                           Nv {r.requiredLevel}
@@ -380,6 +385,11 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                       {recipe.requiredLevel && (
                         <small className={recipe.levelOk ? 'wp-craft-lv' : 'wp-craft-lv wp-craft-lv--high'}>
                           Requiere nivel {recipe.requiredLevel}{recipe.levelOk ? '' : ' · todavía no puedes equiparlo'}
+                        </small>
+                      )}
+                      {recipe.otherClass && (
+                        <small className="wp-craft-other">
+                          Es para {recipe.className ?? 'otra clase'}: tú no te la puedes equipar (sirve para venderla o regalarla)
                         </small>
                       )}
                     </div>

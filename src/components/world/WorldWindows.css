@@ -349,6 +349,16 @@
   color: #ffd84a;
   letter-spacing: 0.04em;
 }
+/* equipo de otra clase: se fabrica para vender o regalar, no para ti */
+.wp-recipe-other {
+  padding: 0 5px;
+  border-radius: 8px;
+  background: rgba(140, 170, 220, 0.14);
+  border: 1px solid rgba(140, 170, 220, 0.55);
+  font: 700 0.6rem/14px 'Cinzel', serif;
+  color: #a9c4ee;
+  letter-spacing: 0.04em;
+}
 .wp-cat-hidden { color: #b9a77c; font-style: italic; }
 .wp-craft-locked {
   display: flex;
@@ -370,6 +380,7 @@
 .wp-recipe-lv--high { color: #ff8a7a; opacity: 1; }
 .wp-craft-head .wp-craft-lv { display: block; color: #7dff9a; }
 .wp-craft-head .wp-craft-lv--high { color: #ff8a7a; }
+.wp-craft-head .wp-craft-other { display: block; color: #a9c4ee; }
 
 .wp-recipe-count {
   min-width: 18px;
