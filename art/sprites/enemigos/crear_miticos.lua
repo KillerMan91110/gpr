@@ -1,8 +1,10 @@
--- Jefes míticos de las Montañas y del Volcán (gprback/lib/mythic.js) y sus esbirros:
+-- Jefes míticos de las Montañas, del Volcán y de las Costas (gprback/lib/mythic.js) y sus esbirros:
 --   mitico_truenocuerno  Truenocuerno, el Carnero de la Tormenta (Montañas), 64x64
 --   cabra_tronadora      Cabra Tronadora, su esbirro, 48x48
 --   mitico_ignivora      Ignivora, la Madre Salamandra (Volcán), 64x64
 --   cria_ignivora        Cría de Ignivora, su esbirro, 48x48
+--   mitico_rey_pinzas    Rey Pinzas, el Ermitaño Colosal (Costas), 64x64: lleva un barco hundido de caparazón
+--   cangrejo_ermitano    Cangrejo Ermitaño, su esbirro, 48x48: vive en una caracola
 -- (Aullaluna, el de la Pradera, está en art/sprites/mundo/crear_coleccion.lua.)
 -- Mismo estilo que crear_enemigos_volcan.lua: se dibujan mirando a la derecha, contorno oscuro
 -- automático y se voltean (en combate miran a los héroes, a la izquierda).
@@ -26,9 +28,14 @@ for k, v in pairs({
   ho1="e8c870", ho2="b8923a", ho3="7a5e22",
   -- rayo (brilla: sin contorno)
   zz1="fff7a0", zz2="ffd23a", zz3="9ae8ff",
+  -- cangrejo ermitaño (rojo coral), percebes, madera del barco hundido, vela rota, agua y caracola
+  cr1="e8704a", cr2="b84a30", cr3="7a2a1e", crb="f2c8a0", pc1="ddd4c2", pc2="aaa090",
+  wd1="9a6a42", wd2="6e4a2c", wd3="45301c", sl1="d8d0b8", sl2="a8a088",
+  wa1="d8f6ee", wa2="8ad8d0", wa3="4aa8a8", al1="5a9a4a", al2="3a6a32",
+  cc1="f2e4cc", cc2="d8b890", cc3="a88458",
 }) do C[k] = hex(v) end
 -- colores que brillan: no reciben contorno a su alrededor
-local GLOW = {K=true, f1=true, f2=true, f3=true, zz1=true, zz2=true, zz3=true}
+local GLOW = {K=true, f1=true, f2=true, f3=true, zz1=true, zz2=true, zz3=true, wa1=true, wa2=true}
 
 local function newGrid(W, H, ground)
   ground = ground or H - 1
@@ -291,6 +298,83 @@ local function cria(P)
 end
 
 -- =====================================================================================
+-- Rey Pinzas, el Ermitaño Colosal (64x64, suelo en 61): un cangrejo ermitaño enorme que lleva de
+-- caparazón el casco de un barco hundido, con el mástil roto, percebes y algas
+-- =====================================================================================
+local function reyPinzas(P)
+  local G = newGrid(64, 64, 61)
+  local dx, b = P.dx or 0, P.bob or 0
+  local ph = P.phase or 0
+  -- el agua a los pies
+  G.rect(0, 61, 63, 61, "wa3"); G.rect(4, 60, 59, 60, "wa2"); for x=2,62,5 do G.px(x + (ph % 2), 59, "wa1") end
+  if P.dead then
+    G.ellipse(30,56,24,5,"wd2"); G.ridge(30,56,24,5,"wd1",2); G.line(14,52,34,40,"wd3"); G.px(34,40,"sl1")
+    G.ellipse(52,57,7,3,"cr2"); G.px(54,55,"K"); G.ellipse(10,57,5,2,"cr3")
+    return G
+  end
+  -- patas
+  for i,x in ipairs({14,22,30,38}) do
+    local k = (i + ph) % 2
+    G.thick(x+dx, 48+b, x+dx-3+k*2, 56, 2, "cr2"); G.thick(x+dx-3+k*2, 56, x+dx-1+k*2, 60, 2, "cr3")
+  end
+  -- el casco del barco (su caparazón)
+  G.ellipse(28+dx, 40+b, 22, 12, "wd2"); G.ridge(28+dx, 40+b, 22, 12, "wd1", 3)
+  for y=34,50,4 do G.line(8+dx, y+b, 48+dx, y+b, "wd3") end
+  G.rect(8+dx, 28+b, 48+dx, 30+b, "wd1"); G.line(8+dx, 30+b, 48+dx, 30+b, "wd3")
+  for _,p in ipairs({{12,44},{20,48},{34,46},{42,40},{16,36}}) do G.ellipse(p[1]+dx, p[2]+b, 2, 1.5, "pc1"); G.px(p[1]+dx, p[2]+b, "pc2") end
+  for _,x in ipairs({10,26,44}) do G.line(x+dx, 30+b, x+dx-1, 36+b, "al1"); G.px(x+dx-1, 37+b, "al2") end
+  -- el mástil roto con un jirón de vela
+  G.thick(24+dx, 28+b, 22+dx, 6+b, 3, "wd2"); G.line(16+dx, 12+b, 30+dx, 12+b, "wd3")
+  for y=13,22 do local w = 6 - math.abs(y - 17) * 0.4; G.rect(24+dx, y+b, 24+dx+w+((ph % 2 == 0) and 1 or 0), y+b, (y % 3 == 0) and "sl2" or "sl1") end
+  G.line(22+dx, 6+b, 20+dx, 3+b, "wd3")
+  -- la cara: ojos en tallos y antenas
+  local hx, hy = dx + (P.hx or 0), b + (P.hy or 0)
+  G.ellipse(48+hx, 44+hy, 9, 7, "cr1"); G.ridge(48+hx, 44+hy, 9, 7, "crb", 2)
+  G.line(46+hx, 38+hy, 44+hx, 31+hy, "cr2"); G.line(51+hx, 38+hy, 52+hx, 31+hy, "cr2")
+  G.ellipse(44+hx, 30+hy, 2, 2, "K"); G.ellipse(52+hx, 30+hy, 2, 2, "K")
+  if not P.pain then G.px(44+hx, 29+hy, "W"); G.px(52+hx, 29+hy, "W") end
+  G.line(53+hx, 40+hy, 62+hx, 32+hy, "cr3"); G.line(54+hx, 42+hy, 63, 38+hy, "cr3")
+  -- las pinzas: una chica y una enorme (la que cierra)
+  G.thick(42+hx, 50+hy, 36+hx, 56+hy, 3, "cr2"); G.ellipse(34+hx, 56+hy, 4, 3, "cr1")
+  local open = P.snap and 0 or 4
+  G.thick(54+hx, 50+hy, 58+hx, 54+hy, 4, "cr2")
+  G.ellipse(58+hx, 48+hy - open * 0.5, 6, 4, "cr1"); G.ridge(58+hx, 48+hy - open * 0.5, 6, 4, "crb", 1)
+  G.ellipse(58+hx, 56+hy, 6, 3, "cr2")
+  if P.snap then for k=0,3 do G.px(62, 50+hy+k*2, "W") end end
+  if P.cast then for i=0,5 do G.ellipse(10+dx+i*8, 20+b-math.sin(i+ph)*4, 3, 2, i % 2 == 0 and "wa1" or "wa2") end end
+  return G
+end
+
+-- =====================================================================================
+-- Cangrejo Ermitaño (48x48, suelo en 45): un cangrejo rojo que vive en una caracola
+-- =====================================================================================
+local function ermitano(P)
+  local G = newGrid(48, 48, 45)
+  local dx, b = P.dx or 0, P.bob or 0
+  local ph = P.phase or 0
+  G.rect(0, 45, 47, 45, "wa3"); G.rect(4, 44, 43, 44, "wa2")
+  if P.dead then
+    G.ellipse(20,41,11,4,"cc2"); G.ridge(20,41,11,4,"cc1",1); G.ellipse(34,42,4,2,"cr2"); G.px(35,40,"K")
+    return G
+  end
+  for i,x in ipairs({20,26,31}) do local k = (i + ph) % 2; G.thick(x+dx, 38+b, x+dx-2+k*2, 44, 2, "cr2") end
+  -- la caracola en espiral
+  G.ellipse(18+dx, 32+b, 12, 10, "cc2"); G.ridge(18+dx, 32+b, 12, 10, "cc1", 2)
+  G.ellipse(16+dx, 30+b, 7, 6, "cc1"); G.ellipse(15+dx, 29+b, 4, 3, "cc2"); G.ellipse(14+dx, 28+b, 2, 2, "cc3")
+  G.line(8+dx, 38+b, 4+dx, 42+b, "cc3"); G.px(4+dx, 42+b, "cc1")
+  -- el cangrejo asomando
+  local hx, hy = dx + (P.hx or 0), b + (P.hy or 0)
+  G.ellipse(31+hx, 36+hy, 6, 5, "cr1"); G.ridge(31+hx, 36+hy, 6, 5, "crb", 1)
+  G.line(30+hx, 32+hy, 29+hx, 27+hy, "cr2"); G.line(34+hx, 32+hy, 35+hx, 27+hy, "cr2")
+  G.px(29+hx, 26+hy, "K"); G.px(35+hx, 26+hy, "K")
+  if not P.pain then G.px(29+hx, 25+hy, "W"); G.px(35+hx, 25+hy, "W") end
+  local open = P.snap and 0 or 2
+  G.thick(36+hx, 38+hy, 40+hx, 40+hy, 2, "cr2"); G.ellipse(42+hx, 38+hy - open, 4, 2, "cr1"); G.ellipse(42+hx, 41+hy, 4, 2, "cr2")
+  if P.cast then G.ellipse(18+dx, 32+b, 13, 11, "cc3"); G.ridge(18+dx, 32+b, 13, 11, "cc2", 2) end
+  return G
+end
+
+-- =====================================================================================
 local MONSTERS = {
   {key="mitico_truenocuerno", size=64, draw=truenocuerno, anims={
     {"idle",   {{bob=0,phase=0,dur=500},{bob=1,phase=1,dur=500}}},
@@ -317,6 +401,20 @@ local MONSTERS = {
     {"idle",   {{bob=0,phase=0,dur=380},{bob=1,phase=1,dur=380}}},
     {"attack", {{bob=0,hx=-2,dur=200},{dx=3,bite=true,phase=1,dur=140},{dx=1,dur=220}}},
     {"cast",   {{bob=0,hx=-1,dur=200},{cast=true,phase=0,dur=300},{cast=true,phase=1,dur=220}}},
+    {"hurt",   {{dx=-2,hy=-1,pain=true,dur=250}}},
+    {"die",    {{bob=1,pain=true,dur=200},{dead=true,dur=1000}}},
+  }},
+  {key="mitico_rey_pinzas", size=64, draw=reyPinzas, anims={
+    {"idle",   {{bob=0,phase=0,dur=520},{bob=1,phase=1,dur=520}}},
+    {"attack", {{bob=0,hx=-2,phase=0,dur=300},{dx=4,snap=true,phase=1,dur=160},{dx=1,phase=0,dur=300}}},
+    {"cast",   {{bob=-1,hx=-1,phase=0,dur=240},{cast=true,phase=1,dur=340},{cast=true,phase=0,dur=260}}},
+    {"hurt",   {{dx=-3,hy=-1,pain=true,phase=1,dur=300}}},
+    {"die",    {{bob=3,pain=true,dur=300},{dead=true,dur=1200}}},
+  }},
+  {key="cangrejo_ermitano", size=48, draw=ermitano, anims={
+    {"idle",   {{bob=0,phase=0,dur=400},{bob=1,phase=1,dur=400}}},
+    {"attack", {{bob=0,hx=-2,dur=200},{dx=3,snap=true,phase=1,dur=140},{dx=1,dur=220}}},
+    {"cast",   {{bob=1,hx=-3,dur=200},{cast=true,hx=-5,phase=0,dur=300},{cast=true,hx=-5,phase=1,dur=220}}},
     {"hurt",   {{dx=-2,hy=-1,pain=true,dur=250}}},
     {"die",    {{bob=1,pain=true,dur=200},{dead=true,dur=1000}}},
   }},

@@ -38,6 +38,7 @@ import { AchievementsPanel, InfirmaryPanel, RankingPanel } from '../components/w
 import MapPanel from '../components/world/MapPanel';
 import WorldSocial from '../components/world/WorldSocial';
 import SocialPanel from '../components/world/SocialPanel';
+import { setTideOffset } from '../game/world/marea';
 import { OfrendaPanel, LibroPanel, VinculoPanel } from '../components/world/CityPanels';
 import OrderPanel from '../components/world/OrderPanel';
 import GuildRegistryPanel from '../components/world/GuildRegistryPanel';
@@ -138,7 +139,7 @@ const DEFAULT_ZONE_DIR = 'aurelia';
 // [línea chica de arriba, nombre]: las zonas abiertas van sin línea chica (solo su nombre)
 const ZONE_TITLES = { aurelia: ['La capital', 'Aurelia'], pradera: ['', 'Pradera Dorada'], cripta: ['Mazmorra', 'La Cripta del Vigía'],
   montanas: ['', 'Montañas Grises'], mina_profunda: ['Mazmorra', 'La Mina Profunda'],
-  volcan: ['', 'Volcán Rojo'], fisura: ['Mazmorra', 'La Fisura Infernal'] };
+  volcan: ['', 'Volcán Rojo'], fisura: ['Mazmorra', 'La Fisura Infernal'], costas: ['', 'Costas Muertas'], arrecife: ['Mazmorra', 'El Arrecife Hundido'] };
 // recorrido del guía Tomás por Aurelia (lugar, posición en píxeles y qué hay ahí)
 const AURELIA_TOUR = [
   { name: 'Catedral de Aethra', x: 59.5 * 32, y: 16 * 32, info: 'Aquí te curan y aquí despiertas si caes en combate.' },
@@ -605,6 +606,17 @@ export default function World() {
         audio.sfx('error');
         bus.emit('social-toast', { text: err.message, kind: 'error' });
       }
+    } else if (o.action === 'bote') {
+      try {
+        const r = await api.bote(player.id, o.destino, token);
+        audio.sfx('monedas');
+        bus.emit('social-toast', { text: `⛵ ¡Agárrate a la borda! El bote te lleva a ${r.nombre}.`, kind: 'tour' });
+        loadHud();
+        bus.emit('zone-change', { zoneDir: r.zona, x: r.x, y: r.y });
+      } catch (err) {
+        audio.sfx('error');
+        bus.emit('social-toast', { text: err.message, kind: 'error' });
+      }
     } else if (o.action === 'viaje') {
       try {
         const r = await api.travel(player.id, o.destino, token);
@@ -742,6 +754,13 @@ export default function World() {
       }
     }).catch(() => {});
   }, [worldReady, player, token, zoneId]);
+
+  // la marea de las Costas va con el reloj del servidor (gprback/lib/marea.js): se toma la diferencia una vez
+  useEffect(() => {
+    if (!player?.id) return;
+    const t0 = Date.now();
+    api.marea(player.id, token).then((r) => { if (r?.ahora) setTideOffset(r.ahora - Math.round((t0 + Date.now()) / 2)); }).catch(() => {});
+  }, [player?.id, token]);
 
   // la tormenta de las Montañas: un rayo te alcanzó (el servidor te quita vida, nunca hasta 0)
   useEffect(() => {
@@ -1046,6 +1065,7 @@ export default function World() {
             {weather === 'niebla' && <GameIcon name="fog" artist="delapouite" />}
             {weather === 'nieve' && <GameIcon name="snowflake-1" artist="lorc" />}
             {weather === 'ceniza' && <GameIcon name="volcano" artist="lorc" />}
+            {weather === 'bruma' && <GameIcon name="fog" artist="delapouite" />}
           </span>
         )}
       </div>

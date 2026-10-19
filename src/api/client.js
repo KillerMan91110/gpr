@@ -229,6 +229,10 @@ export const api = {
   rayo: (playerId, token) => request(`/api/player/${playerId}/world/rayo`, { method: 'POST', token }),
   // balsas de los Ríos de Lava y la lluvia de brasas del Volcán (gprback/lib/brasas.js)
   balsa: (playerId, destino, token) => request(`/api/player/${playerId}/world/balsa`, { method: 'POST', body: { destino }, token }),
+  // la marea de las Costas (gprback/lib/marea.js): para tomar el reloj del servidor
+  marea: (playerId, token) => request(`/api/player/${playerId}/world/marea`, { token }),
+  // los botes de Marul en las Costas Muertas (gprback/lib/botes.js)
+  bote: (playerId, destino, token) => request(`/api/player/${playerId}/world/bote`, { method: 'POST', body: { destino }, token }),
   brasa: (playerId, token) => request(`/api/player/${playerId}/world/brasa`, { method: 'POST', token }),
   getPiedra: (playerId, token) => request(`/api/player/${playerId}/world/piedra`, { token }),
   // muñecos de venta (puestos de jugador en el Barrio del Mercado de Aurelia)

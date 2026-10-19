@@ -17,11 +17,13 @@ const ARTISAN_ICON = {
   peletero: ['animal-hide', 'delapouite'],
   sastre: ['sewing-needle', 'lorc'],
   fuego: ['shop', 'delapouite'],
+  marino: ['shop', 'delapouite'],
 };
 const iconOfArtisan = (a) => ARTISAN_ICON[(a.specialty || '').toLowerCase()] ?? ['shop', 'delapouite'];
 // mercaderes de una zona (solo aparecen ahí): su retrato, cómo se presentan y su saludo
 const LOCAL_MERCHANT = {
   MERCADER_ASCUARIA: { portrait: 'marga', role: 'Mercader de Ascuaria', greeting: '«Lo del volcán, sin meter la mano en la lava. ¿Qué te llevas?»' },
+  MERCADER_PUERTO: { portrait: 'salitre', role: 'Mercader del Puerto Antiguo', greeting: '«Todo lo que escupe el mar, seco y sin arena. Casi sin arena.»' },
 };
 const PORTRAITS = `${process.env.PUBLIC_URL}/assets/mundo/retratos`;
 function ArtisanFace({ a }) {

@@ -9,11 +9,13 @@ export const TAG_RES = 4;
 
 export const ASSETS = `${process.env.PUBLIC_URL}/assets`;
 export const DEFAULT_ZONE = 'pradera';
-// mazmorras (gprback/lib/mazmorra.js): carpeta de la zona → niveles de sus combates y prefijo de sus monstruos
+// mazmorras (gprback/lib/mazmorra.js): carpeta de la zona → niveles de sus combates y prefijo de sus
+// monstruos (bossCodes: jefes que ya existían y no llevan el prefijo)
 export const DUNGEONS = {
   cripta: { min: 5, max: 12, codePrefix: 'CRIPTA_' },
   mina_profunda: { min: 18, max: 24, codePrefix: 'MINA_' },
   fisura: { min: 36, max: 42, codePrefix: 'FISURA_' },
+  arrecife: { min: 52, max: 58, codePrefix: 'ARRECIFE_', bossCodes: ['SENOR_OCEANO'] },
 };
 export const isDungeon = (dir) => !!DUNGEONS[dir];
 export const SPEED = 110;
@@ -92,6 +94,14 @@ export const RESOURCES = {
   geoda_ardiente: { sheet: 'recursos5', frames: [8, 9], label: 'Partir la geoda ardiente', glint: 0xff8a20 },
   restos_volcan: { sheet: 'recursos2', frames: [8, 9], label: 'Registrar los restos', glint: 0xffd84a },
   cofre_volcan: { sheet: 'recursos', frames: [4, 5], label: 'Abrir el cofre', glint: 0xffd84a },
+  // Costas Muertas (art/sprites/mundo/crear_recursos6.lua)
+  veta_coral: { sheet: 'recursos6', frames: [0, 1], label: 'Picar la veta de coral', glint: 0xf2aaa2 },
+  alga_salina: { sheet: 'recursos6', frames: [2, 3], label: 'Recoger las algas', glint: 0x8ad8a0 },
+  ostras: { sheet: 'recursos6', frames: [4, 5], label: 'Sacar las ostras', glint: 0xf4eef6 },
+  restos_naufragio: { sheet: 'recursos6', frames: [6, 7], label: 'Registrar los restos del naufragio', glint: 0xffd84a },
+  poza_marea: { sheet: 'recursos6', frames: [8, 9], label: 'Revisar la poza de marea', glint: 0xb2eedf },
+  concha_gigante: { sheet: 'recursos6', frames: [10, 11], label: 'Abrir la concha gigante', glint: 0xf8f4f0 },
+  cofre_costas: { sheet: 'recursos', frames: [4, 5], label: 'Abrir el cofre', glint: 0xffd84a },
 };
 // mascotas.png: 2 frames por especie, en este orden
 export const PET_SPECIES = ['lobo', 'ave', 'limo', 'gato', 'dragon', 'zorro', 'tortuga', 'arana'];

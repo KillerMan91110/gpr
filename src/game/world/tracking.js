@@ -55,8 +55,8 @@ export const trackingMethods = {
       case 'boss': {
         const boss = (this.bossPoints ?? []).filter((b) => b.code === target.code).map((b) => ({ x: b.x, y: b.y }));
         if (boss.length) return boss;
-        // jefes de una mazmorra: su puerta (la Cripta del Vigía, la Mina Profunda)
-        const dungeon = Object.entries(DUNGEONS).find(([, d]) => (target.code ?? '').startsWith(d.codePrefix))?.[0];
+        // jefes de una mazmorra: su puerta (la Cripta del Vigía, la Mina Profunda, el Arrecife Hundido…)
+        const dungeon = Object.entries(DUNGEONS).find(([, d]) => (target.code ?? '').startsWith(d.codePrefix) || d.bossCodes?.includes(target.code))?.[0];
         if (dungeon) {
           return (this.exits ?? []).filter((e) => e.dest === dungeon).map((e) => ({ x: e.rect.centerX, y: e.rect.centerY }));
         }

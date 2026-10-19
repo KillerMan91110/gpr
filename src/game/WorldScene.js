@@ -18,6 +18,7 @@ import { eventsMethods } from './world/events';
 import { criptaMethods } from './world/cripta';
 import { questsMethods } from './world/quests';
 import { tormentaMethods } from './world/tormenta';
+import { mareaMethods } from './world/marea';
 import { brasasMethods } from './world/brasas';
 import { trackingMethods } from './world/tracking';
 import { escenaMethods } from './world/escena';
@@ -101,6 +102,7 @@ export default class WorldScene extends Phaser.Scene {
     this.load.spritesheet('recursos3', `${ASSETS}/mundo/recursos3.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos4', `${ASSETS}/mundo/recursos4.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos5', `${ASSETS}/mundo/recursos5.png`, { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('recursos6', `${ASSETS}/mundo/recursos6.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('mascotas', `${ASSETS}/mundo/mascotas.png`, { frameWidth: 24, frameHeight: 24 });
     this.load.spritesheet('f_mariposa', `${ASSETS}/mundo/fauna/mariposa.png`, { frameWidth: 8, frameHeight: 8 });
     this.load.spritesheet('f_pajaro', `${ASSETS}/mundo/fauna/pajaro.png`, { frameWidth: 16, frameHeight: 16 });
@@ -575,6 +577,8 @@ export default class WorldScene extends Phaser.Scene {
     if (edges) colliders.push(this.physics.add.collider(this.monsters, edges));
     const chunk = { key, zone, cx, cy, map, ground, objects, above, colliders, edges, things: [] };
     this.chunks.set(key, chunk);
+    // los bancos de arena de las Costas, según la marea (world/marea.js)
+    this.applyTideToChunk(chunk);
     this.spawnChunkMonsters(chunk);
     this.spawnFauna(chunk);
   }
@@ -733,6 +737,7 @@ export default class WorldScene extends Phaser.Scene {
       this.snow?.setPosition(v.x + v.width / 2, v.y - 20);
       this.ash?.setPosition(v.x + v.width / 2, v.y - 20);
       this.sparks?.setPosition(v.x + v.width / 2, v.y + v.height + 10);
+      this.mist?.setPosition(v.x + v.width / 2, v.y + v.height / 2);
     };
     this.events.on('postupdate', cover);
     this.events.once('shutdown', () => this.events.off('postupdate', cover));
@@ -790,11 +795,21 @@ export default class WorldScene extends Phaser.Scene {
       tint: [0xff9a2a, 0xffe060, 0xe05a1a], blendMode: 'ADD', emitting: false,
     }).setDepth(22);
     this.minimap.ignore(this.sparks);
+    // en las Costas (clima.bruma) entra la bruma del mar: velos blancos que pasan despacio
+    this.mist = this.add.particles(0, 0, 'mota_mundo', {
+      x: { min: -520, max: 520 }, y: { min: -320, max: 320 }, speedX: { min: 8, max: 22 }, speedY: { min: -3, max: 3 },
+      lifespan: 14000, frequency: 120, scale: { min: 6, max: 11 }, tint: [0xe6eef0, 0xd4e0e4],
+      // aparece y se desvanece despacio (nunca tapa del todo)
+      alpha: { onEmit: () => 0, onUpdate: (_p, _k, t) => Math.sin(t * Math.PI) * 0.16 },
+      emitting: false,
+    }).setDepth(21.5);
+    this.minimap.ignore(this.mist);
     this.rollWeather = () => {
       // durante la noche eterna manda la niebla: ni llueve ni nieva
       const clima = this.world.clima ?? {};
       const frozen = this.frozenNight();
       if (!frozen && Math.random() < (clima.ceniza ?? 0)) this.setWeather('ceniza');
+      else if (!frozen && Math.random() < (clima.bruma ?? 0)) this.setWeather('bruma');
       else if (!frozen && Math.random() < (clima.nieve ?? 0)) this.setWeather('nieve');
       else this.setWeather(!frozen && Math.random() < (clima.lluvia ?? 0) ? 'lluvia' : 'despejado');
     };
@@ -814,6 +829,7 @@ export default class WorldScene extends Phaser.Scene {
     if (this.snow) this.snow.emitting = kind === 'nieve';
     if (this.ash) this.ash.emitting = kind === 'ceniza';
     if (this.sparks) this.sparks.emitting = kind === 'ceniza';
+    if (this.mist) this.mist.emitting = kind === 'bruma';
     bus.emit('weather', kind);
   }
 
@@ -836,6 +852,7 @@ export default class WorldScene extends Phaser.Scene {
     if (this.weather === 'lluvia') color = mulColor(color, 0xb4bccc);
     else if (this.weather === 'nieve') color = mulColor(color, 0xdce4f0);
     else if (this.weather === 'ceniza') color = mulColor(color, 0xf0c8b0);
+    else if (this.weather === 'bruma') color = mulColor(color, 0xe4ecf0);
     this.shade.setFillStyle(color);
     // cuánto "de noche" es (0 de día, 1 en plena noche) para las luces
     const c = Phaser.Display.Color.IntegerToColor(color);
@@ -1425,6 +1442,7 @@ export default class WorldScene extends Phaser.Scene {
     this.updateNpcs(time, delta);
     this.updateStorm(time);
     this.updateEmbers(time);
+    this.updateTide(time);
     this.reportPosition(time);
     this.checkExits(time);
     this.checkRefuge(time);
@@ -1510,4 +1528,4 @@ export default class WorldScene extends Phaser.Scene {
 }
 
 // Partes de la escena que viven en su propio archivo (game/world/*)
-Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods, tormentaMethods, brasasMethods, escenaMethods, escoltaMethods);
+Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods, tormentaMethods, brasasMethods, mareaMethods, escenaMethods, escoltaMethods);

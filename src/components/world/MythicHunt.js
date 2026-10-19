@@ -15,10 +15,11 @@ const PHASES = {
   pradera: { text: ['vida compartida', 'aullido: esbirros sueltos', 'herido y huyendo', '¡luna roja!'], title: { 1: 'Aullido', 2: 'Huida', 3: 'Luna roja' } },
   montanas: { text: ['vida compartida', 'bramido: cabras sueltas', 'herido y huyendo', '¡tormenta verde!'], title: { 1: 'Bramido', 2: 'Huida', 3: 'Tormenta verde' } },
   volcan: { text: ['vida compartida', 'sus crías salen de la lava', 'herida y escondida', '¡erupción!'], title: { 1: 'Crías de fuego', 2: 'Huida', 3: 'Erupción' } },
+  costas: { text: ['vida compartida', 'sus cangrejos salen de la arena', 'herido y escondido', '¡furia del ermitaño!'], title: { 1: 'Cangrejos ermitaños', 2: 'Huida', 3: 'Furia' } },
 };
 const phasesOf = (zoneDir) => PHASES[zoneDir] ?? PHASES.pradera;
 // cómo se nombra la zona en el rumor de la barra
-const ZONE_LABEL = { pradera: 'la Pradera', montanas: 'la montaña', volcan: 'el Volcán' };
+const ZONE_LABEL = { pradera: 'la Pradera', montanas: 'la montaña', volcan: 'el Volcán', costas: 'la costa' };
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function left(ms) {

@@ -3,7 +3,8 @@
 // monster_zones; la capital todavía no es una zona de combate.
 //
 // Norte arriba: la capital al norte de la Pradera (Puerta Norte), las Montañas Grises al este
-// (Camino del Este), el Volcán Rojo al sur de las Montañas (Paso del Humo) y la costa más abajo.
+// (Camino del Este), el Volcán Rojo al sur de las Montañas (Paso del Humo) y las Costas Muertas al
+// sur del Volcán (Bajada de Basalto).
 // Tiene que coincidir con public/assets/mundo/etheria.json y gprback/docs/mapa_etheria.md.
 
 export const ATLAS_ZONES = {
@@ -18,7 +19,7 @@ export const ATLAS_ZONES = {
   },
   2: { dir: 'montanas', x: 420, y: 214, color: '#9aa0a8', icon: ['stone-pile', 'delapouite'], route: 'Al este de la Pradera, siguiendo el Camino del Este. El Bastión de Hierro está en el corazón de la sierra.' },
   3: { dir: 'volcan', x: 420, y: 296, color: '#d0603a', icon: ['fireball', 'lorc'], route: 'Al sur de las Montañas Grises, bajando por el Paso del Humo. Ascuaria, la ciudad de los dracónidos, está sobre una meseta de basalto.' },
-  4: { x: 318, y: 356, color: '#5a8cae', icon: ['water-flask', 'delapouite'], route: 'Toda la costa sur, donde los ríos de lava del Volcán Rojo bajan al mar.' },
+  4: { dir: 'costas', x: 420, y: 362, color: '#4a9cb8', icon: ['lighthouse', 'delapouite'], route: 'Al sur del Volcán Rojo, bajando por la Bajada de Basalto desde la Caldera del Titán. El Puerto Antiguo y los palafitos de Coralia están junto al mar.' },
   5: { x: 330, y: 50, color: '#bfe2f2', icon: ['ice-bolt', 'lorc'], route: 'Lejos al norte, más allá de la capital.' },
   6: { x: 112, y: 298, color: '#7a5aa0', icon: ['ghost', 'lorc'], route: 'Al oeste, bajo las colinas que hay pasadas las Ruinas del Vigía.' },
   7: { x: 96, y: 102, color: '#5fb39a', icon: ['crystal-ball', 'lorc'], route: 'En el extremo noroeste, al final de la Tundra.' },

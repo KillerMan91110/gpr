@@ -1,0 +1,117 @@
+[
+ {
+  "id": "alga_playa",
+  "tipo": "alga_salina",
+  "spots": 6
+ },
+ {
+  "id": "restos_playa",
+  "tipo": "restos_naufragio",
+  "spots": 2
+ },
+ {
+  "id": "cofre_playa",
+  "tipo": "cofre_costas",
+  "spots": 1
+ },
+ {
+  "id": "ostras_delta",
+  "tipo": "ostras",
+  "spots": 6
+ },
+ {
+  "id": "alga_delta",
+  "tipo": "alga_salina",
+  "spots": 2
+ },
+ {
+  "id": "restos_cala",
+  "tipo": "restos_naufragio",
+  "spots": 4
+ },
+ {
+  "id": "alga_cala",
+  "tipo": "alga_salina",
+  "spots": 3
+ },
+ {
+  "id": "cofre_cala",
+  "tipo": "cofre_costas",
+  "spots": 2
+ },
+ {
+  "id": "alga_manglar",
+  "tipo": "alga_salina",
+  "spots": 6
+ },
+ {
+  "id": "ostras_manglar",
+  "tipo": "ostras",
+  "spots": 2
+ },
+ {
+  "id": "restos_manglar",
+  "tipo": "restos_naufragio",
+  "spots": 2
+ },
+ {
+  "id": "poza_rocas",
+  "tipo": "poza_marea",
+  "spots": 3
+ },
+ {
+  "id": "ostras_rocas",
+  "tipo": "ostras",
+  "spots": 4
+ },
+ {
+  "id": "concha_rocas",
+  "tipo": "concha_gigante",
+  "spots": 2
+ },
+ {
+  "id": "coral_arrecife",
+  "tipo": "veta_coral",
+  "spots": 9
+ },
+ {
+  "id": "concha_arrecife",
+  "tipo": "concha_gigante",
+  "spots": 2
+ },
+ {
+  "id": "cofre_arrecife",
+  "tipo": "cofre_costas",
+  "spots": 1
+ },
+ {
+  "id": "restos_cementerio",
+  "tipo": "restos_naufragio",
+  "spots": 6
+ },
+ {
+  "id": "alga_cementerio",
+  "tipo": "alga_salina",
+  "spots": 2
+ },
+ {
+  "id": "cofre_cementerio",
+  "tipo": "cofre_costas",
+  "spots": 2
+ },
+ {
+  "id": "coral_faro",
+  "tipo": "veta_coral",
+  "spots": 2
+ },
+ {
+  "id": "ostras_faro",
+  "tipo": "ostras",
+  "spots": 2
+ },
+ {
+  "id": "concha_fosa",
+  "tipo": "concha_gigante",
+  "spots": 1
+ }
+]

@@ -10,7 +10,9 @@ export const TERRAIN_LIST = ['pasto', 'dorado', 'camino', 'agua', 'hierba', 'pla
   // v5 (Montañas Grises)
   'roca', 'nieve', 'abismo', 'hielo', 'hierban', 'mesetan', 'caran', 'colgante',
   // v6 (Volcán Rojo)
-  'basalto', 'ceniza', 'lava', 'azufre', 'quemado', 'obsidiana', 'hierbaq', 'mesetav', 'carav', 'puentev', 'losav'];
+  'basalto', 'ceniza', 'lava', 'azufre', 'quemado', 'obsidiana', 'hierbaq', 'mesetav', 'carav', 'puentev', 'losav',
+  // v8 (Costas Muertas)
+  'arena', 'arenan', 'pastoc', 'coral', 'barro', 'bajo', 'mar', 'banco', 'hierbac', 'muelle'];
 
 // Pinceles de terreno de la paleta (orden y nombre que se ven)
 export const TERRAIN_BRUSHES = [
@@ -51,16 +53,40 @@ export const TERRAIN_BRUSHES = [
   { id: 'losav', label: 'Losas de basalto', icon: 'losa_basalto' },
   { id: 'mesetav', label: 'Meseta de basalto (con pared)', icon: 'mesetav_4' },
   { id: 'carav', label: 'Pared de basalto', icon: 'cara_v_a_c' },
+  { id: 'arena', label: 'Arena', icon: 'arena' },
+  { id: 'arenan', label: 'Arena negra', icon: 'arenan_15' },
+  { id: 'pastoc', label: 'Pasto de duna', icon: 'pastoc_15' },
+  { id: 'hierbac', label: 'Pasto salado (combates)', icon: 'hierba_salada' },
+  { id: 'coral', label: 'Coral', icon: 'coral_15' },
+  { id: 'barro', label: 'Barro del manglar', icon: 'barro_15' },
+  { id: 'bajo', label: 'Agua baja (se camina)', icon: 'bajo_15' },
+  { id: 'mar', label: 'Mar (va rodeado de agua baja)', icon: 'mar_15' },
+  { id: 'banco', label: 'Banco de arena (marea)', icon: 'banco' },
+  { id: 'muelle', label: 'Muelle / pasarela', icon: 'muelle_10' },
 ];
 
-const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_(\d+|[hv])|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_(\d+|[hv])|caminor_\d+|roca_(\d+|grava|musgo)|nieve_(\d+|huellas)|abismo_\d+|hielo_\d+|mesetan_\d+|cara_n_[ab]_[icd]|colgante_(\d+|[hv])|hierba_nevada|basalto(_grieta)?|ceniza_(\d+|pomez|huellas)|lava_\d+|azufre_\d+|quemado_\d+|obsidiana_\d+|caminov_\d+|mesetav_\d+|cara_v_[ab]_[icd]|hierba_quemada|losa_basalto(_runa)?|puente_basalto_(\d+|[hv]))$/;
+const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_(\d+|[hv])|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_(\d+|[hv])|caminor_\d+|roca_(\d+|grava|musgo)|nieve_(\d+|huellas)|abismo_\d+|hielo_\d+|mesetan_\d+|cara_n_[ab]_[icd]|colgante_(\d+|[hv])|hierba_nevada|basalto(_grieta)?|ceniza_(\d+|pomez|huellas)|lava_\d+|azufre_\d+|quemado_\d+|obsidiana_\d+|caminov_\d+|mesetav_\d+|cara_v_[ab]_[icd]|hierba_quemada|losa_basalto(_runa)?|puente_basalto_(\d+|[hv])|arena(_conchas|_huellas)?|arenan_\d+|pastoc_\d+|coral_\d+|barro_\d+|caminoc_\d+|bajo_\d+|mar_\d+|banco(_alta)?|hierba_salada|muelle_\d+)$/;
 
 const MOUNTAIN = ['roca', 'nieve', 'mesetan', 'hierban', 'abismo', 'hielo'];
 // el camino entre el basalto del volcán lleva orilla de basalto (caminov_*)
 const VOLCANO = ['basalto', 'ceniza', 'lava', 'azufre', 'quemado', 'obsidiana', 'hierbaq', 'mesetav', 'puentev'];
+// el camino entre la arena de la costa es de conchas molidas (caminoc_*)
+const COAST = ['arena', 'arenan', 'pastoc', 'coral', 'barro', 'bajo', 'mar', 'banco', 'hierbac', 'muelle'];
 
 export function terrainOfName(name) {
   if (!name) return 'pasto';
+  // v8 (Costas): antes que las reglas generales (caminoc es camino; banco_plaza es un banco de plaza)
+  if (/^arenan_/.test(name)) return 'arenan';
+  if (/^arena(_conchas|_huellas)?$/.test(name)) return 'arena';
+  if (/^pastoc_/.test(name)) return 'pastoc';
+  if (/^coral_\d+$/.test(name)) return 'coral';
+  if (/^barro_\d+$/.test(name)) return 'barro';
+  if (/^caminoc_/.test(name)) return 'camino';
+  if (/^bajo_\d+$/.test(name)) return 'bajo';
+  if (/^mar_\d+$/.test(name)) return 'mar';
+  if (/^banco(_alta)?$/.test(name)) return 'banco';
+  if (name === 'hierba_salada') return 'hierbac';
+  if (/^muelle_/.test(name)) return 'muelle';
   // v6 (Volcán): antes que las reglas generales (losa_basalto no es losa, cara_v no es cara)
   if (/^basalto/.test(name)) return 'basalto';
   if (/^ceniza_/.test(name)) return 'ceniza';
@@ -120,6 +146,8 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
   const ashFamily = new Set([T.ceniza_15, T.ceniza_pomez, T.ceniza_huellas].filter(Boolean));
   const randomAsh = () => { const r = Math.random(); return r < 0.06 ? T.ceniza_pomez : r < 0.1 ? T.ceniza_huellas : T.ceniza_15; };
   const basaltFamily = new Set([T.basalto, T.basalto_grieta].filter(Boolean));
+  const sandFamily = new Set([T.arena, T.arena_conchas, T.arena_huellas].filter(Boolean));
+  const randomSand = () => { const r = Math.random(); return r < 0.05 ? T.arena_conchas : r < 0.08 ? T.arena_huellas : T.arena; };
 
   const randomPasto = () => {
     const r = Math.random();
@@ -155,9 +183,16 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
     switch (t) {
       case 'camino': {
         const around = [tAt(x, y - 1), tAt(x + 1, y), tAt(x, y + 1), tAt(x - 1, y)];
+        // el estilo del camino sale de lo que hay hasta dos casillas a la redonda: así el medio de un
+        // camino ancho (rodeado de camino) sigue con el estilo de su orilla
+        const near = [];
+        for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if ((dx || dy) && Math.abs(dx) + Math.abs(dy) <= 2) near.push(tAt(x + dx, y + dy));
         const volcanPath = (n) => ['camino', 'losav', 'puentev', 'escalera', null].includes(n);
+        // entre la arena de la costa, camino de conchas (caminoc_*); va primero para que un camino de
+        // la costa que roza el basalto no cambie de estilo casilla por casilla
+        if (T.caminoc_0 && near.some((n) => COAST.includes(n))) return T[`caminoc_${mask((n) => ['camino', 'plaza', 'muelle', 'escalera', 'losav', null].includes(n))}`];
         // entre el basalto del volcán, el camino lleva orilla de basalto (caminov_*)
-        if (T.caminov_0 && around.some((n) => VOLCANO.includes(n))) return T[`caminov_${mask(volcanPath)}`];
+        if (T.caminov_0 && near.some((n) => VOLCANO.includes(n))) return T[`caminov_${mask(volcanPath)}`];
         // entre la roca de la montaña, el camino lleva orilla de roca (caminor_*)
         const rock = T.caminor_0 && around.some((n) => MOUNTAIN.includes(n));
         return T[`${rock ? 'caminor' : 'camino'}_${mask(isPath)}`];
@@ -182,6 +217,18 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
         const side = !sideOk(tAt(x - 1, y)) ? 'i' : (!sideOk(tAt(x + 1, y)) ? 'd' : 'c');
         return T[`cara_v_${top ? 'a' : 'b'}_${side}`];
       }
+      // v8 (Costas): como en art/mapas/generar_costas.js
+      case 'arena': return sandFamily.has(cur) ? cur : randomSand();
+      case 'arenan': return T[`arenan_${mask((n) => n === 'arenan' || n === null)}`];
+      case 'pastoc': return T[`pastoc_${mask((n) => n === 'pastoc' || n === null)}`];
+      case 'coral': return T[`coral_${mask((n) => n === 'coral' || n === null)}`];
+      case 'barro': return T[`barro_${mask((n) => n === 'barro' || n === null)}`];
+      // el agua baja sigue en el mar y bajo los muelles; el mar solo en el mar
+      case 'bajo': return T[`bajo_${mask((n) => ['bajo', 'mar', 'muelle', null].includes(n))}`];
+      case 'mar': return T[`mar_${mask((n) => n === 'mar' || n === null)}`];
+      case 'banco': return T.banco;
+      case 'hierbac': return T.hierba_salada;
+      case 'muelle': return T[`muelle_${mask((n) => !['bajo', 'mar'].includes(n))}`];
       case 'agua': return T[`agua_${mask(isWater)}`];
       case 'puente': return bridge('puente', 'agua', () => (isWater(tAt(x - 1, y)) && isWater(tAt(x + 1, y)) ? T.puente_v : T.puente_h));
       case 'hierba': return T.hierba_alta;

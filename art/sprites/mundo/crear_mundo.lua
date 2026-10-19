@@ -45,6 +45,17 @@ local ORDER = {
   {"ob1","2c2638"},{"ob2","17131f"},{"obh","9a8ccc"},
   {"qm1","4a3a30"},{"qm2","33281f"},{"qm3","221912"},{"em","ffb050"},
   {"dr1","b03a2a"},{"dr2","7a2418"},{"dg","e8b040"},
+  -- v8 (Costas Muertas): arena clara y negra, mar, agua baja, espuma, coral, barro, pasto de duna,
+  -- madera de muelle gastada, el verde agua de los tritones y la luz de las medusas
+  {"ar1","eedcaa"},{"ar2","d8c28c"},{"ar3","b49c6a"},
+  {"an1","827a76"},{"an2","68605e"},{"an3","4a4446"},{"anh","b4aca6"},
+  {"mr1","2c7ea0"},{"mr2","206684"},{"mr3","174c66"},{"mrh","62bcd4"},
+  {"bj1","62c6be"},{"bj2","48aaa6"},{"bjh","b2eedf"},{"es","f2fbf8"},
+  {"co1","f2aaa2"},{"co2","d87c7a"},{"co3","f6ece0"},{"co4","a85060"},
+  {"bo1","66523a"},{"bo2","4c3c2a"},{"bo3","33281c"},
+  {"pc1","b4bc62"},{"pc2","949c4c"},{"pc3","72803c"},
+  {"md1","a08260"},{"md2","7a6248"},{"md3","514030"},{"mdg","9a948a"},
+  {"tr1","4cae9e"},{"tr2","2e7e72"},{"me","c4a0ff"},{"meh","f2e6ff"},
 }
 local C = {}
 for _,e in ipairs(ORDER) do C[e[1]] = hex(e[2]) end
@@ -816,6 +827,16 @@ local function wallFill(V, x0, y0, x1, y1, style)
   elseif style == "elfico" then
     V.rect(x0, y0, x1, y1, "Ph"); V.rect(x1 - 3, y0, x1, y1, "p")
     for x = x0 + 6, x1, 16 do for y = y0, y1, 3 do V.px(x + (y // 3) % 2, y, "lp") end end
+  elseif style == "encalado" then
+    -- v8: casas del puerto, encaladas y con la base manchada de salitre
+    V.rect(x0, y0, x1, y1, "P"); V.rect(x1 - 3, y0, x1, y1, "p")
+    V.rect(x0, y1 - 5, x1, y1, "m2"); V.rect(x0, y1 - 5, x1, y1 - 5, "m3")
+    for x = x0 + 5, x1 - 4, 11 do V.px(x, y1 - 3, "m3"); V.px(x + 1, y1 - 2, "m3") end
+  elseif style == "tablas" then
+    -- v8: tablones gastados por el mar (astillero, almacenes)
+    V.rect(x0, y0, x1, y1, "md1"); V.rect(x1 - 3, y0, x1, y1, "md2")
+    for x = x0, x1, 6 do V.rect(x, y0, x, y1, "md3") end
+    for y = y0 + 4, y1, 9 do for x = x0 + 3, x1, 12 do V.px(x, y, "mdg") end end
   end
 end
 
@@ -1765,6 +1786,328 @@ for _, K in ipairs(BRIDGES) do
   for m = 0, 15 do TILES[#TILES+1] = {K.name .. "_" .. m, bridgeTile(K, m)} end
 end
 
+-- ---------------------------------------------------------------------------------------
+-- v8 (Costas Muertas): la arena clara es el suelo de base (como el basalto en el Volcán) y los
+-- demás terrenos la muerden en el borde: arena negra volcánica, pasto de duna, coral, barro del
+-- manglar y el camino de conchas. El agua va en dos escalones: el agua baja (turquesa, se camina
+-- por ella, termina en espuma y arena mojada) y el mar (hondo, choca; su borde se aclara hacia el
+-- agua baja, así que el mar siempre va rodeado de agua baja). Muelles y pasarelas de palafito con
+-- bordes automáticos, bancos de arena de la marea, palmeras, mangles, naufragios, el puerto, los
+-- palafitos de Coralia, el faro y las entradas de la cueva pirata y del Arrecife Hundido.
+-- Los tiles nuevos van al FINAL para no cambiar los ids viejos.
+-- ---------------------------------------------------------------------------------------
+local function sandPx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 9 and "ar1" or (n < 14 and "ar3" or "ar2"))
+end
+local function sandBase(G, seed) for y=0,31 do for x=0,31 do sandPx(G, x, y, seed) end end end
+local function blackSandPx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 4 and "anh" or (n < 12 and "an1" or (n < 18 and "an3" or "an2")))
+end
+local function shallowPx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 6 and "bj2" or "bj1")
+end
+local function shallowBase(G, seed)
+  for y=0,31 do for x=0,31 do shallowPx(G, x, y, seed) end end
+  for _,p in ipairs({{3,6},{17,3},{9,17},{21,22},{5,27}}) do G.rect(p[1],p[2],p[1]+5,p[2],"bjh"); G.px(p[1]+6,p[2]+1,"bj2") end
+end
+local function seaBase(G, seed)
+  for y=0,31 do for x=0,31 do local n = noise(x, y, seed); G.px(x, y, n < 7 and "mr1" or (n < 11 and "mr3" or "mr2")) end end
+  for _,p in ipairs({{4,8},{19,5},{11,19},{23,25}}) do G.rect(p[1],p[2],p[1]+3,p[2],"mrh"); G.rect(p[1]+1,p[2]+1,p[1]+4,p[2]+1,"mr1") end
+end
+
+-- arena negra (volcánica) sobre la arena clara
+local function blackSandTile(mask)
+  return function(G)
+    for y=0,31 do for x=0,31 do blackSandPx(G, x, y, 311) end end
+    local depth = function(i, side) return 3 + (noise(i, side, 313 + mask) % 5) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "ar3") end)
+    sideBand(G, mask, depth, function(x, y) sandPx(G, x, y, 314) end)
+  end
+end
+-- pasto de duna: matas verde amarillento sobre la arena
+local function duneGrassTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"pc2")
+    for y=0,31 do for x=0,31 do local n = noise(x, y, 321); if n < 10 then G.px(x, y, "pc1") elseif n < 16 then G.px(x, y, "pc3") end end end
+    for _,p in ipairs({{5,6},{19,9},{11,20},{25,24},{3,26}}) do G.px(p[1],p[2],"pc3"); G.px(p[1]+1,p[2]-1,"pc1"); G.px(p[1]-1,p[2]-1,"pc1") end
+    local depth = function(i, side) return 3 + (noise(i, side, 323 + mask) % 5) end
+    sideBand(G, mask, depth, function(x, y) sandPx(G, x, y, 324) end)
+    for i=0,31,4 do
+      if mask & 1 == 0 then G.px(i, depth(i,1), "pc3") end
+      if mask & 4 == 0 then G.px(i, 31-depth(i,3), "pc3") end
+    end
+  end
+end
+-- coral blanco y rosado del arrecife, con la arena entre las ramas
+local function coralTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"co3")
+    for y=0,31 do for x=0,31 do local n = noise(x, y, 331); if n < 8 then G.px(x, y, "co1") elseif n < 12 then G.px(x, y, "m2") end end end
+    for _,p in ipairs({{6,7},{20,5},{13,18},{25,22},{5,25}}) do
+      G.px(p[1],p[2],"co2"); G.px(p[1]-1,p[2]-1,"co1"); G.px(p[1]+1,p[2]-1,"co1"); G.px(p[1],p[2]-2,"co1"); G.px(p[1],p[2]+1,"co4")
+    end
+    local depth = function(i, side) return 3 + (noise(i, side, 333 + mask) % 4) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "co2") end)
+    sideBand(G, mask, depth, function(x, y) sandPx(G, x, y, 334) end)
+  end
+end
+-- barro del manglar con charquitos; borde oscuro hacia la arena
+local function mudTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"bo2")
+    for y=0,31 do for x=0,31 do local n = noise(x, y, 341); if n < 9 then G.px(x, y, "bo1") elseif n < 14 then G.px(x, y, "bo3") end end end
+    for _,p in ipairs({{7,9},{21,19}}) do G.ellipse(p[1],p[2],3,1.5,"bj2"); G.px(p[1]-1,p[2],"bjh") end
+    local depth = function(i, side) return 3 + (noise(i, side, 343 + mask) % 5) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "bo3") end)
+    sideBand(G, mask, depth, function(x, y) sandPx(G, x, y, 344) end)
+  end
+end
+-- camino de conchas molidas y piedritas
+local function shellPathTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"k2")
+    for y=0,31 do for x=0,31 do local n = noise(x, y, 351); if n < 10 then G.px(x, y, "co3") elseif n < 17 then G.px(x, y, "k3") elseif n < 19 then G.px(x, y, "co1") end end end
+    local depth = function(i, side) return 3 + (noise(i, side, 353 + mask) % 4) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "k4") end)
+    sideBand(G, mask, depth, function(x, y) sandPx(G, x, y, 354) end)
+  end
+end
+-- agua baja: turquesa; termina en espuma, arena mojada y arena
+local function shallowTile(mask)
+  return function(G)
+    shallowBase(G, 361)
+    local depth = function(i, side) return 3 + (noise(i, side, 363 + mask) % 3) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 2 end, function(x, y) G.px(x, y, "es") end)
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "ar3") end)
+    sideBand(G, mask, depth, function(x, y) sandPx(G, x, y, 364) end)
+  end
+end
+-- mar hondo: el borde se aclara hacia el agua baja que lo rodea
+local function seaTile(mask)
+  return function(G)
+    seaBase(G, 371)
+    local depth = function(i, side) return 5 + (noise(i, side, 373 + mask) % 4) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 3 end, function(x, y) if (x + y) % 2 == 0 then G.px(x, y, "bj2") end end)
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "bj2") end)
+    sideBand(G, mask, depth, function(x, y) shallowPx(G, x, y, 374) end)
+  end
+end
+
+TILES[#TILES+1] = {"arena", function(G) sandBase(G, 301) end}
+TILES[#TILES+1] = {"arena_conchas", function(G)
+  sandBase(G, 302)
+  for _,p in ipairs({{6,7,"co3"},{21,5,"co1"},{13,19,"co3"},{25,24,"m2"},{4,26,"co1"}}) do
+    G.ellipse(p[1],p[2],2,1.5,p[3]); G.px(p[1],p[2]+1,"ar3"); G.px(p[1]-1,p[2],"co2")
+  end
+end}
+TILES[#TILES+1] = {"arena_huellas", function(G)
+  sandBase(G, 303)
+  -- huellas de cangrejo: dos filas de puntitos que cruzan en diagonal
+  for i=0,7 do local x, y = 3 + i * 3, 4 + i * 3; G.px(x, y, "ar3"); G.px(x + 3, y - 2, "ar3"); G.px(x + 1, y + 1, "ar3") end
+end}
+for m=0,15 do TILES[#TILES+1] = {"arenan_" .. m, blackSandTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"pastoc_" .. m, duneGrassTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"coral_" .. m, coralTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"barro_" .. m, mudTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"caminoc_" .. m, shellPathTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"bajo_" .. m, shallowTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"mar_" .. m, seaTile(m)} end
+-- banco de arena de la marea: arena mojada con ondas (marea baja) y cubierto de agua (marea alta)
+TILES[#TILES+1] = {"banco", function(G)
+  G.rect(0,0,31,31,"ar3")
+  for y=0,31 do for x=0,31 do if noise(x, y, 381) < 10 then G.px(x, y, "ar2") end end end
+  for y=4,31,7 do for x=0,31 do if (x + y) % 9 < 5 then G.px(x, y + ((x // 4) % 2), "ar2") end end end
+  G.ellipse(8,22,3,1.5,"bj1"); G.ellipse(23,9,2,1,"bj1"); G.px(7,21,"bjh")
+end}
+TILES[#TILES+1] = {"banco_alta", function(G)
+  shallowBase(G, 382)
+  for y=4,31,7 do for x=0,31 do if (x + y) % 9 < 5 then G.px(x, y + ((x // 4) % 2), "bj2") end end end
+  G.rect(4,13,9,13,"es"); G.rect(19,26,25,26,"es")
+end}
+-- pasto de duna alto, donde salen monstruos
+TILES[#TILES+1] = {"hierba_salada", function(G)
+  sandBase(G, 391)
+  for x=1,31,4 do for y=3,31,8 do
+    local o = (y // 8) % 2 * 2
+    G.rect(x+o,y,x+o,y+5,"pc3"); G.rect(x+o+1,y+1,x+o+1,y+5,"pc2"); G.px(x+o,y-1,"pc1"); G.px(x+o+2,y+2,"pc3"); G.px(x+o-1,y+1,"pc1")
+  end end
+end}
+
+-- muelles y pasarelas de los palafitos: tablones gastados sobre el agua (como los puentes de v7)
+local MUELLE = {name="muelle", bg=shallowTile(15), shadow="bj2",
+  deck=function(a, b) local p = a % 5; if p == 0 then return "md3" end; if (b + (a // 5) * 11) % 32 == 0 then return "md3" end; if p == 1 then return "md1" end; return noise(a, b, 395) < 6 and "mdg" or "md2" end,
+  rail=function(d, i, post) if post then return d == 0 and "mdg" or "md3" end; if d == 1 then return "B" end; if d == 2 then return "b" end; return nil end}
+for m = 0, 15 do TILES[#TILES+1] = {"muelle_" .. m, bridgeTile(MUELLE, m)} end
+
+-- decoración pequeña de la costa
+deco("concha_grande", function(G)
+  G.ellipse(16,26,9,3,"ar3"); G.ellipse(16,19,9,7,"co3"); G.ellipse(16,20,7,5,"co1")
+  for i=-3,3 do G.rect(16 + i * 2, 14 + math.abs(i), 16 + i * 2, 24, "co2") end
+  G.rect(13,24,19,26,"co2"); G.px(12,15,"W")
+end)
+deco("estrella_mar", function(G)
+  G.ellipse(16,26,8,2,"ar3")
+  for a=0,4 do local ang = a * 2 * math.pi / 5 - math.pi / 2
+    for r=0,9 do G.px(16 + math.cos(ang) * r, 18 + math.sin(ang) * r * 0.8, r < 7 and "au" or "ad") end
+    G.px(16 + math.cos(ang) * 5, 18 + math.sin(ang) * 4, "Oh")
+  end
+  G.ellipse(16,18,3,2,"au"); G.px(16,18,"Y")
+end)
+deco("roca_costa", function(G)
+  G.ellipse(16,26,11,3,"ar3"); G.ellipse(16,19,10,8,"an2"); G.ellipse(14,16,7,5,"an1")
+  for _,p in ipairs({{11,20},{19,22},{20,15}}) do G.px(p[1],p[2],"co3"); G.px(p[1]+1,p[2],"m2") end
+  G.ellipse(18,24,5,2,"pc3")
+end)
+deco("red_pesca", function(G)
+  G.ellipse(16,29,13,2,"ar3"); G.rect(3,6,4,29,"md3"); G.rect(27,6,28,29,"md3")
+  for y=8,24,4 do for x=5,26 do if (x + y) % 4 == 0 then G.px(x, y, "mdg") end end end
+  for x=6,26,4 do for y=7,25 do if (x + y) % 4 == 0 then G.px(x, y, "mdg") end end end
+  G.rect(4,7,27,7,"t2"); G.ellipse(12,20,2,2,"au"); G.ellipse(21,14,2,2,"au")
+end)
+deco("ancla", function(G)
+  G.ellipse(16,28,10,2,"ar3"); G.rect(15,6,17,25,"sk"); G.ellipse(16,5,3,3,"sk"); G.ellipse(16,5,1,1,"ar2")
+  G.rect(10,10,22,11,"sk")
+  for i=0,7 do G.px(15 - i, 25 - i // 2, "sk"); G.px(17 + i, 25 - i // 2, "sk"); G.px(15 - i, 26 - i // 2, "sd"); G.px(17 + i, 26 - i // 2, "sd") end
+  G.px(7,20,"sk"); G.px(25,20,"sk"); G.px(16,14,"au"); G.px(15,18,"ad")
+end)
+deco("boya", function(G)
+  shallowBase(G, 397)
+  G.ellipse(16,22,8,4,"bj2"); G.ellipse(16,18,7,6,"R"); G.rect(9,17,23,19,"W"); G.ellipse(14,15,2,2,"Oh")
+  G.rect(15,5,17,13,"sk"); G.ellipse(16,5,2,2,"go")
+end)
+deco("lampara_medusa", function(G)
+  G.ellipse(16,29,5,2,"ar3"); G.rect(15,12,17,29,"md3"); G.rect(10,6,22,8,"tr2")
+  G.ellipse(16,14,6,5,"me"); G.ellipse(16,13,4,3,"meh"); for x=11,21,3 do G.rect(x,17,x,22,"me") end
+end)
+deco("campana_puerto", function(G)
+  G.ellipse(16,29,11,2,"ar3"); G.rect(5,4,7,29,"md3"); G.rect(25,4,27,29,"md3"); G.rect(4,3,28,5,"md2")
+  G.ellipse(16,15,6,7,"god"); G.ellipse(15,14,4,6,"go"); G.rect(10,19,22,21,"god"); G.px(16,23,"sk"); G.rect(16,5,16,8,"sk")
+end)
+deco("bote", function(G)
+  shallowBase(G, 398)
+  G.ellipse(16,18,13,7,"bj2"); G.ellipse(16,16,13,7,"md3"); G.ellipse(16,15,11,5,"md1"); G.ellipse(16,16,8,3,"md2")
+  G.rect(7,15,25,15,"md3"); G.rect(20,9,21,17,"B"); G.rect(20,8,21,9,"md3")
+end)
+-- objetos grandes de la costa
+addGrid("palmera", 2, 2, function(V)
+  V.ellipse(36,58,12,3,"ar3")
+  for y=22,57 do local x = 30 + math.floor(((57 - y) / 35) ^ 2 * 8); V.rect(x, y, x + 4, y, "md2"); V.px(x, y, "md1"); if y % 4 == 0 then V.rect(x, y, x + 4, y, "md3") end end
+  -- hojas: una nervadura que cae y hojitas a los dos lados, más cortas hacia la punta
+  local fronds = {{-27,-2},{-20,-14},{-2,-19},{17,-14},{27,-1},{-17,9},{15,10}}
+  for _, f in ipairs(fronds) do
+    local len = math.sqrt(f[1] * f[1] + f[2] * f[2])
+    local nx, ny = -f[2] / len, f[1] / len
+    for t=0,20 do local k = t / 20; local x = 37 + f[1] * k; local y = 18 + f[2] * k + 7 * k * k
+      local leaf = math.floor(5 * (1 - k)) + 1
+      for s=-leaf,leaf do V.px(x + nx * s, y + ny * s + math.abs(s) * 0.4, math.abs(s) == leaf and "o3" or (s < 0 and "o1" or "o2")) end
+      V.px(x, y, "o3")
+    end
+  end
+  V.ellipse(37,19,4,3,"o2"); V.ellipse(34,23,2,2,"b"); V.ellipse(40,23,2,2,"b"); V.ellipse(37,24,2,2,"md3")
+end)
+addGrid("mangle", 2, 2, function(V)
+  V.ellipse(32,58,22,4,"bo3")
+  for _,r in ipairs({{12,58},{20,60},{44,60},{52,58},{32,60}}) do
+    for t=0,16 do local k = t / 16; local x = r[1] + (32 - r[1]) * k; local y = r[2] - 18 * math.sin(k * math.pi * 0.5); V.rect(x, y, x + 1, y, "md3"); V.px(x, y - 1, "md2") end
+  end
+  V.rect(29,30,35,46,"md3"); V.rect(29,30,30,46,"md2")
+  V.ellipse(32,20,28,17,"o3"); V.ellipse(30,17,24,13,"o2"); V.ellipse(24,13,11,7,"o1"); V.ellipse(42,24,9,5,"pd")
+  for _,p in ipairs({{14,22},{46,14},{28,30}}) do V.px(p[1],p[2],"pc1") end
+end)
+addGrid("roca_marina", 2, 2, function(V)
+  V.ellipse(32,52,30,10,"bj2"); V.ellipse(32,44,28,18,"an3"); V.ellipse(30,40,26,16,"an2"); V.ellipse(24,32,14,9,"an1")
+  for _,p in ipairs({{14,44},{22,50},{40,48},{48,40},{36,30}}) do V.ellipse(p[1],p[2],2,1.5,"co3"); V.px(p[1],p[2],"m3") end
+  V.ellipse(30,50,24,3,"pc3"); V.rect(6,52,58,53,"es")
+end)
+addGrid("mastil_roto", 1, 2, function(V)
+  V.ellipse(16,60,10,3,"ar3"); V.rect(13,10,18,60,"md2"); V.rect(13,10,14,60,"md1")
+  V.rect(4,20,28,22,"md3"); V.rect(5,23,14,40,"T"); V.rect(5,23,6,40,"t")
+  V.rect(13,8,18,10,"md3"); for i=0,6 do V.px(19 + i, 24 + i * 3, "t2") end
+end)
+-- casco de un barco encallado: se ven las costillas por el boquete
+addGrid("casco_barco", 3, 2, function(V)
+  V.ellipse(48,58,46,5,"ar3")
+  for y=18,56 do local half = math.floor(40 - (56 - y) * 0.3); V.rect(48 - half, y, 48 + half, y, (y // 5) % 2 == 0 and "md2" or "md3") end
+  V.rect(8,18,88,21,"md1"); V.rect(12,40,86,42,"R")
+  V.ellipse(56,38,16,12,"K"); for x=44,68,6 do V.rect(x,28,x+1,50,"md1") end
+  V.rect(26,4,29,20,"md2"); V.rect(20,8,36,9,"md3"); V.ellipse(80,52,6,3,"pc3"); V.ellipse(14,54,5,2,"co3")
+end)
+-- La Gaviota Insolente, el barco de Rhaegar: casco oscuro con franja roja y la bandera de la gaviota
+addGrid("barco_pirata", 4, 3, function(V)
+  V.ellipse(64,90,60,5,"bj2")
+  for y=58,88 do local half = math.floor(58 - (y - 58) * 0.6); V.rect(64 - half, y, 64 + half, y, (y // 4) % 2 == 0 and "md3" or "b") end
+  V.rect(8,58,120,61,"md1"); V.rect(14,70,114,72,"R")
+  for x=28,100,18 do V.ellipse(x, 66, 2, 2, "K") end
+  for _, m in ipairs({{44, 10, 30, 54}, {84, 16, 26, 54}}) do
+    local mx, top, w, bot = m[1], m[2], m[3], m[4]
+    V.rect(mx - 1, top - 6, mx + 1, bot + 4, "md2")
+    for y = top, bot - 8 do local bulge = math.floor(math.sin((y - top) / (bot - 8 - top) * math.pi) * 3); V.rect(mx - w // 2 - bulge, y, mx + w // 2 + bulge, y, (y // 6) % 2 == 0 and "T" or "t") end
+    V.rect(mx - w // 2, top, mx + w // 2, top + 1, "md3"); V.rect(mx - w // 2, bot - 8, mx + w // 2, bot - 7, "md3")
+    V.rect(mx - 6, top + 12, mx + 2, top + 16, "t2")
+  end
+  V.rect(84,2,100,12,"K"); V.rect(88,6,96,7,"W"); V.px(87,5,"W"); V.px(97,5,"W"); V.px(92,8,"go")
+end)
+-- capitanía del puerto: piedra, tejado azul y la bandera del puerto
+building("capitania", 4, 3, {wall="piedra", roof={"pb","pbd"}, hip=true, shadow="ar3", doorC="B", arch=true, extra=function(V, W, H, wt)
+  V.rect(W - 18, 0, W - 17, wt - 2, "sk"); V.rect(W - 16, 1, W - 4, 9, "W"); V.rect(W - 16, 5, W - 4, 6, "pb")
+  V.ellipse(W // 2, wt + 7, 6, 5, "go"); V.rect(W // 2 - 1, wt + 3, W // 2 + 1, wt + 11, "god"); V.rect(W // 2 - 5, wt + 9, W // 2 + 5, wt + 10, "god")
+end})
+building("casa_puerto", 3, 3, {wall="encalado", roof={"tr1","tr2"}, shadow="ar3", doorC="tr2", chimney=true})
+building("casa_puerto_b", 3, 3, {wall="encalado", roof={"rf","rd"}, hip=true, shadow="ar3", doorC="pb"})
+building("almacen", 3, 3, {wall="tablas", roof={"sd","sk"}, shadow="ar3", doorW=20, doorH=22, doorC="md3", extra=function(V, W, H, wt)
+  V.rect(W // 2 - 9, H - 26, W // 2 + 9, H - 25, "md2"); for i=0,8 do V.px(W // 2 - 9 + i * 2, H - 25 + i * 2, "md2"); V.px(W // 2 + 9 - i * 2, H - 25 + i * 2, "md2") end
+end})
+-- astillero de Brea: nave de tablones abierta, con el esqueleto de un bote adentro
+building("astillero", 4, 3, {wall="tablas", roof={"md2","md3"}, shadow="ar3", doorW=40, doorH=30, doorC="bo3", extra=function(V, W, H, wt)
+  for x = W // 2 - 16, W // 2 + 16, 6 do V.rect(x, H - 24, x + 1, H - 6, "md1") end
+  V.rect(W // 2 - 18, H - 8, W // 2 + 18, H - 6, "md2"); V.rect(W // 2 - 18, H - 25, W // 2 + 18, H - 24, "md1")
+end})
+-- palafito de Coralia: choza de caña sobre pilotes, techo de palma y lámpara de medusa
+addGrid("palafito", 3, 3, function(V)
+  for _, x in ipairs({10, 30, 64, 84}) do V.rect(x, 70, x + 3, 95, "md3"); V.rect(x, 90, x + 3, 91, "bj2") end
+  V.rect(4,64,91,70,"md1"); V.rect(4,70,91,71,"md3"); for x=4,91,6 do V.rect(x,64,x,70,"md2") end
+  V.rect(10,34,85,64,"pc2"); for x=10,85,4 do V.rect(x,34,x,64,"pc3") end; V.rect(81,34,85,64,"md2")
+  V.rect(40,44,55,64,"bo3"); V.rect(40,44,55,45,"md3")
+  for _, x in ipairs({18, 66}) do V.rect(x, 44, x + 9, 52, "md3"); V.rect(x + 1, 45, x + 8, 51, "me") end
+  for y=4,36 do local half = math.floor((y - 4) * 1.45); V.rect(48 - half, y, 48 + half, y, ((y - 4) // 4) % 2 == 0 and "pc1" or "pc3") end
+  V.rect(2,36,93,38,"tr2"); V.rect(46,0,49,6,"md3")
+  V.ellipse(92,50,3,3,"me"); V.ellipse(92,49,2,2,"meh"); V.rect(91,53,93,64,"md3")
+end)
+-- el Faro Negro: torre de piedra oscura con la linterna rota (la luz la ponen los puntos "luz")
+addGrid("faro_negro", 2, 4, function(V)
+  V.ellipse(32,124,26,4,"an3")
+  for y=24,122 do local half = math.floor(10 + (y - 24) * 0.12); V.rect(32 - half, y, 32 + half, y, (y // 10) % 2 == 0 and "an2" or "an1"); V.rect(32 + half - 3, y, 32 + half, y, "an3") end
+  V.rect(18,14,46,24,"an3"); V.rect(20,15,44,23,"v"); V.rect(22,16,42,22,"K"); for x=24,40,6 do V.rect(x,15,x,23,"an3") end
+  V.rect(16,12,48,14,"an2"); for y=0,11 do local half = math.floor(14 - y * 1.1); V.rect(32 - half, y, 32 + half, y, "an3") end
+  V.rect(27,100,37,122,"K"); V.ellipse(32,100,5,3,"K"); V.rect(26,60,38,66,"an3"); V.rect(28,61,36,65,"V")
+  V.px(20,40,"an3"); V.px(42,72,"an3"); V.rect(40,30,44,31,"an3")
+end)
+-- la cueva de los piratas: boca negra en el acantilado de basalto, con un farol
+addGrid("cueva_pirata", 3, 3, function(V)
+  V.rect(0,0,95,95,"bs2")
+  for y=0,95,8 do V.rect(0,y,95,y,"bs3") end
+  for x=0,95,12 do V.rect(x,0,x,95,"bs3") end
+  V.ellipse(48,62,26,32,"bs3"); V.rect(22,62,74,95,"bs3"); V.ellipse(48,64,22,28,"K"); V.rect(26,64,70,95,"K")
+  V.rect(20,40,22,62,"md3"); V.rect(74,40,76,62,"md3"); V.rect(18,38,78,40,"md2")
+  V.rect(14,46,18,54,"go"); V.rect(15,47,17,53,"wn"); V.ellipse(48,30,6,5,"W"); V.rect(44,34,52,36,"W"); V.px(46,30,"K"); V.px(50,30,"K")
+end)
+-- entrada al Arrecife Hundido: un arco de coral sobre una escalera que baja al agua
+addGrid("portal_arrecife", 3, 3, function(V)
+  V.rect(0,40,95,95,"bj1"); for _,p in ipairs({{8,50},{70,46},{20,86},{80,80}}) do V.rect(p[1],p[2],p[1]+6,p[2],"bjh") end
+  V.ellipse(48,72,26,20,"mr3"); V.ellipse(48,74,20,15,"mr2")
+  for i=0,4 do V.rect(30 + i * 2, 62 + i * 6, 66 - i * 2, 65 + i * 6, i % 2 == 0 and "co3" or "m2") end
+  for _, s in ipairs({{12, 1}, {84, -1}}) do
+    local x0, d = s[1], s[2]
+    for y=8,90 do local w = 8 - math.floor(y / 20); V.rect(x0 - w, y, x0 + w, y, (y // 6) % 2 == 0 and "co1" or "co2") end
+    for i=0,5 do V.ellipse(x0 + d * (4 + i * 2), 12 + i * 12, 3, 2, "co3") end
+  end
+  for x=12,84 do local y = 10 + math.floor(((x - 48) / 36) ^ 2 * 6); V.rect(x, y - 4, x, y + 3, "co1"); V.px(x, y - 5, "co3"); V.px(x, y + 4, "co4") end
+  V.ellipse(48,8,6,4,"tr1"); V.ellipse(48,8,3,2,"bjh")
+end)
+
 local COLLIDE = {arbol=true, roca=true, arbusto=true, valla=true, agua=true, cartel=true, fogata=true, orilla_agua_arriba=true,
   arbol_grande_bi=true, arbol_grande_bd=true, carpa_ai=true, carpa_ad=true, carpa_bi=true, carpa_bd=true,
   puesto_ai=true, puesto_ad=true, puesto_bi=true, puesto_bd=true, yunque=true, barril=true, caja=true, farol=true}
@@ -1828,6 +2171,22 @@ COLLIDE["portal_fisura_2_0"] = true; COLLIDE["portal_fisura_2_2"] = true
 for _, n in ipairs({"arbol_calcinado","tienda_ocultos","grua_cantera"}) do ABOVE[n .. "_0_0"] = true; ABOVE[n .. "_0_1"] = true end
 ABOVE["aguja_obsidiana_0_0"] = true; ABOVE["estandarte_dracon_0_0"] = true
 for c=0,2 do ABOVE[string.format("pico_volcan_0_%d", c)] = true; ABOVE[string.format("craneo_dragon_0_%d", c)] = true end
+
+-- v8 (Costas): el mar choca; el agua baja, la arena, los bancos y los muelles se caminan
+for m=0,15 do COLLIDE["mar_" .. m] = true end
+for _, n in ipairs({"concha_grande","estrella_mar","roca_costa","red_pesca","ancla","boya","lampara_medusa","campana_puerto","bote"}) do COLLIDE[n] = true end
+bigCollide("palmera", 2, 2, 1); bigCollide("mangle", 2, 2, 1); bigCollide("roca_marina", 2, 2, 0); bigCollide("mastil_roto", 1, 2, 1)
+bigCollide("casco_barco", 3, 2, 1); bigCollide("barco_pirata", 4, 3, 1)
+for _, b in ipairs({{"capitania",4},{"casa_puerto",3},{"casa_puerto_b",3},{"almacen",3},{"astillero",4},{"palafito",3}}) do bigCollide(b[1], b[2], 3, 1); aboveRows(b[1], b[2], 1) end
+bigCollide("faro_negro", 2, 4, 2); aboveRows("faro_negro", 2, 2)
+for _, n in ipairs({"palmera","mangle","mastil_roto"}) do ABOVE[n .. "_0_0"] = true; if n ~= "mastil_roto" then ABOVE[n .. "_0_1"] = true end end
+for c=0,2 do ABOVE[string.format("casco_barco_0_%d", c)] = true end
+for c=0,3 do ABOVE[string.format("barco_pirata_0_%d", c)] = true end
+-- la cueva y el portal del arrecife: se entra por el centro de abajo
+for _, n in ipairs({"cueva_pirata","portal_arrecife"}) do
+  for r=0,1 do for c=0,2 do COLLIDE[string.format("%s_%d_%d", n, r, c)] = true end end
+  COLLIDE[n .. "_2_0"] = true; COLLIDE[n .. "_2_2"] = true
+end
 
 local COLS = 8
 local ROWS = math.ceil(#TILES / COLS)

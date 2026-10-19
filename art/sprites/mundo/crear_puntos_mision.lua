@@ -38,6 +38,10 @@ for k, v in pairs({
   zz1="fff7a0", zz2="ffd23a",
   bl1="c8f0ff", bl2="7ec8ff", bl3="3a7ad0",
   dk="1c2a3a",
+  -- Costas Muertas: arena, mar, coral, el loro de Rhaegar, nácar y la caracola del rey
+  ar1="eedcaa", ar2="d8c28c", ar3="b49c6a", ma1="2c7ea0", ma2="174c66",
+  co1="f2aaa2", co2="d87c7a", lo1="4ab84a", lo2="2e7a34", lo3="e8c040", lo4="d84a3a",
+  nc1="f4eef6", nc2="d6cce2", go1="ffd860", go2="c89a2a", vi1="3a6a98", es="f2fbf8",
 }) do PAL[k] = hex(v) end
 
 local function newGrid(W, H)
@@ -85,7 +89,7 @@ local function newGrid(W, H)
 end
 
 -- contorno oscuro (las capas sin contorno, como el agua o el brillo, se marcan con "nl")
-local NO_OUTLINE = { aq1 = true, aq2 = true, ev = true, ev2 = true, sk3 = true }
+local NO_OUTLINE = { aq1 = true, aq2 = true, ev = true, ev2 = true, sk3 = true, es = true }
 local function toImage(G)
   local W, H, g, out = G.w, G.h, G.g, {}
   for y = 0, H - 1 do for x = 0, W - 1 do
@@ -544,6 +548,101 @@ sprite("rama_suelo", 32, 32, function(G, f)
   G.line(18, 22, 21, 17, "wd2"); G.poly({{21, 17}, {25, 14}, {23, 18}}, "v2")
   G.line(3, 28, 9, 26, "wd3"); G.line(24, 28, 29, 26, "wd3")
   if f == 1 then G.px(14, 19, "W") end
+end)
+
+-- ================================================================ Costas Muertas
+-- la botella con la carta de Ignar, varada en la arena
+sprite("botella_mensaje", 32, 32, function(G, f)
+  G.ellipse(16, 26, 12, 3, "ar3"); G.line(5, 27, 27, 27, "es")
+  G.thick(8, 23, 22, 18, 4, "aq3"); G.thick(9, 22, 21, 18, 2, "aq2"); G.rect(22, 16, 25, 19, "wd2")
+  G.rect(12, 19, 17, 21, "pa"); G.px(13, 20, "t2"); G.px(15, 20, "t2")
+  if f == 1 then G.px(11, 19, "W"); G.px(12, 18, "W") end
+end)
+-- los restos quemados de un bote, con un jirón de vela negra
+sprite("barco_quemado", 32, 32, function(G, f)
+  G.ellipse(16, 27, 14, 3.5, "ar3")
+  G.poly({{3, 20}, {28, 18}, {25, 27}, {6, 28}}, "sk2"); G.poly({{5, 21}, {26, 19}, {24, 25}, {7, 26}}, "sk3")
+  for _, x in ipairs({9, 14, 19, 24}) do G.line(x, 19, x - 1, 27, "t2") end
+  G.thick(17, 6, 17, 20, 2, "wd3"); G.poly({{18, 7}, {27, 9 + f}, {25, 15}, {18, 13}}, "ec2")
+  if f == 1 then G.px(6, 18, "y1"); G.px(22, 17, "y2") end
+end)
+-- huellas de botas en la arena que se van hacia el oeste
+sprite("huellas_botas", 32, 32, function(G, f)
+  G.ellipse(16, 22, 15, 8, "ar2")
+  for i = 0, 3 do
+    local x, y = 26 - i * 7, 16 + (i % 2) * 6
+    G.ellipse(x, y, 2, 1.5, "ar3"); G.rect(x - 1, y + 2, x + 1, y + 3, "ar3")
+  end
+  if f == 1 then G.px(4, 18, "W") end
+end)
+-- el cofre de Rhaegar, lleno de Cristales de Eclipse robados
+sprite("cofre_cristales", 32, 32, function(G, f)
+  G.ellipse(16, 27, 13, 3, "rk3")
+  G.rect(6, 15, 26, 26, "wd2"); G.rect(6, 15, 26, 16, "wd1"); G.rect(6, 20, 26, 20, "bz"); G.rect(15, 19, 17, 22, "bz")
+  G.poly({{6, 15}, {9, 8}, {29, 8}, {26, 15}}, "wd3")
+  for _, c in ipairs({{10, 14}, {15, 12}, {20, 14}, {24, 13}}) do G.poly({{c[1], c[2] + 3}, {c[1] + 2, c[2] - 3}, {c[1] + 4, c[2] + 3}}, "ec1"); G.px(c[1] + 2, c[2] - 1, f == 0 and "ev" or "ev2") end
+end)
+-- Galleta, el loro de Rhaegar
+sprite("loro", 32, 32, function(G, f)
+  G.thick(4, 27, 28, 27, 2, "wd2")
+  G.ellipse(16, 18, 5, 7, "lo1"); G.ellipse(17, 20, 3, 5, "lo2"); G.ellipse(16, 11, 4, 4, "lo1")
+  G.poly({{11, 10}, {8, 12 + f}, {11, 13}}, "lo3"); G.px(15, 10, "K"); G.px(14, 9, "W")
+  G.thick(19, 18, 24, 26, 2, "lo4"); G.thick(17, 25, 18, 27, 1, "lo3"); G.thick(14, 25, 14, 27, 1, "lo3")
+  if f == 1 then G.px(5, 6, "W"); G.px(7, 5, "W"); G.px(9, 6, "W") end
+end)
+-- la Caracola del Rey: enorme, dorada, medio enterrada en el barro
+sprite("caracola", 32, 32, function(G, f)
+  G.ellipse(16, 26, 13, 3.5, "t2")
+  G.poly({{4, 24}, {14, 10}, {28, 18}, {24, 26}}, "nc1"); G.poly({{8, 23}, {15, 13}, {24, 19}, {21, 24}}, "nc2")
+  for i = 0, 4 do G.line(12 + i * 3, 12 + i, 10 + i * 3, 24, "go2") end
+  G.ellipse(26, 21, 3, 4, "co1"); G.px(25, 20, "go1")
+  if f == 1 then G.px(14, 9, "W"); G.px(15, 8, "W") end
+end)
+-- el mapa del fondeadero de Velanegra, enrollado sobre una roca
+sprite("mapa_fondeadero", 32, 32, function(G, f)
+  G.ellipse(16, 25, 13, 5, "rk2"); G.ellipse(15, 22, 11, 4, "rk1")
+  G.rect(8, 15, 24, 21, "pa"); G.ellipse(8, 18, 2, 3, "y2"); G.ellipse(24, 18, 2, 3, "y2")
+  G.line(10, 17, 15, 19, "dr"); G.line(15, 19, 21, 16, "dr"); G.ellipse(20, 17, 2, 2, "ec2")
+  if f == 1 then G.px(12, 14, "W") end
+end)
+-- el farol de la luz negra, en lo alto del Faro Negro
+sprite("farol_negro", 32, 32, function(G, f)
+  G.ellipse(16, 28, 10, 2.5, "rk3")
+  G.rect(13, 20, 19, 27, "rk3"); G.rect(10, 8, 22, 20, "ec3"); G.rect(11, 9, 21, 19, "ec2")
+  G.ellipse(16, 14, 4, 4, f == 0 and "ev2" or "ev"); G.ellipse(16, 14, 2, 2, "K")
+  G.rect(9, 6, 23, 8, "rk2"); G.poly({{11, 6}, {16, 1}, {21, 6}}, "rk3")
+end)
+-- la cadena de la Bestia, clavada en la roca con un cristal de eclipse
+sprite("cadena_bestia", 32, 32, function(G, f)
+  G.ellipse(16, 26, 13, 4, "rk2"); G.ellipse(16, 24, 10, 3, "rk1")
+  for i = 0, 5 do G.ellipse(4 + i * 4, 20 + (i % 2), 2, 1.5, "fe2"); G.px(4 + i * 4, 20 + (i % 2), "fe1") end
+  G.poly({{22, 22}, {25, 8}, {28, 22}}, "ec1"); G.px(25, 13, f == 0 and "ev" or "ev2")
+end)
+-- la red rota de Marul, colgando de dos palos
+sprite("red_rota", 32, 32, function(G, f)
+  G.ellipse(16, 28, 13, 2.5, "ar3"); G.rect(4, 6, 5, 28, "wd2"); G.rect(26, 6, 27, 28, "wd2"); G.rect(5, 7, 26, 7, "y3")
+  for y = 9, 23, 4 do for x = 6, 25 do if (x + y) % 4 == 0 and not (x > 13 and x < 19 and y > 12) then G.px(x, y, "sk1") end end end
+  for x = 7, 25, 4 do for y = 8, 24 do if (x + y) % 4 == 0 and not (x > 13 and x < 19 and y > 12) then G.px(x, y, "sk1") end end end
+  G.line(14, 13, 12 + f, 26, "sk1"); G.line(18, 13, 20 - f, 25, "sk1")
+end)
+-- Trueno en un bote de pesca, con cara de que no sabe cómo llegó ahí
+sprite("trueno_barco", 32, 32, function(G, f)
+  G.ellipse(16, 27, 15, 3.5, "ma1"); G.line(2, 25, 30, 25, "es")
+  horse(G, 2, 2 + f, 0, false)
+  G.poly({{2, 21}, {30, 21}, {27, 28}, {5, 28}}, "wd2"); G.rect(3, 21, 29, 22, "wd1")
+end)
+-- Trueno comiendo algas en el manglar
+sprite("trueno_algas", 32, 32, function(G, f)
+  G.ellipse(16, 27, 14, 3.5, "t2")
+  horse(G, 2, 0, f == 0 and 9 or 10, true)
+  for _, x in ipairs({0, 2, 4}) do G.line(x, 30, x + 1, 22, "lo2") end
+end)
+-- Trueno nadando con los tritones (solo se le ve la cabeza y la crin)
+sprite("trueno_nadando", 32, 32, function(G, f)
+  G.ellipse(16, 24, 15, 6, "aq3"); G.ellipse(16, 23, 13, 4, "aq2")
+  horse(G, 4, 6 + f, 0, false)
+  G.ellipse(18, 26, 14, 5, "aq3")
+  for i = 0, 3 do G.px(3 + i * 8 + f * 2, 22, "aq1") end
 end)
 
 -- ---------------------------------------------------------------- salida

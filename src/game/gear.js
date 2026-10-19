@@ -15,7 +15,7 @@ export const SHAPES = ['espada', 'gran_espada', 'hacha', 'espada_runica', 'daga'
   'botas_pesadas', 'botas', 'sandalias'];
 export const SETS = ['hierro', 'acero', 'pradera', 'montana', 'capitan', 'titan', 'acantilado', 'volcan', 'rey_montana', 'caldera', 'titan_fuego',
   'costas', 'oceano', 'profundidades', 'tundra', 'rey_hielo', 'catacumbas', 'lich', 'ancestral', 'arcano', 'sagrado', 'vigia', 'escarcha', 'hierro_negro',
-  'obsidiana', 'forja_negra'];
+  'obsidiana', 'forja_negra', 'coral', 'abismo'];
 // formas que tienen hoja de combate (arma en la mano o pieza en la mano de atrás)
 export const COMBAT_WEAPONS = ['espada', 'gran_espada', 'espada_runica', 'hacha', 'daga', 'arco', 'ballesta', 'baculo_arcano', 'varita', 'baculo_sagrado'];
 export const COMBAT_OFFHANDS = ['escudo', 'carcaj', 'orbe', 'cristal', 'daga_gemela', 'simbolo'];
@@ -37,13 +37,15 @@ const SET_BY_CODE = [
   [/_HIERRO_NEGRO$/, 'hierro_negro'], // armas de Hierro Negro (Mina Profunda, nv 22)
   [/_OBSIDIANA$/, 'obsidiana'], // tier medio del Volcán (nv 36)
   [/_FORJA_NEGRA$/, 'forja_negra'], // armas de la Fisura Infernal (nv 37)
+  [/_CORAL$/, 'coral'], // tier medio de las Costas (nv 51)
+  [/_ABISMO$/, 'abismo'], // armas del Arrecife Hundido (nv 52)
   [/TITAN_F\b|TITAN_F$/, 'titan_fuego'], [/TITAN_P\b|TITAN_P$/, 'titan'], [/REY_MONT/, 'rey_montana'], [/REY_HIELO/, 'rey_hielo'],
   [/PRADERA/, 'pradera'], [/MONTANAS/, 'montana'], [/CAPITAN/, 'capitan'], [/ACANT/, 'acantilado'], [/VOLCAN/, 'volcan'],
   [/CALDERA/, 'caldera'], [/COSTAS/, 'costas'], [/OCEANO/, 'oceano'], [/PROFU/, 'profundidades'], [/TUNDRA/, 'tundra'],
   [/CATACUMBAS/, 'catacumbas'], [/LICH/, 'lich'], [/RUINAS/, 'ancestral'], [/MAGICA|ESPADA_MAGICA/, 'arcano'],
 ];
 const SET_BY_NAME = [
-  [/obsidiana/, 'obsidiana'], [/forja negra/, 'forja_negra'],
+  [/obsidiana/, 'obsidiana'], [/forja negra/, 'forja_negra'], [/coral/, 'coral'], [/abismo/, 'abismo'], [/marea/, 'costas'], [/almirante/, 'oceano'],
   [/titan de fuego/, 'titan_fuego'], [/rey de las montanas/, 'rey_montana'], [/rey del hielo/, 'rey_hielo'], [/titan/, 'titan'],
   [/pradera|lobo|lenador/, 'pradera'], [/montana|troll/, 'montana'], [/capitan/, 'capitan'], [/acantilado/, 'acantilado'],
   [/volcan|dragon/, 'volcan'], [/caldera/, 'caldera'], [/costas|\bmar\b/, 'costas'], [/oceano/, 'oceano'], [/profundidades/, 'profundidades'],

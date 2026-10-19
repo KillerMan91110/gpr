@@ -36,9 +36,13 @@ const BACKGROUNDS = {
   // Volcán Rojo y la Fisura Infernal (art/sprites/mundo/crear_fondo_volcan.lua)
   volcan: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
   fisura: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
+  // Costas Muertas (art/sprites/mundo/crear_fondo_costas.lua): playa, mar, el Faro Negro y el barco sin bandera
+  costas: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
+  // el Arrecife Hundido (art/sprites/mundo/crear_fondo_arrecife.lua): bajo el agua, la ciudad de los tritones
+  arrecife: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
 };
 // colores para rellenar arriba y abajo del escenario en pantalla vertical
-const FILL_COLORS = { pradera: [0x4f86d6, 0xc9a46a], cripta: [0x0c0a16, 0x3a3650], montanas: [0x5a6478, 0xf4f8fc], volcan: [0x3a1e22, 0x8e8680], fisura: [0x1e181c, 0x6e5e5c] };
+const FILL_COLORS = { pradera: [0x4f86d6, 0xc9a46a], cripta: [0x0c0a16, 0x3a3650], montanas: [0x5a6478, 0xf4f8fc], volcan: [0x3a1e22, 0x8e8680], fisura: [0x1e181c, 0x6e5e5c], costas: [0x6e8ea0, 0xeedcaa], arrecife: [0x5ec8d8, 0x9cc4ba] };
 // cuánto se mueve cada capa respecto de la cámara (parallax)
 const LAYER_SCROLL = [0.05, 0.18, 0.4, 1, 1.25];
 
@@ -833,6 +837,21 @@ export default class BattleScene extends Phaser.Scene {
     // monstruos: el back dice qué habilidad usaron (combat_log.skill_code) y cada una tiene su efecto
     const mcode = log.skill_code ?? '';
     if (mcode) {
+      // Costas Muertas (el color sale de su elemento: agua, rayo, oscuridad)
+      if (/TENAZA/.test(mcode)) return { kind: 'bite', color: 0xc8d2c0 };
+      if (/CAPARAZON|PIEL_CORAL|ESCAMAS_ABISALES/.test(mcode)) return { kind: 'buff', shield: true };
+      if (/PICOTAZO|ANCLA_GIRATORIA/.test(mcode)) return { kind: /ANCLA/.test(mcode) ? 'quake' : 'charge' };
+      if (/PISTOLON/.test(mcode)) return { kind: 'throw' };
+      if (/BOTELLA_ROTA/.test(mcode)) return { kind: 'slash' };
+      if (/CHORRO_VAPOR|LANZA_AGUA|TOQUE_URTICANTE|REZO_ABISAL/.test(mcode)) return { kind: /REZO/.test(mcode) ? 'curse' : 'bolt' };
+      if (/FRENESI/.test(mcode)) return { kind: 'flurry', hits: 3 };
+      if (/TENTACULOS/.test(mcode)) return { kind: 'flurry', hits: 2 };
+      if (/GIRO_MORTAL/.test(mcode)) return { kind: 'bite', color: 0xff5a5a };
+      if (/ABRAZO_AHOGADO/.test(mcode)) return { kind: 'slash', heavy: true };
+      if (/CANTO_HECHIZANTE/.test(mcode)) return { kind: 'shriek' };
+      if (/CHORRO_TINTA/.test(mcode)) return { kind: 'poison', thrown: false };
+      if (/CORAL_CORTANTE/.test(mcode)) return { kind: 'volley', hits: 3 };
+      if (/DESCARGA_MEDUSA|MAREA_NEGRA|COLETAZO_OLA|ANDANADA|MAREMOTO/.test(mcode)) return { kind: 'storm' };
       // Volcán Rojo y Fisura Infernal (el color sale de su elemento: fuego, tierra, oscuridad)
       if (/LLAMARADA|ESCUPITAJO_IGNEO/.test(mcode)) return { kind: 'bolt' };
       if (/OLA_MAGMA/.test(mcode)) return { kind: 'quake' };

@@ -13,9 +13,9 @@ import { statusesOf } from '../../game/statuses';
 import { isDungeon } from '../../game/world/shared';
 import './Battle.css';
 
-const ZONE_BACKGROUND = { 1: 'pradera', 2: 'montanas', 3: 'volcan' };
+const ZONE_BACKGROUND = { 1: 'pradera', 2: 'montanas', 3: 'volcan', 4: 'costas' };
 // mazmorras con fondo propio (las demás pelean sobre la piedra de la cripta)
-const DUNGEON_BACKGROUND = { fisura: 'fisura' };
+const DUNGEON_BACKGROUND = { fisura: 'fisura', arrecife: 'arrecife' };
 // combate en grupo: a partir de cuándo se puede saltar el turno de un compañero que no responde
 // (el servidor exige lo mismo, ver IDLE_TURN_MS en routes/combat.js) y cada cuánto se pregunta
 // por el estado mientras actúa otro (por si se pierde un aviso del socket)

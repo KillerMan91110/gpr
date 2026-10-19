@@ -113,6 +113,45 @@ const TRACKS = {
       ) },
     ],
   },
+  // Costas Muertas: re dórico en seis por ocho (un vals de taberna de puerto): el bajo sube y baja
+  // como las olas, un acordeón de fondo y una flauta de marinero
+  costas: {
+    bpm: 112,
+    drums: 'k - - s - -',
+    voices: [
+      { wave: 'triangle', gain: 0.16, steps: bars(
+        'D2 . . A2 . .', 'C2 . . G2 . .', 'D2 . . A2 . .', 'F2 . . C3 . .',
+        'D2 . . A2 . .', 'C2 . . G2 . .', 'A#1 . . F2 . .', 'A1 . . E2 . .',
+      ) },
+      { wave: 'square', gain: 0.02, short: true, steps: bars(
+        'D3 F3 A3 F3 A3 F3', 'C3 E3 G3 E3 G3 E3', 'D3 F3 A3 F3 A3 F3', 'F3 A3 C4 A3 C4 A3',
+        'D3 F3 A3 F3 A3 F3', 'C3 E3 G3 E3 G3 E3', 'A#2 D3 F3 D3 F3 D3', 'A2 C#3 E3 C#3 E3 C#3',
+      ) },
+      { wave: 'triangle', gain: 0.07, steps: bars(
+        'A4 . . D5 . E5', 'F5 . E5 D5 . C5', 'D5 . . A4 . .', 'C5 . . A4 . .',
+        'A4 . B4 C5 . D5', 'E5 . . G5 . E5', 'D5 . C5 A#4 . A4', 'A4 . . - - -',
+      ) },
+    ],
+  },
+  // el Arrecife Hundido: fa sostenido menor, muy lento y con eco, como cantado debajo del agua; una
+  // caracola que llama de lejos
+  arrecife: {
+    bpm: 60,
+    voices: [
+      { wave: 'sine', gain: 0.17, steps: bars(
+        'F#2 . . . . . . .', 'D2 . . . . . . .', 'E2 . . . . . . .', 'C#2 . . . . . . .',
+        'F#2 . . . . . . .', 'A2 . . . . . . .', 'D2 . . . E2 . . .', 'C#2 . . . . . . .',
+      ) },
+      { wave: 'triangle', gain: 0.05, steps: bars(
+        'C#4 . . . A4 . . .', 'F#4 . . . - - - -', 'G#4 . . . E4 . . .', 'F4 . . . - - - -',
+        'C#4 . . . F#4 . A4 .', 'C#5 . . . B4 . A4 .', 'F#4 . . . G#4 . . .', 'F4 . . . - - - -',
+      ) },
+      { wave: 'sine', gain: 0.02, short: true, steps: bars(
+        'F#5 - - C#6 - - - -', '- - A5 - - - - -', '- - - - G#5 - - -', '- - F5 - - - - -',
+        'F#5 - - C#6 - - - -', '- - E6 - - - - -', '- - - - A5 - - -', '- - G#5 - - - - -',
+      ) },
+    ],
+  },
   batalla: {
     bpm: 150,
     drums: 'k h s h k k s h',
@@ -305,7 +344,8 @@ class AudioEngine {
       this.tone(freq(note), t, stepDur * n * (v.short ? 0.8 : 0.95), { wave: v.wave, gain: v.gain, out });
     }
     if (def.drums) {
-      const d = def.drums.split(' ')[step % 8];
+      const pat = def.drums.split(' ');
+      const d = pat[step % pat.length];
       if (d && d !== '-') this.drum(d, t, out);
     }
   }
@@ -341,6 +381,18 @@ class AudioEngine {
         this.burst(t, 0.5, { gain: 0.3, filter: 'lowpass', from: 900, to: 80, q: 0.8 });
         this.tone(70, t, 0.35, { wave: 'sine', gain: 0.28, slide: 35 });
         this.burst(t + 0.06, 0.3, { gain: 0.08, filter: 'bandpass', from: 3500, to: 1800, q: 2 });
+        break;
+      case 'ola':
+        // la marea: una ola larga que sube y rompe
+        this.burst(t, 1.4, { gain: 0.16, filter: 'lowpass', from: 300, to: 1400, q: 0.6 });
+        this.burst(t + 1, 1.2, { gain: 0.12, filter: 'bandpass', from: 2000, to: 400, q: 0.8 });
+        break;
+      case 'campana':
+        // la campana del puerto avisa que cambia la marea
+        for (let i = 0; i < 2; i++) {
+          this.tone(660, t + i * 0.7, 1.1, { wave: 'sine', gain: 0.1, release: 0.9 });
+          this.tone(1320, t + i * 0.7, 0.6, { wave: 'sine', gain: 0.03, release: 0.5 });
+        }
         break;
       case 'trueno_lejos':
         this.burst(t, 2.2, { gain: 0.14, filter: 'lowpass', from: 260, to: 50, q: 0.7 });

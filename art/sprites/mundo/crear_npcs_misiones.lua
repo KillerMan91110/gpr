@@ -90,6 +90,8 @@ for _, e in ipairs({
   -- dracónidos (Volcán Rojo): escamas rojizas, carmín y grises de los viejos, cuernos de marfil y ojos dorados
   {"Dr","c4553a"},{"Drd","8e3424"},{"Dc","a83a3a"},{"Dcd","6e2222"},{"Dg","a8826a"},{"Dgd","74584a"},
   {"Hn","e8dcc0"},{"Hnd","b8a888"},{"Ey","f0c040"},{"Ab","d8c060"},{"Cs","5a5e6a"},{"Csd","3a3e48"},
+  -- tritones (Costas Muertas): piel verde agua con escamas, aletas azules en vez de orejas y ojos grandes
+  {"Tr","7ac4b4"},{"Trd","4e9688"},{"Tf","5ab0d8"},{"Tfd","2e78a8"},
 }) do C[e[1]] = hex(e[2]) end
 
 -- st: skin/skinD, hair/hairD, style (corto|largo|mono|calvo|capucha|gorra|casco|sombrero|mago), top/topD/topL,
@@ -124,6 +126,12 @@ local function headFront(G, st, bob)
     for i=0,3 do G.rect(10+i//2,1+i+bob,12-i//2+1,1+i+bob,st.ears or h); G.rect(19+i//2,1+i+bob,21-i//2+1,1+i+bob,st.ears or h) end
     G.px(11,3+bob,"fr"); G.px(20,3+bob,"fr"); G.px(9,15+bob,"W"); G.px(22,15+bob,"W")
   end
+  if st.race == "triton" then
+    G.rect(6,10+bob,8,14+bob,"Tf"); G.px(5,9+bob,"Tf"); G.px(5,12+bob,"Tfd"); G.rect(6,12+bob,7,12+bob,"Tfd")
+    G.rect(23,10+bob,25,14+bob,"Tf"); G.px(26,9+bob,"Tf"); G.px(26,12+bob,"Tfd"); G.rect(24,12+bob,25,12+bob,"Tfd")
+    G.rect(12,12+bob,13,14+bob,"E"); G.rect(18,12+bob,19,14+bob,"E"); G.px(12,12+bob,"W"); G.px(18,12+bob,"W")
+    G.px(11,16+bob,"f"); G.px(20,16+bob,"f")
+  end
   if st.race == "draco" or st.horns then
     G.rect(10,2+bob,11,5+bob,"Hn"); G.px(9,1+bob,"Hn"); G.px(11,5+bob,"Hnd")
     G.rect(20,2+bob,21,5+bob,"Hn"); G.px(22,1+bob,"Hn"); G.px(20,5+bob,"Hnd")
@@ -146,6 +154,7 @@ local function headBack(G, st, bob)
   if st.race == "elfo" then G.rect(6,10+bob,8,11+bob,"F"); G.rect(23,10+bob,25,11+bob,"F") end
   if st.race == "felino" then for i=0,3 do G.rect(10,1+i+bob,12,1+i+bob,st.ears or h); G.rect(19,1+i+bob,21,1+i+bob,st.ears or h) end end
   if st.race == "draco" or st.horns then G.rect(10,2+bob,11,5+bob,"Hn"); G.px(9,1+bob,"Hn"); G.rect(20,2+bob,21,5+bob,"Hn"); G.px(22,1+bob,"Hn") end
+  if st.race == "triton" then G.rect(6,10+bob,8,14+bob,"Tf"); G.px(5,9+bob,"Tf"); G.rect(23,10+bob,25,14+bob,"Tf"); G.px(26,9+bob,"Tf") end
 end
 
 local function legs(G, st, step, bob)
@@ -212,6 +221,9 @@ local function sideView(G, st, step, bob)
   if st.beard then G.rect(17,15+bob,22,20+bob,st.beard); G.rect(18,21+bob,21,22+bob,st.beard) end
   if st.race == "elfo" then G.rect(11,9+bob,12,11+bob,"F"); G.px(10,8+bob,"F") end
   if st.race == "felino" then for i=0,3 do G.rect(11+i//2,1+i+bob,13,1+i+bob,st.ears or h) end; G.px(23,15+bob,"W") end
+  if st.race == "triton" then
+    G.rect(11,10+bob,13,14+bob,"Tf"); G.px(10,9+bob,"Tf"); G.rect(11,12+bob,12,12+bob,"Tfd"); G.rect(19,12+bob,20,14+bob,"E"); G.px(19,12+bob,"W"); G.px(17,16+bob,"f")
+  end
   if st.race == "draco" or st.horns then
     G.rect(13,2+bob,14,5+bob,"Hn"); G.px(12,1+bob,"Hn"); G.rect(19,13+bob,19,14+bob,"Ey"); G.px(19,14+bob,"E")
     for i=0,6 do G.rect(10-i,22+i//2,11-i,23+i//2,"F") end
@@ -246,7 +258,7 @@ local function frame(st, view, step)
   if view == "abajo" then legs(G, st, step, bob); body(G, st, step, bob, false); headFront(G, st, bob)
   elseif view == "arriba" then legs(G, st, step, bob); body(G, st, step, bob, true); headBack(G, st, bob)
   else sideView(G, st, step, bob) end
-  squash(G, 19, SHORT[st.race] or 0)
+  squash(G, 19, SHORT[st.race] or (st.small and 6) or 0)
   skin(G, st)
   return G
 end
@@ -291,6 +303,14 @@ local function portrait(st)
   if st.style == "casco" then G.ellipse(32,18,18,11,"S"); G.rect(14,18,50,22,"s"); G.rect(30,2,34,10,st.hat or "R"); G.rect(30,22,34,34,"s") end
   if st.style == "mago" then G.rect(6,14,58,17,st.hat); for y=0,14 do G.rect(22+y//2,y,42-y//2,y,st.hat) end; G.px(32,1,"go") end
   if st.beard then G.ellipse(32,47,15,9,st.beard); G.rect(18,36,22,46,st.beard); G.rect(42,36,46,46,st.beard); G.rect(26,39,38,41,st.beard); G.rect(30,43,34,44,"R") end
+  if st.race == "triton" then
+    -- aletas en abanico a los lados de la cabeza, con sus varillas, y branquias en el cuello
+    for i=0,9 do G.rect(10-i//2,20+i,18,21+i,"Tf"); G.rect(46,20+i,54+i//2,21+i,"Tf") end
+    for _,y in ipairs({22,25,28}) do G.rect(9,y,17,y,"Tfd"); G.rect(47,y,55,y,"Tfd") end
+    for _,y in ipairs({41,44,47}) do G.rect(24,y,27,y,skd); G.rect(37,y,40,y,skd) end
+    G.rect(23,29,29,36,"W"); G.rect(35,29,41,36,"W"); G.rect(24,30,29,36,st.eyes or "E"); G.rect(36,30,41,36,st.eyes or "E"); G.px(25,31,"W"); G.px(37,31,"W")
+    for _,p in ipairs({{28,22},{32,20},{36,22},{24,26},{40,26}}) do G.px(p[1],p[2],skd) end
+  end
   if st.race == "draco" or st.horns then
     local hb = st.hornBig and 4 or 0
     for i=0,9+hb do G.rect(19-i//3,18-i,22-i//3,19-i,"Hn"); G.rect(42+i//3,18-i,45+i//3,19-i,"Hn") end
@@ -384,6 +404,29 @@ local NPCS = {
   -- barba, gorra verde de cochero y camisa azul con chaleco pardo (Gaspar va todo de pardo)
   npc_lucio = {race="humano", style="gorra", hat="Cg", hatD="g", hair="Ho", hairD="o", top="Cb", topD="a4", topL="a1", vest="Cn", pants="Hd", boots="b", belt="b", skin=D, skinD=Dd},
   npc_sulfo = {race="humano", style="calvo", hair="Hg", beard="Ab", top="Cg", topD="g", topL="Y", robe=true, trim="Cy", skin=P, skinD=Pd},
+  -- Costas Muertas: el Puerto Antiguo (humanos)
+  -- Osvaldo Bastida, el capitán del puerto: casaca azul con botones dorados, gorra de marino y barba gris
+  npc_bastida = {race="humano", style="gorra", hat="Cb", hatD="a4", hair="Hg", beard="Hg", top="Cb", topD="a4", topL="a1", neck="go", pants="Cn", boots="b", belt="go", skin=P, skinD=Pd},
+  -- Tilo, ya soldado del puerto: yelmo, cota y tabardo azul del puerto
+  npc_tilo_soldado = {race="humano", style="casco", hat="Cb", hair="Ho", hairD="o", top="S", topD="s", topL="W", tabard="Cb", pants="Cn", boots="b", belt="N", skin=D, skinD=Dd},
+  -- Brea, la carpintera de ribera del astillero: ruda, con delantal de cuero
+  npc_brea = {race="humano", style="mono", hair="Hd", hairD="K", top="Cn", topD="b", topL="N", apron="N", pants="Cn", boots="b", belt="b", skin=N, skinD=Nd},
+  -- Doña Almeja, la cocinera del mercado de pescado
+  npc_almeja = {race="humano", style="gorra", hat="Cw", hatD="T", hair="Hs", top="Cr", topD="r", topL="R", apron="Cw", pants="Cn", boots="b", skin=P, skinD=Pd},
+  -- Salitre, el mercader viejo del puerto
+  npc_salitre = {race="humano", style="sombrero", hat="T", hatD="t", pluma="Cb", hair="Hs", beard="Hs", top="Cg", topD="g", topL="Gh", vest="N", neck="go", pants="Cn", boots="b", belt="b", skin=N, skinD=Nd},
+  -- Bartolo, el farero: impermeable amarillo y gorra de lana
+  npc_bartolo = {race="humano", style="gorra", hat="Cb", hatD="a4", hair="Hs", beard="Hs", top="Cy", topD="y", topL="Y", pants="Cn", boots="b", skin=P, skinD=Pd},
+  -- Cieno, el pescador del manglar: sombrero de paja
+  npc_cieno = {race="humano", style="sombrero", hat="Y", hatD="y", hair="Hg", top="Cg", topD="g", topL="Gh", pants="Cn", boots="b", belt="b", skin=N, skinD=Nd},
+  -- los piratas de la Cala: Rhaegar (tricornio negro con pluma roja) y Anka (pañuelo rojo)
+  npc_rhaegar = {race="humano", style="sombrero", hat="Hd", hatD="K", pluma="Cr", hair="Hd", hairD="K", beard="Hd", top="Cr", topD="r", topL="R", vest="Hd", belt="go", pants="Cn", boots="b", skin=D, skinD=Dd},
+  npc_anka = {race="humano", style="gorra", hat="Cr", hatD="r", hair="Ho", hairD="o", top="Cw", topD="T", topL="W", vest="Cr", pants="Cn", boots="b", belt="go", skin=N, skinD=Nd},
+  -- Coralia (tritones): Nerea, la Anciana Cantora; Marul, el barquero; Nácar, la orfebre; Ondina, la niña
+  npc_nerea = {race="triton", style="largo", hair="Hs", hairD="Hg", top="Cb", topD="a4", topL="a1", robe=true, trim="go", neck="go", skin="Tr", skinD="Trd"},
+  npc_marul = {race="triton", style="corto", hair="Tfd", hairD="a4", top="Cw", topD="T", topL="W", vest="Cb", pants="Cn", boots="Tr", belt="N", skin="Tr", skinD="Trd"},
+  npc_nacar = {race="triton", style="mono", hair="Cp", hairD="v", top="Cw", topD="T", topL="W", robe=true, trim="Cp", neck="go", skin="Tr", skinD="Trd"},
+  npc_ondina = {race="triton", small=true, style="corto", hair="Cy", hairD="y", top="Cp", topD="v", topL="Vh", pants="Cn", boots="Tr", skin="Tr", skinD="Trd"},
 }
 -- solo=npc_a,npc_b genera solo esos (para no rehacer los que ya tienen retoques)
 local solo = app.params.solo

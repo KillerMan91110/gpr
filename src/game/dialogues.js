@@ -4,6 +4,7 @@
 // Opción: { label, window? (abre esa ventana), next? (muestra otra línea), close? }
 
 import { DIALOGUES_CIUDAD } from './dialoguesCiudad';
+import { DIALOGUES_COSTAS } from './dialoguesCostas';
 import { enFase } from './story';
 
 const PORTRAIT = (name) => `${process.env.PUBLIC_URL}/assets/mundo/retratos/${name}.png`;
@@ -1242,4 +1243,6 @@ export const DIALOGUES = {
   },
   // Aurelia (dialoguesCiudad.js)
   ...DIALOGUES_CIUDAD,
+  // Costas Muertas (dialoguesCostas.js)
+  ...DIALOGUES_COSTAS,
 };

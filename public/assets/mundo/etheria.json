@@ -5,6 +5,7 @@
   { "dir": "aurelia", "x": 20, "y": 0 },
   { "dir": "pradera", "x": 0, "y": 90 },
   { "dir": "montanas", "x": 160, "y": 90 },
-  { "dir": "volcan", "x": 160, "y": 210 }
+  { "dir": "volcan", "x": 160, "y": 210 },
+  { "dir": "costas", "x": 160, "y": 330 }
  ]
 }

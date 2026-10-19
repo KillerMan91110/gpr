@@ -49,6 +49,10 @@ local SETS = {
   {"obsidiana",     {"8a7aa8","3e3650","1a1624", "c4a8f0","6c50b0", "6a5a74","463a52","2c2238","16101e", "ffc080","ff6a2a"}},
   -- Fisura Infernal nv 37: hierro ennegrecido en la forja de Morvak, con las vetas todavía al rojo
   {"forja_negra",   {"6e625c","342c2a","161212", "ffd27a","ff8a2a", "8a3a26","5a2214","38140a","1c0a05", "fff6c0","ffae3a"}},
+  -- Costas Muertas nv 51: coral blanco y rosado, adornos verde agua de los tritones y una perla
+  {"coral",         {"f8eee2","f2aaa2","b85a62", "62c6be","2e7e72", "f2aca4","d87e7c","a85062","6e2e3c", "fbf6f0","c4a0ff"}},
+  -- Arrecife Hundido nv 52: el azul negro del fondo del mar con el brillo de la Perla del Abismo
+  {"abismo",        {"4e6080","263450","10162a", "c8a0ff","6a40b0", "2e4c6c","1e3652","10223c","080f1e", "f2e6ff","8a5ae0"}},
 }
 local WOOD = {"a8703c","6a4428"}
 local SET_INDEX = {}

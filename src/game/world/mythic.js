@@ -19,6 +19,7 @@ const THEMES = {
   pradera: { glow: 0x7ff8ff, tag: '#c8f4ff', mote: 0xc8f4ff, minion: 0x9ae8ff, fog: 0xc8d8ff, print: 0x9ae8ff },
   montanas: { glow: 0xffe46a, tag: '#fff2b0', mote: 0xfff7a0, minion: 0xffe46a, fog: 0xd8dce8, print: 0xffe46a },
   volcan: { glow: 0xff8a3a, tag: '#ffd0a0', mote: 0xffb060, minion: 0xff8a3a, fog: 0xc8a8a0, print: 0xff9a5a },
+  costas: { glow: 0x62c6e8, tag: '#b8f0ff', mote: 0x8ae0ec, minion: 0xe8704a, fog: 0xc8dcdc, print: 0x8ad8d0 },
 };
 const themeOf = (zoneDir) => THEMES[zoneDir] ?? THEMES.pradera;
 
