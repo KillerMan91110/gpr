@@ -16,6 +16,7 @@ export const DUNGEONS = {
   mina_profunda: { min: 18, max: 24, codePrefix: 'MINA_' },
   fisura: { min: 36, max: 42, codePrefix: 'FISURA_' },
   arrecife: { min: 52, max: 58, codePrefix: 'ARRECIFE_', bossCodes: ['SENOR_OCEANO'] },
+  cripta_congelada: { min: 67, max: 73, codePrefix: 'CRIPTAH_' },
 };
 export const isDungeon = (dir) => !!DUNGEONS[dir];
 export const SPEED = 110;
@@ -102,6 +103,14 @@ export const RESOURCES = {
   poza_marea: { sheet: 'recursos6', frames: [8, 9], label: 'Revisar la poza de marea', glint: 0xb2eedf },
   concha_gigante: { sheet: 'recursos6', frames: [10, 11], label: 'Abrir la concha gigante', glint: 0xf8f4f0 },
   cofre_costas: { sheet: 'recursos', frames: [4, 5], label: 'Abrir el cofre', glint: 0xffd84a },
+  // Tundra Eterna (art/sprites/mundo/crear_recursos7.lua)
+  veta_hielo: { sheet: 'recursos7', frames: [0, 1], label: 'Picar la veta de hielo eterno', glint: 0xa8dcf0 },
+  flor_escarcha: { sheet: 'recursos7', frames: [2, 3], label: 'Recoger la flor de escarcha', glint: 0xe4f8ff },
+  pino_blanco: { sheet: 'recursos7', frames: [4, 5], label: 'Talar el pino blanco', glint: 0xd4e4f0 },
+  agujero_pesca: { sheet: 'recursos7', frames: [6, 7], label: 'Pescar en el agujero del hielo', glint: 0x8ad0f0 },
+  menhir_runas: { sheet: 'recursos7', frames: [8, 9], label: 'Desprender una runa del menhir', glint: 0x7af0f8 },
+  restos_trineo: { sheet: 'recursos7', frames: [10, 11], label: 'Registrar el trineo abandonado', glint: 0xffd84a },
+  cofre_tundra: { sheet: 'recursos', frames: [4, 5], label: 'Abrir el cofre', glint: 0xffd84a },
 };
 // mascotas.png: 2 frames por especie, en este orden
 export const PET_SPECIES = ['lobo', 'ave', 'limo', 'gato', 'dragon', 'zorro', 'tortuga', 'arana'];

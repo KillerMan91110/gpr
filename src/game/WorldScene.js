@@ -20,6 +20,7 @@ import { questsMethods } from './world/quests';
 import { tormentaMethods } from './world/tormenta';
 import { mareaMethods } from './world/marea';
 import { brasasMethods } from './world/brasas';
+import { frioMethods } from './world/frio';
 import { trackingMethods } from './world/tracking';
 import { escenaMethods } from './world/escena';
 import { escoltaMethods } from './world/escolta';
@@ -103,6 +104,7 @@ export default class WorldScene extends Phaser.Scene {
     this.load.spritesheet('recursos4', `${ASSETS}/mundo/recursos4.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos5', `${ASSETS}/mundo/recursos5.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos6', `${ASSETS}/mundo/recursos6.png`, { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('recursos7', `${ASSETS}/mundo/recursos7.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('mascotas', `${ASSETS}/mundo/mascotas.png`, { frameWidth: 24, frameHeight: 24 });
     this.load.spritesheet('f_mariposa', `${ASSETS}/mundo/fauna/mariposa.png`, { frameWidth: 8, frameHeight: 8 });
     this.load.spritesheet('f_pajaro', `${ASSETS}/mundo/fauna/pajaro.png`, { frameWidth: 16, frameHeight: 16 });
@@ -834,7 +836,7 @@ export default class WorldScene extends Phaser.Scene {
   }
 
   updateSky() {
-    if (this.world?.interior) { this.updateIndoorSky(); return; }
+    if (this.world?.interior) { this.aurora?.setVisible(false); this.updateIndoorSky(); return; }
     // noche eterna: mientras el jefe mítico vive, en su zona se queda la medianoche
     const frozen = this.frozenNight();
     const h = frozen ? 1 : gameHour();
@@ -866,6 +868,8 @@ export default class WorldScene extends Phaser.Scene {
     this.heroLight.setPosition(this.player.x, this.player.y - 6).setAlpha(Math.min(0.55, dark * 0.6));
     const night = dark > 0.35;
     this.fireflies.emitting = night && this.weather !== 'lluvia';
+    // la aurora de la Tundra (world/frio.js)
+    this.updateAurora(dark);
     const hour = Math.floor(h);
     if (hour !== this.lastHour) { this.lastHour = hour; bus.emit('clock', { hour, night }); }
   }
@@ -1443,6 +1447,7 @@ export default class WorldScene extends Phaser.Scene {
     this.updateStorm(time);
     this.updateEmbers(time);
     this.updateTide(time);
+    this.updateCold(time, delta);
     this.reportPosition(time);
     this.checkExits(time);
     this.checkRefuge(time);
@@ -1473,9 +1478,12 @@ export default class WorldScene extends Phaser.Scene {
       else if (this.input.keyboard.enabled && !this.gathering) ({ x: vx, y: vy } = this.followStep(time));
     }
     const len = Math.hypot(vx, vy) || 1;
-    const speed = SPEED * (this.speedMul ?? 1);
-    this.player.setVelocity((vx / len) * speed, (vy / len) * speed);
-    this.player.anims.timeScale = this.speedMul ?? 1; // los pasos van al ritmo de la carrera
+    // entumecido por el frío de la Tundra: más lento (world/frio.js)
+    const speed = SPEED * (this.speedMul ?? 1) * this.coldSpeed();
+    // sobre el hielo del Lago de Cristal se resbala (world/frio.js)
+    const iv = this.iceVelocity((vx / len) * speed, (vy / len) * speed, delta);
+    this.player.setVelocity(iv.x, iv.y);
+    this.player.anims.timeScale = (this.speedMul ?? 1) * this.coldSpeed(); // los pasos van al ritmo de la carrera
     this.updateHearth(!!(vx || vy));
     // con el bufo de velocidad se levanta polvo a los pies al correr
     if (this.dust) this.dust.emitting = !!(vx || vy) && this.speedMul > 1;
@@ -1485,6 +1493,9 @@ export default class WorldScene extends Phaser.Scene {
       this.facing = Math.abs(vx) >= Math.abs(vy) && vx !== 0 ? 'side' : (vy < 0 ? 'up' : 'down');
       if (this.facing === 'side') this.player.setFlipX(vx < 0);
       this.player.anims.play(`walk_${this.facing}`, true);
+    } else if (iv.sliding) {
+      // resbalando sin tocar las teclas: quieto, pero sigue de largo sobre el hielo
+      if (this.player.anims.isPlaying) { this.player.anims.stop(); this.player.setFrame(IDLE[this.facing]); }
     } else if (this.player.anims.isPlaying) {
       this.stopPlayer();
     }
@@ -1494,7 +1505,7 @@ export default class WorldScene extends Phaser.Scene {
     this.updateFollowers(!!(vx || vy));
     this.updateEscort(delta);
     this.updateChunks();
-    if (vx || vy) this.checkZoneChange();
+    if (vx || vy || iv.sliding) this.checkZoneChange();
     if (vx || vy) this.scareFauna();
 
     this.updatePoi();
@@ -1528,4 +1539,4 @@ export default class WorldScene extends Phaser.Scene {
 }
 
 // Partes de la escena que viven en su propio archivo (game/world/*)
-Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods, tormentaMethods, brasasMethods, mareaMethods, escenaMethods, escoltaMethods);
+Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods, tormentaMethods, brasasMethods, mareaMethods, frioMethods, escenaMethods, escoltaMethods);

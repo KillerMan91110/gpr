@@ -4,6 +4,7 @@ import audio from './audio';
 import { ELEMENTS } from './elements';
 import { DOT_STATUS, STATUS_ICONS, statusesOf } from './statuses';
 import { preloadGear, gearTexture, bodyTexture } from './battleGear';
+import { splitHits } from './combatLog';
 
 // Escena de combate estilo Octopath (2.5D): fondo en capas con parallax y desenfoque, héroes a la
 // izquierda y monstruos a la derecha en diagonal, cámara que respira y se acerca en los golpes.
@@ -40,9 +41,13 @@ const BACKGROUNDS = {
   costas: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
   // el Arrecife Hundido (art/sprites/mundo/crear_fondo_arrecife.lua): bajo el agua, la ciudad de los tritones
   arrecife: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
+  // Tundra Eterna (art/sprites/mundo/crear_fondo_tundra.lua): noche con aurora, glaciares y la Torre de Cristal
+  tundra: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
+  // la Cripta Congelada (art/sprites/mundo/crear_fondo_cripta_congelada.lua): la tumba de la reina, hielo azul
+  cripta_congelada: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
 };
 // colores para rellenar arriba y abajo del escenario en pantalla vertical
-const FILL_COLORS = { pradera: [0x4f86d6, 0xc9a46a], cripta: [0x0c0a16, 0x3a3650], montanas: [0x5a6478, 0xf4f8fc], volcan: [0x3a1e22, 0x8e8680], fisura: [0x1e181c, 0x6e5e5c], costas: [0x6e8ea0, 0xeedcaa], arrecife: [0x5ec8d8, 0x9cc4ba] };
+const FILL_COLORS = { pradera: [0x4f86d6, 0xc9a46a], cripta: [0x0c0a16, 0x3a3650], montanas: [0x5a6478, 0xf4f8fc], volcan: [0x3a1e22, 0x8e8680], fisura: [0x1e181c, 0x6e5e5c], costas: [0x6e8ea0, 0xeedcaa], arrecife: [0x5ec8d8, 0x9cc4ba], tundra: [0x0e1430, 0xf6faff], cripta_congelada: [0x0c1428, 0xb4d0e4] };
 // cuánto se mueve cada capa respecto de la cámara (parallax)
 const LAYER_SCROLL = [0.05, 0.18, 0.4, 1, 1.25];
 
@@ -87,6 +92,9 @@ export default class BattleScene extends Phaser.Scene {
     });
     this.load.json('manifest_heroes', `${ASSETS}/sprites/combate/manifest.json`);
     this.load.json('enemigos', `${ASSETS}/sprites/combate/enemigos.json`);
+    // efectos propios de las habilidades de los monstruos (art/sprites/combate/crear_efectos_monstruos.lua)
+    this.load.json('efectos_monstruos', `${ASSETS}/combate/efectos/efectos.json`);
+    if (!this.textures.exists('efectos_monstruos')) this.load.spritesheet('efectos_monstruos', `${ASSETS}/combate/efectos/efectos.png`, { frameWidth: 64, frameHeight: 64 });
     const sheet = (key, url, size) => {
       if (!this.textures.exists(key)) this.load.spritesheet(key, url, { frameWidth: size, frameHeight: size });
     };
@@ -904,24 +912,18 @@ export default class BattleScene extends Phaser.Scene {
   // Objetivos con su parte del daño/curación. Las habilidades de área llegan en UNA entrada del
   // registro con la frase "usa X sobre A, haciéndole 12 de daño; B esquiva; …": se reparte.
   skillHits(log, actor, target) {
-    const desc = log.description ?? '';
-    const m = desc.match(/ (?:sobre|y cura a) (.+)\.$/);
-    const segs = m ? m[1].split('; ') : [];
-    if (segs.length > 1) {
+    const segs = splitHits(log.description);
+    if (segs.length) {
       const used = new Set();
       const pool = [...this.units.values()].filter((u) => u.alive).sort((a, b) => a.pid - b.pid);
       const hits = segs.map((seg) => {
-        const dmg = seg.match(/^(.+), haciéndole (\d+) de daño( \(¡Crítico!\))?$/);
-        const heal = seg.match(/^(.+), curándole (\d+) HP$/);
-        const ev = seg.match(/^(.+) esquiva$/);
-        const name = (dmg || heal || ev)?.[1];
-        const unit = name && pool.find((u) => !used.has(u.pid) && u.name === name);
+        const unit = pool.find((u) => !used.has(u.pid) && u.name === seg.name);
         if (!unit) return null;
         used.add(unit.pid);
         return {
           unit,
           log: {
-            damage: dmg ? Number(dmg[2]) : null, heal: heal ? Number(heal[2]) : null, crit: !!dmg?.[3], evaded: !!ev,
+            damage: seg.damage, heal: seg.heal, crit: seg.crit, evaded: seg.evaded,
             hp_after: unit === target ? log.hp_after : this.finalHp?.[unit.pid],
           },
         };
@@ -948,6 +950,8 @@ export default class BattleScene extends Phaser.Scene {
       const name = (log.description ?? '').match(/ usa (.+?)(?: sobre | y cura a |:)/)?.[1];
       if (name) this.skillBanner(actor, name);
     }
+    const own = actor.kind === 'monster' && this.monsterFx(log.skill_code);
+    if (own) return this.fxMonsterSkill(actor, main, hits, own, element);
     switch (style.kind) {
       case 'bite': return this.fxBite(actor, main, hits, style);
       case 'throw': return this.fxThrow(actor, main, hits);
@@ -972,9 +976,125 @@ export default class BattleScene extends Phaser.Scene {
     }
   }
 
-  async hitAll(hits, kind, element, attacker, stagger = 0) {
-    for (const h of hits) {
-      if (stagger) {
+  // ---- efectos propios de las habilidades de los monstruos (una animación dibujada por habilidad)
+  // efectos.json: { cuadros, habilidades: { CODIGO: { i, modo, mezcla } } }; el cuadro f de la habilidad
+  // i es i * cuadros + f en la lámina 'efectos_monstruos'.
+  monsterFx(code) {
+    if (!code || !this.textures.exists('efectos_monstruos')) return null;
+    const all = this.cache.json.get('efectos_monstruos');
+    const def = all?.habilidades?.[code] ?? all?.habilidades?.[`MONSTRUO_${code}`];
+    return def ? { ...def, n: all.cuadros ?? 6 } : null;
+  }
+
+  // juega los cuadros [from, to] del efecto en (x, y); flip = mira a la izquierda (el monstruo ataca
+  // desde la derecha). Devuelve el sprite (para moverlo) y una promesa que termina con la animación.
+  fxSprite(def, x, y, from, to, { flip = false, loop = false, scale = 1.6 } = {}) {
+    const first = def.i * def.n;
+    const key = `efm_${def.i}_${from}_${to}`;
+    if (!this.anims.exists(key)) {
+      this.anims.create({ key, frames: this.anims.generateFrameNumbers('efectos_monstruos', { start: first + from, end: first + to }), frameRate: 14, repeat: loop ? -1 : 0 });
+    }
+    const spr = this.add.sprite(x, y, 'efectos_monstruos', first + from).setDepth(1058).setScale(scale).setFlipX(flip);
+    if (def.mezcla === 'add') spr.setBlendMode('ADD');
+    const done = new Promise((resolve) => {
+      if (loop) { spr.play(key); resolve(); return; }
+      spr.play(key);
+      spr.once('animationcomplete', () => { spr.destroy(); resolve(); });
+    });
+    return { spr, done };
+  }
+
+  async fxMonsterSkill(actor, main, hits, def, element) {
+    const flip = actor.side !== 'PLAYER';
+    const at = (u) => ({ x: u.home.x, y: u.home.y - 30 });
+    const color = def.color ? parseInt(def.color.slice(1), 16) : 0xffffff;
+    // golpe de un objetivo: se lanza contra él, golpea (los pesados saltan y hacen temblar todo) y vuelve
+    if (def.modo === 'golpe' && main && main !== actor) {
+      this.focusOn(actor, main);
+      await this.dashTo(actor, main, 40);
+      if (def.pesado) {
+        const parts = [actor.body, actor.weapon, actor.offhand].filter(Boolean);
+        await tween(this, { targets: parts, y: '-=30', duration: 170, ease: 'Quad.easeOut' });
+        this.playUnit(actor, 'attack');
+        await tween(this, { targets: parts, y: '+=30', duration: 100, ease: 'Quad.easeIn' });
+        this.cameras.main.shake(300, 0.018);
+      } else {
+        this.playUnit(actor, 'attack');
+        await wait(this, 110);
+      }
+      await this.hitAll(hits, null, element, actor, 0, (h) => {
+        const p = at(h.unit);
+        this.fxSprite(def, p.x, p.y, 0, def.n - 1, { flip });
+        return 230;
+      });
+      await wait(this, 120);
+      await this.moveUnit(actor, actor.home.x, actor.home.y, 250);
+      if (actor.alive) this.playUnit(actor, 'idle');
+      this.resetFocus();
+      return;
+    }
+    this.focusOn(actor);
+    this.playUnit(actor, def.modo === 'golpe' ? 'attack' : 'cast');
+    // antes de disparar, la energía se junta frente al monstruo con el color de la habilidad
+    if (def.modo === 'proyectil') this.charge(actor.home.x + (flip ? -22 : 22), actor.home.y - 36, color);
+    await wait(this, def.modo === 'proyectil' ? 360 : 240);
+    if (def.modo === 'propio') {
+      const p = at(actor);
+      await this.fxSprite(def, p.x, p.y, 0, def.n - 1, { flip }).done;
+    } else if (def.modo === 'aliado') {
+      // Resurrección Sombría: la sombra sube bajo el aliado caído y se levanta
+      for (const h of hits.length ? hits : [{ unit: main ?? actor, log: {} }]) {
+        const p = at(h.unit);
+        // eslint-disable-next-line no-await-in-loop
+        await this.fxSprite(def, p.x, p.y, 0, def.n - 1, { flip }).done;
+        h.unit.alive = true;
+        this.tweens.add({ targets: [h.unit.body, h.unit.shadow, h.unit.weapon, h.unit.offhand, h.unit.label].filter(Boolean), alpha: 1, duration: 400 });
+        h.unit.label?.setVisible(true);
+        this.playUnit(h.unit, 'idle');
+        if (h.log?.hp_after != null) h.unit.hp = h.log.hp_after;
+        this.drawBar(h.unit);
+      }
+    } else if (def.modo === 'proyectil') {
+      // vuela del monstruo a cada objetivo (uno detrás del otro) y revienta encima
+      await this.hitAll(hits, 'magic', element, actor, hits.length > 1 ? 140 : 0, (h) => {
+        const from = { x: actor.home.x + (flip ? -20 : 20), y: actor.home.y - 34 };
+        const to = at(h.unit);
+        const shot = this.fxSprite(def, from.x, from.y, 0, 1, { flip: to.x < from.x, loop: true });
+        shot.spr.setRotation(Math.atan2(to.y - from.y, Math.abs(to.x - from.x)) * (to.x < from.x ? -1 : 1));
+        this.tweens.add({
+          targets: shot.spr, x: to.x, y: to.y, duration: 300, ease: 'Quad.easeIn',
+          onComplete: () => { shot.spr.destroy(); this.fxSprite(def, to.x, to.y, 2, def.n - 1, { flip }); },
+        });
+        return 330;
+      });
+    } else {
+      // golpe (sobre el objetivo) o de área (sobre cada objetivo, uno detrás del otro)
+      await this.hitAll(hits, null, element, actor, hits.length > 1 ? 140 : 0, (h) => {
+        const p = at(h.unit);
+        this.fxSprite(def, p.x, p.y, 0, def.n - 1, { flip });
+        return def.modo === 'area' ? 220 : 160;
+      });
+    }
+    if (actor.alive) this.playUnit(actor, 'idle');
+    this.resetFocus();
+  }
+
+  // Reparte los golpes de una habilidad. stagger > 0 = de área: va objetivo por objetivo, como una
+  // cadena (el efecto cae sobre uno, sale su número y su golpe, y recién después pasa al siguiente);
+  // perTarget(h, i) dibuja el efecto sobre ese objetivo y devuelve cuánto esperar antes del golpe.
+  // Las curaciones de grupo siguen saliendo casi a la vez.
+  async hitAll(hits, kind, element, attacker, stagger = 0, perTarget = null) {
+    const area = stagger && kind !== 'heal';
+    for (const [i, h] of hits.entries()) {
+      const lead = perTarget?.(h, i) ?? 0;
+      // eslint-disable-next-line no-await-in-loop
+      if (lead) await wait(this, lead);
+      if (area) {
+        // eslint-disable-next-line no-await-in-loop
+        await this.impact(h.unit, h.log, kind, element, attacker);
+        // eslint-disable-next-line no-await-in-loop
+        if (i < hits.length - 1) await wait(this, stagger);
+      } else if (stagger) {
         this.impact(h.unit, h.log, kind, element, attacker);
         // eslint-disable-next-line no-await-in-loop
         await wait(this, stagger);
@@ -983,7 +1103,7 @@ export default class BattleScene extends Phaser.Scene {
         await this.impact(h.unit, h.log, kind, element, attacker);
       }
     }
-    if (stagger) await wait(this, 380);
+    if (stagger) await wait(this, area ? 260 : 380);
   }
 
   // ---- cuerpo a cuerpo
@@ -1081,14 +1201,15 @@ export default class BattleScene extends Phaser.Scene {
     await tween(this, { targets: parts, y: '+=24', duration: 110, ease: 'Quad.easeIn' });
     this.cameras.main.shake(600, 0.02);
     this.ring(actor.home.x, actor.home.y, 0xc8a070, 90, 700);
-    for (const h of hits) {
+    await this.hitAll(hits, null, element ?? 'EARTH', actor, 140, (h) => {
       this.emit(h.unit.home.x, h.unit.home.y, 'roca', {
         speedX: { min: -60, max: 60 }, speedY: { min: -190, max: -80 }, gravityY: 440, lifespan: 700,
         scale: { start: 1.4, end: 0.5 }, tint: style.snow ? [0xf4f8fc, 0xc2d0e0, 0x7e90a8] : [0x8a6a4a, 0x5a4030, 0xc8a070],
         blendMode: 'NORMAL', rotate: { min: 0, max: 360 },
       }, style.snow ? 22 : 14);
-    }
-    await this.hitAll(hits, null, element ?? 'EARTH', actor, 110);
+      this.cameras.main.shake(160, 0.008);
+      return 120;
+    });
     if (actor.alive) this.playUnit(actor, 'idle');
     this.resetFocus();
   }
@@ -1099,12 +1220,12 @@ export default class BattleScene extends Phaser.Scene {
     await wait(this, 180);
     this.cameras.main.shake(420, 0.01);
     for (let i = 0; i < 4; i++) this.time.delayedCall(i * 90, () => this.ring(actor.home.x, actor.home.y - 34, 0xd8c8ff, 30 + i * 22, 480));
-    hits.forEach((h, i) => this.time.delayedCall(220 + i * 80, () => {
+    await wait(this, 300);
+    await this.hitAll(hits, null, null, actor, 140, (h) => {
       this.ring(h.unit.home.x, h.unit.home.y - 30, 0xd8c8ff, 22, 360);
       this.ring(h.unit.home.x, h.unit.home.y - 30, 0xffffff, 12, 300);
-    }));
-    await wait(this, 300);
-    await this.hitAll(hits, null, null, actor, 90);
+      return 140;
+    });
     if (actor.alive) this.playUnit(actor, 'idle');
     this.resetFocus();
   }
@@ -1161,21 +1282,20 @@ export default class BattleScene extends Phaser.Scene {
     }
     await wait(this, 380);
     this.resetFocus();
-    // …y caen en lluvia sobre cada objetivo
+    // …y caen en lluvia sobre cada objetivo, uno detrás del otro
     const tint = ELEMENTS[element]?.light;
-    for (const h of hits) {
+    await this.hitAll(hits, null, element, actor, 120, (h) => {
       for (let i = 0; i < 6; i++) {
         const x = h.unit.home.x + Phaser.Math.Between(-22, 22);
         const a = this.add.image(x - 40, -20 - i * 14, 'flecha').setDepth(1050).setAngle(65).setScale(1.6);
         if (tint) a.setTint(tint);
         this.tweens.add({
-          targets: a, x, y: h.unit.home.y - Phaser.Math.Between(4, 30), duration: 240, delay: i * 45, ease: 'Quad.easeIn',
+          targets: a, x, y: h.unit.home.y - Phaser.Math.Between(4, 30), duration: 240, delay: i * 35, ease: 'Quad.easeIn',
           onComplete: () => { this.burst(a.x, a.y, 0xffe6a0, 4); a.destroy(); },
         });
       }
-    }
-    await wait(this, 420);
-    await this.hitAll(hits, null, element, actor, 120);
+      return 300;
+    });
     if (actor.alive) this.playUnit(actor, 'idle');
   }
 
@@ -1237,13 +1357,12 @@ export default class BattleScene extends Phaser.Scene {
     cam.flash(160, fc.red, fc.green, fc.blue);
     // tormenta elemental sin elemento fijo: cada objetivo recibe uno distinto
     const cycle = ['FIRE', 'ICE', 'LIGHTNING', 'WIND'];
-    hits.forEach((h, i) => this.time.delayedCall(i * 140, () => {
+    await this.hitAll(hits, 'magic', element, actor, 140, (h, i) => {
       if (el) this.elementEffect(h.unit, element ?? 'LIGHT');
       else if (/ELEMENTAL/.test(this.lastSkillCode ?? '')) this.elementEffect(h.unit, cycle[i % cycle.length]);
       else this.arcane(h.unit);
-    }));
-    await wait(this, 200);
-    await this.hitAll(hits, 'magic', element, actor, 140);
+      return 200;
+    });
     if (actor.alive) this.playUnit(actor, 'idle');
     this.resetFocus();
   }

@@ -11,11 +11,12 @@ import audio from '../../game/audio';
 import { ELEMENTS, splitResistances } from '../../game/elements';
 import { statusesOf } from '../../game/statuses';
 import { isDungeon } from '../../game/world/shared';
+import { rewindState } from '../../game/combatLog';
 import './Battle.css';
 
-const ZONE_BACKGROUND = { 1: 'pradera', 2: 'montanas', 3: 'volcan', 4: 'costas' };
+const ZONE_BACKGROUND = { 1: 'pradera', 2: 'montanas', 3: 'volcan', 4: 'costas', 5: 'tundra' };
 // mazmorras con fondo propio (las demás pelean sobre la piedra de la cripta)
-const DUNGEON_BACKGROUND = { fisura: 'fisura', arrecife: 'arrecife' };
+const DUNGEON_BACKGROUND = { fisura: 'fisura', arrecife: 'arrecife', cripta_congelada: 'cripta_congelada' };
 // combate en grupo: a partir de cuándo se puede saltar el turno de un compañero que no responde
 // (el servidor exige lo mismo, ver IDLE_TURN_MS en routes/combat.js) y cada cuánto se pregunta
 // por el estado mientras actúa otro (por si se pierde un aviso del socket)
@@ -329,12 +330,15 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
         lastLogId.current = resumed ? maxLogId(initial.log) : 0;
         // jefe mítico: la barra muestra la vida compartida de toda la cacería
         if (initial.mythic) mythicRef.current = { ...initial.mythic, startHp: initial.mythic.hp };
-        setState(initial);
+        // combate nuevo: si los enemigos ya actuaron (un jefe rápido abre con una de área), se arranca
+        // con la vida de antes de su turno y ese turno se juega después de la entrada (game/combatLog.js)
+        const shown = resumed ? initial : rewindState(initial);
+        setState(shown);
         setPhase('intro');
         const ready = onceBus('battle-ready');
         game.scene.sleep('mundo');
         game.scene.start('batalla', {
-          state: initial,
+          state: shown,
           heroBaseClass,
           heroHasWeapon,
           playerId: player.id,
@@ -343,6 +347,9 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
             ?? (encounter.kind === 'cripta' || isDungeon(encounter.position?.zona) ? 'cripta' : ZONE_BACKGROUND[encounter.zoneId] ?? 'pradera'),
         });
         await ready;
+        if (cancelled) return;
+        // un respiro antes del primer golpe enemigo, para que se vea venir
+        if (shown !== initial) await new Promise((r) => setTimeout(r, 600));
         if (cancelled) return;
         await play(initial);
         if (!cancelled) afterTurn(initial);

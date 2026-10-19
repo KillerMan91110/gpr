@@ -85,7 +85,7 @@ export const resourcesMethods = {
     const ms = GATHER_MS;
     bus.emit('cast', { label: r.cfg.label, ms });
     this.tweens.add({ targets: r.sprite, angle: { from: -6, to: 6 }, duration: 80, yoyo: true, repeat: Math.round(ms / 160) - 1, onComplete: () => r.sprite.setAngle(0) });
-    const hit = ['mineral', 'tronco', 'veta_montana', 'pino', 'veta_obsidiana', 'geoda_ardiente', 'veta_coral', 'concha_gigante'].includes(r.tipo) ? 'golpe' : 'recoger';
+    const hit = ['mineral', 'tronco', 'veta_montana', 'pino', 'veta_obsidiana', 'geoda_ardiente', 'veta_coral', 'concha_gigante', 'veta_hielo', 'pino_blanco', 'menhir_runas'].includes(r.tipo) ? 'golpe' : 'recoger';
     audio.sfx(hit);
     this.time.delayedCall(ms / 2, () => audio.sfx(hit));
     this.time.delayedCall(ms, () => bus.emit('gather', { id: r.id, tipo: r.tipo }));

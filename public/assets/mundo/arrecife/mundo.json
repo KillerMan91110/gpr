@@ -26,7 +26,6 @@
  "columns": 1,
  "rows": 2,
  "encuentroHierba": 0,
- "gidHierba": 0,
  "inicio": {
   "x": 640,
   "y": 208
@@ -43,18 +42,6 @@
   "dorados": [],
   "seco": []
  },
- "chunks": [
-  {
-   "cx": 0,
-   "cy": 0,
-   "file": "chunk_0_0.json"
-  },
-  {
-   "cx": 0,
-   "cy": 1,
-   "file": "chunk_0_1.json"
-  }
- ],
  "subzonas": [
   {
    "name": "Entrada",
@@ -111,6 +98,19 @@
    "x1": 1280,
    "y1": 1920,
    "levels": null
+  }
+ ],
+ "editado": true,
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
   }
  ]
 }

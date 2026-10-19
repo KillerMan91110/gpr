@@ -56,6 +56,15 @@ local ORDER = {
   {"pc1","b4bc62"},{"pc2","949c4c"},{"pc3","72803c"},
   {"md1","a08260"},{"md2","7a6248"},{"md3","514030"},{"mdg","9a948a"},
   {"tr1","4cae9e"},{"tr2","2e7e72"},{"me","c4a0ff"},{"meh","f2e6ff"},
+  -- v9 (Tundra Eterna): nieve profunda azulada, el agua helada del fiordo y sus témpanos, el musgo de la
+  -- tundra, el hielo de las losas del palacio, la madera oscura y el rojo de los norteños, pieles y aurora
+  {"ns1","e6eef8"},{"ns2","c4d2e4"},{"ns3","94a6c0"},
+  {"fj1","3a5c7e"},{"fj2","284866"},{"fj3","18304a"},{"fjh","86bcd8"},
+  {"mu1","8a9a62"},{"mu2","6a7a4a"},{"mu3","4c5838"},{"mur","b4483a"},
+  {"lh1","e2f2fa"},{"lh2","b4d4e8"},{"lh3","86a8c4"},{"lhr","6ae4ff"},
+  {"nb1","6e4e36"},{"nb2","4c3424"},{"nb3","301f15"},{"nr","a83a2a"},{"nbl","3a5a7e"},
+  {"pe1","cbb08e"},{"pe2","94765a"},{"pe3","5e4a38"},
+  {"aur1","7af0b8"},{"aur2","b884ff"},{"aur3","3aa88a"},
 }
 local C = {}
 for _,e in ipairs(ORDER) do C[e[1]] = hex(e[2]) end
@@ -832,6 +841,12 @@ local function wallFill(V, x0, y0, x1, y1, style)
     V.rect(x0, y0, x1, y1, "P"); V.rect(x1 - 3, y0, x1, y1, "p")
     V.rect(x0, y1 - 5, x1, y1, "m2"); V.rect(x0, y1 - 5, x1, y1 - 5, "m3")
     for x = x0 + 5, x1 - 4, 11 do V.px(x, y1 - 3, "m3"); V.px(x + 1, y1 - 2, "m3") end
+  elseif style == "nordico" then
+    -- v9: troncos oscuros puestos de pie, con una franja roja pintada y nieve en la base
+    V.rect(x0, y0, x1, y1, "nb1"); V.rect(x1 - 3, y0, x1, y1, "nb2")
+    for x = x0, x1, 5 do V.rect(x, y0, x, y1, "nb3"); V.px(x + 2, y0 + 3, "nb2") end
+    V.rect(x0, y0 + 3, x1, y0 + 5, "nr"); V.rect(x0, y0 + 5, x1, y0 + 5, "nb3")
+    V.rect(x0, y1 - 3, x1, y1, "ns2"); for x = x0, x1, 4 do V.px(x, y1 - 4, "ns1") end
   elseif style == "tablas" then
     -- v8: tablones gastados por el mar (astillero, almacenes)
     V.rect(x0, y0, x1, y1, "md1"); V.rect(x1 - 3, y0, x1, y1, "md2")
@@ -2108,6 +2123,223 @@ addGrid("portal_arrecife", 3, 3, function(V)
   V.ellipse(48,8,6,4,"tr1"); V.ellipse(48,8,3,2,"bjh")
 end)
 
+-- ---------------------------------------------------------------------------------------
+-- v9 (Tundra Eterna): la nieve de las Montañas es el suelo de base y los terrenos nuevos la muerden en
+-- el borde: nieve profunda (más lenta), el agua helada del fiordo (choca; orilla de hielo), el musgo de
+-- la tundra y el muelle nevado. Losas de hielo del Palacio. Las casas largas de los norteños, la posada,
+-- la forja, el Palacio de Hielo, la Torre de Cristal, el mamut de piedra, menhires rúnicos, tiendas de
+-- cazadores, témpanos, trineos, la perrera y la entrada de la Cripta Congelada.
+-- Los tiles nuevos van al FINAL para no cambiar los ids viejos.
+-- ---------------------------------------------------------------------------------------
+local function deepSnowPx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 6 and "ns2" or (n < 8 and "ns3" or "ns1"))
+end
+local function fjordPx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 7 and "fj1" or (n < 11 and "fj3" or "fj2"))
+end
+local function fjordBase(G, seed)
+  for y=0,31 do for x=0,31 do fjordPx(G, x, y, seed) end end
+  for _,p in ipairs({{4,7},{18,4},{10,19},{22,25}}) do G.rect(p[1],p[2],p[1]+4,p[2],"fjh"); G.px(p[1]+5,p[2]+1,"fj1") end
+end
+-- nieve profunda: más azul y con ondas del viento; el borde se funde con la nieve
+local function deepSnowTile(mask)
+  return function(G)
+    for y=0,31 do for x=0,31 do deepSnowPx(G, x, y, 401) end end
+    for y=5,31,8 do for x=0,31 do if (x + y) % 11 < 6 then G.px(x, y + ((x // 5) % 2), "ns3") end end end
+    local depth = function(i, side) return 3 + (noise(i, side, 403 + mask) % 5) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "ns2") end)
+    sideBand(G, mask, depth, function(x, y) snowPx(G, x, y, 404) end)
+  end
+end
+-- agua helada del fiordo: oscura, con trozos de hielo; la orilla es una franja de hielo sobre la nieve
+local function fjordTile(mask)
+  return function(G)
+    fjordBase(G, 411)
+    local depth = function(i, side) return 4 + (noise(i, side, 413 + mask) % 3) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 2 end, function(x, y) G.px(x, y, "hl3") end)
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, (x + y) % 3 == 0 and "hl1" or "hl2") end)
+    sideBand(G, mask, depth, function(x, y) snowPx(G, x, y, 414) end)
+  end
+end
+-- musgo de la tundra: verde apagado con bayas rojas y piedritas; el borde deja ver la nieve
+local function mossTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"mu2")
+    for y=0,31 do for x=0,31 do local n = noise(x, y, 421); if n < 9 then G.px(x, y, "mu1") elseif n < 14 then G.px(x, y, "mu3") end end end
+    for _,p in ipairs({{6,8},{21,5},{12,20},{26,24}}) do G.px(p[1],p[2],"mur"); G.px(p[1]+1,p[2]+1,"mur") end
+    G.px(17,12,"rq1"); G.px(5,26,"rq2")
+    local depth = function(i, side) return 3 + (noise(i, side, 423 + mask) % 5) end
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "mu3") end)
+    sideBand(G, mask, depth, function(x, y) snowPx(G, x, y, 424) end)
+  end
+end
+for m=0,15 do TILES[#TILES+1] = {"nieveh_" .. m, deepSnowTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"fiordo_" .. m, fjordTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"musgo_" .. m, mossTile(m)} end
+-- losas de hielo del Palacio y del Santuario (una con runas que brillan)
+local function iceSlab(G)
+  G.rect(0,0,31,31,"lh1")
+  G.rect(0,15,31,16,"lh3"); G.rect(15,0,16,31,"lh3"); G.rect(0,0,31,0,"lh2"); G.rect(0,0,0,31,"lh2")
+  for _,p in ipairs({{5,5},{22,9},{8,24},{25,22}}) do G.px(p[1],p[2],"W"); G.px(p[1]+1,p[2]+1,"lh2") end
+end
+TILES[#TILES+1] = {"losa_hielo", iceSlab}
+TILES[#TILES+1] = {"losa_hielo_runa", function(G)
+  iceSlab(G)
+  G.ellipse(16,16,7,7,"lh2"); for i=0,7 do local a = i * math.pi / 4; G.px(16 + math.floor(math.cos(a) * 6), 16 + math.floor(math.sin(a) * 6), "lhr") end
+  G.rect(15,11,16,21,"lhr"); G.rect(12,15,19,16,"lhr")
+end}
+-- muelle nevado sobre el fiordo (mismos bordes automáticos que los muelles de la costa)
+local MUELLEN = {name="muellen", bg=fjordTile(15), shadow="fj3",
+  deck=function(a, b) local p = a % 5; if p == 0 then return "nb3" end; if (b + (a // 5) * 13) % 29 == 0 then return "ns1" end; if p == 1 then return "nb1" end; return noise(a, b, 431) < 5 and "ns2" or "nb2" end,
+  rail=function(d, i, post) if post then return d == 0 and "ns1" or "nb3" end; if d == 1 then return "nb1" end; if d == 2 then return "nb3" end; return nil end}
+for m = 0, 15 do TILES[#TILES+1] = {"muellen_" .. m, bridgeTile(MUELLEN, m)} end
+
+-- decoración pequeña de la tundra
+deco("pila_lena", function(G)
+  G.ellipse(16,28,13,3,"nv3")
+  for r=0,2 do for c=0,3 - r do local x, y = 6 + c * 6 + r * 3, 22 - r * 6; G.ellipse(x,y,3,3,"nb2"); G.ellipse(x,y,2,2,"pe1"); G.px(x,y,"nb1") end end
+  G.rect(4,10,28,11,"ns1")
+end)
+deco("trineo", function(G)
+  G.ellipse(16,27,13,3,"nv3")
+  G.rect(4,15,26,21,"nb1"); G.rect(4,15,26,16,"pe1"); G.rect(6,17,24,20,"pe2")
+  G.rect(2,23,28,24,"sk"); G.rect(2,22,3,24,"sk"); G.rect(27,13,28,23,"nb2"); G.rect(26,12,29,13,"nr")
+  G.rect(4,21,5,23,"nb3"); G.rect(24,21,25,23,"nb3")
+end)
+deco("hoguera_nortena", function(G)
+  G.ellipse(16,27,12,3,"nv3"); G.ellipse(16,24,9,3,"rq3")
+  for i=0,4 do G.rect(8 + i * 4, 20 - (i % 2) * 2, 9 + i * 4, 25, "nb2") end
+  G.ellipse(16,16,6,8,"R"); G.ellipse(16,18,4,5,"fl"); G.px(16,7,"R"); G.px(13,10,"R"); G.px(19,9,"fl")
+end)
+deco("cuerno_hidromiel", function(G)
+  G.ellipse(16,28,9,2,"nv3"); G.rect(8,18,24,28,"nb1"); G.rect(8,18,24,19,"nb3"); G.rect(8,23,24,24,"nb3")
+  for i=0,8 do G.px(10 + i, 14 - i // 2, "T"); G.px(10 + i, 15 - i // 2, "t") end; G.px(19,9,"go")
+end)
+deco("escudo_nortenio", function(G)
+  G.ellipse(16,29,7,2,"nv3"); G.rect(15,18,17,29,"nb2")
+  G.ellipse(16,13,11,11,"nb1"); G.ellipse(16,13,9,9,"nr"); G.rect(7,12,25,14,"T"); G.rect(15,4,17,22,"T"); G.ellipse(16,13,3,3,"sd")
+end)
+deco("flor_escarcha_deco", function(G)
+  for _,p in ipairs({{7,10},{20,6},{13,21},{25,19}}) do
+    G.rect(p[1],p[2]+2,p[1],p[2]+6,"pn"); G.px(p[1],p[2],"W"); G.px(p[1]-1,p[2]+1,"hl2"); G.px(p[1]+1,p[2]+1,"hl2"); G.px(p[1],p[2]+2,"hl3")
+  end
+end)
+deco("tempano", function(G)
+  fjordBase(G, 441)
+  G.ellipse(16,18,13,8,"hl3"); G.ellipse(15,16,12,7,"hl2"); G.ellipse(13,14,7,4,"hl1"); G.rect(8,22,24,23,"fj3")
+  G.px(10,12,"W"); G.px(11,12,"W")
+end)
+-- objetos grandes
+addGrid("abeto_blanco", 2, 2, function(V)
+  V.ellipse(32,59,14,4,"ns3"); V.rect(30,48,33,58,"nb2")
+  for i=0,3 do local y = 2 + i * 11
+    for r=0,13 do V.rect(32 - r - i * 2, y + r, 32 + r + i * 2, y + r, r < 4 and "pd" or "pn") end
+    for r=0,6 do V.rect(32 - r - i * 2, y + r, 32 + r + i * 2, y + r, r < 2 and "W" or "ns1") end
+    V.rect(32 - 13 - i * 2, y + 13, 32 - 7 - i * 2, y + 13, "ns2"); V.rect(32 + 5 + i * 2, y + 13, 32 + 12 + i * 2, y + 13, "ns2")
+  end
+end)
+addGrid("menhir_runico", 1, 2, function(V)
+  V.ellipse(16,60,9,3,"ns3"); V.rect(9,8,23,60,"rq2"); V.rect(9,8,12,60,"rq1"); V.rect(20,8,23,60,"rq3"); V.ellipse(16,8,7,4,"rq2")
+  V.ellipse(16,6,7,3,"nv1")
+  for _,y in ipairs({20,30,40,50}) do V.rect(14,y,18,y,"lhr"); V.px(16,y-2,"lhr"); V.px(14,y+2,"lhr") end
+end)
+addGrid("tienda_cazador", 2, 2, function(V)
+  V.ellipse(32,58,26,4,"ns3")
+  for y=12,56 do local half = math.floor((y - 12) * 0.52); V.rect(32 - half, y, 32 + half, y, (y // 7) % 2 == 0 and "pe1" or "pe2") end
+  for y=12,56,4 do local half = math.floor((y - 12) * 0.52); V.px(32 - half, y, "pe3"); V.px(32 + half, y, "pe3") end
+  V.rect(27,42,37,56,"nb3"); V.rect(30,4,31,14,"nb2"); V.rect(34,4,35,14,"nb2"); V.rect(26,14,38,16,"ns1")
+  V.ellipse(44,50,4,2,"W"); V.px(20,40,"pe3")
+end)
+addGrid("perrera", 2, 2, function(V)
+  V.ellipse(32,58,28,4,"ns3")
+  V.rect(6,30,58,56,"nb1"); for x=6,58,5 do V.rect(x,30,x,56,"nb3") end
+  for y=8,32 do local half = math.floor((y - 8) * 1.2); V.rect(32 - half, y, 32 + half, y, (y // 3) % 2 == 0 and "ns1" or "ns2") end
+  V.rect(24,40,40,56,"nb3"); V.ellipse(32,40,8,5,"nb3")
+  -- un perro de trineo asomado: gris y blanco, ojos claros
+  V.ellipse(32,48,6,5,"sd"); V.ellipse(32,50,4,3,"W"); V.px(30,46,"rn"); V.px(34,46,"rn"); V.rect(27,42,28,45,"sd"); V.rect(36,42,37,45,"sd")
+end)
+addGrid("estandarte_nortenio", 1, 2, function(V)
+  V.ellipse(16,60,6,2,"ns3"); V.rect(15,4,17,60,"nb2"); V.rect(8,4,24,6,"nb3")
+  V.rect(8,6,24,36,"nbl"); V.rect(8,6,9,36,"fj3"); V.rect(8,36,16,42,"nbl"); V.rect(16,36,24,40,"nbl")
+  -- el lobo blanco de la casa real
+  V.ellipse(16,20,5,4,"W"); V.rect(12,14,13,17,"W"); V.rect(19,14,20,17,"W"); V.rect(13,24,19,27,"W"); V.px(14,19,"nbl"); V.px(18,19,"nbl")
+end)
+-- el mamut de piedra: una estatua vieja de los norteños, con colmillos de hueso
+addGrid("mamut_piedra", 3, 2, function(V)
+  V.ellipse(48,60,44,4,"ns3")
+  V.ellipse(44,30,32,20,"rq2"); V.ellipse(40,26,28,16,"rq1"); V.ellipse(30,20,14,8,"nv1")
+  for _,x in ipairs({20,34,52,64}) do V.rect(x,42,x+8,60,"rq2"); V.rect(x,42,x+2,60,"rq1") end
+  V.ellipse(76,30,12,12,"rq2"); V.rect(80,34,86,56,"rq2"); V.rect(80,34,82,56,"rq1")
+  for i=0,12 do V.px(72 + i, 40 + math.floor(i * 0.3), "T"); V.px(72 + i, 41 + math.floor(i * 0.3), "t") end
+  V.ellipse(84,52,3,3,"T"); V.px(74,26,"rq4"); V.ellipse(76,20,10,4,"nv1")
+  for _,p in ipairs({{30,32},{50,28}}) do V.rect(p[1],p[2],p[1]+6,p[2],"lhr") end
+end)
+-- la Torre de Cristal: aguja de hielo que guarda la aurora (en la historia brilla con el eclipse)
+addGrid("torre_cristal", 2, 4, function(V)
+  V.ellipse(32,124,26,4,"ns3")
+  for y=30,122 do local half = math.floor(8 + (y - 30) * 0.14); V.rect(32 - half, y, 32 + half, y, (y // 12) % 2 == 0 and "lh2" or "lh1"); V.rect(32 + half - 3, y, 32 + half, y, "lh3") end
+  for y=2,32 do local half = math.floor((y - 2) * 0.32); V.rect(32 - half, y, 32 + half, y, "hl2"); V.px(32 - half, y, "W") end
+  V.ellipse(32,40,8,8,"aur1"); V.ellipse(32,40,5,5,"W"); V.ellipse(32,40,9,9,"aur3")
+  V.rect(27,104,37,122,"fj3"); V.ellipse(32,104,5,3,"fj3")
+  for _,y in ipairs({60,78}) do V.rect(30,y,34,y + 8,"aur2"); V.px(31,y + 1,"W") end
+  V.rect(14,96,18,122,"lh3"); V.rect(46,90,50,122,"lh3")
+end)
+-- el Palacio de Hielo (6x5): dos torres con agujas, muros de hielo, el portón y el estandarte real
+addGrid("palacio_hielo", 6, 5, function(V)
+  local W, H = 192, 160
+  V.ellipse(96,H - 4,92,6,"ns3")
+  V.rect(18,56,173,H - 4,"lh2"); V.rect(18,56,173,60,"lh1")
+  for y=62,H - 6,10 do V.rect(18,y,173,y,"lh3") end
+  for x=18,173,16 do for y=62,H - 6,20 do V.rect(x + ((y // 20) % 2) * 8,y,x + ((y // 20) % 2) * 8,y + 10,"lh3") end end
+  for x=18,170,12 do V.rect(x,48,x + 6,56,"lh1"); V.rect(x,48,x + 6,49,"W") end
+  -- torres con agujas
+  for _, tx in ipairs({28, 164}) do
+    V.rect(tx - 16, 30, tx + 16, H - 4, "lh1"); V.rect(tx + 10, 30, tx + 16, H - 4, "lh3")
+    for y=0,32 do local half = math.floor(y * 0.5); V.rect(tx - half, y, tx + half, y, "hl2"); V.px(tx - half, y, "W") end
+    V.ellipse(tx, 70, 5, 8, "fj3"); V.ellipse(tx, 72, 3, 5, "lhr")
+  end
+  -- la gran aguja del centro
+  for y=0,60 do local half = math.floor(y * 0.42); V.rect(96 - half, y, 96 + half, y, (y // 6) % 2 == 0 and "hl2" or "lh1"); V.px(96 - half, y, "W") end
+  V.ellipse(96, 40, 7, 7, "lhr"); V.ellipse(96, 40, 4, 4, "W")
+  -- el portón
+  V.ellipse(96, 112, 24, 18, "lh3"); V.rect(72, 112, 120, H - 4, "lh3"); V.ellipse(96, 114, 20, 15, "fj3"); V.rect(76, 114, 116, H - 4, "fj3")
+  for x=80,112,8 do V.rect(x, 104, x + 1, H - 4, "hl3") end
+  -- estandartes reales
+  for _, x in ipairs({58, 134}) do V.rect(x - 7, 70, x + 7, 108, "nbl"); V.rect(x - 7, 70, x + 7, 72, "W"); V.ellipse(x, 86, 4, 3, "W"); V.rect(x - 7, 108, x, 114, "nbl") end
+end)
+-- la entrada de la Cripta Congelada: un túmulo de hielo con la puerta de la reina (se entra por el centro de abajo)
+addGrid("portal_cripta", 3, 3, function(V)
+  V.ellipse(48,90,46,6,"ns3")
+  for y=10,90 do local half = math.floor(math.sqrt(math.max(0, 1 - ((y - 70) / 60) ^ 2)) * 46); V.rect(48 - half, y, 48 + half, y, (y // 7) % 2 == 0 and "rq2" or "rq3") end
+  for y=10,40 do local half = math.floor(math.sqrt(math.max(0, 1 - ((y - 70) / 60) ^ 2)) * 46); V.rect(48 - half, y, 48 + half, y, "nv1") end
+  V.ellipse(48,64,18,22,"lh3"); V.rect(30,64,66,95,"lh3"); V.ellipse(48,66,15,19,"fj3"); V.rect(33,66,63,95,"fj3")
+  for x=36,60,6 do V.rect(x,62,x,95,"hl2") end
+  -- la corona de la reina tallada sobre la puerta
+  V.rect(38,36,58,40,"lhr"); for _,x in ipairs({39,48,57}) do V.rect(x,30,x + 1,36,"lhr") end; V.px(48,28,"W")
+  for _,x in ipairs({20,76}) do V.ellipse(x,80,4,6,"lh1"); V.ellipse(x,78,2,3,"lhr") end
+end)
+-- casas de los norteños (troncos oscuros, tejados de turba con nieve)
+building("casa_larga", 4, 3, {wall="nordico", roof={"ns1","ns3"}, shadow="ns3", doorW=18, doorC="nb3", glow=true, chimney=true, extra=function(V, W, H, wt)
+  -- cabezas de dragón talladas en las puntas del tejado y escudos en la pared
+  for _, x in ipairs({6, W - 7}) do V.rect(x - 2, wt - 10, x + 2, wt, "nb2"); V.ellipse(x, wt - 12, 3, 3, "nb2"); V.px(x + (x < W // 2 and -3 or 3), wt - 13, "nb2") end
+  for _, x in ipairs({W // 2 - 28, W // 2 + 28}) do V.ellipse(x, wt + 14, 6, 6, "nr"); V.ellipse(x, wt + 14, 2, 2, "sd") end
+end})
+building("casa_nortenia", 3, 3, {wall="nordico", roof={"nv1","nv3"}, shadow="ns3", doorC="nb3", chimney=true})
+building("posada_nortenia", 4, 3, {wall="nordico", roof={"ns1","ns3"}, shadow="ns3", doorW=18, doorC="nr", glow=true, chimney=true, extra=function(V, W, H, wt)
+  -- el cuerno de hidromiel de la puerta
+  V.rect(W // 2 + 14, wt + 6, W // 2 + 15, wt + 18, "nb3")
+  for i=0,10 do V.px(W // 2 + 16 + i, wt + 18 - i // 2, "T"); V.px(W // 2 + 16 + i, wt + 19 - i // 2, "t") end
+end})
+building("forja_nortenia", 3, 3, {wall="nordico", roof={"sd","sk"}, shadow="ns3", doorW=24, doorH=22, doorC="bo3", extra=function(V, W, H, wt)
+  V.ellipse(W // 2, H - 14, 8, 6, "lv3"); V.ellipse(W // 2, H - 15, 5, 3, "lv1")
+  V.rect(W - 28, 2, W - 20, wt - 6, "sk"); V.ellipse(W - 24, 2, 5, 3, "sd")
+end})
+-- el hielo del Lago de Cristal se camina (y resbala, ver game/world/frio.js): mismo dibujo que el lago
+-- helado de las Montañas, que en cambio choca
+for m=0,15 do TILES[#TILES+1] = {"lago_" .. m, iceTile(m)} end
+
 local COLLIDE = {arbol=true, roca=true, arbusto=true, valla=true, agua=true, cartel=true, fogata=true, orilla_agua_arriba=true,
   arbol_grande_bi=true, arbol_grande_bd=true, carpa_ai=true, carpa_ad=true, carpa_bi=true, carpa_bd=true,
   puesto_ai=true, puesto_ad=true, puesto_bi=true, puesto_bd=true, yunque=true, barril=true, caja=true, farol=true}
@@ -2187,6 +2419,20 @@ for _, n in ipairs({"cueva_pirata","portal_arrecife"}) do
   for r=0,1 do for c=0,2 do COLLIDE[string.format("%s_%d_%d", n, r, c)] = true end end
   COLLIDE[n .. "_2_0"] = true; COLLIDE[n .. "_2_2"] = true
 end
+
+-- v9 (Tundra): el agua del fiordo choca; la nieve profunda, el musgo, las losas y el muelle se caminan
+for m=0,15 do COLLIDE["fiordo_" .. m] = true end
+for _, n in ipairs({"pila_lena","trineo","hoguera_nortena","cuerno_hidromiel","escudo_nortenio","tempano"}) do COLLIDE[n] = true end
+bigCollide("abeto_blanco", 2, 2, 1); bigCollide("menhir_runico", 1, 2, 1); bigCollide("tienda_cazador", 2, 2, 1); bigCollide("perrera", 2, 2, 1)
+bigCollide("estandarte_nortenio", 1, 2, 1); bigCollide("mamut_piedra", 3, 2, 1); bigCollide("torre_cristal", 2, 4, 2); bigCollide("palacio_hielo", 6, 5, 2)
+for _, n in ipairs({"abeto_blanco","tienda_cazador","perrera"}) do ABOVE[n .. "_0_0"] = true; ABOVE[n .. "_0_1"] = true end
+ABOVE["menhir_runico_0_0"] = true; ABOVE["estandarte_nortenio_0_0"] = true
+for c=0,2 do ABOVE[string.format("mamut_piedra_0_%d", c)] = true end
+aboveRows("torre_cristal", 2, 2); aboveRows("palacio_hielo", 6, 2)
+for _, b in ipairs({{"casa_larga",4},{"casa_nortenia",3},{"posada_nortenia",4},{"forja_nortenia",3}}) do bigCollide(b[1], b[2], 3, 1); aboveRows(b[1], b[2], 1) end
+-- la Cripta Congelada: se entra por el centro de abajo
+for r=0,1 do for c=0,2 do COLLIDE[string.format("portal_cripta_%d_%d", r, c)] = true end end
+COLLIDE["portal_cripta_2_0"] = true; COLLIDE["portal_cripta_2_2"] = true
 
 local COLS = 8
 local ROWS = math.ceil(#TILES / COLS)

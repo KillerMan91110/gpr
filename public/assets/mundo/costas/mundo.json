@@ -21,7 +21,8 @@
   "puentev",
   "mesetav",
   "carav",
-  "escalera"
+  "escalera",
+  "pasto"
  ],
  "tile": 32,
  "chunkWidth": 40,
@@ -114,6 +115,7 @@
    96
   ]
  },
+ "editado": true,
  "subzonas": [
   {
    "name": "Puerto Antiguo",
@@ -214,7 +216,6 @@
    "levels": "46-60"
   }
  ],
- "editado": true,
  "chunks": [
   {
    "cx": 0,

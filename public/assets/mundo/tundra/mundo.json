@@ -1,0 +1,261 @@
+{
+ "nombre": "Tundra Eterna",
+ "zona": 5,
+ "musica": "tundra",
+ "tileset": "pradera",
+ "terrenos": [
+  "nieve",
+  "nieveh",
+  "musgo",
+  "roca",
+  "hierban",
+  "fiordo",
+  "lago",
+  "losah",
+  "muellen",
+  "camino",
+  "plaza",
+  "abismo",
+  "colgante",
+  "mesetan",
+  "caran",
+  "escalera"
+ ],
+ "tile": 32,
+ "chunkWidth": 40,
+ "chunkHeight": 30,
+ "columns": 4,
+ "rows": 4,
+ "encuentroHierba": 0.06,
+ "gidHierba": 611,
+ "inicio": {
+  "x": 4688,
+  "y": 3248
+ },
+ "clima": {
+  "estacion": "invierno",
+  "lluvia": 0,
+  "nieve": 0.6
+ },
+ "gids": {
+  "flores": [],
+  "agua": [],
+  "prado": [
+   559,
+   1265
+  ],
+  "arboles": [
+   1291,
+   1292,
+   625,
+   626
+  ],
+  "dorados": [],
+  "seco": []
+ },
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 1,
+   "cy": 0,
+   "file": "chunk_1_0.json"
+  },
+  {
+   "cx": 2,
+   "cy": 0,
+   "file": "chunk_2_0.json"
+  },
+  {
+   "cx": 3,
+   "cy": 0,
+   "file": "chunk_3_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
+  },
+  {
+   "cx": 1,
+   "cy": 1,
+   "file": "chunk_1_1.json"
+  },
+  {
+   "cx": 2,
+   "cy": 1,
+   "file": "chunk_2_1.json"
+  },
+  {
+   "cx": 3,
+   "cy": 1,
+   "file": "chunk_3_1.json"
+  },
+  {
+   "cx": 0,
+   "cy": 2,
+   "file": "chunk_0_2.json"
+  },
+  {
+   "cx": 1,
+   "cy": 2,
+   "file": "chunk_1_2.json"
+  },
+  {
+   "cx": 2,
+   "cy": 2,
+   "file": "chunk_2_2.json"
+  },
+  {
+   "cx": 3,
+   "cy": 2,
+   "file": "chunk_3_2.json"
+  },
+  {
+   "cx": 0,
+   "cy": 3,
+   "file": "chunk_0_3.json"
+  },
+  {
+   "cx": 1,
+   "cy": 3,
+   "file": "chunk_1_3.json"
+  },
+  {
+   "cx": 2,
+   "cy": 3,
+   "file": "chunk_2_3.json"
+  },
+  {
+   "cx": 3,
+   "cy": 3,
+   "file": "chunk_3_3.json"
+  }
+ ],
+ "subzonas": [
+  {
+   "name": "Fiordo Blanco",
+   "x0": 3840,
+   "y0": 2816,
+   "x1": 5120,
+   "y1": 3840,
+   "levels": null,
+   "safe": true
+  },
+  {
+   "name": "Costa Helada",
+   "x0": 3840,
+   "y0": 1920,
+   "x1": 5120,
+   "y1": 2816,
+   "levels": "61-63"
+  },
+  {
+   "name": "Aldea de los Mamuts",
+   "x0": 2560,
+   "y0": 1920,
+   "x1": 3840,
+   "y1": 3072,
+   "levels": "62-64"
+  },
+  {
+   "name": "Bosque de Pinos Blancos",
+   "x0": 3840,
+   "y0": 960,
+   "x1": 5120,
+   "y1": 1920,
+   "levels": "62-65"
+  },
+  {
+   "name": "Estepa de la Aurora",
+   "x0": 1280,
+   "y0": 1920,
+   "x1": 2560,
+   "y1": 3072,
+   "levels": "63-66"
+  },
+  {
+   "name": "Lago de Cristal",
+   "x0": 2560,
+   "y0": 960,
+   "x1": 3840,
+   "y1": 1920,
+   "levels": "64-67"
+  },
+  {
+   "name": "Campamento de los Cazadores",
+   "x0": 0,
+   "y0": 1920,
+   "x1": 1280,
+   "y1": 3072,
+   "levels": "65-68"
+  },
+  {
+   "name": "Torre de Cristal",
+   "x0": 3840,
+   "y0": 0,
+   "x1": 5120,
+   "y1": 960,
+   "levels": "66-68"
+  },
+  {
+   "name": "Valle de los Gigantes",
+   "x0": 0,
+   "y0": 960,
+   "x1": 1280,
+   "y1": 1920,
+   "levels": "68-71"
+  },
+  {
+   "name": "Santuario del Quinto Sello",
+   "x0": 1280,
+   "y0": 960,
+   "x1": 2560,
+   "y1": 1920,
+   "levels": "70-72"
+  },
+  {
+   "name": "Cementerio Real",
+   "x0": 2560,
+   "y0": 0,
+   "x1": 3840,
+   "y1": 960,
+   "levels": "71-74"
+  },
+  {
+   "name": "Grieta del Glaciar",
+   "x0": 1280,
+   "y0": 0,
+   "x1": 2560,
+   "y1": 960,
+   "levels": "70-73"
+  },
+  {
+   "name": "Palacio de Hielo",
+   "x0": 0,
+   "y0": 0,
+   "x1": 1280,
+   "y1": 960,
+   "levels": "73-75"
+  },
+  {
+   "name": "Mar Helado",
+   "x0": 0,
+   "y0": 3072,
+   "x1": 3840,
+   "y1": 3840,
+   "levels": null
+  },
+  {
+   "name": "Tundra Eterna",
+   "x0": 0,
+   "y0": 0,
+   "x1": 5120,
+   "y1": 3840,
+   "levels": "61-75"
+  }
+ ]
+}

@@ -951,6 +951,13 @@ body.en-mundo .bgm-control { display: none; }
 .hud-buff:hover .hud-buff-tip,
 .hud-buff:focus .hud-buff-tip { display: flex; }
 
+.hud-buff.bad {
+  background: radial-gradient(circle at 50% 35%, #2a3e66, #0c1428);
+  border-color: #9ad8ff;
+  box-shadow: 0 0 0 1px #000, 0 0 10px rgba(154, 216, 255, 0.55);
+}
+.hud-buff.bad .hud-buff-tip b { color: #9ad8ff; }
+
 @keyframes hud-buff-in { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 @media (max-width: 900px) { .hud-buffs { display: none; } }

@@ -211,7 +211,11 @@ export const DIALOGUES_COSTAS = {
       if (hecho(ctx, 'COSTAS_HISTORIA_12_BARCO')) return pick(['El barco sin bandera está en el fondo. Diez años esperando esto. Sabe raro. Sabe bien.', 'Ahora queda la Bestia. Y el faro. Bartolo te está esperando: el viejo no duerme desde que le robaron la luz.']);
       return pick(['La Gaviota Insolente está lista para zarpar. Yo también. Tú, no sé.', 'Bastida me devolvió el sable. Lo había guardado en un cajón, con una etiqueta. «Sable de pirata. Peligroso.» Me emocioné.']);
     },
-    options: () => [{ label: '¿Por qué cazas a los Ocultos?', next: 'ocultos' }, { label: '¿Quién es Galleta?', next: 'galleta' }, bye],
+    // después de la C14, La Gaviota Insolente te lleva al norte, a Fiordo Blanco (gprback/lib/barco.js)
+    options: (ctx) => [
+      ...(hecho(ctx, 'COSTAS_Q3_BESTIA_PROFUNDIDADES') ? [{ label: 'Zarpar a Fiordo Blanco, en la Tundra', action: 'barco', destino: 'fiordo' }] : []),
+      { label: '¿Por qué cazas a los Ocultos?', next: 'ocultos' }, { label: '¿Quién es Galleta?', next: 'galleta' }, bye,
+    ],
     lines: rhaegarLines,
   },
   // Anka: la pirata del pañuelo rojo (y de Tilo)

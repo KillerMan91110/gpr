@@ -152,6 +152,45 @@ const TRACKS = {
       ) },
     ],
   },
+  // la Tundra Eterna: re menor, lento y ancho; un tambor de piel cada dos tiempos, cuernos norteños en
+  // quintas y un viento agudo que va y viene
+  tundra: {
+    bpm: 76,
+    drums: 'k - - - s - - -',
+    voices: [
+      { wave: 'triangle', gain: 0.15, steps: bars(
+        'D2 . . . . . . .', 'D2 . . . A1 . . .', 'A#1 . . . . . . .', 'C2 . . . . . . .',
+        'D2 . . . . . . .', 'F2 . . . C2 . . .', 'A#1 . . . C2 . . .', 'D2 . . . . . . .',
+      ) },
+      { wave: 'sawtooth', gain: 0.035, steps: bars(
+        'D3 . . . A3 . . .', 'F3 . . . E3 . D3 .', 'D3 . . . F3 . . .', 'E3 . . . - - - -',
+        'A3 . . . D4 . . .', 'C4 . . . A3 . . .', 'A#3 . . . G3 . . .', 'A3 . . . - - - -',
+      ) },
+      { wave: 'sine', gain: 0.02, short: true, steps: bars(
+        '- - - - A5 - - -', '- - D6 - - - - -', '- - - - F5 - - -', '- - E6 - - - - -',
+        '- - - - A5 - - -', '- - F6 - - - - -', '- - - - D6 - - -', '- - C#6 - - - - -',
+      ) },
+    ],
+  },
+  // la Cripta Congelada: mi menor, lento, una caja de música que toca la canción de cuna de la reina
+  // sobre un bajo frío que casi no se mueve
+  cripta_congelada: {
+    bpm: 66,
+    voices: [
+      { wave: 'sine', gain: 0.16, steps: bars(
+        'E2 . . . . . . .', 'C2 . . . . . . .', 'A1 . . . . . . .', 'B1 . . . . . . .',
+        'E2 . . . . . . .', 'G2 . . . . . . .', 'C2 . . . D2 . . .', 'B1 . . . . . . .',
+      ) },
+      { wave: 'triangle', gain: 0.06, steps: bars(
+        'B4 . G4 . E4 . G4 .', 'C5 . . . G4 . . .', 'A4 . C5 . E5 . C5 .', 'B4 . . . D#5 . . .',
+        'E5 . D5 . B4 . G4 .', 'D5 . . . B4 . . .', 'C5 . B4 . A4 . F#4 .', 'E4 . . . - - - -',
+      ) },
+      { wave: 'sine', gain: 0.025, short: true, steps: bars(
+        'E6 - - B5 - - - -', '- - G5 - - - - -', '- - - - E6 - - -', '- - F#5 - - - - -',
+        'G6 - - E6 - - - -', '- - D6 - - - - -', '- - - - C6 - - -', '- - B5 - - - - -',
+      ) },
+    ],
+  },
   batalla: {
     bpm: 150,
     drums: 'k h s h k k s h',

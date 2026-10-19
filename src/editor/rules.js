@@ -12,7 +12,9 @@ export const TERRAIN_LIST = ['pasto', 'dorado', 'camino', 'agua', 'hierba', 'pla
   // v6 (Volcán Rojo)
   'basalto', 'ceniza', 'lava', 'azufre', 'quemado', 'obsidiana', 'hierbaq', 'mesetav', 'carav', 'puentev', 'losav',
   // v8 (Costas Muertas)
-  'arena', 'arenan', 'pastoc', 'coral', 'barro', 'bajo', 'mar', 'banco', 'hierbac', 'muelle'];
+  'arena', 'arenan', 'pastoc', 'coral', 'barro', 'bajo', 'mar', 'banco', 'hierbac', 'muelle',
+  // v9 (Tundra Eterna)
+  'nieveh', 'fiordo', 'musgo', 'losah', 'muellen', 'lago'];
 
 // Pinceles de terreno de la paleta (orden y nombre que se ven)
 export const TERRAIN_BRUSHES = [
@@ -63,11 +65,18 @@ export const TERRAIN_BRUSHES = [
   { id: 'mar', label: 'Mar (va rodeado de agua baja)', icon: 'mar_15' },
   { id: 'banco', label: 'Banco de arena (marea)', icon: 'banco' },
   { id: 'muelle', label: 'Muelle / pasarela', icon: 'muelle_10' },
+  { id: 'nieveh', label: 'Nieve profunda', icon: 'nieveh_15' },
+  { id: 'fiordo', label: 'Agua helada del fiordo', icon: 'fiordo_15' },
+  { id: 'musgo', label: 'Musgo de la tundra', icon: 'musgo_15' },
+  { id: 'losah', label: 'Losas de hielo', icon: 'losa_hielo' },
+  { id: 'muellen', label: 'Muelle nevado', icon: 'muellen_10' },
+  { id: 'lago', label: 'Hielo del lago (se camina, resbala)', icon: 'lago_15' },
 ];
 
-const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_(\d+|[hv])|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_(\d+|[hv])|caminor_\d+|roca_(\d+|grava|musgo)|nieve_(\d+|huellas)|abismo_\d+|hielo_\d+|mesetan_\d+|cara_n_[ab]_[icd]|colgante_(\d+|[hv])|hierba_nevada|basalto(_grieta)?|ceniza_(\d+|pomez|huellas)|lava_\d+|azufre_\d+|quemado_\d+|obsidiana_\d+|caminov_\d+|mesetav_\d+|cara_v_[ab]_[icd]|hierba_quemada|losa_basalto(_runa)?|puente_basalto_(\d+|[hv])|arena(_conchas|_huellas)?|arenan_\d+|pastoc_\d+|coral_\d+|barro_\d+|caminoc_\d+|bajo_\d+|mar_\d+|banco(_alta)?|hierba_salada|muelle_\d+)$/;
+const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_(\d+|[hv])|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_(\d+|[hv])|caminor_\d+|roca_(\d+|grava|musgo)|nieve_(\d+|huellas)|abismo_\d+|hielo_\d+|mesetan_\d+|cara_n_[ab]_[icd]|colgante_(\d+|[hv])|hierba_nevada|basalto(_grieta)?|ceniza_(\d+|pomez|huellas)|lava_\d+|azufre_\d+|quemado_\d+|obsidiana_\d+|caminov_\d+|mesetav_\d+|cara_v_[ab]_[icd]|hierba_quemada|losa_basalto(_runa)?|puente_basalto_(\d+|[hv])|arena(_conchas|_huellas)?|arenan_\d+|pastoc_\d+|coral_\d+|barro_\d+|caminoc_\d+|bajo_\d+|mar_\d+|banco(_alta)?|hierba_salada|muelle_\d+|nieveh_\d+|fiordo_\d+|musgo_\d+|losa_hielo(_runa)?|muellen_\d+|lago_\d+)$/;
 
-const MOUNTAIN = ['roca', 'nieve', 'mesetan', 'hierban', 'abismo', 'hielo'];
+// (y en la Tundra: el camino entre la nieve profunda o el musgo también lleva orilla de roca)
+const MOUNTAIN = ['roca', 'nieve', 'mesetan', 'hierban', 'abismo', 'hielo', 'nieveh', 'musgo', 'lago'];
 // el camino entre el basalto del volcán lleva orilla de basalto (caminov_*)
 const VOLCANO = ['basalto', 'ceniza', 'lava', 'azufre', 'quemado', 'obsidiana', 'hierbaq', 'mesetav', 'puentev'];
 // el camino entre la arena de la costa es de conchas molidas (caminoc_*)
@@ -75,6 +84,13 @@ const COAST = ['arena', 'arenan', 'pastoc', 'coral', 'barro', 'bajo', 'mar', 'ba
 
 export function terrainOfName(name) {
   if (!name) return 'pasto';
+  // v9 (Tundra): antes que las reglas generales (losa_hielo no es losa, muellen no es muelle)
+  if (/^nieveh_/.test(name)) return 'nieveh';
+  if (/^fiordo_/.test(name)) return 'fiordo';
+  if (/^musgo_/.test(name)) return 'musgo';
+  if (/^losa_hielo/.test(name)) return 'losah';
+  if (/^muellen_/.test(name)) return 'muellen';
+  if (/^lago_\d+$/.test(name)) return 'lago';
   // v8 (Costas): antes que las reglas generales (caminoc es camino; banco_plaza es un banco de plaza)
   if (/^arenan_/.test(name)) return 'arenan';
   if (/^arena(_conchas|_huellas)?$/.test(name)) return 'arena';
@@ -172,7 +188,8 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
     const isChasm = (n) => n === 'abismo' || n === 'colgante';
     // como en art/mapas/generar_montanas.js
     const rockLike = (n) => ['roca', 'nieve', 'hierban', 'camino', 'plaza', 'muro', 'abismo', 'colgante', 'hielo', 'mesetan', 'caran', 'escalera', null].includes(n);
-    const snowLike = (n) => ['nieve', 'hierban', 'hielo', 'mesetan', null].includes(n);
+    // los terrenos de la Tundra dibujan su propio borde sobre la nieve: la nieve a su lado va entera
+    const snowLike = (n) => ['nieve', 'hierban', 'hielo', 'mesetan', 'nieveh', 'musgo', 'fiordo', 'muellen', 'losah', 'lago', null].includes(n);
     const isWater = (n) => n === 'agua' || n === 'puente';
     // como en art/mapas/generar_volcan.js
     const isLava = (n) => n === 'lava' || n === 'puentev';
@@ -229,6 +246,13 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
       case 'banco': return T.banco;
       case 'hierbac': return T.hierba_salada;
       case 'muelle': return T[`muelle_${mask((n) => !['bajo', 'mar'].includes(n))}`];
+      // v9 (Tundra): como en art/mapas/generar_tundra.js
+      case 'nieveh': return T[`nieveh_${mask((n) => n === 'nieveh' || n === null)}`];
+      case 'fiordo': return T[`fiordo_${mask((n) => ['fiordo', 'muellen', null].includes(n))}`];
+      case 'musgo': return T[`musgo_${mask((n) => n === 'musgo' || n === null)}`];
+      case 'losah': return [T.losa_hielo, T.losa_hielo_runa].includes(cur) ? cur : (Math.random() < 0.06 ? T.losa_hielo_runa : T.losa_hielo);
+      case 'muellen': return T[`muellen_${mask((n) => n !== 'fiordo')}`];
+      case 'lago': return T[`lago_${mask((n) => n === 'lago')}`];
       case 'agua': return T[`agua_${mask(isWater)}`];
       case 'puente': return bridge('puente', 'agua', () => (isWater(tAt(x - 1, y)) && isWater(tAt(x + 1, y)) ? T.puente_v : T.puente_h));
       case 'hierba': return T.hierba_alta;

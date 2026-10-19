@@ -139,7 +139,7 @@ const DEFAULT_ZONE_DIR = 'aurelia';
 // [línea chica de arriba, nombre]: las zonas abiertas van sin línea chica (solo su nombre)
 const ZONE_TITLES = { aurelia: ['La capital', 'Aurelia'], pradera: ['', 'Pradera Dorada'], cripta: ['Mazmorra', 'La Cripta del Vigía'],
   montanas: ['', 'Montañas Grises'], mina_profunda: ['Mazmorra', 'La Mina Profunda'],
-  volcan: ['', 'Volcán Rojo'], fisura: ['Mazmorra', 'La Fisura Infernal'], costas: ['', 'Costas Muertas'], arrecife: ['Mazmorra', 'El Arrecife Hundido'] };
+  volcan: ['', 'Volcán Rojo'], fisura: ['Mazmorra', 'La Fisura Infernal'], costas: ['', 'Costas Muertas'], arrecife: ['Mazmorra', 'El Arrecife Hundido'], tundra: ['', 'Tundra Eterna'], cripta_congelada: ['Mazmorra', 'La Cripta Congelada'] };
 // recorrido del guía Tomás por Aurelia (lugar, posición en píxeles y qué hay ahí)
 const AURELIA_TOUR = [
   { name: 'Catedral de Aethra', x: 59.5 * 32, y: 16 * 32, info: 'Aquí te curan y aquí despiertas si caes en combate.' },
@@ -239,12 +239,28 @@ export default function World() {
     return () => { bus.off('food-buff', onFood); clearInterval(t); };
   }, [player?.id, token]);
   const foodMin = food ? Math.ceil((new Date(food.expiresAt).getTime() - foodNow) / 60000) : 0;
-  const hudBuffs = foodMin > 0
-    ? [...buffs, {
+  // el frío de la Tundra (game/world/frio.js): { calor, entumecido, aqui } o null fuera de la Tundra
+  const [cold, setCold] = useState(null);
+  useEffect(() => {
+    const onCold = (c) => setCold(c);
+    bus.on('frio', onCold);
+    return () => bus.off('frio', onCold);
+  }, []);
+  const coldBuff = cold && (cold.entumecido
+    ? { id: 'frio', icon: ['frozen-block', 'lorc'], label: '0%', bad: true, name: 'Entumecido',
+      desc: 'El frío te cala los huesos: caminas más lento y pierdes un poco de vida. Acércate a una hoguera o come algo caliente.' }
+    : { id: 'frio', icon: ['campfire', 'lorc'], label: `${cold.calor}%`, bad: cold.calor <= 25, name: `Calor: ${cold.calor}%`,
+      desc: cold.aqui
+        ? 'Fuera de Fiordo Blanco el frío te va quitando el calor (más rápido de noche y con nevada). Las hogueras y la comida lo recuperan.'
+        : 'Aquí estás a resguardo: recuperas el calor.' });
+  const hudBuffs = [
+    ...buffs,
+    ...(foodMin > 0 ? [{
       id: 'comida', icon: ['meal', 'delapouite'], label: `${foodMin}m`, name: `Bien alimentado: ${food.name}`,
       desc: `Tus combates empiezan con ${food.text}. Quedan ${foodMin} min.`,
-    }]
-    : buffs;
+    }] : []),
+    ...(coldBuff ? [coldBuff] : []),
+  ];
   // barra de lanzamiento (recolectar): { label, ms, key }
   const [cast, setCast] = useState(null);
   useEffect(() => {
@@ -606,11 +622,31 @@ export default function World() {
         audio.sfx('error');
         bus.emit('social-toast', { text: err.message, kind: 'error' });
       }
+    } else if (o.action === 'barco') {
+      try {
+        const r = await api.barco(player.id, o.destino, token);
+        bus.emit('social-toast', { text: `⚓ ¡Leven anclas! La Gaviota Insolente te lleva a ${r.nombre}.`, kind: 'tour' });
+        bus.emit('zone-change', { zoneDir: r.zona, x: r.x, y: r.y });
+      } catch (err) {
+        audio.sfx('error');
+        bus.emit('social-toast', { text: err.message, kind: 'error' });
+      }
     } else if (o.action === 'bote') {
       try {
         const r = await api.bote(player.id, o.destino, token);
         audio.sfx('monedas');
         bus.emit('social-toast', { text: `⛵ ¡Agárrate a la borda! El bote te lleva a ${r.nombre}.`, kind: 'tour' });
+        loadHud();
+        bus.emit('zone-change', { zoneDir: r.zona, x: r.x, y: r.y });
+      } catch (err) {
+        audio.sfx('error');
+        bus.emit('social-toast', { text: err.message, kind: 'error' });
+      }
+    } else if (o.action === 'trineo') {
+      try {
+        const r = await api.trineo(player.id, o.destino, token);
+        audio.sfx('monedas');
+        bus.emit('social-toast', { text: `🐕 ¡Agárrate fuerte! Los perros te llevan a ${r.nombre}.`, kind: 'tour' });
         loadHud();
         bus.emit('zone-change', { zoneDir: r.zona, x: r.x, y: r.y });
       } catch (err) {
@@ -782,9 +818,18 @@ export default function World() {
         loadHud();
       }).catch(() => {});
     };
+    // el frío de la Tundra: entumecido, el frío te quita un poco de vida
+    const onFrio = () => {
+      api.frio(player.id, token).then((r) => {
+        if (!r?.damage) return;
+        bus.emit('social-toast', { text: `🥶 El frío te quita ${r.damage} de vida. Busca una hoguera o come algo caliente.`, kind: 'error' });
+        loadHud();
+      }).catch(() => {});
+    };
     bus.on('rayo-golpe', onRayo);
     bus.on('brasa-golpe', onBrasa);
-    return () => { bus.off('rayo-golpe', onRayo); bus.off('brasa-golpe', onBrasa); };
+    bus.on('frio-golpe', onFrio);
+    return () => { bus.off('rayo-golpe', onRayo); bus.off('brasa-golpe', onBrasa); bus.off('frio-golpe', onFrio); };
   }, [player, token, loadHud]);
 
   // aceptaste una misión que te compartió tu grupo: se recargan el rastreador y las marcas
@@ -1083,7 +1128,7 @@ export default function World() {
       {!battle && hudBuffs.length > 0 && (
         <div className="hud-buffs" style={{ top: MINIMAP.margin + 2, right: MINIMAP.margin + MINIMAP.width + 16 }}>
           {hudBuffs.map((b) => (
-            <div className="hud-buff" key={b.id} tabIndex={0}>
+            <div className={`hud-buff${b.bad ? ' bad' : ''}`} key={b.id} tabIndex={0}>
               <GameIcon name={b.icon[0]} artist={b.icon[1]} />
               <small>{b.label ?? '∞'}</small>
               <div className="hud-buff-tip" role="tooltip"><b>{b.name}</b><span>{b.desc}</span></div>

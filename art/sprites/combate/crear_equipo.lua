@@ -53,6 +53,12 @@ local SETS = {
   {"coral",         {"f8eee2","f2aaa2","b85a62", "62c6be","2e7e72", "f2aca4","d87e7c","a85062","6e2e3c", "fbf6f0","c4a0ff"}},
   -- Arrecife Hundido nv 52: el azul negro del fondo del mar con el brillo de la Perla del Abismo
   {"abismo",        {"4e6080","263450","10162a", "c8a0ff","6a40b0", "2e4c6c","1e3652","10223c","080f1e", "f2e6ff","8a5ae0"}},
+  -- Tundra Eterna nv 66: hielo de glaciar azul, pelaje marrón de mamut y adornos de colmillo de marfil
+  {"glaciar",       {"d8f0ff","7cbce0","3a78a8", "f4ecd4","c8b48a", "a87a54","7a5434","50361e","2e1e10", "e8fbff","5cc8f0"}},
+  -- Cripta Congelada nv 67: plata pálida y lila de la Reina del Hielo, con su lágrima blanca
+  {"reina",         {"f4f6ff","c4c8e8","7a80b0", "e8d4ff","a07ad8", "d8e8ff","9cb8e8","6a84c0","3a4c80", "ffffff","b8e8ff"}},
+  -- Santuario del Quinto Sello nv 70: hielo viejo del Guardián con el cristal morado del eclipse
+  {"guardian",      {"c4dcec","7aa0bc","3e5c78", "c8a0ff","7a4ac8", "6a8aa8","4a6a8a","2e4a66","1a2c40", "e2a6ff","8a50d8"}},
 }
 local WOOD = {"a8703c","6a4428"}
 local SET_INDEX = {}

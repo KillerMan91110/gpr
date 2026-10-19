@@ -1,10 +1,12 @@
--- Jefes míticos de las Montañas, del Volcán y de las Costas (gprback/lib/mythic.js) y sus esbirros:
+-- Jefes míticos de las Montañas, del Volcán, de las Costas y de la Tundra (gprback/lib/mythic.js) y sus esbirros:
 --   mitico_truenocuerno  Truenocuerno, el Carnero de la Tormenta (Montañas), 64x64
 --   cabra_tronadora      Cabra Tronadora, su esbirro, 48x48
 --   mitico_ignivora      Ignivora, la Madre Salamandra (Volcán), 64x64
 --   cria_ignivora        Cría de Ignivora, su esbirro, 48x48
 --   mitico_rey_pinzas    Rey Pinzas, el Ermitaño Colosal (Costas), 64x64: lleva un barco hundido de caparazón
 --   cangrejo_ermitano    Cangrejo Ermitaño, su esbirro, 48x48: vive en una caracola
+--   mitico_hrimgar       Hrimgar, el Lobo de la Aurora Eterna (Tundra), 64x64: un lobo hecho de aurora
+--   lobezno_aurora       Lobezno de la Aurora, su esbirro, 48x48
 -- (Aullaluna, el de la Pradera, está en art/sprites/mundo/crear_coleccion.lua.)
 -- Mismo estilo que crear_enemigos_volcan.lua: se dibujan mirando a la derecha, contorno oscuro
 -- automático y se voltean (en combate miran a los héroes, a la izquierda).
@@ -33,9 +35,12 @@ for k, v in pairs({
   wd1="9a6a42", wd2="6e4a2c", wd3="45301c", sl1="d8d0b8", sl2="a8a088",
   wa1="d8f6ee", wa2="8ad8d0", wa3="4aa8a8", al1="5a9a4a", al2="3a6a32",
   cc1="f2e4cc", cc2="d8b890", cc3="a88458",
+  -- aurora (brilla), pelo blanco de la tundra y nieve
+  au1="7af0b8", au2="b884ff", au3="3aa88a", au4="6a3ab8", st="ffffff",
+  lb1="eef2f8", lb2="c4cedc", lb3="8e9aae", nv1="f2f6fc", nv2="d4e0ee", nv3="a8b8cc",
 }) do C[k] = hex(v) end
 -- colores que brillan: no reciben contorno a su alrededor
-local GLOW = {K=true, f1=true, f2=true, f3=true, zz1=true, zz2=true, zz3=true, wa1=true, wa2=true}
+local GLOW = {K=true, f1=true, f2=true, f3=true, zz1=true, zz2=true, zz3=true, wa1=true, wa2=true, au1=true, au2=true, st=true}
 
 local function newGrid(W, H, ground)
   ground = ground or H - 1
@@ -375,6 +380,72 @@ local function ermitano(P)
 end
 
 -- =====================================================================================
+-- Hrimgar, el Lobo de la Aurora Eterna (64x64): un lobo enorme de pelo blanco con la melena y la cola
+-- hechas de aurora (verde y morado) y estrellas en el lomo
+local function hrimgar(P)
+  local G = newGrid(64, 64, 61)
+  local dx, b = P.dx or 0, P.bob or 0
+  local ph = P.phase or 0
+  G.ellipse(32, 60, 28, 3, "nv3"); G.ellipse(32, 59, 24, 2, "nv2")
+  if P.dead then
+    G.ellipse(30,55,22,5,"lb2"); G.ridge(30,55,22,5,"lb1",2); G.ellipse(52,54,7,4,"lb1"); G.px(55,53,"K")
+    for i=0,8 do G.px(10 + i * 5, 50 - (i % 3), i % 2 == 0 and "au1" or "au2") end
+    return G
+  end
+  -- cola de aurora que ondula
+  for i=0,18 do
+    local t = i / 18
+    local x, y = 12 + dx - t * 10, 34 + b - t * 22 + math.sin(t * 5 + ph) * 3
+    G.ellipse(x, y, 3 - t * 1.5, 3 - t * 1.5, i % 3 == 0 and "au2" or "au1")
+  end
+  -- patas
+  for i, x in ipairs({18, 26, 40, 48}) do
+    local k = (i + ph) % 2
+    G.thick(x + dx, 44 + b, x + dx + (k == 0 and -1 or 1), 58, 4, "lb3"); G.rect(x + dx - 1, 57, x + dx + 2, 58, "lb3")
+  end
+  -- cuerpo blanco con estrellas
+  G.ellipse(32+dx, 38+b, 20, 9, "lb2"); G.ridge(32+dx, 38+b, 20, 9, "lb1", 3); G.ellipse(40+dx, 36+b, 9, 9, "lb1")
+  for _,p in ipairs({{22,34},{30,30},{38,36},{26,40},{44,33}}) do G.px(p[1]+dx, p[2]+b, "st"); G.px(p[1]+dx+1, p[2]+b, "au1") end
+  -- melena de aurora
+  local hx, hy = dx + (P.hx or 0), b + (P.hy or 0)
+  for i=0,14 do
+    local a = math.rad(150 + i * 15)
+    local r = 15 + (i % 2) * 4
+    G.thick(48+hx, 26+hy, 48+hx + math.cos(a) * r, 26+hy + math.sin(a) * r * 0.85, 3, i % 2 == 0 and "au1" or "au2")
+  end
+  G.ellipse(46+hx, 30+hy, 8, 8, "au3")
+  -- cabeza
+  G.ellipse(52+hx, 24+hy, 8, 7, "lb1"); G.rect(56+hx, 24+hy, 63, 28+hy, "lb2"); G.px(63, 24+hy, "K")
+  G.line(48+hx, 18+hy, 46+hx, 9+hy, "lb2"); G.line(53+hx, 17+hy, 53+hx, 8+hy, "lb2"); G.px(46+hx, 9+hy, "au1"); G.px(53+hx, 8+hy, "au2")
+  if P.pain then G.px(56+hx, 21+hy, "K"); G.px(57+hx, 21+hy, "K") else G.ellipse(56+hx, 21+hy, 1.5, 1.5, "au1"); G.px(56+hx, 21+hy, "st") end
+  if P.bite then G.rect(56+hx, 28+hy, 63, 30+hy, "r"); for x=56,63,2 do G.px(x+hx, 28+hy, "st") end end
+  if P.cast then
+    -- aúlla: la aurora sube en anillos
+    for i=0,3 do G.ellipse(54+hx, 8+hy-i*2, 4+i*3, 2, i % 2 == 0 and "au1" or "au2") end
+    for _,p in ipairs({{6,6},{20,2},{36,4},{60,2}}) do G.px(p[1], p[2], "st") end
+  end
+  return G
+end
+
+-- Lobezno de la Aurora (48x48): cachorro blanco con la cola y las orejas de aurora
+local function lobezno(P)
+  local G = newGrid(48, 48, 45)
+  local dx, b = P.dx or 0, P.bob or 0
+  local ph = P.phase or 0
+  G.ellipse(24, 45, 18, 2, "nv3")
+  if P.dead then G.ellipse(22,41,13,3,"lb2"); G.ridge(22,41,13,3,"lb1",1); G.px(34,40,"K"); G.px(12,40,"au1"); return G end
+  for i=0,8 do local t = i / 8; G.ellipse(10 + dx - t * 6, 30 + b - t * 10 + math.sin(t * 4 + ph) * 2, 2 - t, 2 - t, i % 2 == 0 and "au1" or "au2") end
+  for i, x in ipairs({14, 19, 28, 33}) do local k = (i + ph) % 2; G.thick(x + dx, 34 + b, x + dx + (k == 0 and -1 or 1), 44, 3, "lb3") end
+  G.ellipse(23+dx, 30+b, 12, 7, "lb2"); G.ridge(23+dx, 30+b, 12, 7, "lb1", 2); G.px(20+dx, 28+b, "st")
+  local hx, hy = dx + (P.hx or 0), b + (P.hy or 0)
+  G.ellipse(36+hx, 24+hy, 7, 6, "lb1"); G.rect(40+hx, 24+hy, 46+hx, 27+hy, "lb2"); G.px(46+hx, 24+hy, "K")
+  G.line(33+hx, 19+hy, 32+hx, 13+hy, "au1"); G.line(37+hx, 18+hy, 37+hx, 12+hy, "au2")
+  if P.pain then G.px(39+hx, 22+hy, "K") else G.px(39+hx, 22+hy, "au1") end
+  if P.snap then G.rect(41+hx, 27+hy, 46+hx, 29+hy, "r"); for x=41,46,2 do G.px(x+hx, 27+hy, "st") end end
+  if P.cast then for i=0,2 do G.ellipse(38+hx, 10+hy-i*3, 3+i*2, 1.5, i % 2 == 0 and "au1" or "au2") end end
+  return G
+end
+
 local MONSTERS = {
   {key="mitico_truenocuerno", size=64, draw=truenocuerno, anims={
     {"idle",   {{bob=0,phase=0,dur=500},{bob=1,phase=1,dur=500}}},
@@ -415,6 +486,20 @@ local MONSTERS = {
     {"idle",   {{bob=0,phase=0,dur=400},{bob=1,phase=1,dur=400}}},
     {"attack", {{bob=0,hx=-2,dur=200},{dx=3,snap=true,phase=1,dur=140},{dx=1,dur=220}}},
     {"cast",   {{bob=1,hx=-3,dur=200},{cast=true,hx=-5,phase=0,dur=300},{cast=true,hx=-5,phase=1,dur=220}}},
+    {"hurt",   {{dx=-2,hy=-1,pain=true,dur=250}}},
+    {"die",    {{bob=1,pain=true,dur=200},{dead=true,dur=1000}}},
+  }},
+  {key="mitico_hrimgar", size=64, draw=hrimgar, anims={
+    {"idle",   {{bob=0,phase=0,dur=460},{bob=1,phase=1,dur=460}}},
+    {"attack", {{bob=0,hx=-2,dur=240},{dx=3,bite=true,phase=1,dur=150},{dx=1,dur=260}}},
+    {"cast",   {{bob=-1,hy=-2,dur=240},{cast=true,phase=0,dur=380},{cast=true,phase=1,dur=260}}},
+    {"hurt",   {{dx=-3,pain=true,dur=300}}},
+    {"die",    {{bob=3,pain=true,dur=300},{dead=true,dur=1400}}},
+  }},
+  {key="lobezno_aurora", size=48, draw=lobezno, anims={
+    {"idle",   {{bob=0,phase=0,dur=380},{bob=-1,phase=1,dur=380}}},
+    {"attack", {{bob=0,hx=-2,dur=200},{dx=3,snap=true,phase=1,dur=140},{dx=1,dur=220}}},
+    {"cast",   {{bob=-1,dur=200},{cast=true,phase=0,dur=300},{cast=true,phase=1,dur=220}}},
     {"hurt",   {{dx=-2,hy=-1,pain=true,dur=250}}},
     {"die",    {{bob=1,pain=true,dur=200},{dead=true,dur=1000}}},
   }},

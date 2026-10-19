@@ -1,0 +1,116 @@
+{
+ "nombre": "La Cripta Congelada",
+ "zona": 5,
+ "interior": true,
+ "mazmorra": "cripta_congelada",
+ "musica": "cripta_congelada",
+ "tileset": "cripta_congelada",
+ "terrenos": [
+  "suelo",
+  "muro",
+  "abismo",
+  "puente",
+  "puentev",
+  "escalera",
+  "tumba"
+ ],
+ "tile": 32,
+ "mazmorraArte": {
+  "brasero": "vela_hielo",
+  "puerta": "compuerta_helada",
+  "luzPuerta": 10150143,
+  "accion": "Encender"
+ },
+ "chunkWidth": 40,
+ "chunkHeight": 30,
+ "columns": 1,
+ "rows": 2,
+ "encuentroHierba": 0,
+ "gidHierba": 0,
+ "inicio": {
+  "x": 640,
+  "y": 208
+ },
+ "clima": {
+  "estacion": "interior",
+  "lluvia": 0
+ },
+ "gids": {
+  "flores": [],
+  "agua": [],
+  "prado": [],
+  "arboles": [],
+  "dorados": [],
+  "seco": []
+ },
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
+  }
+ ],
+ "subzonas": [
+  {
+   "name": "Vestíbulo",
+   "x0": 416,
+   "y0": 96,
+   "x1": 864,
+   "y1": 480,
+   "levels": "67-73"
+  },
+  {
+   "name": "Galería de la Reina",
+   "x0": 128,
+   "y0": 480,
+   "x1": 1152,
+   "y1": 768,
+   "levels": "67-73"
+  },
+  {
+   "name": "Puente del Abismo",
+   "x0": 128,
+   "y0": 768,
+   "x1": 1152,
+   "y1": 960,
+   "levels": "67-73"
+  },
+  {
+   "name": "Sala de los Sarcófagos",
+   "x0": 320,
+   "y0": 960,
+   "x1": 1088,
+   "y1": 1248,
+   "levels": "67-73"
+  },
+  {
+   "name": "Cámara de la Escolta",
+   "x0": 288,
+   "y0": 1248,
+   "x1": 992,
+   "y1": 1568,
+   "levels": "67-73"
+  },
+  {
+   "name": "Tumba de la Reina",
+   "x0": 224,
+   "y0": 1568,
+   "x1": 1056,
+   "y1": 1888,
+   "levels": "67-73"
+  },
+  {
+   "name": "La Cripta Congelada",
+   "x0": 0,
+   "y0": 0,
+   "x1": 1280,
+   "y1": 1920,
+   "levels": null
+  }
+ ]
+}

@@ -5,6 +5,7 @@
 
 import { DIALOGUES_CIUDAD } from './dialoguesCiudad';
 import { DIALOGUES_COSTAS } from './dialoguesCostas';
+import { DIALOGUES_TUNDRA } from './dialoguesTundra';
 import { enFase } from './story';
 
 const PORTRAIT = (name) => `${process.env.PUBLIC_URL}/assets/mundo/retratos/${name}.png`;
@@ -1245,4 +1246,6 @@ export const DIALOGUES = {
   ...DIALOGUES_CIUDAD,
   // Costas Muertas (dialoguesCostas.js)
   ...DIALOGUES_COSTAS,
+  // Tundra Eterna (dialoguesTundra.js)
+  ...DIALOGUES_TUNDRA,
 };

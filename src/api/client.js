@@ -231,9 +231,15 @@ export const api = {
   balsa: (playerId, destino, token) => request(`/api/player/${playerId}/world/balsa`, { method: 'POST', body: { destino }, token }),
   // la marea de las Costas (gprback/lib/marea.js): para tomar el reloj del servidor
   marea: (playerId, token) => request(`/api/player/${playerId}/world/marea`, { token }),
+  // La Gaviota Insolente de Rhaegar: Puerto Antiguo ↔ Fiordo Blanco (gprback/lib/barco.js)
+  barco: (playerId, destino, token) => request(`/api/player/${playerId}/world/barco`, { method: 'POST', body: { destino }, token }),
   // los botes de Marul en las Costas Muertas (gprback/lib/botes.js)
   bote: (playerId, destino, token) => request(`/api/player/${playerId}/world/bote`, { method: 'POST', body: { destino }, token }),
+  // los trineos de Skadi en la Tundra (gprback/lib/trineos.js)
+  trineo: (playerId, destino, token) => request(`/api/player/${playerId}/world/trineo`, { method: 'POST', body: { destino }, token }),
   brasa: (playerId, token) => request(`/api/player/${playerId}/world/brasa`, { method: 'POST', token }),
+  // el frío de la Tundra: te entumeciste (gprback/lib/frio.js)
+  frio: (playerId, token) => request(`/api/player/${playerId}/world/frio`, { method: 'POST', token }),
   getPiedra: (playerId, token) => request(`/api/player/${playerId}/world/piedra`, { token }),
   // muñecos de venta (puestos de jugador en el Barrio del Mercado de Aurelia)
   getPuestos: (playerId, zona, token) => request(`/api/player/${playerId}/puestos?zona=${zona}`, { token }),

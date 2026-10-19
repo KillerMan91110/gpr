@@ -645,6 +645,45 @@ sprite("trueno_nadando", 32, 32, function(G, f)
   for i = 0, 3 do G.px(3 + i * 8 + f * 2, 22, "aq1") end
 end)
 
+-- Tundra Eterna: una hoguera apagada bajo la nieve (la T2 enciende tres)
+sprite("hoguera_apagada", 32, 32, function(G, f)
+  G.ellipse(16, 26, 13, 4, "sn2"); G.ellipse(16, 25, 10, 3, "sn1")
+  for i = 0, 7 do local a = i * math.pi / 4; G.ellipse(16 + math.cos(a) * 8, 25 + math.sin(a) * 2.5, 2, 1.5, "rk2") end
+  G.thick(10, 24, 22, 19, 2, "wd2"); G.thick(10, 19, 22, 24, 2, "wd3"); G.thick(16, 18, 16, 25, 2, "wd2")
+  G.ellipse(16, 18, 5, 1.5, "sn1"); G.px(13, 17, "sn1")
+  if f == 1 then G.px(17, 12, "sn3"); G.px(18, 9, "sn3") else G.px(15, 13, "sn3"); G.px(16, 10, "sn3") end
+end)
+-- Trueno revolcándose en la nieve, con la crin llena de escarcha
+sprite("trueno_nieve", 32, 32, function(G, f)
+  G.ellipse(16, 27, 15, 3.5, "sn2")
+  horse(G, 2, 0, f == 0 and 1 or 2, true)
+  G.px(9, 9, "sn1"); G.px(11, 12, "sn1"); G.px(17, 13, "sn1")
+  for _, p in ipairs({{2, 29}, {27, 28}, {30, 26}}) do G.ellipse(p[1], p[2], 2, 1, "sn1") end
+  if f == 1 then G.px(4, 20, "sn1"); G.px(28, 18, "sn1") end
+end)
+-- el muñeco de nieve de Tilo, con su yelmo y el pañuelo rojo de Anka
+sprite("muneco_nieve", 32, 32, function(G, f)
+  G.ellipse(16, 28, 12, 3, "sn2")
+  G.ellipse(16, 23, 8, 6, "sn1"); G.ellipse(16, 14, 6, 5, "sn1"); G.ellipse(17, 24, 5, 3, "sn2")
+  G.ellipse(16, 7, 4, 3.5, "sn1")
+  G.rect(12, 2, 20, 5, "fe1"); G.rect(12, 2, 20, 2, "W"); G.rect(15, 0, 16, 2, "dr")
+  G.px(14, 7, "K"); G.px(17, 7, "K"); G.rect(18, 8, 21, 8, "y2")
+  G.rect(11, 10, 21, 11, "dr"); G.thick(19, 11, 21, 16, 2, "dr")
+  G.px(16, 13, "K"); G.px(16, 16, "K")
+  G.thick(10, 14, 4, 10 - f, 1, "wd2"); G.thick(22, 14, 28, 10 + f, 1, "wd2")
+end)
+-- una cría de mamut, peluda como una alfombra
+sprite("cria_mamut", 32, 32, function(G, f)
+  G.ellipse(16, 28, 12, 3, "sn2")
+  for _, x in ipairs({10, 13, 19, 22}) do G.rect(x, 22 + (x % 2 == 0 and f or 0), x + 2, 27, "br3") end
+  G.ellipse(16, 19, 9, 6, "br2"); G.ellipse(15, 17, 7, 4, "br1")
+  for x = 9, 23, 2 do G.line(x, 22, x + 1, 25, "br3") end
+  G.ellipse(7, 17, 4, 4, "br2"); G.ellipse(7, 16, 3, 3, "br1"); G.px(6, 15, "K")
+  G.thick(5, 19, 4, 25 - f, 2, "br2"); G.px(8, 20, "pa"); G.px(9, 20, "pa")
+  G.thick(25, 17, 28, 20, 1, "br3")
+  G.ellipse(16, 13, 5, 1.5, "sn1")
+end)
+
 -- ---------------------------------------------------------------- salida
 local dir, png = app.params.dir, app.params.png
 local manifest = {}

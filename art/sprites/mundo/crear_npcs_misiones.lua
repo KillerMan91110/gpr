@@ -427,6 +427,28 @@ local NPCS = {
   npc_marul = {race="triton", style="corto", hair="Tfd", hairD="a4", top="Cw", topD="T", topL="W", vest="Cb", pants="Cn", boots="Tr", belt="N", skin="Tr", skinD="Trd"},
   npc_nacar = {race="triton", style="mono", hair="Cp", hairD="v", top="Cw", topD="T", topL="W", robe=true, trim="Cp", neck="go", skin="Tr", skinD="Trd"},
   npc_ondina = {race="triton", small=true, style="corto", hair="Cy", hairD="y", top="Cp", topD="v", topL="Vh", pants="Cn", boots="Tr", skin="Tr", skinD="Trd"},
+  -- Tundra Eterna: los norteños de Fiordo Blanco (pieles blancas, azul de la casa real, pelo claro)
+  -- Hrafna, la Anciana del Hielo: pelo blanco largo, manto azul real con ribete de piel y un broche de oro
+  npc_hrafna = {race="humano", style="largo", hair="Hs", hairD="Hg", top="Cb", topD="a4", topL="a1", robe=true, trim="Cw", neck="go", skin=P, skinD=Pd},
+  -- Eirik, el Príncipe del Hielo: pelo casi blanco, capa de piel sobre la túnica azul y cinturón de oro
+  npc_eirik = {race="humano", style="corto", hair="Hs", hairD="Hg", top="Cb", topD="a4", topL="a1", vest="Cw", belt="go", neck="go", pants="Hd", boots="b", skin=P, skinD=Pd},
+  -- Hela, la Bruja Congelada (cuando ya no pelea): pelo blanco, vestido azul hielo y la corona apagada
+  npc_hela = {race="humano", style="largo", hair="Hs", hairD="Hg", top="gl", topD="a3", topL="W", robe=true, trim="Cb", neck="Hs", skin=P, skinD=Pd},
+  -- Sigrún, la herrera: trenza pelirroja, brazos al aire y delantal de cuero de forja
+  npc_sigrun = {race="humano", style="mono", hair="Ho", hairD="o", top="Cn", topD="b", topL="N", apron="N", pants="Cn", boots="b", belt="b", skin=P, skinD=Pd},
+  -- Gunnhild, la posadera de El Cuerno Caliente: pelo rubio largo, vestido verde y delantal blanco
+  npc_gunnhild = {race="humano", style="largo", hair="Cy", hairD="y", top="Cg", topD="g", topL="Gh", apron="Cw", pants="Cn", boots="b", skin=P, skinD=Pd},
+  -- Bjorn el Mudo, el mercader del muelle: gorro de piel, barba rubia enorme y chaqueta roja
+  npc_bjorn = {race="humano", style="gorra", hat="Cw", hatD="T", hair="Cy", beard="Cy", top="Cr", topD="r", topL="R", vest="N", pants="Cn", boots="b", belt="b", skin=P, skinD=Pd},
+  -- Skadi, la domadora de perros de trineo: pelo negro largo, abrigo azul con cuello de piel
+  npc_skadi = {race="humano", style="largo", hair="Hd", hairD="K", top="Cb", topD="a4", topL="a1", vest="Cw", pants="Cn", boots="b", belt="N", skin=N, skinD=Nd},
+  -- Vigdis, la astrónoma de la Torre de Cristal: sombrero puntiagudo morado y túnica de estrellas
+  npc_vigdis = {race="humano", style="mago", hat="Cp", hair="Hs", hairD="Hg", top="Cp", topD="v", topL="Vh", robe=true, trim="go", neck="go", skin=P, skinD=Pd},
+  -- Ulrich, el cazador arrepentido: capucha de piel, barba gris y abrigo de cuero
+  npc_ulrich = {race="humano", style="capucha", hair="Cw", hairD="T", beard="Hg", top="Cn", topD="b", topL="N", vest="Cw", pants="Hd", boots="b", belt="b", skin=N, skinD=Nd},
+  -- Kari y Leif, los hermanos de Skadi que conducen los trineos (la Aldea de los Mamuts y el Campamento)
+  npc_kari = {race="humano", style="mono", hair="Hd", hairD="K", top="Cr", topD="r", topL="R", vest="Cw", pants="Cn", boots="b", belt="N", skin=N, skinD=Nd},
+  npc_leif = {race="humano", style="gorra", hat="Cw", hatD="T", hair="Hd", beard="Hd", top="Cg", topD="g", topL="Gh", vest="Cw", pants="Cn", boots="b", belt="N", skin=N, skinD=Nd},
 }
 -- solo=npc_a,npc_b genera solo esos (para no rehacer los que ya tienen retoques)
 local solo = app.params.solo

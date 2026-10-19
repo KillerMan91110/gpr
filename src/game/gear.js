@@ -15,7 +15,7 @@ export const SHAPES = ['espada', 'gran_espada', 'hacha', 'espada_runica', 'daga'
   'botas_pesadas', 'botas', 'sandalias'];
 export const SETS = ['hierro', 'acero', 'pradera', 'montana', 'capitan', 'titan', 'acantilado', 'volcan', 'rey_montana', 'caldera', 'titan_fuego',
   'costas', 'oceano', 'profundidades', 'tundra', 'rey_hielo', 'catacumbas', 'lich', 'ancestral', 'arcano', 'sagrado', 'vigia', 'escarcha', 'hierro_negro',
-  'obsidiana', 'forja_negra', 'coral', 'abismo'];
+  'obsidiana', 'forja_negra', 'coral', 'abismo', 'glaciar', 'reina', 'guardian'];
 // formas que tienen hoja de combate (arma en la mano o pieza en la mano de atrás)
 export const COMBAT_WEAPONS = ['espada', 'gran_espada', 'espada_runica', 'hacha', 'daga', 'arco', 'ballesta', 'baculo_arcano', 'varita', 'baculo_sagrado'];
 export const COMBAT_OFFHANDS = ['escudo', 'carcaj', 'orbe', 'cristal', 'daga_gemela', 'simbolo'];
@@ -39,13 +39,16 @@ const SET_BY_CODE = [
   [/_FORJA_NEGRA$/, 'forja_negra'], // armas de la Fisura Infernal (nv 37)
   [/_CORAL$/, 'coral'], // tier medio de las Costas (nv 51)
   [/_ABISMO$/, 'abismo'], // armas del Arrecife Hundido (nv 52)
+  [/_GLACIAR$/, 'glaciar'], // tier medio de la Tundra (nv 66)
+  [/_REINA$/, 'reina'], // armas de la Cripta Congelada (nv 67)
+  [/_GUARDIAN(_MAGO)?$/, 'guardian'], // set del Guardián del Hielo (nv 70)
   [/TITAN_F\b|TITAN_F$/, 'titan_fuego'], [/TITAN_P\b|TITAN_P$/, 'titan'], [/REY_MONT/, 'rey_montana'], [/REY_HIELO/, 'rey_hielo'],
   [/PRADERA/, 'pradera'], [/MONTANAS/, 'montana'], [/CAPITAN/, 'capitan'], [/ACANT/, 'acantilado'], [/VOLCAN/, 'volcan'],
   [/CALDERA/, 'caldera'], [/COSTAS/, 'costas'], [/OCEANO/, 'oceano'], [/PROFU/, 'profundidades'], [/TUNDRA/, 'tundra'],
   [/CATACUMBAS/, 'catacumbas'], [/LICH/, 'lich'], [/RUINAS/, 'ancestral'], [/MAGICA|ESPADA_MAGICA/, 'arcano'],
 ];
 const SET_BY_NAME = [
-  [/obsidiana/, 'obsidiana'], [/forja negra/, 'forja_negra'], [/coral/, 'coral'], [/abismo/, 'abismo'], [/marea/, 'costas'], [/almirante/, 'oceano'],
+  [/obsidiana/, 'obsidiana'], [/forja negra/, 'forja_negra'], [/coral/, 'coral'], [/abismo/, 'abismo'], [/glaciar/, 'glaciar'], [/de la reina/, 'reina'], [/guardian/, 'guardian'], [/marea/, 'costas'], [/almirante/, 'oceano'],
   [/titan de fuego/, 'titan_fuego'], [/rey de las montanas/, 'rey_montana'], [/rey del hielo/, 'rey_hielo'], [/titan/, 'titan'],
   [/pradera|lobo|lenador/, 'pradera'], [/montana|troll/, 'montana'], [/capitan/, 'capitan'], [/acantilado/, 'acantilado'],
   [/volcan|dragon/, 'volcan'], [/caldera/, 'caldera'], [/costas|\bmar\b/, 'costas'], [/oceano/, 'oceano'], [/profundidades/, 'profundidades'],
@@ -170,7 +173,26 @@ export const OBJETOS = ['pocion_vida_menor', 'pocion_vida_mayor', 'pocion_mana_m
   'carne_cabra', 'lomo_oso', 'asado_cabra', 'te_flor_nieve', 'caldo_oso', 'elixir_tormenta', 'insignia_guardia_real',
   // la Mina Profunda y los objetos de misión de la historia de las Montañas
   'mena_hierro_negro', 'corazon_hierro_negro', 'llave_mina', 'carta_elenya', 'hacha_orco', 'cristal_veta', 'esquirla_sello',
-  'nota_brujo', 'corazon_tormenta', 'fragmento_sello_montanas', 'anillo_durgan', 'olla_hilda', 'cuerno_astrid', 'carta_rey'];
+  'nota_brujo', 'corazon_tormenta', 'fragmento_sello_montanas', 'anillo_durgan', 'olla_hilda', 'cuerno_astrid', 'carta_rey',
+  // Volcán Rojo: materiales de sus monstruos y recursos, y sus comidas
+  'escama_salamandra', 'pelaje_ceniza', 'caparazon_azufre', 'brasa_bandido', 'esencia_fuego', 'colmillo_magma', 'esquirla_obsidiana',
+  'nucleo_infernal', 'ala_draco', 'sello_eclipse', 'cuerno_demonio_lava', 'cola_diablillo', 'corazon_brasa', 'escama_dragon_corrupto',
+  'cristal_lava', 'corazon_caldera', 'nucleo_titan_fuego', 'azufre', 'obsidiana_bruta', 'flor_ceniza', 'piedra_pomez', 'gema_fuego',
+  'escoria_negra', 'corazon_forja_negra', 'carne_salamandra', 'aceite_cocina',
+  'asado_salamandra', 'te_flor_ceniza', 'chile_azufre', 'estofado_draco', 'elixir_magma',
+  // Costas Muertas
+  'caparazon_cangrejo', 'pluma_salada', 'parche_pirata', 'caparazon_hervido', 'diente_pirana', 'cuero_cocodrilo', 'gel_medusa',
+  'escama_sirena', 'fragmento_coral', 'cadena_ahogada', 'sello_marea', 'tinta_abisal', 'colmillo_leviatan', 'perla_marina',
+  'carta_velanegra', 'ancla_almirante', 'corazon_abisal', 'alga_salina', 'coral_rojo', 'carne_ostra', 'madera_naufragio',
+  'cuerda_alquitran', 'estrella_mar', 'sal_marina', 'arena_abisal', 'perla_abismo', 'carne_cocodrilo',
+  'sopa_cangrejo', 'ostras_brasa', 'te_alga', 'ceviche_ostras', 'guiso_cocodrilo', 'elixir_marea', 'brocheta_calamar',
+  // Tundra Eterna
+  'grasa_foca', 'colmillo_jabali_helado', 'piel_lobo_hielo', 'pluma_nivea', 'esencia_congelada', 'nucleo_escarcha', 'trampa_cazador',
+  'zarpa_oso_blanco', 'puno_gigante_nieve', 'sello_eclipse_helado', 'placa_escarcha', 'escama_glacial', 'colmillo_mamut',
+  'pelaje_aurora', 'flor_escarcha', 'hielo_eterno', 'madera_pino_blanco', 'pescado_glacial', 'runa_nortena', 'nucleo_guardian',
+  'corona_rey_hielo', 'gema_helada', 'hielo_eterno_puro', 'lagrima_reina', 'baculo_roto_bruja', 'carne_mamut',
+  'pescado_brasa', 'pan_grasa_foca', 'te_flor_escarcha', 'sopa_raices', 'hidromiel_caliente', 'elixir_aurora', 'estofado_mamut',
+  'sopa_jabali'];
 const OBJETO_BY_NAME = {
   'pocion de vida menor': 'pocion_vida_menor', 'pocion de vida mayor': 'pocion_vida_mayor',
   'pocion de mana menor': 'pocion_mana_menor', 'pocion de mana mayor': 'pocion_mana_mayor',
@@ -211,6 +233,43 @@ const OBJETO_BY_NAME = {
   'corazon de la tormenta': 'corazon_tormenta', 'segundo fragmento de sello': 'fragmento_sello_montanas',
   'anillo de durgan': 'anillo_durgan', 'olla de hilda': 'olla_hilda',
   'cuerno de astrid': 'cuerno_astrid', 'carta sellada del rey': 'carta_rey',
+  // Volcán Rojo
+  'escama de salamandra': 'escama_salamandra', 'pelaje de ceniza': 'pelaje_ceniza', 'caparazon de azufre': 'caparazon_azufre',
+  'brasa de bandido': 'brasa_bandido', 'esencia de fuego': 'esencia_fuego', 'colmillo de magma': 'colmillo_magma',
+  'esquirla de obsidiana': 'esquirla_obsidiana', 'nucleo infernal': 'nucleo_infernal', 'ala de draco': 'ala_draco',
+  'sello de eclipse': 'sello_eclipse', 'cuerno de demonio de lava': 'cuerno_demonio_lava', 'cola de diablillo': 'cola_diablillo',
+  'corazon de brasa': 'corazon_brasa', 'escama de dragon corrupto': 'escama_dragon_corrupto', 'cristal de lava': 'cristal_lava',
+  'corazon de la caldera': 'corazon_caldera', 'nucleo del titan de fuego': 'nucleo_titan_fuego', azufre: 'azufre',
+  'obsidiana bruta': 'obsidiana_bruta', 'flor de ceniza': 'flor_ceniza', 'piedra pomez': 'piedra_pomez', 'gema de fuego': 'gema_fuego',
+  'escoria negra': 'escoria_negra', 'corazon de la forja negra': 'corazon_forja_negra', 'cola de salamandra': 'carne_salamandra',
+  'aceite de cocina': 'aceite_cocina', 'asado de salamandra': 'asado_salamandra', 'te de flor de ceniza': 'te_flor_ceniza',
+  'chile de azufre': 'chile_azufre', 'estofado de draco': 'estofado_draco', 'elixir de magma': 'elixir_magma',
+  // Costas Muertas
+  'caparazon de cangrejo gigante': 'caparazon_cangrejo', 'pluma salada': 'pluma_salada', 'parche de pirata': 'parche_pirata',
+  'caparazon hervido': 'caparazon_hervido', 'diente de pirana': 'diente_pirana', 'cuero de cocodrilo': 'cuero_cocodrilo',
+  'gel de medusa': 'gel_medusa', 'escama de sirena': 'escama_sirena', 'fragmento de coral vivo': 'fragmento_coral',
+  'cadena ahogada': 'cadena_ahogada', 'sello de la marea': 'sello_marea', 'tinta abisal': 'tinta_abisal',
+  'colmillo de leviatan': 'colmillo_leviatan', 'perla marina': 'perla_marina', 'carta de velanegra': 'carta_velanegra',
+  'ancla del almirante': 'ancla_almirante', 'corazon abisal': 'corazon_abisal', 'alga salina': 'alga_salina', 'coral rojo': 'coral_rojo',
+  'carne de ostra': 'carne_ostra', 'madera de naufragio': 'madera_naufragio', 'cuerda con alquitran': 'cuerda_alquitran',
+  'estrella de mar': 'estrella_mar', 'sal marina': 'sal_marina', 'arena abisal': 'arena_abisal', 'perla del abismo': 'perla_abismo',
+  'carne de cocodrilo': 'carne_cocodrilo', 'sopa de cangrejo': 'sopa_cangrejo', 'ostras a la brasa': 'ostras_brasa',
+  'te de alga': 'te_alga', 'ceviche de ostras': 'ceviche_ostras', 'guiso de cocodrilo': 'guiso_cocodrilo',
+  'elixir de la marea': 'elixir_marea', 'brocheta de calamar en su tinta': 'brocheta_calamar',
+  // Tundra Eterna
+  'grasa de foca': 'grasa_foca', 'colmillo de jabali helado': 'colmillo_jabali_helado', 'piel de lobo de hielo': 'piel_lobo_hielo',
+  'pluma nivea': 'pluma_nivea', 'esencia congelada': 'esencia_congelada', 'nucleo de escarcha': 'nucleo_escarcha',
+  'trampa del cazador del hielo': 'trampa_cazador', 'zarpa de oso blanco': 'zarpa_oso_blanco',
+  'puno de gigante de nieve': 'puno_gigante_nieve', 'sello del eclipse helado': 'sello_eclipse_helado',
+  'placa de escarcha': 'placa_escarcha', 'escama glacial': 'escama_glacial', 'colmillo de mamut': 'colmillo_mamut',
+  'pelaje de aurora': 'pelaje_aurora', 'flor de escarcha': 'flor_escarcha', 'hielo eterno': 'hielo_eterno',
+  'madera de pino blanco': 'madera_pino_blanco', 'pescado glacial': 'pescado_glacial', 'runa nortena': 'runa_nortena',
+  'nucleo del guardian del hielo': 'nucleo_guardian', 'corona del rey del hielo': 'corona_rey_hielo', 'gema helada': 'gema_helada',
+  'hielo eterno puro': 'hielo_eterno_puro', 'lagrima de la reina': 'lagrima_reina',
+  'baculo roto de bruja congelada': 'baculo_roto_bruja', 'carne de mamut': 'carne_mamut',
+  'pescado glacial a la brasa': 'pescado_brasa', 'pan de centeno con grasa de foca': 'pan_grasa_foca',
+  'te de flor de escarcha': 'te_flor_escarcha', 'sopa de raices': 'sopa_raices', 'hidromiel caliente': 'hidromiel_caliente',
+  'elixir de la aurora': 'elixir_aurora', 'estofado de mamut': 'estofado_mamut', 'sopa de jabali helado': 'sopa_jabali',
 };
 
 // índice en el atlas de objetos, o null

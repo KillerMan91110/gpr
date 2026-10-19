@@ -20,6 +20,8 @@ const THEMES = {
   montanas: { glow: 0xffe46a, tag: '#fff2b0', mote: 0xfff7a0, minion: 0xffe46a, fog: 0xd8dce8, print: 0xffe46a },
   volcan: { glow: 0xff8a3a, tag: '#ffd0a0', mote: 0xffb060, minion: 0xff8a3a, fog: 0xc8a8a0, print: 0xff9a5a },
   costas: { glow: 0x62c6e8, tag: '#b8f0ff', mote: 0x8ae0ec, minion: 0xe8704a, fog: 0xc8dcdc, print: 0x8ad8d0 },
+  // la Tundra: aurora verde y morada
+  tundra: { glow: 0x7af0b8, tag: '#c8ffe4', mote: 0xb884ff, minion: 0x7af0b8, fog: 0xd8e4f4, print: 0x9af0c8 },
 };
 const themeOf = (zoneDir) => THEMES[zoneDir] ?? THEMES.pradera;
 
