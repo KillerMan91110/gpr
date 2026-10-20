@@ -15,7 +15,7 @@ export const SHAPES = ['espada', 'gran_espada', 'hacha', 'espada_runica', 'daga'
   'botas_pesadas', 'botas', 'sandalias'];
 export const SETS = ['hierro', 'acero', 'pradera', 'montana', 'capitan', 'titan', 'acantilado', 'volcan', 'rey_montana', 'caldera', 'titan_fuego',
   'costas', 'oceano', 'profundidades', 'tundra', 'rey_hielo', 'catacumbas', 'lich', 'ancestral', 'arcano', 'sagrado', 'vigia', 'escarcha', 'hierro_negro',
-  'obsidiana', 'forja_negra', 'coral', 'abismo', 'glaciar', 'reina', 'guardian'];
+  'obsidiana', 'forja_negra', 'coral', 'abismo', 'glaciar', 'reina', 'guardian', 'sepulcral', 'trono', 'centinela'];
 // formas que tienen hoja de combate (arma en la mano o pieza en la mano de atrás)
 export const COMBAT_WEAPONS = ['espada', 'gran_espada', 'espada_runica', 'hacha', 'daga', 'arco', 'ballesta', 'baculo_arcano', 'varita', 'baculo_sagrado'];
 export const COMBAT_OFFHANDS = ['escudo', 'carcaj', 'orbe', 'cristal', 'daga_gemela', 'simbolo'];
@@ -42,6 +42,9 @@ const SET_BY_CODE = [
   [/_GLACIAR$/, 'glaciar'], // tier medio de la Tundra (nv 66)
   [/_REINA$/, 'reina'], // armas de la Cripta Congelada (nv 67)
   [/_GUARDIAN(_MAGO)?$/, 'guardian'], // set del Guardián del Hielo (nv 70)
+  [/_SEPULCRAL$/, 'sepulcral'], // tier medio de las Catacumbas (nv 81)
+  [/_TRONO$/, 'trono'], // armas del Trono de Huesos (nv 82)
+  [/_CENTINELA(_MAGO)?$/, 'centinela'], // set del Centinela de la Muerte (nv 84)
   [/TITAN_F\b|TITAN_F$/, 'titan_fuego'], [/TITAN_P\b|TITAN_P$/, 'titan'], [/REY_MONT/, 'rey_montana'], [/REY_HIELO/, 'rey_hielo'],
   [/PRADERA/, 'pradera'], [/MONTANAS/, 'montana'], [/CAPITAN/, 'capitan'], [/ACANT/, 'acantilado'], [/VOLCAN/, 'volcan'],
   [/CALDERA/, 'caldera'], [/COSTAS/, 'costas'], [/OCEANO/, 'oceano'], [/PROFU/, 'profundidades'], [/TUNDRA/, 'tundra'],
@@ -192,7 +195,16 @@ export const OBJETOS = ['pocion_vida_menor', 'pocion_vida_mayor', 'pocion_mana_m
   'pelaje_aurora', 'flor_escarcha', 'hielo_eterno', 'madera_pino_blanco', 'pescado_glacial', 'runa_nortena', 'nucleo_guardian',
   'corona_rey_hielo', 'gema_helada', 'hielo_eterno_puro', 'lagrima_reina', 'baculo_roto_bruja', 'carne_mamut',
   'pescado_brasa', 'pan_grasa_foca', 'te_flor_escarcha', 'sopa_raices', 'hidromiel_caliente', 'elixir_aurora', 'estofado_mamut',
-  'sopa_jabali'];
+  'sopa_jabali',
+  // Catacumbas del Abismo
+  'cola_rata_osario', 'ala_murcielago_vampiro', 'espada_rota_esqueleto', 'carne_putrefacta_ancestral', 'seda_tumba', 'esporas_palidas',
+  'cadena_espectral', 'garra_gul', 'hueso_reanimado', 'lamento_cristalizado', 'reliquia_maldita', 'sello_eclipse_negro',
+  'diente_gusano', 'yelmo_vacio', 'nucleo_centinela', 'hueso_antiguo', 'seta_palida', 'plata_sepulcral',
+  'plata_sepulcral_pura', 'cera_eterna', 'esencia_de_alma', 'fragmento_del_abismo', 'grimorio_corrupto', 'corazon_lich_ancestral',
+  'corona_huesos', 'carne_gusano', 'pescado_ciego', 'sopa_setas_palidas', 'pan_ofrenda', 'pescado_ciego_asado',
+  'te_cera_eterna', 'guiso_sepulturero', 'vino_velados', 'caldo_hueso_antiguo',
+  // la oscuridad de las Catacumbas
+  'vela_sebo'];
 const OBJETO_BY_NAME = {
   'pocion de vida menor': 'pocion_vida_menor', 'pocion de vida mayor': 'pocion_vida_mayor',
   'pocion de mana menor': 'pocion_mana_menor', 'pocion de mana mayor': 'pocion_mana_mayor',
@@ -270,6 +282,21 @@ const OBJETO_BY_NAME = {
   'pescado glacial a la brasa': 'pescado_brasa', 'pan de centeno con grasa de foca': 'pan_grasa_foca',
   'te de flor de escarcha': 'te_flor_escarcha', 'sopa de raices': 'sopa_raices', 'hidromiel caliente': 'hidromiel_caliente',
   'elixir de la aurora': 'elixir_aurora', 'estofado de mamut': 'estofado_mamut', 'sopa de jabali helado': 'sopa_jabali',
+  // Catacumbas del Abismo
+  'cola de rata de osario': 'cola_rata_osario', 'ala de murcielago vampiro': 'ala_murcielago_vampiro',
+  'espada rota de esqueleto': 'espada_rota_esqueleto', 'carne putrefacta ancestral': 'carne_putrefacta_ancestral',
+  'seda de tumba': 'seda_tumba', 'esporas palidas': 'esporas_palidas', 'cadena espectral': 'cadena_espectral',
+  'garra de gul': 'garra_gul', 'hueso reanimado': 'hueso_reanimado', 'lamento cristalizado': 'lamento_cristalizado',
+  'reliquia maldita': 'reliquia_maldita', 'sello del eclipse negro': 'sello_eclipse_negro',
+  'diente de gusano de las criptas': 'diente_gusano', 'yelmo vacio': 'yelmo_vacio', 'nucleo del centinela': 'nucleo_centinela',
+  'hueso antiguo': 'hueso_antiguo', 'seta palida': 'seta_palida', 'plata sepulcral': 'plata_sepulcral',
+  'plata sepulcral pura': 'plata_sepulcral_pura', 'cera eterna': 'cera_eterna', 'esencia de alma': 'esencia_de_alma',
+  'fragmento del abismo': 'fragmento_del_abismo', 'grimorio corrupto': 'grimorio_corrupto',
+  'corazon del lich ancestral': 'corazon_lich_ancestral', 'corona de huesos': 'corona_huesos',
+  'carne de gusano de las criptas': 'carne_gusano', 'pescado ciego': 'pescado_ciego',
+  'sopa de setas palidas': 'sopa_setas_palidas', 'pan de ofrenda': 'pan_ofrenda', 'pescado ciego asado': 'pescado_ciego_asado',
+  'te de cera eterna': 'te_cera_eterna', 'guiso del sepulturero': 'guiso_sepulturero', 'vino de los velados': 'vino_velados',
+  'caldo de hueso antiguo': 'caldo_hueso_antiguo', 'vela de sebo': 'vela_sebo',
 };
 
 // índice en el atlas de objetos, o null

@@ -2175,6 +2175,217 @@ icon("sopa_jabali", function(G)
   G.thick(20, 15, 25, 9, 2, "gh1"); G.px(26, 8, "ih1"); G.px(12, 17, "ih1")
 end)
 
+-- ---------------------------------------------------------------- Catacumbas del Abismo: materiales
+for k, v in pairs({
+  hb1="ece4cc", hb2="c6ba9a", hb3="8c7e66",           -- hueso viejo
+  cv1="8e8898", cv2="6c6678", cv3="4e4a5a",           -- piedra de catacumba
+  sx1="e4e8f2", sx2="a8aec0", sx3="6a7084",           -- plata sepulcral
+  ws1="f6ecd2", ws2="d2c2a0", ws3="a08c6c",           -- cera
+  so1="c0f6ff", so2="4cbcdc", so3="2a7eaa",           -- agua de almas
+  fu1="c6a2ff", fu2="7a5ab0", fu3="a4f4dc",           -- hongo lila y su brillo
+  zb1="8aa07a", zb2="62785a", zb3="40523c",           -- carne de zombie
+  vb1="4a3a4e", vb2="2e2434", vbm="8a3a4a",           -- murciélago
+  nx1="3a3644", nx2="26222e", nx3="16141c",           -- hierro negro de los Ocultos
+  wm1="e8dcd0", wm2="c0b0a4", wm3="8e7e74",           -- gusano
+  fc1="dcd8e6", fc2="a8a4b8", fc3="6e6a80",           -- pescado ciego
+  vl1="e2a6ff", vl2="8a50d8",                         -- eclipse
+}) do PAL[k] = hex(v) end
+
+-- un hueso de (x0,y0) a (x1,y1) con sus dos cabezas
+local function boneBar(G, x0, y0, x1, y1, w, c1, c2)
+  G.thick(x0, y0, x1, y1, w, c2); G.line(x0, y0 - 1, x1, y1 - 1, c1)
+  for _, p in ipairs({{x0, y0}, {x1, y1}}) do G.ellipse(p[1] - 1.5, p[2] - 1, 2.2, 2.2, c1); G.ellipse(p[1] + 1.5, p[2] + 1, 2.2, 2.2, c2) end
+end
+-- un cráneo visto de frente
+local function skullFront(G, cx, cy, r, c1, c2, eye)
+  G.ellipse(cx, cy, r, r * 0.9, c1); G.rect(cx - r * 0.6, cy + r * 0.5, cx + r * 0.6, cy + r, c1)
+  G.ellipse(cx - r * 0.4, cy + r * 0.1, r * 0.28, r * 0.3, eye or "K"); G.ellipse(cx + r * 0.4, cy + r * 0.1, r * 0.28, r * 0.3, eye or "K")
+  G.px(cx, cy + r * 0.5, "K"); for i = -1, 1 do G.px(cx + i * 2, cy + r * 0.95, c2) end
+  G.ellipse(cx - r * 0.45, cy - r * 0.45, r * 0.25, r * 0.2, "W")
+end
+
+-- cola de rata de osario: larga y pelada, enroscada
+icon("cola_rata_osario", function(G)
+  for i = 0, 40 do local t = i / 40; local a = t * math.pi * 2.6; local r = 11 - t * 7
+    G.ellipse(16 + math.cos(a) * r, 16 + math.sin(a) * r, 1.8 - t * 0.8, 1.8 - t * 0.8, i % 6 == 0 and "om2" or "om1") end
+  G.ellipse(26, 18, 3, 3, "po2"); G.px(25, 17, "po1")
+end)
+-- ala de murciélago vampiro: membrana negra con venas rojas
+icon("ala_murcielago_vampiro", function(G)
+  G.poly({{4, 8}, {28, 4}, {26, 12}, {22, 15}, {20, 22}, {14, 20}, {10, 27}, {6, 20}}, "vb1")
+  for _, p in ipairs({{26, 12}, {20, 22}, {10, 27}}) do G.line(4, 8, p[1], p[2], "vb2") end
+  G.line(4, 8, 28, 4, "vb2"); G.line(12, 9, 18, 16, "vbm"); G.line(9, 12, 10, 19, "vbm"); G.px(28, 3, "hb1")
+end)
+-- espada rota de esqueleto: media hoja oxidada con tela en la empuñadura
+icon("espada_rota_esqueleto", function(G)
+  G.poly({{8, 24}, {20, 10}, {24, 9}, {22, 14}, {11, 27}}, "fe2"); G.line(9, 24, 21, 10, "fe1")
+  G.poly({{20, 10}, {24, 9}, {23, 12}}, "rs1"); G.px(16, 16, "rs1"); G.px(13, 20, "rs2")
+  G.thick(4, 22, 12, 30, 3, "fe3"); G.thick(5, 28, 9, 24, 3, "tr2"); G.px(7, 26, "tr1"); G.ellipse(4, 30, 2, 2, "au2")
+end)
+-- carne putrefacta ancestral: un trozo verdoso con moscas
+icon("carne_putrefacta_ancestral", function(G)
+  meat(G, "zb3", "zb2", "zb1")
+  for _, p in ipairs({{8, 6}, {22, 4}, {27, 9}}) do G.px(p[1], p[2], "K"); G.px(p[1] - 1, p[2] - 1, "gl2"); G.px(p[1] + 1, p[2] - 1, "gl2") end
+  G.px(14, 15, "sp1"); G.px(19, 18, "sp1")
+end)
+-- seda de tumba: un ovillo gris con hilos sueltos
+icon("seda_tumba", function(G)
+  G.ellipse(16, 17, 10, 10, "cv1"); G.ellipse(15, 16, 8, 8, "fc1")
+  for i = 0, 4 do G.line(8 + i * 3, 9 + i, 22 - i, 25 - i * 2, "cv2") end
+  G.line(25, 21, 30, 28, "fc2"); G.line(6, 22, 2, 29, "fc2"); G.px(12, 12, "W")
+end)
+-- esporas pálidas: frasco con polvo verde agua que brilla
+icon("esporas_palidas", function(G)
+  flaskSmall(G, {"fu3", "fu1", "fu2"})
+  for _, p in ipairs({{8, 6}, {24, 8}, {26, 14}, {6, 13}}) do G.px(p[1], p[2], "fu3") end
+end)
+-- cadena espectral: eslabones que brillan azul pálido
+icon("cadena_espectral", function(G)
+  for i = 0, 4 do local x, y = 5 + i * 5.5, 25 - i * 5
+    G.ellipse(x, y, 4, 3, "so3"); G.ellipse(x, y, 2.5, 1.5, nil); G.erase(x, y, 2.2, 1.2); G.px(x - 2, y - 2, "so1") end
+  G.px(28, 4, "W")
+end)
+-- garra de gul: una uña negra y curva con un poco de piel gris
+icon("garra_gul", function(G)
+  G.ellipse(10, 24, 6, 5, "tr1"); G.ellipse(9, 23, 4, 3, "tr1")
+  for i = 0, 2 do G.thick(10 + i * 3, 21 - i, 20 + i * 4, 6 + i * 3, 2, "nx2"); G.px(20 + i * 4, 6 + i * 3, "nx1") end
+  G.px(8, 22, "W")
+end)
+-- hueso reanimado: un hueso con una chispa verde que lo mueve
+icon("hueso_reanimado", function(G)
+  boneBar(G, 7, 24, 25, 8, 4, "hb1", "hb2")
+  for _, p in ipairs({{14, 12}, {19, 19}, {10, 16}}) do G.px(p[1], p[2], "v2"); G.px(p[1] + 1, p[2] - 1, "v1") end
+end)
+-- lamento cristalizado: una lágrima de cristal azul
+icon("lamento_cristalizado", function(G)
+  G.ellipse(16, 21, 8, 8, "so2"); G.poly({{9, 18}, {16, 3}, {23, 18}}, "so2")
+  G.ellipse(14, 20, 4, 5, "so1"); G.poly({{12, 17}, {16, 7}, {17, 17}}, "so1"); G.ellipse(19, 25, 3, 2, "so3")
+  G.px(13, 16, "W"); G.px(14, 15, "W")
+end)
+-- reliquia maldita: relicario de plata negra con el eclipse sobre el sol
+icon("reliquia_maldita", function(G)
+  chain(G, 14, "sx2", "sx3")
+  G.ellipse(16, 21, 9, 9, "sx2"); G.ellipse(16, 21, 7, 7, "sx3"); G.ellipse(16, 21, 5, 5, "au1")
+  G.ellipse(18, 20, 4.5, 4.5, "nx3"); G.px(12, 17, "W")
+end)
+-- sello del eclipse negro: anillo de hierro con el eclipse
+icon("sello_eclipse_negro", function(G)
+  G.ellipse(16, 18, 11, 9, "nx1"); G.erase(16, 20, 7, 5); G.ellipse(16, 12, 7, 6, "nx2")
+  G.ellipse(16, 12, 5, 4, "vl2"); G.ellipse(17.5, 11.5, 3.5, 3, "nx3"); G.px(13, 10, "vl1")
+end)
+-- diente del gusano de las criptas: un diente largo como un puñal
+icon("diente_gusano", function(G) fang(G, "W", "wm1", "wm2"); G.rect(7, 26, 14, 29, "cr3"); G.line(8, 26, 13, 26, "cr2") end)
+-- yelmo vacío: yelmo negro y por dentro, nada (una luz violeta)
+icon("yelmo_vacio", function(G)
+  G.ellipse(16, 15, 11, 11, "nx1"); G.rect(5, 15, 27, 27, "nx1"); G.ellipse(14, 10, 6, 4, "sx3")
+  G.rect(8, 15, 25, 19, "nx3"); G.px(19, 17, "vl1"); G.px(22, 17, "vl2")
+  G.rect(15, 20, 17, 27, "nx2"); G.rect(5, 26, 27, 28, "nx2"); G.line(10, 3, 22, 3, "r2")
+end)
+-- núcleo del centinela: piedra negra con vetas azules que late
+icon("nucleo_centinela", function(G)
+  heartShape(G, "nx1", "nx2", "nx3")
+  G.line(9, 12, 14, 20, "so2"); G.line(14, 20, 20, 15, "so2"); G.line(20, 15, 23, 22, "so3"); G.px(16, 21, "so1"); G.px(10, 10, "sx2")
+end)
+-- hueso antiguo: un fémur amarillento
+icon("hueso_antiguo", function(G) boneBar(G, 6, 25, 26, 7, 4, "hb2", "hb3"); G.px(11, 19, "hb1") end)
+-- seta pálida: dos setas lilas con motas que brillan
+icon("seta_palida", function(G)
+  for _, s in ipairs({{11, 15, 7, 13}, {22, 19, 5, 9}}) do
+    local x, y, r, h = s[1], s[2], s[3], s[4]
+    G.rect(x - 1, y, x + 1, y + h, "ws2"); G.ellipse(x, y, r, r * 0.65, "fu2"); G.ellipse(x - 1, y - 1, r - 1.5, r * 0.5, "fu1")
+    G.px(x - 2, y - 1, "fu3"); G.px(x + 2, y, "fu3")
+  end
+  G.line(4, 29, 28, 29, "cv2")
+end)
+-- plata sepulcral: un trozo de mineral oscuro con vetas de plata
+icon("plata_sepulcral", function(G)
+  rockShape(G, "cv1", "cv2", "cv3")
+  G.line(9, 14, 20, 9, "sx2"); G.line(10, 15, 21, 10, "sx1"); G.line(13, 22, 22, 18, "sx2"); G.px(17, 11, "W")
+end)
+-- plata sepulcral pura: un lingote claro que brilla solo
+icon("plata_sepulcral_pura", function(G)
+  G.poly({{4, 22}, {10, 14}, {28, 14}, {22, 22}}, "sx1"); G.poly({{4, 22}, {22, 22}, {22, 27}, {4, 27}}, "sx2")
+  G.poly({{22, 22}, {28, 14}, {28, 19}, {22, 27}}, "sx3"); G.line(11, 16, 24, 16, "W")
+  for _, p in ipairs({{6, 9}, {26, 8}, {16, 5}}) do G.px(p[1], p[2], "W") end
+end)
+-- cera eterna: un pan de cera blanca con su mecha
+icon("cera_eterna", function(G)
+  G.ellipse(16, 23, 11, 5, "ws3"); G.ellipse(16, 20, 11, 5, "ws1"); G.rect(5, 20, 27, 23, "ws2"); G.ellipse(16, 19, 9, 3, "ws1")
+  G.line(16, 19, 16, 13, "nx2"); G.ellipse(16, 11, 1.5, 2.5, "lv2"); G.px(16, 10, "lv1")
+  G.rect(23, 21, 24, 26, "ws1")
+end)
+-- esencia de alma: frasco con el agua azul del río que brilla
+icon("esencia_de_alma", function(G) flaskSmall(G, {"so1", "so2", "so3"}); G.px(16, 19, "W") end)
+-- fragmento del abismo: esquirla negra con un borde violeta
+icon("fragmento_del_abismo", function(G)
+  G.poly({{6, 27}, {12, 6}, {18, 3}, {26, 14}, {20, 28}}, "nx2"); G.poly({{12, 6}, {18, 3}, {17, 14}}, "vl2")
+  G.line(12, 7, 7, 26, "vl1"); G.line(18, 4, 25, 14, "nx1"); G.px(15, 8, "W")
+end)
+-- grimorio corrupto: libro negro cerrado con un ojo del eclipse
+icon("grimorio_corrupto", function(G)
+  G.rect(6, 5, 26, 27, "nx1"); G.rect(6, 5, 8, 27, "nx2"); G.rect(24, 6, 27, 26, "ws1"); for y = 8, 24, 3 do G.px(25, y, "ws3") end
+  G.ellipse(17, 16, 5, 4, "vl2"); G.ellipse(17, 16, 2.5, 2.5, "vl1"); G.px(17, 16, "K")
+  for _, p in ipairs({{11, 7}, {22, 7}, {11, 25}, {22, 25}}) do G.px(p[1], p[2], "au2") end
+end)
+-- corazón del lich ancestral: un corazón negro y dorado que todavía late
+icon("corazon_lich_ancestral", function(G)
+  heartShape(G, "vl2", "nx1", "nx3")
+  G.ellipse(16, 16, 4, 4, "au1"); G.ellipse(17.5, 15.5, 3, 3, "nx3"); G.px(10, 10, "vl1")
+  for _, p in ipairs({{3, 6}, {29, 8}, {27, 26}}) do G.px(p[1], p[2], "vl1") end
+end)
+-- corona de huesos: dedos de hueso atados con hilo de oro
+icon("corona_huesos", function(G)
+  G.rect(5, 19, 27, 25, "hb2"); G.line(5, 19, 27, 19, "hb1"); G.line(5, 25, 27, 25, "hb3")
+  for i = 0, 4 do local x = 6 + i * 5; G.thick(x + 1, 18, x + 1, 7 + (i % 2) * 4, 3, "hb1"); G.ellipse(x + 1, 7 + (i % 2) * 4, 1.8, 1.8, "hb1") end
+  G.line(5, 22, 27, 22, "au1"); G.ellipse(16, 22, 2, 2, "vl2")
+end)
+-- carne de gusano: un trozo blanco y elástico
+icon("carne_gusano", function(G)
+  meat(G, "wm2", "wm1", "wm3")
+  for x = 9, 23, 4 do G.line(x, 12, x - 2, 22, "wm2") end
+end)
+-- pescado ciego: un pez pálido sin ojos
+icon("pescado_ciego", function(G)
+  G.ellipse(14, 16, 11, 6, "fc1")
+  G.poly({{24, 16}, {30, 10}, {30, 22}}, "fc2"); G.line(6, 17, 22, 17, "fc2")
+  G.ellipse(7, 15, 2, 1.2, "fc2"); for x = 10, 20, 3 do G.px(x, 13, "fc3") end
+  G.line(14, 10, 18, 7, "fc2")
+end)
+
+-- ---------------------------------------------------------------- Catacumbas del Abismo: comidas
+icon("sopa_setas_palidas", function(G) steam(G); bowl(G, "fu1", "fu3"); G.px(12, 17, "fu2"); G.px(20, 18, "fu2") end)
+icon("pan_ofrenda", function(G)
+  G.ellipse(16, 20, 12, 8, "y2"); G.ellipse(15, 18, 10, 6, "y1")
+  for x = 9, 21, 4 do G.line(x, 15, x + 2, 19, "y3") end
+  G.ellipse(16, 17, 2, 2, "ws1"); G.line(16, 15, 16, 12, "nx2"); G.px(16, 11, "lv1")
+end)
+icon("pescado_ciego_asado", function(G)
+  board(G)
+  G.ellipse(15, 18, 10, 5, "st1"); G.poly({{24, 18}, {29, 13}, {29, 23}}, "st2"); G.line(7, 19, 22, 19, "st2")
+  for x = 9, 20, 4 do G.line(x, 15, x + 2, 21, "wd3") end
+  G.px(12, 15, "fc1"); steam(G)
+end)
+icon("te_cera_eterna", function(G) cup(G, "ws1", "ws2", "ws3", "am1"); G.px(14, 17, "W") end)
+icon("guiso_sepulturero", function(G)
+  pot(G, "st1")
+  G.px(10, 17, "wm1"); G.px(11, 17, "wm1"); G.px(15, 17, "fu1"); G.px(19, 17, "wm1"); G.px(21, 17, "fu1")
+end)
+icon("vino_velados", function(G)
+  flaskBig(G, {"so1", "so2", "so3"}, function(g) g.ellipse(16, 21, 3, 3, "so3"); g.px(16, 21, "so1") end)
+end)
+icon("caldo_hueso_antiguo", function(G)
+  pot(G, "ws2")
+  boneBar(G, 19, 14, 26, 6, 2, "hb1", "hb2"); G.px(12, 17, "hb2")
+end)
+-- vela de sebo (la oscuridad de las Catacumbas): una vela gorda y amarillenta en un plato de hueso, con
+-- chorreaduras y la llama tibia
+icon("vela_sebo", function(G)
+  G.ellipse(16, 26, 11, 3, "hb3"); G.ellipse(16, 25, 10, 2.5, "hb1")
+  G.rect(11, 12, 21, 25, "wm2"); G.rect(11, 12, 13, 25, "ws1"); G.rect(19, 12, 21, 25, "wm3")
+  G.ellipse(16, 12, 5, 1.8, "ws1"); G.rect(12, 13, 13, 18, "ws1"); G.rect(19, 13, 20, 16, "ws2"); G.px(20, 17, "ws2")
+  G.line(16, 11, 16, 8, "nx2"); G.ellipse(16, 6, 2, 3.5, "lv2"); G.ellipse(16, 6.5, 1, 2, "lv1")
+end)
+
 -- ---------------------------------------------------------------- atlas (una fila)
 local n = #ICONS
 local img = Image(n * 32, 32, ColorMode.RGB)

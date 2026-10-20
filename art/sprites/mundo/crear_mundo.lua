@@ -65,6 +65,17 @@ local ORDER = {
   {"nb1","6e4e36"},{"nb2","4c3424"},{"nb3","301f15"},{"nr","a83a2a"},{"nbl","3a5a7e"},
   {"pe1","cbb08e"},{"pe2","94765a"},{"pe3","5e4a38"},
   {"aur1","7af0b8"},{"aur2","b884ff"},{"aur3","3aa88a"},
+  -- v10 (Catacumbas del Abismo): piedra de catacumba gris violácea, tierra de tumba, hueso, los hongos
+  -- que brillan, el agua negra del lago, el agua de almas del río, la cera y la luz azul de los Velados
+  {"cs1","8e8898"},{"cs2","706a7c"},{"cs3","524e5e"},{"cs4","383444"},{"cs5","24212d"},
+  {"te1","5e4c44"},{"te2","483a33"},{"te3","312722"},
+  {"hu1","ece4cc"},{"hu2","c6ba9a"},{"hu3","8c7e66"},
+  {"hg1","a4f4dc"},{"hg2","62c8b2"},{"hg3","347e78"},{"hgp","c6a2ff"},{"hgd","7a5ab0"},
+  {"ag1","1e2432"},{"ag2","151a26"},{"agr","3c4c68"},
+  {"al1","4cbcdc"},{"al2","2a7eaa"},{"al3","1c5478"},{"alh","c0f6ff"},
+  {"cw1","f6ecd2"},{"cw2","d2c2a0"},{"cw3","a08c6c"},
+  {"vl1","b4ecff"},{"vl2","70b4dc"},
+  {"vc1","4c3c6c"},{"vc2","2f2548"},
 }
 local C = {}
 for _,e in ipairs(ORDER) do C[e[1]] = hex(e[2]) end
@@ -847,6 +858,10 @@ local function wallFill(V, x0, y0, x1, y1, style)
     for x = x0, x1, 5 do V.rect(x, y0, x, y1, "nb3"); V.px(x + 2, y0 + 3, "nb2") end
     V.rect(x0, y0 + 3, x1, y0 + 5, "nr"); V.rect(x0, y0 + 5, x1, y0 + 5, "nb3")
     V.rect(x0, y1 - 3, x1, y1, "ns2"); for x = x0, x1, 4 do V.px(x, y1 - 4, "ns1") end
+  elseif style == "cripta" then
+    -- v10: bloques de piedra clara de las catacumbas con juntas violáceas
+    V.rect(x0, y0, x1, y1, "cs1"); V.rect(x1 - 3, y0, x1, y1, "cs2")
+    for y = y0, y1, 8 do V.rect(x0, y, x1, y, "cs3"); for x = x0 + ((y - y0) // 8 % 2) * 8, x1, 16 do V.rect(x, y, x, y + 8, "cs3") end end
   elseif style == "tablas" then
     -- v8: tablones gastados por el mar (astillero, almacenes)
     V.rect(x0, y0, x1, y1, "md1"); V.rect(x1 - 3, y0, x1, y1, "md2")
@@ -888,7 +903,7 @@ local function building(name, w, h, o)
     V.ellipse(W // 2, H - 4, W // 2 - 2, 5, o.shadow or "c4")
     wallFill(V, 4, wallTop, W - 5, H - 3, o.wall)
     -- ventanas en dos filas si hay altura
-    local rows = o.rows or 1
+    local rows = o.noWin and 0 or (o.rows or 1)
     for r = 0, rows - 1 do
       local wy = wallTop + 8 + r * 22
       for x = 12, W - 22, o.winStep or 22 do
@@ -2340,6 +2355,359 @@ end})
 -- helado de las Montañas, que en cambio choca
 for m=0,15 do TILES[#TILES+1] = {"lago_" .. m, iceTile(m)} end
 
+-- ---------------------------------------------------------------------------------------
+-- v10 (Catacumbas del Abismo): bajo tierra. Las losas de catacumba son el suelo de base (como la nieve
+-- en la Tundra) y los terrenos nuevos las muerden en el borde: tierra de tumba, huesos regados, hongos
+-- pálidos que brillan, el agua negra del lago y el agua de almas del río (las dos chocan). Las paredes
+-- de catacumba tienen techo oscuro y una cara con nichos (cráneos y velas). Puentes de hueso, el muelle
+-- del barquero, los mausoleos de Vela Eterna, la Gran Vela, la forja de hueso, la casa de Ilse, el
+-- puesto de Hollin, sarcófagos, estatuas veladas, hongos gigantes, lámparas de alma (refugios), la
+-- entrada del Trono de Huesos, las escaleras de subida (a la Cripta Congelada y a la Catedral) y, en
+-- Aurelia, la cripta sellada de la Catedral.
+-- Los tiles nuevos van al FINAL para no cambiar los ids viejos.
+-- ---------------------------------------------------------------------------------------
+local function slabPx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 8 and "cs1" or (n < 15 and "cs3" or "cs2"))
+end
+-- losas de catacumba: piedra gris violácea en losas de 16 px corridas por fila, gastadas
+local function catSlab(G, seed)
+  for y=0,31 do for x=0,31 do slabPx(G, x, y, seed) end end
+  for y=0,31,16 do G.rect(0,y,31,y,"cs4") end
+  for y=0,31,16 do local o = ((y // 16) % 2) * 8; for x=o,31,16 do G.rect(x,y + 1,x,y + 15,"cs4") end end
+  for y=1,31,16 do for x=0,31 do if noise(x, y, seed + 1) < 40 then G.px(x, y, "cs1") end end end
+end
+local function skull(G, x, y, c)
+  G.ellipse(x + 2, y + 2, 2.5, 2.2, c or "hu1"); G.rect(x + 1, y + 4, x + 3, y + 5, c or "hu1")
+  G.px(x + 1, y + 2, "K"); G.px(x + 3, y + 2, "K"); G.px(x + 2, y + 5, "hu3")
+end
+local function bone(G, x, y, len, vertical)
+  if vertical then
+    G.rect(x, y, x, y + len, "hu2"); G.px(x - 1, y, "hu1"); G.px(x + 1, y, "hu1"); G.px(x - 1, y + len, "hu1"); G.px(x + 1, y + len, "hu1")
+  else
+    G.rect(x, y, x + len, y, "hu2"); G.px(x, y - 1, "hu1"); G.px(x, y + 1, "hu1"); G.px(x + len, y - 1, "hu1"); G.px(x + len, y + 1, "hu1")
+  end
+end
+local function candle(G, x, y, h)
+  G.rect(x, y - h, x + 1, y, "cw1"); G.px(x + 1, y - h + 1, "cw2"); G.rect(x - 1, y, x + 2, y, "cw2")
+  G.px(x, y - h - 1, "fl"); G.px(x + 1, y - h - 1, "fl"); G.px(x, y - h - 2, "Y"); G.px(x + 1, y - h - 2, "W")
+end
+TILES[#TILES+1] = {"losa_catacumba", function(G) catSlab(G, 501) end}
+TILES[#TILES+1] = {"losa_catacumba_b", function(G)
+  catSlab(G, 502)
+  for i=0,14 do G.px(5 + i, 6 + i + (noise(i, 1, 503) % 3) - 1, "cs4") end; G.px(12, 20, "cs5"); G.px(13, 21, "cs5")
+end}
+TILES[#TILES+1] = {"losa_catacumba_cera", function(G)
+  catSlab(G, 504)
+  for _,p in ipairs({{8,9,3},{21,19,2},{14,25,2}}) do G.ellipse(p[1],p[2],p[3],p[3] - 1,"cw2"); G.ellipse(p[1] - 1,p[2] - 1,p[3] - 1,p[3] - 1,"cw1") end
+end}
+-- tierra de tumba: oscura, con piedritas; el borde deja ver las losas
+local function graveBase(G, seed)
+  G.rect(0,0,31,31,"te2")
+  for y=0,31 do for x=0,31 do local n = noise(x, y, seed); if n < 9 then G.px(x, y, "te1") elseif n < 15 then G.px(x, y, "te3") end end end
+  for _,p in ipairs({{5,7},{24,11},{13,22},{27,26}}) do G.px(p[1],p[2],"cs3"); G.px(p[1] + 1,p[2],"cs2") end
+end
+local function slabEdge(G, mask, seed, rim)
+  local depth = function(i, side) return 3 + (noise(i, side, seed + mask) % 5) end
+  sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, rim) end)
+  sideBand(G, mask, depth, function(x, y) slabPx(G, x, y, 509) end)
+end
+local function graveTile(mask)
+  return function(G) graveBase(G, 511); slabEdge(G, mask, 513, "te3") end
+end
+-- huesos regados sobre la tierra de tumba (el osario)
+local function boneTile(mask)
+  return function(G)
+    graveBase(G, 521)
+    for _,b in ipairs({{4,9,6,false},{18,5,5,true},{22,20,7,false},{9,18,4,true},{12,27,5,false}}) do bone(G, b[1], b[2], b[3], b[4]) end
+    skull(G, 24, 8); skull(G, 4, 22, "hu2")
+    slabEdge(G, mask, 523, "te3")
+  end
+end
+-- hongos pálidos: un musgo verde agua que brilla, con sombreritos lilas
+local function fungusTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"hg3")
+    for y=0,31 do for x=0,31 do local n = noise(x, y, 531); if n < 10 then G.px(x, y, "hg2") elseif n < 16 then G.px(x, y, "te3") end end end
+    for _,p in ipairs({{6,6},{19,9},{11,17},{25,23},{7,27},{16,26}}) do G.px(p[1],p[2],"hg1"); G.px(p[1] + 1,p[2],"hg1") end
+    for _,p in ipairs({{22,4},{4,14},{27,15},{14,9}}) do G.rect(p[1],p[2] + 1,p[1],p[2] + 2,"cw2"); G.rect(p[1] - 1,p[2],p[1] + 1,p[2],"hgp"); G.px(p[1],p[2] - 1,"hgp") end
+    slabEdge(G, mask, 533, "te3")
+  end
+end
+-- agua negra del lago: quieta, con reflejos; borde de piedra
+local function blackWaterBase(G, seed)
+  G.rect(0,0,31,31,"ag2")
+  for y=0,31 do for x=0,31 do if noise(x, y, seed) < 8 then G.px(x, y, "ag1") end end end
+  for _,p in ipairs({{4,8},{19,5},{10,19},{23,25}}) do G.rect(p[1],p[2],p[1] + 3,p[2],"agr") end
+end
+local function waterRim(G, mask, seed)
+  local depth = function(i, side) return 3 + (noise(i, side, seed + mask) % 3) end
+  sideBand(G, mask, function(i, side) return depth(i, side) + 2 end, function(x, y) G.px(x, y, "cs5") end)
+  sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "cs3") end)
+  sideBand(G, mask, depth, function(x, y) slabPx(G, x, y, 539) end)
+end
+local function blackWaterTile(mask)
+  return function(G) blackWaterBase(G, 541); waterRim(G, mask, 543) end
+end
+-- el agua de almas del río: azul que brilla y corre, con chispas
+local function soulWaterBase(G, seed)
+  G.rect(0,0,31,31,"al2")
+  for y=0,31 do for x=0,31 do local n = noise(x, y, seed); if n < 10 then G.px(x, y, "al3") elseif n < 14 then G.px(x, y, "al1") end end end
+  for _,p in ipairs({{3,6},{16,11},{8,21},{21,27}}) do G.rect(p[1],p[2],p[1] + 6,p[2],"al1"); G.px(p[1] + 7,p[2],"alh") end
+  G.px(26,4,"alh"); G.px(12,15,"alh"); G.px(28,19,"alh")
+end
+local function soulWaterTile(mask)
+  return function(G) soulWaterBase(G, 551); waterRim(G, mask, 553) end
+end
+for m=0,15 do TILES[#TILES+1] = {"tierrac_" .. m, graveTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"huesosc_" .. m, boneTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"hongos_" .. m, fungusTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"aguan_" .. m, blackWaterTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"rioalma_" .. m, soulWaterTile(m)} end
+-- pared de catacumba: el techo (oscuro, con un filo claro donde termina) y la cara que da al pasillo
+local function wallTopTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"cs5")
+    for y=0,31 do for x=0,31 do if noise(x, y, 561) < 7 then G.px(x, y, "cs4") end end end
+    if mask & 1 == 0 then G.rect(0,0,31,1,"cs3") end
+    if mask & 2 == 0 then G.rect(30,0,31,31,"cs3") end
+    if mask & 8 == 0 then G.rect(0,0,1,31,"cs3") end
+    if mask & 4 == 0 then G.rect(0,31,31,31,"cs4") end
+  end
+end
+for m=0,15 do TILES[#TILES+1] = {"muroc_" .. m, wallTopTile(m)} end
+local function wallFace(side, extra)
+  return function(G)
+    G.rect(0,0,31,31,"cs2")
+    for y=0,31 do for x=0,31 do if noise(x, y, 571) < 9 then G.px(x, y, "cs1") end end end
+    for y=3,31,7 do G.rect(0,y,31,y,"cs4"); for x=((y // 7) % 2) * 8,31,16 do G.rect(x,y,x,y + 6,"cs4") end end
+    G.rect(0,0,31,2,"cs5"); G.rect(0,29,31,31,"cs4")
+    if side == "i" then G.rect(0,0,2,31,"cs4") end
+    if side == "d" then G.rect(29,0,31,31,"cs4") end
+    if extra then extra(G) end
+  end
+end
+TILES[#TILES+1] = {"muroc_cara_i", wallFace("i")}
+TILES[#TILES+1] = {"muroc_cara_c", wallFace("c")}
+TILES[#TILES+1] = {"muroc_cara_d", wallFace("d")}
+-- nicho con un cráneo y nicho con una vela encendida
+TILES[#TILES+1] = {"muroc_nicho", wallFace("c", function(G)
+  G.ellipse(16,13,8,6,"cs5"); G.rect(8,13,24,24,"cs5"); G.rect(8,24,24,25,"cs3"); skull(G, 13, 17)
+  G.px(10,23,"hu2"); G.px(21,22,"hu2"); G.px(22,23,"hu2")
+end)}
+TILES[#TILES+1] = {"muroc_vela", wallFace("c", function(G)
+  G.ellipse(16,13,8,6,"cs5"); G.rect(8,13,24,24,"cs5"); G.rect(8,24,24,25,"cs3")
+  G.ellipse(16,16,5,5,"te3"); G.ellipse(16,23,4,1,"cw2"); candle(G, 15, 22, 6); G.px(12,23,"cw1"); G.px(20,23,"cw1")
+end)}
+-- suelo de los combates: polvo de osario con cráneos chicos (el "pasto alto" de las Catacumbas)
+TILES[#TILES+1] = {"suelo_osario", function(G)
+  graveBase(G, 581)
+  for _,p in ipairs({{3,4},{17,2},{9,13},{24,12},{4,24},{18,22}}) do skull(G, p[1], p[2], "hu2") end
+  for _,b in ipairs({{12,6,4,false},{27,4,3,true},{14,17,5,false},{26,23,4,true},{10,28,6,false}}) do bone(G, b[1], b[2], b[3], b[4]) end
+end}
+-- losas de Vela Eterna: mármol pálido con un brillo azul en las juntas
+local function veiledSlab(G)
+  G.rect(0,0,31,31,"m2")
+  for y=0,31 do for x=0,31 do local n = noise(x, y, 591); if n < 8 then G.px(x, y, "m1") elseif n < 13 then G.px(x, y, "m3") end end end
+  G.rect(0,0,31,0,"m3"); G.rect(0,0,0,31,"m3"); G.rect(1,1,31,1,"m1"); G.rect(1,1,1,31,"m1")
+end
+TILES[#TILES+1] = {"losa_velada", veiledSlab}
+TILES[#TILES+1] = {"losa_velada_runa", function(G)
+  veiledSlab(G)
+  G.ellipse(16,16,8,8,"vl1"); G.ellipse(16,16,6,6,"m1"); candle(G, 15, 21, 6)
+end}
+-- puente de hueso y piedra sobre el río de almas, y el muelle del barquero sobre el lago negro
+local CAT_BRIDGES = {
+  {name="puentec", bg=soulWaterTile(15), shadow="al3",
+    deck=function(a, b) if a % 8 == 0 then return "cs4" end; if (b + (a // 8) * 4) % 8 == 0 then return "cs3" end; return noise(a, b, 595) < 6 and "cs1" or "cs2" end,
+    rail=function(d, i, post) if d == 0 or d == 3 then return "cs5" end; if post then return "hu1" end; return d == 1 and "hu2" or "hu3" end},
+  {name="muellec", bg=blackWaterTile(15), shadow="ag1",
+    deck=function(a, b) local p = a % 5; if p == 0 then return "bo3" end; if (b + (a // 5) * 13) % 29 == 0 then return "bo3" end; if p == 1 then return "bo1" end; return noise(a, b, 597) < 5 and "bo3" or "bo2" end,
+    rail=function(d, i, post) if post then return d == 0 and "cw2" or "bo3" end; if d == 1 then return "bo1" end; if d == 2 then return "bo3" end; return nil end},
+}
+for _, K in ipairs(CAT_BRIDGES) do for m = 0, 15 do TILES[#TILES+1] = {K.name .. "_" .. m, bridgeTile(K, m)} end end
+
+-- decoración pequeña
+deco("pila_craneos", function(G)
+  G.ellipse(16,28,12,3,"cs4")
+  for r=0,3 do for c=0,3 - r do skull(G, 5 + c * 6 + r * 3, 22 - r * 5, r % 2 == 0 and "hu1" or "hu2") end end
+end)
+deco("urna", function(G)
+  G.ellipse(16,28,9,3,"cs4"); G.ellipse(16,19,9,9,"te1"); G.ellipse(14,17,6,6,"md1"); G.rect(11,6,21,10,"te1"); G.rect(10,5,22,6,"te2")
+  G.rect(7,18,25,20,"vc1"); G.px(16,13,"cw1"); G.rect(12,24,20,27,"te2")
+end)
+deco("velas", function(G)
+  G.ellipse(16,26,11,3,"cw2"); G.ellipse(15,25,8,2,"cw1")
+  for _,c in ipairs({{8,26,7},{12,25,11},{17,26,14},{21,25,9},{25,26,5}}) do candle(G, c[1], c[2], c[3]) end
+end)
+deco("candelabro", function(G)
+  G.ellipse(16,29,7,2,"cs4"); G.rect(15,10,17,29,"sk"); G.rect(11,27,21,29,"sk"); G.rect(6,12,26,13,"sk")
+  for _,x in ipairs({6,15,25}) do G.rect(x - 1,10,x + 2,12,"sk"); candle(G, x, 9, 5) end
+end)
+deco("telarana", function(G)
+  for i=0,12 do G.px(i, i, "S"); G.px(i * 2, 0, "S"); G.px(0, i * 2, "S") end
+  for _,r in ipairs({5,9,13}) do for i=0,r do G.px(r - i, i, "s") end end
+end)
+deco("hongo_brillante", function(G)
+  for _,p in ipairs({{8,24,3},{18,27,4},{24,20,2},{13,16,2}}) do
+    G.rect(p[1],p[2] - p[3] + 1,p[1] + 1,p[2] + 1,"cw2"); G.ellipse(p[1] + 0.5,p[2] - p[3] + 1,p[3] + 1,p[3],"hgd")
+    G.px(p[1] - 1,p[2] - p[3],"hg1"); G.px(p[1] + 1,p[2] - p[3] - 1,"hg1")
+  end
+end)
+deco("cadenas", function(G)
+  for i=0,7 do G.ellipse(4 + i * 3, 18 + (i % 2), 2, 1, "sd"); G.px(4 + i * 3, 18 + (i % 2), "sk") end
+  G.ellipse(27,20,3,3,"sk"); G.ellipse(27,20,1,1,"cs2"); G.ellipse(5,13,3,3,"sk"); G.ellipse(5,13,1,1,"cs2")
+end)
+deco("lapida_c", function(G)
+  G.ellipse(16,29,9,2,"cs4"); G.ellipse(16,10,8,6,"cs2"); G.rect(8,10,24,28,"cs2"); G.rect(8,10,10,28,"cs1"); G.rect(22,10,24,28,"cs3")
+  G.rect(13,13,19,13,"cs4"); G.rect(15,11,17,20,"cs4"); G.rect(11,23,21,23,"cs3")
+end)
+
+-- objetos grandes
+addGrid("sarcofago", 2, 1, function(V)
+  V.ellipse(32,28,30,3,"cs4"); V.rect(3,6,60,26,"cs2"); V.rect(3,6,60,8,"cs1"); V.rect(3,24,60,26,"cs3")
+  V.rect(6,9,57,22,"cs1"); V.rect(6,22,57,22,"cs3")
+  -- la figura tallada en la tapa
+  V.ellipse(14,15,4,4,"cs2"); V.rect(18,12,48,18,"cs2"); V.rect(22,14,44,16,"cs3"); V.rect(48,13,54,17,"cs2"); V.px(13,14,"cs4"); V.px(15,14,"cs4")
+end)
+addGrid("ataud", 1, 2, function(V)
+  V.ellipse(16,60,12,3,"cs4")
+  V.rect(6,6,25,58,"bo3"); V.rect(8,8,23,56,"te3"); V.rect(6,6,25,7,"bo1")
+  skull(V, 13, 11, "hu2"); bone(V, 16, 20, 18, true); bone(V, 11, 26, 9, false); bone(V, 12, 44, 8, true); bone(V, 19, 44, 8, true)
+  V.rect(26,10,29,56,"bo2"); V.rect(26,10,26,56,"bo1")
+end)
+addGrid("estatua_velada", 1, 2, function(V)
+  V.ellipse(16,60,11,3,"cs4"); V.rect(5,50,26,60,"cs3"); V.rect(5,50,26,51,"cs2")
+  for y=14,50 do local half = math.floor(5 + (y - 14) * 0.18); V.rect(16 - half, y, 16 + half, y, (y // 6) % 2 == 0 and "cs1" or "cs2") end
+  V.ellipse(16,13,6,7,"cs2"); V.ellipse(16,15,4,4,"cs5"); V.px(14,15,"vl1"); V.px(18,15,"vl1")
+  V.rect(11,28,21,31,"cs1"); V.ellipse(16,30,3,2,"cw1"); candle(V, 15, 29, 4)
+end)
+addGrid("columna_cat", 1, 2, function(V)
+  V.ellipse(16,61,10,2,"cs4"); V.rect(5,54,26,61,"cs2"); V.rect(5,54,26,55,"cs1")
+  V.rect(8,10,23,54,"cs1"); V.rect(8,10,10,54,"cs2"); V.rect(20,10,23,54,"cs3")
+  for y=14,50,6 do V.rect(14,y,14,y + 3,"cs3") end
+  V.rect(5,4,26,10,"cs2"); V.rect(5,4,26,5,"cs1"); V.px(19,30,"cs4"); V.px(20,31,"cs4"); V.px(20,32,"cs4")
+end)
+addGrid("hongo_gigante", 2, 2, function(V)
+  V.ellipse(32,59,18,4,"te3"); V.rect(27,28,37,58,"cw2"); V.rect(27,28,29,58,"cw1"); V.rect(35,28,37,58,"cw3")
+  V.ellipse(32,22,28,16,"hgd"); V.ellipse(30,18,24,12,"hgp"); V.ellipse(32,32,24,4,"vc1")
+  for _,p in ipairs({{18,16},{30,10},{44,18},{24,24},{40,26},{12,24},{50,24}}) do V.ellipse(p[1],p[2],2,2,"hg1"); V.px(p[1],p[2],"W") end
+end)
+addGrid("altar_profanado", 2, 2, function(V)
+  V.ellipse(32,58,28,4,"cs4"); V.rect(6,28,57,56,"cs2"); V.rect(6,28,57,31,"cs1"); V.rect(6,52,57,56,"cs3")
+  for x=10,54,11 do V.rect(x,34,x,50,"cs3") end
+  -- el disco del eclipse, partido
+  V.ellipse(32,16,13,13,"ob1"); V.ellipse(32,16,10,10,"ob2"); V.ellipse(36,13,6,6,"obh"); V.ellipse(37,13,5,5,"ob2")
+  for i=0,12 do V.px(26 + i // 2, 4 + i * 2, "cs5") end
+  candle(V, 10, 27, 5); V.rect(48,25,54,26,"cw2"); V.px(55,24,"fl")
+end)
+addGrid("lampara_alma", 1, 2, function(V)
+  V.ellipse(16,61,8,2,"cs4"); V.rect(11,24,20,60,"cs2"); V.rect(11,24,13,60,"cs1"); V.rect(8,56,23,60,"cs3")
+  V.rect(7,6,24,24,"sk"); V.rect(9,8,22,22,"al3")
+  V.ellipse(16,16,5,6,"al1"); V.ellipse(16,17,3,4,"alh"); V.px(16,9,"vl1")
+  for _,x in ipairs({9,15,22}) do V.rect(x,6,x,24,"sk") end; V.rect(5,4,26,6,"sk"); V.px(16,2,"sk"); V.px(16,3,"sk")
+end)
+addGrid("barca", 2, 1, function(V)
+  blackWaterBase(V, 599)
+  V.ellipse(32,22,28,7,"ag1"); V.ellipse(32,17,28,8,"bo3"); V.ellipse(32,15,25,6,"bo1"); V.ellipse(32,16,21,4,"bo2")
+  V.rect(10,15,54,15,"bo3"); V.rect(50,2,51,14,"sk"); V.rect(46,2,51,3,"sk"); V.ellipse(46,6,2,3,"al1"); V.px(46,6,"alh")
+end)
+-- la Gran Vela de Vela Eterna: encendida hace mil años
+addGrid("gran_vela", 2, 3, function(V)
+  V.ellipse(32,92,30,4,"cs4"); V.rect(4,74,59,92,"cs2"); V.rect(4,74,59,76,"cs1"); V.rect(4,88,59,92,"cs3")
+  V.ellipse(32,74,22,5,"cw2"); V.ellipse(14,76,7,3,"cw1"); V.ellipse(48,77,6,2,"cw1")
+  V.rect(20,26,43,74,"cw1"); V.rect(38,26,43,74,"cw2"); V.rect(20,26,22,74,"W")
+  for _,d in ipairs({{24,40},{31,34},{40,48},{27,58}}) do V.rect(d[1],26,d[1] + 2,d[2],"cw2"); V.ellipse(d[1] + 1,d[2],2,2,"cw2") end
+  V.ellipse(32,26,12,3,"cw2"); V.rect(31,20,32,26,"sk")
+  V.ellipse(32,12,8,12,"fl"); V.ellipse(32,14,5,8,"Y"); V.ellipse(32,16,3,5,"W"); V.ellipse(32,18,2,3,"vl1")
+end)
+-- mausoleos de Vela Eterna: piedra clara, tejado de pizarra y ventanas con luz azul de alma
+local function blueWindow(V, x, y)
+  V.ellipse(x + 3, y, 4, 4, "cs3"); V.rect(x - 1, y, x + 7, y + 14, "cs3"); V.ellipse(x + 3, y + 1, 3, 3, "vl2"); V.rect(x, y + 1, x + 6, y + 13, "vl2")
+  V.rect(x + 1, y + 3, x + 2, y + 11, "vl1")
+end
+building("mausoleo", 3, 3, {wall="cripta", roof={"vc1","vc2"}, shadow="cs4", doorW=16, doorH=24, doorC="vc2", arch=true, noWin=true, extra=function(V, W, H, wt)
+  blueWindow(V, 14, wt + 12); blueWindow(V, W - 22, wt + 12)
+  V.ellipse(W // 2, wt + 8, 5, 5, "cw1"); V.rect(W // 2 - 1, wt + 3, W // 2, wt + 7, "fl")
+end})
+building("mausoleo_b", 3, 3, {wall="cripta", roof={"cs3","cs4"}, hip=true, shadow="cs4", doorW=14, doorH=22, doorC="vc2", arch=true, noWin=true, extra=function(V, W, H, wt)
+  blueWindow(V, 12, wt + 14); blueWindow(V, W - 20, wt + 14)
+  for _,x in ipairs({W // 2 - 20, W // 2 + 20}) do skull(V, x - 2, wt + 4) end
+end})
+-- la forja de hueso de Osmund: arde con fuego de alma, azul
+building("forja_hueso", 3, 3, {wall="cripta", roof={"cs4","cs5"}, shadow="cs4", doorW=24, doorH=22, doorC="cs5", noWin=true, extra=function(V, W, H, wt)
+  V.ellipse(W // 2, H - 14, 9, 6, "al1"); V.ellipse(W // 2, H - 15, 5, 3, "alh")
+  V.rect(W - 28, 2, W - 20, wt - 6, "cs4"); V.ellipse(W - 24, 2, 5, 3, "al1")
+  bone(V, 10, wt + 8, 14, false); bone(V, W - 26, wt + 8, 14, false); skull(V, 14, wt + 16); skull(V, W - 20, wt + 16)
+end})
+-- la casa de Ilse, la sepulturera: la única casa de los vivos (madera, humo y luz cálida)
+building("casa_ilse", 3, 3, {wall="oscuro", roof={"te1","te3"}, shadow="cs4", doorC="bo3", glow=true, chimney=true})
+-- el puesto de Hollin, el mercader de reliquias
+addGrid("puesto_reliquias", 2, 2, function(V)
+  V.ellipse(32,59,28,4,"cs4")
+  V.rect(6,34,57,55,"bo2"); V.rect(6,34,57,36,"bo1"); V.rect(6,52,57,55,"bo3")
+  V.rect(8,10,10,52,"bo3"); V.rect(53,10,55,52,"bo3")
+  for x=4,59 do local stripe = math.floor(x / 6) % 2 == 0; for y=6,16 do V.px(x, y, stripe and "vc1" or "vc2") end; if x % 6 < 3 then V.px(x, 17, stripe and "vc1" or "vc2") end end
+  skull(V, 14, 26); V.ellipse(30,30,4,4,"go"); V.ellipse(30,30,2,2,"god"); V.rect(40,25,47,33,"cs2"); V.rect(41,26,46,32,"vl2"); V.ellipse(52,31,3,3,"hgp")
+end)
+-- la entrada del Trono de Huesos: un arco de cráneos (se entra por el centro de abajo)
+addGrid("portal_trono", 3, 3, function(V)
+  V.ellipse(48,91,46,4,"cs4")
+  V.rect(4,20,91,92,"cs3"); V.rect(4,20,91,23,"cs2")
+  V.ellipse(48,62,22,26,"hu3"); V.rect(26,62,70,93,"hu3"); V.ellipse(48,64,18,22,"cs5"); V.rect(30,64,66,93,"cs5")
+  for a=0,14 do local t = math.pi * a / 14; skull(V, 46 + math.floor(math.cos(t) * 24), 60 - math.floor(math.sin(t) * 28), a % 2 == 0 and "hu1" or "hu2") end
+  for _,x in ipairs({10,78}) do for y=26,86,8 do skull(V, x, y, (y // 8) % 2 == 0 and "hu1" or "hu2"); skull(V, x + 6, y + 4, "hu2") end end
+  -- la corona de huesos y el eclipse
+  for _,x in ipairs({36,48,60}) do bone(V, x, 6, 12, true) end; V.rect(34,16,62,18,"hu2")
+  V.ellipse(48,40,6,6,"ob1"); V.ellipse(50,39,4,4,"obh"); V.ellipse(51,39,3,3,"ob1")
+end)
+-- escaleras de subida: a la Cripta Congelada (hielo) y a la Catedral de Aurelia (mármol y luz dorada)
+local function stairsUp(V, arch, archD, step, stepD, glow)
+  V.ellipse(48,91,46,4,"cs4")
+  V.rect(4,16,91,92,"cs5")
+  V.ellipse(48,50,40,42,arch); V.rect(8,50,87,93,arch); V.ellipse(48,54,30,34,"cs5"); V.rect(18,54,77,93,"cs5")
+  for i=0,7 do local y = 88 - i * 8; local half = 26 - i * 2; V.rect(48 - half, y - 5, 48 + half, y, i % 2 == 0 and step or stepD); V.rect(48 - half, y, 48 + half, y, archD) end
+  V.ellipse(48,26,12,8,glow)
+  V.rect(8,50,12,93,archD); V.rect(83,50,87,93,archD)
+end
+addGrid("escalera_helada", 3, 3, function(V)
+  stairsUp(V, "hl2", "hl3", "hl1", "lh2", "W")
+  for _,p in ipairs({{14,40},{78,36},{22,70},{74,66}}) do V.rect(p[1],p[2],p[1] + 2,p[2] + 8,"W"); V.px(p[1] + 1,p[2] + 9,"hl1") end
+end)
+addGrid("escalera_catedral", 3, 3, function(V)
+  stairsUp(V, "m1", "m3", "m2", "m3", "wn")
+  V.ellipse(48,24,8,5,"go"); V.rect(47,12,48,22,"go"); V.rect(42,15,53,16,"go")
+end)
+-- la Biblioteca Prohibida: estanterías de libros prohibidos (algunos brillan) y un atril con el libro abierto
+addGrid("estante_libros", 2, 2, function(V)
+  V.ellipse(32,61,30,3,"cs4"); V.rect(2,4,61,60,"bo3"); V.rect(4,6,59,58,"te3"); V.rect(2,4,61,6,"bo1")
+  for _,y in ipairs({20,36,52}) do V.rect(4,y,59,y + 2,"bo2") end
+  local cols = {"vc1","rd","pbd","pgd","md2","vc2","au"}
+  for r=0,2 do local y0 = 8 + r * 16
+    local x = 6
+    while x < 57 do local w = 3 + (noise(x, r, 607) % 3); local h = 9 + (noise(x, r, 608) % 4)
+      V.rect(x, y0 + 12 - h, x + w - 1, y0 + 11, cols[1 + (noise(x, r, 609) % #cols)]); V.px(x, y0 + 13 - h, "cw2"); x = x + w + 1 end
+  end
+  V.rect(20,24,23,35,"hgp"); V.px(21,25,"W"); V.rect(44,40,47,51,"al1"); V.px(45,41,"alh")
+end)
+deco("atril", function(G)
+  G.ellipse(16,29,7,2,"cs4"); G.rect(15,16,17,29,"bo3"); G.rect(11,27,21,29,"bo3")
+  G.rect(6,8,26,16,"bo2"); G.rect(7,7,15,14,"cw1"); G.rect(17,7,25,14,"cw1"); G.rect(16,7,16,15,"cw3")
+  for y=9,13,2 do G.rect(9,y,13,y,"cw3"); G.rect(19,y,23,y,"cw3") end; G.px(22,11,"hgp")
+end)
+-- en Aurelia: la cripta sellada al lado de la Catedral (una bajada con reja; se entra por el centro de abajo)
+addGrid("cripta_catedral", 3, 3, function(V)
+  V.ellipse(48,91,44,4,"k3")
+  V.rect(10,30,85,92,"m2"); V.rect(10,30,85,33,"m1"); V.rect(82,30,85,92,"m3")
+  for y=34,90,8 do V.rect(10,y,85,y,"m3") end
+  for y=8,30 do local half = math.floor((y - 8) * 2.0); V.rect(48 - half, y, 48 + half, y, (y // 3) % 2 == 0 and "m1" or "m2") end
+  V.ellipse(48,62,18,20,"m3"); V.rect(30,62,66,93,"m3"); V.ellipse(48,64,15,17,"cs5"); V.rect(33,64,63,93,"cs5")
+  for i=0,4 do local y = 70 + i * 5; V.rect(36 + i, y, 60 - i, y + 1, "cs3") end
+  for x=34,62,5 do V.rect(x,58,x,92,"sk") end; V.rect(32,66,64,67,"sk")
+  V.ellipse(48,20,5,5,"go"); V.rect(47,14,48,26,"go")
+end)
+
+
 local COLLIDE = {arbol=true, roca=true, arbusto=true, valla=true, agua=true, cartel=true, fogata=true, orilla_agua_arriba=true,
   arbol_grande_bi=true, arbol_grande_bd=true, carpa_ai=true, carpa_ad=true, carpa_bi=true, carpa_bd=true,
   puesto_ai=true, puesto_ad=true, puesto_bi=true, puesto_bd=true, yunque=true, barril=true, caja=true, farol=true}
@@ -2433,6 +2801,23 @@ for _, b in ipairs({{"casa_larga",4},{"casa_nortenia",3},{"posada_nortenia",4},{
 -- la Cripta Congelada: se entra por el centro de abajo
 for r=0,1 do for c=0,2 do COLLIDE[string.format("portal_cripta_%d_%d", r, c)] = true end end
 COLLIDE["portal_cripta_2_0"] = true; COLLIDE["portal_cripta_2_2"] = true
+
+-- v10 (Catacumbas): las paredes y las dos aguas chocan; la tierra, los huesos, los hongos y las losas se caminan
+for m=0,15 do COLLIDE["muroc_" .. m] = true; COLLIDE["aguan_" .. m] = true; COLLIDE["rioalma_" .. m] = true end
+for _, n in ipairs({"muroc_cara_i","muroc_cara_c","muroc_cara_d","muroc_nicho","muroc_vela",
+  "pila_craneos","urna","velas","candelabro","lapida_c"}) do COLLIDE[n] = true end
+bigCollide("estante_libros", 2, 2, 0); COLLIDE["atril"] = true
+bigCollide("sarcofago", 2, 1, 0); bigCollide("ataud", 1, 2, 0); bigCollide("altar_profanado", 2, 2, 0); bigCollide("barca", 2, 1, 0)
+bigCollide("estatua_velada", 1, 2, 1); bigCollide("columna_cat", 1, 2, 1); bigCollide("lampara_alma", 1, 2, 1)
+bigCollide("hongo_gigante", 2, 2, 1); bigCollide("puesto_reliquias", 2, 2, 1); bigCollide("gran_vela", 2, 3, 1)
+for _, n in ipairs({"estatua_velada","columna_cat","lampara_alma"}) do ABOVE[n .. "_0_0"] = true end
+for _, n in ipairs({"hongo_gigante","puesto_reliquias","gran_vela"}) do ABOVE[n .. "_0_0"] = true; ABOVE[n .. "_0_1"] = true end
+for _, b in ipairs({{"mausoleo",3},{"mausoleo_b",3},{"forja_hueso",3},{"casa_ilse",3}}) do bigCollide(b[1], b[2], 3, 1); aboveRows(b[1], b[2], 1) end
+-- el Trono de Huesos, las escaleras de subida y la cripta de la Catedral: se entra por el centro de abajo
+for _, n in ipairs({"portal_trono","escalera_helada","escalera_catedral","cripta_catedral"}) do
+  for r=0,1 do for c=0,2 do COLLIDE[string.format("%s_%d_%d", n, r, c)] = true end end
+  COLLIDE[n .. "_2_0"] = true; COLLIDE[n .. "_2_2"] = true
+end
 
 local COLS = 8
 local ROWS = math.ceil(#TILES / COLS)

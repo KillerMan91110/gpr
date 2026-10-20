@@ -21,8 +21,10 @@ import { tormentaMethods } from './world/tormenta';
 import { mareaMethods } from './world/marea';
 import { brasasMethods } from './world/brasas';
 import { frioMethods } from './world/frio';
+import { llamaMethods } from './world/llama';
 import { trackingMethods } from './world/tracking';
 import { escenaMethods } from './world/escena';
+import { enFase } from './story';
 import { escoltaMethods } from './world/escolta';
 
 // Mundo abierto continuo (estilo MMO): public/assets/mundo/etheria.json coloca cada zona
@@ -105,6 +107,7 @@ export default class WorldScene extends Phaser.Scene {
     this.load.spritesheet('recursos5', `${ASSETS}/mundo/recursos5.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos6', `${ASSETS}/mundo/recursos6.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos7', `${ASSETS}/mundo/recursos7.png`, { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('recursos8', `${ASSETS}/mundo/recursos8.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('mascotas', `${ASSETS}/mundo/mascotas.png`, { frameWidth: 24, frameHeight: 24 });
     this.load.spritesheet('f_mariposa', `${ASSETS}/mundo/fauna/mariposa.png`, { frameWidth: 8, frameHeight: 8 });
     this.load.spritesheet('f_pajaro', `${ASSETS}/mundo/fauna/pajaro.png`, { frameWidth: 16, frameHeight: 16 });
@@ -357,6 +360,8 @@ export default class WorldScene extends Phaser.Scene {
     this.exits = all.filter((o) => o.type === 'salida' && !this.zoneByDir[propOf(o, 'destino')]).map((o) => ({
       rect: new Phaser.Geom.Rectangle(o.x, o.y, o.width || 64, o.height || 32),
       dest: propOf(o, 'destino'), tx: propOf(o, 'x'), ty: propOf(o, 'y'), label: propOf(o, 'etiqueta'),
+      // un paso que se abre con la historia (game/story.js): mientras no, dice por qué está cerrado
+      fase: propOf(o, 'fase') ?? null, sellada: propOf(o, 'sellada') ?? null,
     }));
     this.exitsArmedAt = this.time.now + 1500;
     if (all.some((o) => ['ciudadano', 'pilar', 'cartel', 'palomas', 'gato', 'vinculo', 'estandarte', 'buzon'].includes(o.type))) this.city = new CityLife(this, all);
@@ -1138,6 +1143,17 @@ export default class WorldScene extends Phaser.Scene {
     if (!this.exits?.length || this.changingZone || time < this.exitsArmedAt) return;
     const { x, y } = this.player;
     const e = this.exits.find((ex) => Phaser.Geom.Rectangle.Contains(ex.rect, x, y + 8));
+    if (e?.fase && !enFase(this.storyState, e.fase)) {
+      this.exitsArmedAt = time + 2500;
+      this.stopPlayer();
+      // un paso atrás, al revés de hacia donde caminaba
+      const side = this.player.flipX ? [28, 0] : [-28, 0];
+      const back = { down: [0, -28], up: [0, 28], side }[this.facing] ?? [0, 28];
+      this.player.setPosition(this.player.x + back[0], this.player.y + back[1]);
+      audio.sfx('error');
+      bus.emit('social-toast', { text: e.sellada ?? 'El paso está cerrado.', kind: 'error' });
+      return;
+    }
     // la Cripta del Vigía puede estar sellada (se abre con la llave de Aldren): React le pregunta
     // al servidor y, si está abierta, manda 'cripta-abrir'; mientras, el héroe da un paso atrás
     if (isDungeon(e?.dest)) {
@@ -1332,7 +1348,7 @@ export default class WorldScene extends Phaser.Scene {
     this.updateSubzone();
     if (tile?.index === this.grassGid) audio.sfx('pasos');
     if (!tile || tile.index !== this.grassGid || this.time.now < this.graceUntil) return;
-    if (Math.random() >= this.grassChance) return;
+    if (Math.random() >= this.grassChance * this.darkEncounterMul()) return;
     this.encounterLock = true;
     this.lastEncounterMon = null;
     this.stopPlayer();
@@ -1448,6 +1464,8 @@ export default class WorldScene extends Phaser.Scene {
     this.updateEmbers(time);
     this.updateTide(time);
     this.updateCold(time, delta);
+    // la llama de las Catacumbas (world/llama.js)
+    this.updateLlama(time, delta);
     this.reportPosition(time);
     this.checkExits(time);
     this.checkRefuge(time);
@@ -1539,4 +1557,4 @@ export default class WorldScene extends Phaser.Scene {
 }
 
 // Partes de la escena que viven en su propio archivo (game/world/*)
-Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods, tormentaMethods, brasasMethods, mareaMethods, frioMethods, escenaMethods, escoltaMethods);
+Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods, tormentaMethods, brasasMethods, mareaMethods, frioMethods, llamaMethods, escenaMethods, escoltaMethods);

@@ -1,4 +1,4 @@
--- Efectos propios de cada habilidad de los monstruos (las 92 de todas las zonas): cada habilidad tiene
+-- Efectos propios de cada habilidad de los monstruos (las 105 de todas las zonas): cada habilidad tiene
 -- su animación de 8 cuadros de 64x64, con su forma y sus colores. Las usa game/BattleScene.js
 -- (fxMonsterSkill) según su modo:
 --   golpe      se dibuja sobre el objetivo (mordidas, zarpazos, estocadas, golpes): el monstruo se
@@ -595,10 +595,13 @@ local PAL = {
   ancla = { hex("e0e4ea"), hex("8a929c"), hex("3a3e48"), hex("4ab4e0") },
   polvo = { hex("f0e0c0"), hex("c8a878"), hex("7a6040"), hex("ffffff") },
   aurora = { hex("e0fff0"), hex("7af0b8"), hex("6a3ab8"), hex("b884ff") },
+  -- las Catacumbas del Abismo (zona 6): esporas de los hongos y el azul de las almas
+  espora = { hex("f0e8ff"), hex("c6a2ff"), hex("4c8a80"), hex("a4f4dc") },
+  alma = { hex("ffffff"), hex("8ae0f8"), hex("2a6e9a"), hex("c0f6ff") },
 }
 
 -- =====================================================================================
--- Las 92 habilidades: código, modo, mezcla (add = brilla; normal = tapa), generador, paleta, opciones
+-- Las 105 habilidades: código, modo, mezcla (add = brilla; normal = tapa), generador, paleta, opciones
 -- =====================================================================================
 local HAB = {}
 local function H(code, modo, mezcla, gen, pal, o) HAB[#HAB + 1] = { code = code, modo = modo, mezcla = mezcla, gen = gen, pal = PAL[pal], o = o or {} } end
@@ -708,6 +711,21 @@ H("ESCUDO_HIELO", "propio", "add", "escudo", "hielo", { forma = "hexagonos" })
 -- sobre un enemigo (sin daño) o un aliado
 H("MALDICION_OSCURA", "golpe", "add", "sello8", "sombra", {})
 H("RESURRECCION_SOMBRIA", "aliado", "add", "suben", "sombra", { sd = 7, extra = function(G, f, P) if f >= 2 then G.line(32, 52, 32, 52 - f * 8, P[1], 3) end end })
+
+-- las Catacumbas del Abismo (zona 6): al final, para no mover los cuadros de las de antes
+H("MORDISCO_PESTE", "golpe", "add", "mordida8", "infecto", { w = 14 })
+H("CHUPASANGRE", "golpe", "add", "mordida8", "sangre", { w = 12, teeth = hex("ffffff") })
+H("ESCUDO_HUESOS", "propio", "add", "escudo", "hueso", { forma = "huesos" })
+H("MORDISCO_PUTREFACTO", "golpe", "add", "mordida8", "veneno", { w = 18 })
+H("TELARANA_TUMBA", "proyectil", "normal", "proyectil8", "blanco", { forma = "chorro", impacto = "salpicadura" })
+H("NUBE_ESPORAS", "area", "add", "nube", "espora", { sd = 25, sube = 1 })
+H("CADENAS_ESPECTRALES", "golpe", "add", "sello8", "alma", {})
+H("DESGARRO_GUL", "golpe", "add", "zarpazo8", "sangre", { n = 3, w = 3 })
+H("GRITO_ALMA", "area", "add", "anillos", "alma", {})
+H("JUICIO_ECLIPSE", "proyectil", "add", "proyectil8", "oscuro", { forma = "sigilo", impacto = "explosion", r = 18 })
+H("TRAGAR", "golpe", "add", "mordida8", "tierra", { w = 26, teeth = hex("ffffff"), pesado = true })
+H("TAJO_SOMBRIO", "golpe", "add", "zarpazo8", "sombra", { n = 1, ang = 30, r = 26, w = 4 })
+H("SIEGA", "area", "add", "remolino", "sombra", {})
 
 -- =====================================================================================
 -- Lámina, .aseprite y json

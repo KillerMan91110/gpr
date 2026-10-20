@@ -110,6 +110,8 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
         setMessage({ ok: true, text: r?.message || `Usaste ${it.name}` });
         // comida con bonus: el HUD muestra "Bien alimentado" con su tiempo
         if (r?.foodBuff) bus.emit('food-buff', r.foodBuff);
+        // la Vela de Sebo: la llama de las Catacumbas vuelve a arder entera (game/world/llama.js)
+        if (r?.llama) bus.emit('llama-llena');
       } else {
         return;
       }

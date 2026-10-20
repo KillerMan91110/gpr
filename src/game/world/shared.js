@@ -17,6 +17,7 @@ export const DUNGEONS = {
   fisura: { min: 36, max: 42, codePrefix: 'FISURA_' },
   arrecife: { min: 52, max: 58, codePrefix: 'ARRECIFE_', bossCodes: ['SENOR_OCEANO'] },
   cripta_congelada: { min: 67, max: 73, codePrefix: 'CRIPTAH_' },
+  trono_huesos: { min: 80, max: 84, codePrefix: 'TRONOH_' },
 };
 export const isDungeon = (dir) => !!DUNGEONS[dir];
 export const SPEED = 110;
@@ -111,6 +112,13 @@ export const RESOURCES = {
   menhir_runas: { sheet: 'recursos7', frames: [8, 9], label: 'Desprender una runa del menhir', glint: 0x7af0f8 },
   restos_trineo: { sheet: 'recursos7', frames: [10, 11], label: 'Registrar el trineo abandonado', glint: 0xffd84a },
   cofre_tundra: { sheet: 'recursos', frames: [4, 5], label: 'Abrir el cofre', glint: 0xffd84a },
+  // Catacumbas del Abismo (art/sprites/mundo/crear_recursos8.lua)
+  pila_huesos: { sheet: 'recursos8', frames: [0, 1], label: 'Revolver la pila de huesos', glint: 0xece4cc },
+  setas_palidas: { sheet: 'recursos8', frames: [2, 3], label: 'Recoger las setas pálidas', glint: 0xa4f4dc },
+  veta_plata: { sheet: 'recursos8', frames: [4, 5], label: 'Picar la veta de plata sepulcral', glint: 0xe4e8f2 },
+  candelabro_olvidado: { sheet: 'recursos8', frames: [6, 7], label: 'Juntar la cera del candelabro', glint: 0xfff4c0 },
+  pozo_almas: { sheet: 'recursos8', frames: [8, 9], label: 'Llenar un frasco en el pozo de almas', glint: 0xc0f6ff },
+  sarcofago_tesoro: { sheet: 'recursos8', frames: [10, 11], label: 'Registrar el sarcófago', glint: 0xffd84a },
 };
 // mascotas.png: 2 frames por especie, en este orden
 export const PET_SPECIES = ['lobo', 'ave', 'limo', 'gato', 'dragon', 'zorro', 'tortuga', 'arana'];

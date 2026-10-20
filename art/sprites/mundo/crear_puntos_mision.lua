@@ -42,6 +42,9 @@ for k, v in pairs({
   ar1="eedcaa", ar2="d8c28c", ar3="b49c6a", ma1="2c7ea0", ma2="174c66",
   co1="f2aaa2", co2="d87c7a", lo1="4ab84a", lo2="2e7a34", lo3="e8c040", lo4="d84a3a",
   nc1="f4eef6", nc2="d6cce2", go1="ffd860", go2="c89a2a", vi1="3a6a98", es="f2fbf8",
+  -- Catacumbas del Abismo: piedra violácea, hierro oxidado, plata y los hongos que brillan
+  cs1="8e8898", cs2="6c6678", cs3="4e4a5a", ox1="b8743e", ox2="7e4426", ox3="4a2a18",
+  sx1="e4e8f2", sx2="a8aec0", sx3="6a7084", fu1="c6a2ff", fu2="7a5ab0", fu3="a4f4dc", mb1="4a3a30", mb2="2e241e",
 }) do PAL[k] = hex(v) end
 
 local function newGrid(W, H)
@@ -682,6 +685,38 @@ sprite("cria_mamut", 32, 32, function(G, f)
   G.thick(5, 19, 4, 25 - f, 2, "br2"); G.px(8, 20, "pa"); G.px(9, 20, "pa")
   G.thick(25, 17, 28, 20, 1, "br3")
   G.ellipse(16, 13, 5, 1.5, "sn1")
+end)
+
+-- ---------------------------------------------------------------- Catacumbas del Abismo
+-- la reja de los obispos: barrotes oxidados en un arco de piedra, con la marca de tiza de Ilse
+sprite("reja_oxidada", 32, 32, function(G, f)
+  G.ellipse(16, 30, 13, 2, "cs3")
+  G.rect(3, 6, 6, 30, "cs2"); G.rect(26, 6, 29, 30, "cs2"); G.ellipse(16, 7, 13, 5, "cs1"); G.rect(7, 7, 25, 9, "cs1")
+  for x = 8, 24, 4 do G.rect(x, 9, x + 1, 29, "ox2"); G.px(x, 10 + (x % 3) * 5, "ox1") end
+  G.rect(7, 15, 25, 16, "ox3"); G.rect(7, 24, 25, 25, "ox3"); G.rect(14, 18, 18, 21, "ox1"); G.px(16, 19, "K")
+  G.line(20, 18, 23, 21, f == 0 and "W" or "pa"); G.line(20, 21, 23, 18, f == 0 and "W" or "pa")
+end)
+-- el espejito de plata rajado, entre telarañas
+sprite("espejo_roto", 32, 32, function(G, f)
+  G.ellipse(16, 28, 10, 2.5, "cs3")
+  G.ellipse(15, 18, 8, 8, "sx2"); G.ellipse(15, 18, 6.5, 6.5, "aq2"); G.line(10, 14, 20, 23, "sx3"); G.line(15, 11, 13, 25, "sx3")
+  G.thick(20, 24, 26, 28, 2, "sx2"); G.px(12 + f, 14, "W"); G.px(13 + f, 15, "W")
+  for i = 0, 6 do G.px(2 + i * 2, 4 + i, "sn2"); G.px(28 - i, 3 + i * 2, "sn2") end
+end)
+-- una moneda de plata con agujero, medio enterrada en el barro de la orilla
+sprite("moneda_suelo", 32, 32, function(G, f)
+  G.ellipse(16, 24, 12, 5, "mb1"); G.ellipse(14, 23, 8, 3, "mb2")
+  G.ellipse(17, 20, 5, 4, "sx2"); G.ellipse(17, 19.5, 4, 3, "sx1"); G.ellipse(17, 19.5, 1, 1, "mb2")
+  if f == 0 then G.px(13, 16, "W"); G.px(12, 15, "W"); G.px(14, 15, "W") else G.px(21, 17, "W") end
+end)
+-- Trueno en el Jardín de Hongos, comiendo setas que brillan (y brillando él también)
+sprite("trueno_hongos", 32, 32, function(G, f)
+  for _, p in ipairs({{3, 27, 3}, {27, 26, 4}, {22, 29, 2}}) do
+    G.rect(p[1], p[2] - p[3], p[1] + 1, p[2], "pa"); G.ellipse(p[1] + 0.5, p[2] - p[3], p[3] + 1, p[3], "fu2"); G.px(p[1], p[2] - p[3] - 1, "fu3")
+  end
+  horse(G, 2, 0, f == 0 and 8 or 9, true)
+  for _, p in ipairs({{3, 15}, {14, 12}, {24, 13}, {9, 20}}) do G.px(p[1] + f, p[2], "fu3") end
+  G.px(3, 17 + f, "fu1")
 end)
 
 -- ---------------------------------------------------------------- salida

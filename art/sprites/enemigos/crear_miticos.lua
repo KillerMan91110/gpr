@@ -1,4 +1,4 @@
--- Jefes míticos de las Montañas, del Volcán, de las Costas y de la Tundra (gprback/lib/mythic.js) y sus esbirros:
+-- Jefes míticos de las Montañas, del Volcán, de las Costas, de la Tundra y de las Catacumbas (gprback/lib/mythic.js) y sus esbirros:
 --   mitico_truenocuerno  Truenocuerno, el Carnero de la Tormenta (Montañas), 64x64
 --   cabra_tronadora      Cabra Tronadora, su esbirro, 48x48
 --   mitico_ignivora      Ignivora, la Madre Salamandra (Volcán), 64x64
@@ -7,6 +7,8 @@
 --   cangrejo_ermitano    Cangrejo Ermitaño, su esbirro, 48x48: vive en una caracola
 --   mitico_hrimgar       Hrimgar, el Lobo de la Aurora Eterna (Tundra), 64x64: un lobo hecho de aurora
 --   lobezno_aurora       Lobezno de la Aurora, su esbirro, 48x48
+--   mitico_morgath       Morgath, la Polilla de la Vela Negra (Catacumbas), 64x64: una polilla enorme de sombra
+--   polilla_ceniza       Polilla de Ceniza, su esbirro, 48x48
 -- (Aullaluna, el de la Pradera, está en art/sprites/mundo/crear_coleccion.lua.)
 -- Mismo estilo que crear_enemigos_volcan.lua: se dibujan mirando a la derecha, contorno oscuro
 -- automático y se voltean (en combate miran a los héroes, a la izquierda).
@@ -38,9 +40,12 @@ for k, v in pairs({
   -- aurora (brilla), pelo blanco de la tundra y nieve
   au1="7af0b8", au2="b884ff", au3="3aa88a", au4="6a3ab8", st="ffffff",
   lb1="eef2f8", lb2="c4cedc", lb3="8e9aae", nv1="f2f6fc", nv2="d4e0ee", nv3="a8b8cc",
+  -- polilla de sombra (alas negras violáceas, ojos de las alas morados, llama azul que brilla), ceniza y losas
+  md1="4a4458", md2="342f40", md3="211e2a", mp1="e2a6ff", mp2="8a50d8", mf1="c0f6ff", mf2="4cbcdc",
+  as1="d8d0c4", as2="a8a094", as3="78706a", ls1="6c6678", ls2="4e4a5a",
 }) do C[k] = hex(v) end
 -- colores que brillan: no reciben contorno a su alrededor
-local GLOW = {K=true, f1=true, f2=true, f3=true, zz1=true, zz2=true, zz3=true, wa1=true, wa2=true, au1=true, au2=true, st=true}
+local GLOW = {K=true, f1=true, f2=true, f3=true, zz1=true, zz2=true, zz3=true, wa1=true, wa2=true, au1=true, au2=true, st=true, mp1=true, mf1=true}
 
 local function newGrid(W, H, ground)
   ground = ground or H - 1
@@ -446,6 +451,85 @@ local function lobezno(P)
   return G
 end
 
+-- Morgath, la Polilla de la Vela Negra (64x64): una polilla enorme hecha de sombra; en cada ala, un ojo
+-- morado y la silueta de una vela; antenas de pluma y ojos de llama azul. Busca la Gran Vela para apagarla
+local function morgath(P)
+  local G = newGrid(64, 64, 61)
+  local dx, b = P.dx or 0, P.bob or 0
+  local ph = P.phase or 0
+  G.ellipse(32, 60, 24, 3, "ls2"); G.ellipse(32, 59, 18, 2, "ls1")
+  if P.dead then
+    -- las alas caídas, deshechas en ceniza
+    G.ellipse(22,56,16,4,"md2"); G.ellipse(44,57,14,3,"md3"); G.ellipse(32,54,5,4,"md1")
+    for i=0,9 do G.px(8 + i * 5, 50 - (i % 3) * 2, i % 2 == 0 and "as1" or "as2") end
+    G.px(36,53,"mf2"); return G
+  end
+  -- aleteo: las alas suben (0) o bajan (1)
+  local up = (P.flap or (ph % 2)) == 0
+  local by = 30 + b
+  local function ala(cx, cy, rx, ry, tilt, back)
+    for i=-rx,rx do
+      local t = i / rx
+      local h = ry * math.sqrt(math.max(0, 1 - t * t))
+      local y0 = cy + t * tilt
+      G.rect(cx + i, y0 - h, cx + i, y0 + h * 0.6, back and "md3" or ((i + rx) % 7 < 2 and "md1" or "md2"))
+    end
+  end
+  -- alas de atrás (más oscuras) y de adelante
+  if up then
+    ala(20+dx, by - 12, 14, 12, 8, true); ala(42+dx, by - 14, 14, 12, -8, true)
+    ala(18+dx, by - 6, 15, 13, 6, false); ala(44+dx, by - 8, 15, 13, -6, false)
+  else
+    ala(18+dx, by + 6, 14, 10, -6, true); ala(44+dx, by + 6, 14, 10, 6, true)
+    ala(16+dx, by + 2, 15, 11, -4, false); ala(46+dx, by + 2, 15, 11, 4, false)
+  end
+  -- los ojos de las alas y la vela dibujada en cada una
+  for _, side in ipairs({{17, up and -8 or 2}, {45, up and -10 or 2}}) do
+    local x, y = side[1] + dx, by + side[2]
+    G.ellipse(x, y, 5, 4, "mp2"); G.ellipse(x, y, 3, 2.5, "mp1"); G.px(x, y, "md3")
+    G.rect(x - 1, y + 5, x + 1, y + 9, "as2"); G.px(x, y + 4, "mf1")
+  end
+  -- cuerpo peludo
+  G.ellipse(31+dx, by + 4, 5, 13, "md1"); for y=-6,14,4 do G.line(27+dx, by + y, 35+dx, by + y, "md3") end
+  -- cabeza, antenas de pluma y ojos de llama azul
+  local hx, hy = dx + (P.hx or 0), b + (P.hy or 0)
+  G.ellipse(34+hx, 12+hy, 6, 5, "md2")
+  for i=0,6 do G.px(30+hx - i, 6+hy - i, "md1"); G.px(30+hx - i, 4+hy - i, "as3"); G.px(38+hx + i, 6+hy - i, "md1"); G.px(38+hx + i, 4+hy - i, "as3") end
+  if P.pain then G.px(36+hx, 11+hy, "K"); G.px(38+hx, 11+hy, "K")
+  else G.ellipse(36+hx, 11+hy, 1.5, 1.5, "mf1"); G.ellipse(39+hx, 11+hy, 1.5, 1.5, "mf1") end
+  -- patas finas colgando
+  for _,x in ipairs({28, 32, 35}) do G.line(x+dx, by + 14, x+dx - 2, by + 20, "md3") end
+  if P.cast then
+    -- polvo de ceniza que cae de las alas
+    for _,q in ipairs({{6,40},{12,48},{20,44},{50,46},{56,40},{44,52},{30,50}}) do G.px(q[1], q[2] + ph, "as1"); G.px(q[1] + 1, q[2] + 2 + ph, "as2") end
+    G.ellipse(36+hx, 11+hy, 4, 3, "mf2"); G.ellipse(36+hx, 11+hy, 2, 1.5, "mf1")
+  end
+  if P.bite then for i=0,4 do G.line(44+dx, by + i * 3, 63, by - 6 + i * 4, i % 2 == 0 and "as2" or "md1") end end
+  return G
+end
+
+-- Polilla de Ceniza (48x48): gris, del tamaño de un perro, con polvo que cae al aletear
+local function polilla(P)
+  local G = newGrid(48, 48, 45)
+  local dx, b = P.dx or 0, P.bob or 0
+  local ph = P.phase or 0
+  G.ellipse(24, 45, 14, 2, "ls2")
+  if P.dead then G.ellipse(22,42,12,3,"as2"); G.ellipse(24,41,4,2,"as3"); for i=0,4 do G.px(10 + i * 6, 38 - (i % 2), "as1") end; return G end
+  local up = (ph % 2) == 0
+  local by = 22 + b
+  for _, w in ipairs({{12, up and -6 or 4}, {34, up and -6 or 4}}) do
+    G.ellipse(w[1]+dx, by + w[2], 10, up and 9 or 7, "as2"); G.ellipse(w[1]+dx, by + w[2], 7, up and 6 or 5, "as1")
+    G.ellipse(w[1]+dx, by + w[2] + 1, 2, 2, "as3")
+  end
+  G.ellipse(23+dx, by + 4, 3, 9, "as3"); for y=-2,10,3 do G.line(21+dx, by + y, 25+dx, by + y, "md2") end
+  local hx, hy = dx + (P.hx or 0), b + (P.hy or 0)
+  G.ellipse(25+hx, 12+hy, 4, 3, "as3")
+  for i=0,4 do G.px(22+hx - i, 8+hy - i, "as3"); G.px(28+hx + i, 8+hy - i, "as3") end
+  if P.pain then G.px(27+hx, 11+hy, "K") else G.px(27+hx, 11+hy, "mf1") end
+  if P.cast or P.snap then for _,q in ipairs({{8,34},{16,38},{30,36},{40,32}}) do G.px(q[1], q[2] + ph, "as1") end end
+  return G
+end
+
 local MONSTERS = {
   {key="mitico_truenocuerno", size=64, draw=truenocuerno, anims={
     {"idle",   {{bob=0,phase=0,dur=500},{bob=1,phase=1,dur=500}}},
@@ -500,6 +584,20 @@ local MONSTERS = {
     {"idle",   {{bob=0,phase=0,dur=380},{bob=-1,phase=1,dur=380}}},
     {"attack", {{bob=0,hx=-2,dur=200},{dx=3,snap=true,phase=1,dur=140},{dx=1,dur=220}}},
     {"cast",   {{bob=-1,dur=200},{cast=true,phase=0,dur=300},{cast=true,phase=1,dur=220}}},
+    {"hurt",   {{dx=-2,hy=-1,pain=true,dur=250}}},
+    {"die",    {{bob=1,pain=true,dur=200},{dead=true,dur=1000}}},
+  }},
+  {key="mitico_morgath", size=64, draw=morgath, anims={
+    {"idle",   {{bob=0,phase=0,dur=260},{bob=-2,phase=1,dur=260}}},
+    {"attack", {{bob=-2,hx=-2,phase=0,dur=220},{dx=4,bite=true,phase=1,dur=160},{dx=1,phase=0,dur=260}}},
+    {"cast",   {{bob=-2,phase=0,dur=220},{cast=true,phase=1,dur=320},{cast=true,phase=0,dur=260}}},
+    {"hurt",   {{dx=-3,pain=true,phase=1,dur=300}}},
+    {"die",    {{bob=3,pain=true,phase=1,dur=300},{dead=true,dur=1400}}},
+  }},
+  {key="polilla_ceniza", size=48, draw=polilla, anims={
+    {"idle",   {{bob=0,phase=0,dur=220},{bob=-2,phase=1,dur=220}}},
+    {"attack", {{bob=-1,hx=-2,phase=0,dur=200},{dx=4,snap=true,phase=1,dur=140},{dx=1,phase=0,dur=220}}},
+    {"cast",   {{bob=-2,phase=0,dur=200},{cast=true,phase=1,dur=300},{cast=true,phase=0,dur=220}}},
     {"hurt",   {{dx=-2,hy=-1,pain=true,dur=250}}},
     {"die",    {{bob=1,pain=true,dur=200},{dead=true,dur=1000}}},
   }},

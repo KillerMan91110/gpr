@@ -14,9 +14,9 @@ import { isDungeon } from '../../game/world/shared';
 import { rewindState } from '../../game/combatLog';
 import './Battle.css';
 
-const ZONE_BACKGROUND = { 1: 'pradera', 2: 'montanas', 3: 'volcan', 4: 'costas', 5: 'tundra' };
+const ZONE_BACKGROUND = { 1: 'pradera', 2: 'montanas', 3: 'volcan', 4: 'costas', 5: 'tundra', 6: 'catacumbas' };
 // mazmorras con fondo propio (las demás pelean sobre la piedra de la cripta)
-const DUNGEON_BACKGROUND = { fisura: 'fisura', arrecife: 'arrecife', cripta_congelada: 'cripta_congelada' };
+const DUNGEON_BACKGROUND = { fisura: 'fisura', arrecife: 'arrecife', cripta_congelada: 'cripta_congelada', trono_huesos: 'trono_huesos' };
 // combate en grupo: a partir de cuándo se puede saltar el turno de un compañero que no responde
 // (el servidor exige lo mismo, ver IDLE_TURN_MS en routes/combat.js) y cada cuánto se pregunta
 // por el estado mientras actúa otro (por si se pierde un aviso del socket)
@@ -553,7 +553,8 @@ export default function Battle({ game, encounter, heroBaseClass, onFinish }) {
     setMenu((m) => (m === 'items' ? null : 'items'));
     try {
       const inv = await api.getPlayerInventory(player.id, token);
-      setItems(inv.filter((i) => i.item_type === 'CONSUMABLE' && i.quantity > 0));
+      // la Vela de Sebo no sirve en combate: solo enciende la llama en el mapa (game/world/llama.js)
+      setItems(inv.filter((i) => i.item_type === 'CONSUMABLE' && i.quantity > 0 && i.code !== 'VELA_SEBO'));
     } catch {
       setItems([]);
     }

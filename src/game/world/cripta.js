@@ -341,5 +341,7 @@ export const criptaMethods = {
     for (const l of this.lights2) l.glow.setAlpha(l.tipo === 'faro' ? 0.32 + Math.sin(this.time.now / 700) * 0.08 : l.fire ? flicker : 0.85);
     this.heroLight.setPosition(this.player.x, this.player.y - 6).setScale(1.9).setAlpha(0.55);
     this.fireflies.emitting = false;
+    // en las Catacumbas la luz del héroe es su llama (world/llama.js)
+    this.applyLlamaLight();
   },
 };

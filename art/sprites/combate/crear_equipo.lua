@@ -59,6 +59,12 @@ local SETS = {
   {"reina",         {"f4f6ff","c4c8e8","7a80b0", "e8d4ff","a07ad8", "d8e8ff","9cb8e8","6a84c0","3a4c80", "ffffff","b8e8ff"}},
   -- Santuario del Quinto Sello nv 70: hielo viejo del Guardián con el cristal morado del eclipse
   {"guardian",      {"c4dcec","7aa0bc","3e5c78", "c8a0ff","7a4ac8", "6a8aa8","4a6a8a","2e4a66","1a2c40", "e2a6ff","8a50d8"}},
+  -- Catacumbas del Abismo nv 81: plata sepulcral pálida, tela de tumba gris violácea y el azul de las almas
+  {"sepulcral",     {"e4e8f2","a8aec0","6a7084", "c0f6ff","4cbcdc", "8e8898","6c6678","4e4a5a","2e2b36", "c0f6ff","4cbcdc"}},
+  -- Trono de Huesos nv 82: hueso marfil atado con oro y la gema morada del eclipse
+  {"trono",         {"f4ecd6","c6ba9a","8c7e66", "ffe08a","c89a2a", "ece4cc","c6ba9a","8c7e66","5a5040", "e2a6ff","8a50d8"}},
+  -- Sala del Sexto Sello nv 84: hueso negro del Centinela, tela de luto y la llama azul de su capucha
+  {"centinela",     {"5a5664","34303e","1c1a24", "c0f6ff","4cbcdc", "3a3644","26222e","18161e","0e0c12", "e0fbff","6ad0f0"}},
 }
 local WOOD = {"a8703c","6a4428"}
 local SET_INDEX = {}

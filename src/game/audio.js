@@ -191,6 +191,45 @@ const TRACKS = {
       ) },
     ],
   },
+  // las Catacumbas del Abismo: la menor, muy lento; un coro lejano de los Velados (notas largas y suaves),
+  // un bajo que casi no se mueve y una campana del templo que suena sola, de vez en cuando
+  catacumbas: {
+    bpm: 56,
+    voices: [
+      { wave: 'sine', gain: 0.15, steps: bars(
+        'A1 . . . . . . .', 'F1 . . . . . . .', 'D2 . . . . . . .', 'E2 . . . . . . .',
+        'A1 . . . . . . .', 'C2 . . . . . . .', 'D2 . . . B1 . . .', 'E2 . . . . . . .',
+      ) },
+      { wave: 'triangle', gain: 0.05, steps: bars(
+        'E4 . . . A4 . . .', 'C5 . . . A4 . . .', 'F4 . . . A4 . . .', 'G#4 . . . . . . .',
+        'A4 . . . C5 . . .', 'E5 . . . D5 . C5 .', 'D5 . . . B4 . . .', 'G#4 . . . E4 . . .',
+      ) },
+      { wave: 'sine', gain: 0.028, short: true, steps: bars(
+        'A5 - - - - - - -', '- - - - - - E6 -', '- - - - - - - -', 'B5 - - - - - - -',
+        '- - - - A5 - - -', '- - - - - - - -', '- - F5 - - - - -', 'E6 - - - - - - -',
+      ) },
+    ],
+  },
+  // el Trono de Huesos: do menor, marcha fúnebre de la corte del Lich; un órgano de templo grave, un
+  // tambor sordo cada compás y un coro de almas muy arriba que canta el himno de Aethra al revés
+  trono_huesos: {
+    bpm: 60,
+    drums: 'k - - - - - k -',
+    voices: [
+      { wave: 'sawtooth', gain: 0.05, steps: bars(
+        'C2 . . . . . . .', 'G#1 . . . . . . .', 'F1 . . . . . . .', 'G1 . . . . . . .',
+        'C2 . . . . . . .', 'D#2 . . . . . . .', 'F1 . . . G1 . . .', 'C2 . . . . . . .',
+      ) },
+      { wave: 'triangle', gain: 0.07, steps: bars(
+        'C4 . D#4 . G4 . . .', 'G#4 . . . G4 . F4 .', 'F4 . G#4 . C5 . . .', 'B3 . . . D4 . . .',
+        'G4 . F4 . D#4 . D4 .', 'D#4 . . . C4 . . .', 'G#3 . C4 . B3 . D4 .', 'C4 . . . - - - -',
+      ) },
+      { wave: 'sine', gain: 0.022, short: true, steps: bars(
+        '- - - - G5 - - -', '- - C6 - - - - -', '- - - - G#5 - - -', '- - B5 - - - - -',
+        '- - - - D#6 - - -', '- - C6 - - - - -', '- - - - D6 - - -', '- - G5 - - - - -',
+      ) },
+    ],
+  },
   batalla: {
     bpm: 150,
     drums: 'k h s h k k s h',

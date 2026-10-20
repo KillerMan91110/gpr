@@ -21,8 +21,8 @@ export const ATLAS_ZONES = {
   3: { dir: 'volcan', x: 420, y: 296, color: '#d0603a', icon: ['fireball', 'lorc'], route: 'Al sur de las Montañas Grises, bajando por el Paso del Humo. Ascuaria, la ciudad de los dracónidos, está sobre una meseta de basalto.' },
   4: { dir: 'costas', x: 420, y: 362, color: '#4a9cb8', icon: ['lighthouse', 'delapouite'], route: 'Al sur del Volcán Rojo, bajando por la Bajada de Basalto desde la Caldera del Titán. El Puerto Antiguo y los palafitos de Coralia están junto al mar.' },
   5: { dir: 'tundra', x: 520, y: 120, color: '#bfe2f2', icon: ['ice-bolt', 'lorc'], route: 'Lejos al noreste, al otro lado del Mar del Norte: solo se llega en el barco de Rhaegar, que zarpa del Puerto Antiguo. Fiordo Blanco, la ciudad de los norteños, está junto al muelle.' },
-  6: { x: 112, y: 298, color: '#7a5aa0', icon: ['ghost', 'lorc'], route: 'Al oeste, bajo las colinas que hay pasadas las Ruinas del Vigía.' },
-  7: { x: 96, y: 102, color: '#5fb39a', icon: ['crystal-ball', 'lorc'], route: 'En el extremo noroeste, al final de la Tundra.' },
+  6: { dir: 'catacumbas', x: 112, y: 298, color: '#7a5aa0', icon: ['ghost', 'lorc'], route: 'Bajo tierra: se baja por la escalera sellada del fondo de la Cripta Congelada, en la Tundra. Más adelante también por la cripta de la Catedral de Aurelia. Vela Eterna, la ciudad de los Velados, está en el medio.' },
+  7: { x: 96, y: 102, color: '#5fb39a', icon: ['crystal-ball', 'lorc'], route: 'Al lado de Aurelia, detrás del Velo de Aethra: una niebla que no deja pasar hasta reunir los siete Fragmentos.' },
 };
 
 // caminos entre zonas (para dibujarlos en el mapa)

@@ -69,6 +69,7 @@ rectT(18, 47, 21, 48, 'suelo'); // hueco de la Compuerta Helada
 rectT(7, 49, 32, 58, 'suelo'); // Tumba de la Reina
 rectT(17, 54, 22, 57, 'tumba');
 rectT(28, 49, 29, 49, 'escalera'); // subida a la Tundra (al vencer a Escarcha)
+rectT(13, 58, 14, 58, 'escalera'); // la escalera sellada que baja al abismo (las Catacumbas, zona 6)
 // grietas del abismo en la Cámara y en la tumba (lejos de las rondas)
 rectT(9, 39, 10, 39, 'abismo'); rectT(29, 46, 30, 46, 'abismo');
 rectT(7, 57, 9, 58, 'abismo'); rectT(30, 57, 32, 58, 'abismo');
@@ -144,6 +145,12 @@ const KEY = { brasero: [], guardian: [] };
 const vuelta = [prop('destino', 'string', 'tundra'), prop('x', 'int', TUNDRA_VUELTA.x), prop('y', 'int', TUNDRA_VUELTA.y), prop('etiqueta', 'string', 'Tundra Eterna')];
 pt({ name: 'salida_tundra', type: 'salida', x: px(18), y: px(3), width: 128, height: 32, properties: vuelta });
 pt({ name: 'salida_tumba', type: 'salida', x: px(28), y: px(49), width: 64, height: 32, properties: vuelta });
+// «la tumba de la reina baja al abismo»: la escalera del fondo lleva a las Catacumbas (generar_catacumbas.js),
+// sellada hasta que terminaste la T14 (cualquiera de las dos: El perdón o La justicia)
+pt({ name: 'bajada_catacumbas', type: 'salida', x: px(13), y: px(58), width: 64, height: 32, properties: [
+  prop('destino', 'string', 'catacumbas'), prop('x', 'int', 140), prop('y', 'int', 5), prop('etiqueta', 'string', 'Catacumbas del Abismo'),
+  prop('fase', 'string', 'TUNDRA_HISTORIA_14_PERDON|TUNDRA_HISTORIA_14_JUSTICIA'),
+  prop('sellada', 'string', 'Una losa de hielo cierra la escalera que baja al abismo. La reina guardaba algo más abajo… pero todavía no es tu momento.')] });
 // velas de control (orden 1 y 2): al encenderlas, si caes o sales, retomas desde ahí
 const vela = (orden, x, y, nombre) => { KEY.brasero.push({ orden, x, y }); pt({ name: `brasero_${orden}`, type: 'brasero', x: px(x), y: px(y), properties: [prop('orden', 'int', orden), prop('etiqueta', 'string', nombre)] }); };
 vela(1, 13, 9, 'Vela del Vestíbulo');

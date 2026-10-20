@@ -139,7 +139,8 @@ const DEFAULT_ZONE_DIR = 'aurelia';
 // [línea chica de arriba, nombre]: las zonas abiertas van sin línea chica (solo su nombre)
 const ZONE_TITLES = { aurelia: ['La capital', 'Aurelia'], pradera: ['', 'Pradera Dorada'], cripta: ['Mazmorra', 'La Cripta del Vigía'],
   montanas: ['', 'Montañas Grises'], mina_profunda: ['Mazmorra', 'La Mina Profunda'],
-  volcan: ['', 'Volcán Rojo'], fisura: ['Mazmorra', 'La Fisura Infernal'], costas: ['', 'Costas Muertas'], arrecife: ['Mazmorra', 'El Arrecife Hundido'], tundra: ['', 'Tundra Eterna'], cripta_congelada: ['Mazmorra', 'La Cripta Congelada'] };
+  volcan: ['', 'Volcán Rojo'], fisura: ['Mazmorra', 'La Fisura Infernal'], costas: ['', 'Costas Muertas'], arrecife: ['Mazmorra', 'El Arrecife Hundido'], tundra: ['', 'Tundra Eterna'], cripta_congelada: ['Mazmorra', 'La Cripta Congelada'],
+  catacumbas: ['Bajo tierra', 'Catacumbas del Abismo'], trono_huesos: ['Mazmorra', 'El Trono de Huesos'] };
 // recorrido del guía Tomás por Aurelia (lugar, posición en píxeles y qué hay ahí)
 const AURELIA_TOUR = [
   { name: 'Catedral de Aethra', x: 59.5 * 32, y: 16 * 32, info: 'Aquí te curan y aquí despiertas si caes en combate.' },
@@ -253,6 +254,20 @@ export default function World() {
       desc: cold.aqui
         ? 'Fuera de Fiordo Blanco el frío te va quitando el calor (más rápido de noche y con nevada). Las hogueras y la comida lo recuperan.'
         : 'Aquí estás a resguardo: recuperas el calor.' });
+  // la llama de las Catacumbas (game/world/llama.js): { luz, aOscuras, aqui } o null fuera de ellas
+  const [llama, setLlama] = useState(null);
+  useEffect(() => {
+    const onLlama = (l) => setLlama(l);
+    bus.on('llama', onLlama);
+    return () => bus.off('llama', onLlama);
+  }, []);
+  const llamaBuff = llama && (llama.aOscuras
+    ? { id: 'llama', icon: ['candle-skull', 'lorc'], label: '0%', bad: true, name: 'A oscuras',
+      desc: 'Tu llama se apagó: ves mucho menos y los muertos te encuentran antes. Acércate a una lámpara de alma o enciende una Vela de Sebo.' }
+    : { id: 'llama', icon: ['candle-light', 'lorc'], label: `${llama.luz}%`, bad: llama.luz <= 25, name: `Llama: ${llama.luz}%`,
+      desc: llama.aqui
+        ? 'Fuera de Vela Eterna tu llama se va gastando. Las lámparas de alma la encienden otra vez y la Vela de Sebo la llena donde sea.'
+        : 'Aquí la luz es segura: tu llama vuelve a arder.' });
   const hudBuffs = [
     ...buffs,
     ...(foodMin > 0 ? [{
@@ -260,6 +275,7 @@ export default function World() {
       desc: `Tus combates empiezan con ${food.text}. Quedan ${foodMin} min.`,
     }] : []),
     ...(coldBuff ? [coldBuff] : []),
+    ...(llamaBuff ? [llamaBuff] : []),
   ];
   // barra de lanzamiento (recolectar): { label, ms, key }
   const [cast, setCast] = useState(null);
@@ -647,6 +663,17 @@ export default function World() {
         const r = await api.trineo(player.id, o.destino, token);
         audio.sfx('monedas');
         bus.emit('social-toast', { text: `🐕 ¡Agárrate fuerte! Los perros te llevan a ${r.nombre}.`, kind: 'tour' });
+        loadHud();
+        bus.emit('zone-change', { zoneDir: r.zona, x: r.x, y: r.y });
+      } catch (err) {
+        audio.sfx('error');
+        bus.emit('social-toast', { text: err.message, kind: 'error' });
+      }
+    } else if (o.action === 'barca') {
+      try {
+        const r = await api.barca(player.id, o.destino, token);
+        audio.sfx('monedas');
+        bus.emit('social-toast', { text: `🛶 Óbolo empuja la barca con la pértiga. El agua negra no hace ruido. Te deja en ${r.nombre}.`, kind: 'tour' });
         loadHud();
         bus.emit('zone-change', { zoneDir: r.zona, x: r.x, y: r.y });
       } catch (err) {

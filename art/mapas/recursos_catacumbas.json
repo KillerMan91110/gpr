@@ -1,0 +1,132 @@
+[
+ {
+  "id": "huesos_escalera",
+  "tipo": "pila_huesos",
+  "spots": 2
+ },
+ {
+  "id": "cera_escalera",
+  "tipo": "candelabro_olvidado",
+  "spots": 2
+ },
+ {
+  "id": "huesos_osario",
+  "tipo": "pila_huesos",
+  "spots": 4
+ },
+ {
+  "id": "sarcofago_osario",
+  "tipo": "sarcofago_tesoro",
+  "spots": 1
+ },
+ {
+  "id": "cera_galeria",
+  "tipo": "candelabro_olvidado",
+  "spots": 2
+ },
+ {
+  "id": "huesos_galeria",
+  "tipo": "pila_huesos",
+  "spots": 1
+ },
+ {
+  "id": "huesos_cripta",
+  "tipo": "pila_huesos",
+  "spots": 2
+ },
+ {
+  "id": "cera_cripta",
+  "tipo": "candelabro_olvidado",
+  "spots": 2
+ },
+ {
+  "id": "setas_cripta",
+  "tipo": "setas_palidas",
+  "spots": 1
+ },
+ {
+  "id": "cera_nichos",
+  "tipo": "candelabro_olvidado",
+  "spots": 2
+ },
+ {
+  "id": "huesos_nichos",
+  "tipo": "pila_huesos",
+  "spots": 2
+ },
+ {
+  "id": "setas_nichos",
+  "tipo": "setas_palidas",
+  "spots": 1
+ },
+ {
+  "id": "setas_jardin",
+  "tipo": "setas_palidas",
+  "spots": 4
+ },
+ {
+  "id": "setas_lago",
+  "tipo": "setas_palidas",
+  "spots": 2
+ },
+ {
+  "id": "sarcofago_lago",
+  "tipo": "sarcofago_tesoro",
+  "spots": 1
+ },
+ {
+  "id": "cera_santuario",
+  "tipo": "candelabro_olvidado",
+  "spots": 2
+ },
+ {
+  "id": "sarcofago_santuario",
+  "tipo": "sarcofago_tesoro",
+  "spots": 1
+ },
+ {
+  "id": "plata_abismo",
+  "tipo": "veta_plata",
+  "spots": 4
+ },
+ {
+  "id": "pozo_rio",
+  "tipo": "pozo_almas",
+  "spots": 4
+ },
+ {
+  "id": "setas_rio",
+  "tipo": "setas_palidas",
+  "spots": 1
+ },
+ {
+  "id": "plata_biblioteca",
+  "tipo": "veta_plata",
+  "spots": 2
+ },
+ {
+  "id": "cera_biblioteca",
+  "tipo": "candelabro_olvidado",
+  "spots": 2
+ },
+ {
+  "id": "huesos_antesala",
+  "tipo": "pila_huesos",
+  "spots": 2
+ },
+ {
+  "id": "sarcofago_antesala",
+  "tipo": "sarcofago_tesoro",
+  "spots": 1
+ },
+ {
+  "id": "plata_sello",
+  "tipo": "veta_plata",
+  "spots": 2
+ },
+ {
+  "id": "sarcofago_sello",
+  "tipo": "sarcofago_tesoro",
+  "spots": 1
+ }
+]

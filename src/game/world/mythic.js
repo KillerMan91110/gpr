@@ -22,6 +22,8 @@ const THEMES = {
   costas: { glow: 0x62c6e8, tag: '#b8f0ff', mote: 0x8ae0ec, minion: 0xe8704a, fog: 0xc8dcdc, print: 0x8ad8d0 },
   // la Tundra: aurora verde y morada
   tundra: { glow: 0x7af0b8, tag: '#c8ffe4', mote: 0xb884ff, minion: 0x7af0b8, fog: 0xd8e4f4, print: 0x9af0c8 },
+  // las Catacumbas: los ojos morados de Morgath y la ceniza gris de sus polillas
+  catacumbas: { glow: 0xc6a2ff, tag: '#e8d0ff', mote: 0xd8d0c4, minion: 0xa8a094, fog: 0x2e2b36, print: 0xc6a2ff },
 };
 const themeOf = (zoneDir) => THEMES[zoneDir] ?? THEMES.pradera;
 

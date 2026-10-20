@@ -1,0 +1,317 @@
+{
+ "nombre": "Catacumbas del Abismo",
+ "zona": 6,
+ "interior": true,
+ "musica": "catacumbas",
+ "tileset": "pradera",
+ "terrenos": [
+  "losac",
+  "muroc",
+  "tierrac",
+  "huesosc",
+  "hongos",
+  "aguan",
+  "rioalma",
+  "osario",
+  "losavel",
+  "puentec",
+  "muellec",
+  "abismo",
+  "colgante"
+ ],
+ "tile": 32,
+ "chunkWidth": 40,
+ "chunkHeight": 30,
+ "columns": 4,
+ "rows": 4,
+ "encuentroHierba": 0.06,
+ "gidHierba": 6,
+ "inicio": {
+  "x": 3216,
+  "y": 1520
+ },
+ "clima": {
+  "estacion": "interior",
+  "lluvia": 0
+ },
+ "gids": {
+  "flores": [
+   145,
+   146,
+   147,
+   3
+  ],
+  "agua": [
+   31,
+   32,
+   33,
+   34,
+   35,
+   36,
+   37,
+   38,
+   39,
+   40,
+   41,
+   42,
+   43,
+   44,
+   45,
+   46
+  ],
+  "prado": [
+   1,
+   2,
+   97,
+   98,
+   99,
+   100,
+   101,
+   102,
+   103,
+   104,
+   105,
+   106,
+   107,
+   108,
+   109,
+   110,
+   111,
+   112
+  ],
+  "arboles": [
+   47,
+   48,
+   174,
+   175
+  ],
+  "dorados": [
+   178,
+   179
+  ],
+  "seco": [
+   81,
+   82,
+   83,
+   84,
+   85,
+   86,
+   87,
+   88,
+   89,
+   90,
+   91,
+   92,
+   93,
+   94,
+   95,
+   96
+  ]
+ },
+ "subzonas": [
+  {
+   "name": "Vela Eterna",
+   "x0": 2560,
+   "y0": 960,
+   "x1": 3840,
+   "y1": 1920,
+   "levels": null,
+   "safe": true
+  },
+  {
+   "name": "Escalera Helada",
+   "x0": 3840,
+   "y0": 0,
+   "x1": 5120,
+   "y1": 960,
+   "levels": "76-77"
+  },
+  {
+   "name": "Osario de los Reyes",
+   "x0": 3840,
+   "y0": 960,
+   "x1": 5120,
+   "y1": 1920,
+   "levels": "77-79"
+  },
+  {
+   "name": "Galería de las Máscaras",
+   "x0": 3840,
+   "y0": 1920,
+   "x1": 5120,
+   "y1": 2880,
+   "levels": "77-79"
+  },
+  {
+   "name": "Cripta de la Catedral",
+   "x0": 2560,
+   "y0": 2880,
+   "x1": 5120,
+   "y1": 3840,
+   "levels": "77-79"
+  },
+  {
+   "name": "Nichos de los Sacerdotes",
+   "x0": 2560,
+   "y0": 1920,
+   "x1": 3840,
+   "y1": 2880,
+   "levels": "78-80"
+  },
+  {
+   "name": "Jardín de Hongos",
+   "x0": 1280,
+   "y0": 1920,
+   "x1": 2560,
+   "y1": 2880,
+   "levels": "79-81"
+  },
+  {
+   "name": "Santuario Profanado",
+   "x0": 1280,
+   "y0": 960,
+   "x1": 2560,
+   "y1": 1920,
+   "levels": "80-82"
+  },
+  {
+   "name": "Lago Negro",
+   "x0": 0,
+   "y0": 2880,
+   "x1": 2560,
+   "y1": 3840,
+   "levels": "80-83"
+  },
+  {
+   "name": "Abismo de las Almas",
+   "x0": 2560,
+   "y0": 0,
+   "x1": 3840,
+   "y1": 960,
+   "levels": "81-83"
+  },
+  {
+   "name": "Río de las Almas",
+   "x0": 0,
+   "y0": 1920,
+   "x1": 1280,
+   "y1": 2880,
+   "levels": "82-84"
+  },
+  {
+   "name": "Biblioteca Prohibida",
+   "x0": 1280,
+   "y0": 0,
+   "x1": 2560,
+   "y1": 960,
+   "levels": "82-84"
+  },
+  {
+   "name": "Antesala del Trono",
+   "x0": 0,
+   "y0": 960,
+   "x1": 1280,
+   "y1": 1920,
+   "levels": "83-85"
+  },
+  {
+   "name": "Sala del Sexto Sello",
+   "x0": 0,
+   "y0": 0,
+   "x1": 1280,
+   "y1": 960,
+   "levels": "84-85"
+  },
+  {
+   "name": "Catacumbas del Abismo",
+   "x0": 0,
+   "y0": 0,
+   "x1": 5120,
+   "y1": 3840,
+   "levels": "76-85"
+  }
+ ],
+ "editado": true,
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 1,
+   "cy": 0,
+   "file": "chunk_1_0.json"
+  },
+  {
+   "cx": 2,
+   "cy": 0,
+   "file": "chunk_2_0.json"
+  },
+  {
+   "cx": 3,
+   "cy": 0,
+   "file": "chunk_3_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
+  },
+  {
+   "cx": 1,
+   "cy": 1,
+   "file": "chunk_1_1.json"
+  },
+  {
+   "cx": 2,
+   "cy": 1,
+   "file": "chunk_2_1.json"
+  },
+  {
+   "cx": 3,
+   "cy": 1,
+   "file": "chunk_3_1.json"
+  },
+  {
+   "cx": 0,
+   "cy": 2,
+   "file": "chunk_0_2.json"
+  },
+  {
+   "cx": 1,
+   "cy": 2,
+   "file": "chunk_1_2.json"
+  },
+  {
+   "cx": 2,
+   "cy": 2,
+   "file": "chunk_2_2.json"
+  },
+  {
+   "cx": 3,
+   "cy": 2,
+   "file": "chunk_3_2.json"
+  },
+  {
+   "cx": 0,
+   "cy": 3,
+   "file": "chunk_0_3.json"
+  },
+  {
+   "cx": 1,
+   "cy": 3,
+   "file": "chunk_1_3.json"
+  },
+  {
+   "cx": 2,
+   "cy": 3,
+   "file": "chunk_2_3.json"
+  },
+  {
+   "cx": 3,
+   "cy": 3,
+   "file": "chunk_3_3.json"
+  }
+ ]
+}

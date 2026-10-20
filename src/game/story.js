@@ -14,6 +14,8 @@
 //                   !CODE@2 = no está en el paso 2: Ren no está en su puesto mientras lo escoltas)
 //
 // Varias condiciones separadas por coma deben cumplirse todas: "MONTANAS_HISTORIA_02_ORCOS,!MONTANAS_SEC_OLLA".
+// Dentro de una condición, "|" es «una u otra»: "TUNDRA_HISTORIA_14_PERDON|TUNDRA_HISTORIA_14_JUSTICIA"
+// (cualquiera de las dos misiones de la elección).
 // En el mapa va en la propiedad "fase" del punto; "requiere" (= CODE) y "oculto_tras" (= !CODE) siguen
 // funcionando igual que antes.
 
@@ -32,6 +34,7 @@ export function makeStory(doneCodes, activeQuests) {
 function cumple(story, cond) {
   const c = cond.trim();
   if (!c) return true;
+  if (c.includes('|')) return c.split('|').some((alt) => cumple(story, alt));
   if (c.startsWith('!')) return !cumple(story, c.slice(1));
   const [code, how] = c.split('@');
   if (!how) return story.done.has(code);

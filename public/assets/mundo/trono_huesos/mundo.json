@@ -1,0 +1,116 @@
+{
+ "nombre": "El Trono de Huesos",
+ "zona": 6,
+ "interior": true,
+ "mazmorra": "trono_huesos",
+ "musica": "trono_huesos",
+ "tileset": "trono_huesos",
+ "terrenos": [
+  "suelo",
+  "muro",
+  "abismo",
+  "puente",
+  "puentev",
+  "escalera",
+  "tumba"
+ ],
+ "tile": 32,
+ "mazmorraArte": {
+  "brasero": "vela_negra",
+  "puerta": "puerta_hueso",
+  "luzPuerta": 12646143,
+  "accion": "Encender"
+ },
+ "chunkWidth": 40,
+ "chunkHeight": 30,
+ "columns": 1,
+ "rows": 2,
+ "encuentroHierba": 0,
+ "gidHierba": 0,
+ "inicio": {
+  "x": 640,
+  "y": 208
+ },
+ "clima": {
+  "estacion": "interior",
+  "lluvia": 0
+ },
+ "gids": {
+  "flores": [],
+  "agua": [],
+  "prado": [],
+  "arboles": [],
+  "dorados": [],
+  "seco": []
+ },
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
+  }
+ ],
+ "subzonas": [
+  {
+   "name": "Arco de Cráneos",
+   "x0": 416,
+   "y0": 96,
+   "x1": 864,
+   "y1": 480,
+   "levels": "80-84"
+  },
+  {
+   "name": "Galería del Bufón",
+   "x0": 128,
+   "y0": 480,
+   "x1": 1152,
+   "y1": 768,
+   "levels": "80-84"
+  },
+  {
+   "name": "Puente de Costillas",
+   "x0": 128,
+   "y0": 768,
+   "x1": 1152,
+   "y1": 960,
+   "levels": "80-84"
+  },
+  {
+   "name": "Salón de las Ofrendas",
+   "x0": 320,
+   "y0": 960,
+   "x1": 1088,
+   "y1": 1248,
+   "levels": "80-84"
+  },
+  {
+   "name": "Cámara de la Doncella",
+   "x0": 288,
+   "y0": 1248,
+   "x1": 992,
+   "y1": 1568,
+   "levels": "80-84"
+  },
+  {
+   "name": "Sala del Trono",
+   "x0": 224,
+   "y0": 1568,
+   "x1": 1056,
+   "y1": 1888,
+   "levels": "80-84"
+  },
+  {
+   "name": "El Trono de Huesos",
+   "x0": 0,
+   "y0": 0,
+   "x1": 1280,
+   "y1": 1920,
+   "levels": null
+  }
+ ]
+}

@@ -18,6 +18,8 @@ export const RESOURCE_FRAMES = {
   poza_marea: ['recursos6', 8], concha_gigante: ['recursos6', 10], cofre_costas: ['recursos', 4],
   veta_hielo: ['recursos7', 0], flor_escarcha: ['recursos7', 2], pino_blanco: ['recursos7', 4], agujero_pesca: ['recursos7', 6],
   menhir_runas: ['recursos7', 8], restos_trineo: ['recursos7', 10], cofre_tundra: ['recursos', 4],
+  pila_huesos: ['recursos8', 0], setas_palidas: ['recursos8', 2], veta_plata: ['recursos8', 4], candelabro_olvidado: ['recursos8', 6],
+  pozo_almas: ['recursos8', 8], sarcofago_tesoro: ['recursos8', 10],
 };
 
 export const POINT_STYLE = {
@@ -60,7 +62,7 @@ export class Renderer {
   constructor(canvas, images) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
-    this.images = images; // { tiles, recursos, recursos2, …, recursos7, aspas, npc: { nombre: img } }
+    this.images = images; // { tiles, recursos, recursos2, …, recursos8, aspas, npc: { nombre: img } }
     this.zone = null;
     this.view = { x: 0, y: 0, zoom: 1 };
     this.opts = { grid: true, encima: true, puntos: true, subzonas: false, paso: false, chunks: true };

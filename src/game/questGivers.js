@@ -186,4 +186,16 @@ export const NPC_LUGAR = {
   ren_tundra: 'el Bosque de Pinos Blancos',
   trineo_aldea: 'la parada de trineos de la Aldea de los Mamuts',
   trineo_campamento: 'la parada de trineos del Campamento de los Cazadores',
+  // Catacumbas del Abismo (Vela Eterna y alrededores)
+  liora: 'la Gran Vela de Vela Eterna',
+  aldren_vela: 'la Gran Vela de Vela Eterna',
+  velkan_vela: 'la Gran Vela de Vela Eterna',
+  velkan_herido: 'el altar del Santuario Profanado',
+  osmund: 'la Forja de Hueso de Vela Eterna',
+  ilse: 'la casa de Ilse, en Vela Eterna',
+  mercader_vela: 'la plaza de Vela Eterna',
+  obolo: 'el muelle de Vela Eterna',
+  barca_lago: 'el muelle del Lago Negro',
+  barca_rio: 'la orilla del Río de las Almas',
+  osvaldo: 'los Nichos de los Sacerdotes',
 };

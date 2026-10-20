@@ -7309,6 +7309,1808 @@
           "loop": false
         }
       }
+    },
+    "RATA_OSARIO": {
+      "name": "Rata de Osario",
+      "rank": "comun",
+      "sheet": "enemigos/rata_osario.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            440,
+            440
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            160,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "MURCIELAGO_VAMPIRO": {
+      "name": "Murciélago Vampiro",
+      "rank": "comun",
+      "sheet": "enemigos/murcielago_vampiro.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            260,
+            260
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            180,
+            150,
+            220
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            200,
+            300,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            250
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            200,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "ESQUELETO_GUERRERO": {
+      "name": "Esqueleto Guerrero",
+      "rank": "comun",
+      "sheet": "enemigos/esqueleto_guerrero.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            480,
+            480
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            240,
+            170,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            200,
+            320,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "ZOMBIE_ANCIANO": {
+      "name": "Zombie Anciano",
+      "rank": "comun",
+      "sheet": "enemigos/zombie_anciano.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            440,
+            440
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            160,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "ARANA_TUMBA": {
+      "name": "Araña de Tumba",
+      "rank": "comun",
+      "sheet": "enemigos/arana_tumba.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            440,
+            440
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            160,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "HONGO_PALIDO": {
+      "name": "Hongo Pálido",
+      "rank": "comun",
+      "sheet": "enemigos/hongo_palido.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            440,
+            440
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            160,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "FANTASMA_ENCADENADO": {
+      "name": "Fantasma Encadenado",
+      "rank": "comun",
+      "sheet": "enemigos/fantasma_encadenado.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            420,
+            420
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            170,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "GUL_HAMBRIENTO": {
+      "name": "Gul Hambriento",
+      "rank": "comun",
+      "sheet": "enemigos/gul_hambriento.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            440,
+            440
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            160,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "CADAVER_REANIMADO": {
+      "name": "Cadáver Reanimado",
+      "rank": "comun",
+      "sheet": "enemigos/cadaver_reanimado.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            440,
+            440
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            160,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "ALMA_EN_PENA": {
+      "name": "Alma en Pena",
+      "rank": "comun",
+      "sheet": "enemigos/alma_en_pena.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            400,
+            400
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            200,
+            170,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "SACERDOTE_MALDITO": {
+      "name": "Sacerdote Maldito",
+      "rank": "comun",
+      "sheet": "enemigos/sacerdote_maldito.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            440,
+            440
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            160,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "INQUISIDOR_ECLIPSE": {
+      "name": "Inquisidor del Eclipse",
+      "rank": "comun",
+      "sheet": "enemigos/inquisidor_eclipse.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            440,
+            440
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            160,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "GUSANO_CRIPTA": {
+      "name": "Gusano de las Criptas",
+      "rank": "raro",
+      "sheet": "enemigos/gusano_cripta.png",
+      "frameSize": {
+        "w": 56,
+        "h": 56
+      },
+      "anchor": {
+        "x": 28,
+        "y": 54
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            420,
+            420
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            240,
+            180,
+            260
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            300,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            280
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            260,
+            1200
+          ],
+          "loop": false
+        }
+      }
+    },
+    "CABALLERO_SIN_ROSTRO": {
+      "name": "Caballero sin Rostro",
+      "rank": "raro",
+      "sheet": "enemigos/caballero_sin_rostro.png",
+      "frameSize": {
+        "w": 56,
+        "h": 56
+      },
+      "anchor": {
+        "x": 28,
+        "y": 54
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            500,
+            500
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            240,
+            170,
+            260
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            280
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            260,
+            1200
+          ],
+          "loop": false
+        }
+      }
+    },
+    "GUARDIAN_ABISMO": {
+      "name": "Guardián del Abismo",
+      "rank": "miniboss",
+      "sheet": "enemigos/guardian_abismo.png",
+      "frameSize": {
+        "w": 64,
+        "h": 64
+      },
+      "anchor": {
+        "x": 32,
+        "y": 62
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            560,
+            560
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            300,
+            180,
+            300
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            340,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            300
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            300,
+            1300
+          ],
+          "loop": false
+        }
+      }
+    },
+    "ARCHIMAGO_CORRUPTO": {
+      "name": "Archimago Corrupto",
+      "rank": "miniboss",
+      "sheet": "enemigos/archimago_corrupto.png",
+      "frameSize": {
+        "w": 64,
+        "h": 64
+      },
+      "anchor": {
+        "x": 32,
+        "y": 62
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            520,
+            520
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            260,
+            220,
+            260
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            240,
+            360,
+            260
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            300
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            300,
+            1300
+          ],
+          "loop": false
+        }
+      }
+    },
+    "CENTINELA_MUERTE": {
+      "name": "Centinela de la Muerte",
+      "rank": "miniboss",
+      "sheet": "enemigos/centinela_muerte.png",
+      "frameSize": {
+        "w": 64,
+        "h": 64
+      },
+      "anchor": {
+        "x": 32,
+        "y": 62
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            600,
+            600
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            300,
+            200,
+            300
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            240,
+            340,
+            260
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            320
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            320,
+            1400
+          ],
+          "loop": false
+        }
+      }
+    },
+    "LICH_ANCESTRAL": {
+      "name": "Lich Ancestral",
+      "rank": "jefe",
+      "sheet": "enemigos/lich_ancestral.png",
+      "frameSize": {
+        "w": 64,
+        "h": 64
+      },
+      "anchor": {
+        "x": 32,
+        "y": 62
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            600,
+            600
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            300,
+            200,
+            300
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            240,
+            360,
+            260
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            320
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            320,
+            1400
+          ],
+          "loop": false
+        }
+      }
+    },
+    "VELKAN": {
+      "name": "Velkan, el Encapuchado",
+      "rank": "raro",
+      "sheet": "enemigos/velkan.png",
+      "frameSize": {
+        "w": 56,
+        "h": 56
+      },
+      "anchor": {
+        "x": 28,
+        "y": 54
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            460,
+            460
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            160,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1200
+          ],
+          "loop": false
+        }
+      }
+    },
+    "TRONOH_BUFON": {
+      "name": "Bufón de Hueso",
+      "rank": "raro",
+      "sheet": "enemigos/tronoh_bufon.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1,
+            2
+          ],
+          "durations": [
+            300,
+            300,
+            300
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            3,
+            4,
+            5
+          ],
+          "durations": [
+            200,
+            160,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            6,
+            7,
+            8
+          ],
+          "durations": [
+            220,
+            300,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            9
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            10,
+            11
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "TRONOH_GUARDIA": {
+      "name": "Guardia Real Esquelética",
+      "rank": "raro",
+      "sheet": "enemigos/tronoh_guardia.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            520,
+            520
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            260,
+            180,
+            260
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "TRONOH_DONCELLA": {
+      "name": "Doncella Velada",
+      "rank": "raro",
+      "sheet": "enemigos/tronoh_doncella.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            420,
+            420
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            170,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1300
+          ],
+          "loop": false
+        }
+      }
+    },
+    "TRONOH_COLOSO": {
+      "name": "Coloso de Huesos",
+      "rank": "jefe",
+      "sheet": "enemigos/tronoh_coloso.png",
+      "frameSize": {
+        "w": 64,
+        "h": 64
+      },
+      "anchor": {
+        "x": 32,
+        "y": 62
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            620,
+            620
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            320,
+            200,
+            320
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            240,
+            340,
+            260
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            320
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            320,
+            1500
+          ],
+          "loop": false
+        }
+      }
+    },
+    "MITICO_MORGATH": {
+      "name": "Morgath, la Polilla de la Vela Negra",
+      "rank": "mitico",
+      "sheet": "enemigos/mitico_morgath.png",
+      "frameSize": {
+        "w": 64,
+        "h": 64
+      },
+      "anchor": {
+        "x": 32,
+        "y": 62
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            260,
+            260
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            160,
+            260
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            260
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            300
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            300,
+            1400
+          ],
+          "loop": false
+        }
+      }
+    },
+    "POLILLA_CENIZA": {
+      "name": "Polilla de Ceniza",
+      "rank": "raro",
+      "sheet": "enemigos/polilla_ceniza.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            220,
+            220
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            200,
+            140,
+            220
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            200,
+            300,
+            220
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            250
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            200,
+            1000
+          ],
+          "loop": false
+        }
+      }
     }
   }
 }

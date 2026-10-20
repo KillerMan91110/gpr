@@ -92,6 +92,8 @@ for _, e in ipairs({
   {"Hn","e8dcc0"},{"Hnd","b8a888"},{"Ey","f0c040"},{"Ab","d8c060"},{"Cs","5a5e6a"},{"Csd","3a3e48"},
   -- tritones (Costas Muertas): piel verde agua con escamas, aletas azules en vez de orejas y ojos grandes
   {"Tr","7ac4b4"},{"Trd","4e9688"},{"Tf","5ab0d8"},{"Tfd","2e78a8"},
+  -- Velados (Catacumbas del Abismo): espíritus de piel azul pálida con los ojos encendidos; y hueso
+  {"Vs","c4dae6"},{"Vsd","8ea6b8"},{"Ve","8ae0f8"},{"Bo","e8dcc0"},{"Bod","b4a484"},
 }) do C[e[1]] = hex(e[2]) end
 
 -- st: skin/skinD, hair/hairD, style (corto|largo|mono|calvo|capucha|gorra|casco|sombrero|mago), top/topD/topL,
@@ -138,6 +140,7 @@ local function headFront(G, st, bob)
     G.rect(12,13+bob,13,14+bob,"Ey"); G.rect(18,13+bob,19,14+bob,"Ey"); G.px(13,13+bob,"E"); G.px(13,14+bob,"E"); G.px(18,13+bob,"E"); G.px(18,14+bob,"E")
     G.px(11,16+bob,"f"); G.px(20,16+bob,"f"); G.px(10,12+bob,"f"); G.px(21,12+bob,"f")
   end
+  if st.race == "esqueleto" then G.rect(12,16+bob,19,16+bob,"K"); for x=12,19,2 do G.px(x,16+bob,"Bo") end; G.px(15,15+bob,"K"); G.px(16,15+bob,"K") end
 end
 
 local function headBack(G, st, bob)
@@ -247,7 +250,8 @@ end
 
 -- color de piel del personaje (los dibujos usan F/f)
 local function skin(G, st)
-  local map = {F = st.skin or "F", f = st.skinD or "f"}
+  -- eyesWalk: color de los ojos al caminar (los Velados brillan; el esqueleto tiene las cuencas vacías)
+  local map = {F = st.skin or "F", f = st.skinD or "f", E = st.eyesWalk or "E"}
   for k, c in pairs(G.g) do if map[c] then G.g[k] = map[c] end end
 end
 
@@ -319,6 +323,11 @@ local function portrait(st)
     G.rect(25,31,28,35,"Ey"); G.rect(37,31,40,35,"Ey"); G.rect(26,31,26,35,"K"); G.rect(38,31,38,35,"K")
     G.rect(29,38,30,38,skd); G.rect(34,38,35,38,skd)
   end
+  if st.race == "esqueleto" then
+    G.rect(30,36,34,38,"K"); G.rect(25,41,39,44,sk); G.rect(25,42,39,42,"K"); for x=26,38,3 do G.rect(x,41,x,44,"K") end
+    G.rect(19,30,20,36,skd)
+  end
+  if st.race == "velado" then G.px(24,29,"Ve"); G.px(41,29,"Ve"); G.rect(26,32,27,33,"W"); G.rect(38,32,39,33,"W") end
   return G
 end
 
@@ -449,6 +458,21 @@ local NPCS = {
   -- Kari y Leif, los hermanos de Skadi que conducen los trineos (la Aldea de los Mamuts y el Campamento)
   npc_kari = {race="humano", style="mono", hair="Hd", hairD="K", top="Cr", topD="r", topL="R", vest="Cw", pants="Cn", boots="b", belt="N", skin=N, skinD=Nd},
   npc_leif = {race="humano", style="gorra", hat="Cw", hatD="T", hair="Hd", beard="Hd", top="Cg", topD="g", topL="Gh", vest="Cw", pants="Cn", boots="b", belt="N", skin=N, skinD=Nd},
+  -- Catacumbas del Abismo: los Velados de Vela Eterna (espíritus azul pálido de ojos encendidos) y los vivos
+  -- Liora, la Primera Vela: capucha y túnica blancas con ribete de oro
+  npc_liora = {race="velado", style="capucha", hair="Cw", hairD="Hs", top="Cw", topD="Hs", topL="W", robe=true, trim="go", neck="go", skin="Vs", skinD="Vsd", eyesWalk="Ve", eyes="Ve"},
+  -- Osmund, el herrero velado: capucha gris, barba blanca y delantal de cuero de campanero
+  npc_osmund = {race="velado", style="capucha", hair="Cs", hairD="Csd", beard="Hs", top="Cs", topD="Csd", topL="sd", apron="N", pants="Csd", boots="b", belt="b", skin="Vs", skinD="Vsd", eyesWalk="Ve", eyes="Ve"},
+  -- Óbolo, el barquero: túnica negra con ribete morado
+  npc_obolo = {race="velado", style="capucha", hair="Hd", hairD="K", top="Hd", topD="K", topL="L", robe=true, trim="Cp", neck="Cp", skin="Vs", skinD="Vsd", eyesWalk="Ve", eyes="Ve"},
+  -- Ilse, la sepulturera: rodete gris, vestido marrón y delantal blanco (la única que cocina)
+  npc_ilse = {race="humano", style="mono", hair="Hg", hairD="sd", top="Cn", topD="b", topL="N", apron="Cw", pants="Cn", boots="b", belt="b", skin=P, skinD=Pd},
+  -- Hollin, el mercader de reliquias: sombrero de ala ancha, chaleco y camisa morada de saqueador elegante
+  npc_hollin = {race="humano", style="sombrero", hat="Cn", hatD="b", hair="Hd", top="Cp", topD="v", topL="Vh", vest="N", pants="Hd", boots="b", belt="go", skin=D, skinD=Dd},
+  -- Don Osvaldo, el portero del templo que no sabe que murió: casco viejo, casaca roja y tabardo amarillo
+  npc_osvaldo = {race="esqueleto", style="casco", hat="R", top="Cr", topD="r", topL="R", tabard="Cy", pants="Cn", boots="b", belt="b", skin="Bo", skinD="Bod", eyesWalk="K", eyes="K"},
+  -- Velkan, el Encapuchado: capa gris oscura con capucha y ribete morado; los ojos de Aldren
+  npc_velkan = {race="humano", style="capucha", hair="L", hairD="l", top="L", topD="l", topL="Lh", robe=true, trim="Cp", neck="Cp", skin=P, skinD=Pd},
 }
 -- solo=npc_a,npc_b genera solo esos (para no rehacer los que ya tienen retoques)
 local solo = app.params.solo

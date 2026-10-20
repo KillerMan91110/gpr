@@ -14,7 +14,9 @@ export const TERRAIN_LIST = ['pasto', 'dorado', 'camino', 'agua', 'hierba', 'pla
   // v8 (Costas Muertas)
   'arena', 'arenan', 'pastoc', 'coral', 'barro', 'bajo', 'mar', 'banco', 'hierbac', 'muelle',
   // v9 (Tundra Eterna)
-  'nieveh', 'fiordo', 'musgo', 'losah', 'muellen', 'lago'];
+  'nieveh', 'fiordo', 'musgo', 'losah', 'muellen', 'lago',
+  // v10 (Catacumbas del Abismo)
+  'losac', 'tierrac', 'huesosc', 'hongos', 'aguan', 'rioalma', 'muroc', 'osario', 'losavel', 'puentec', 'muellec'];
 
 // Pinceles de terreno de la paleta (orden y nombre que se ven)
 export const TERRAIN_BRUSHES = [
@@ -71,9 +73,20 @@ export const TERRAIN_BRUSHES = [
   { id: 'losah', label: 'Losas de hielo', icon: 'losa_hielo' },
   { id: 'muellen', label: 'Muelle nevado', icon: 'muellen_10' },
   { id: 'lago', label: 'Hielo del lago (se camina, resbala)', icon: 'lago_15' },
+  { id: 'losac', label: 'Losas de catacumba', icon: 'losa_catacumba' },
+  { id: 'muroc', label: 'Pared de catacumba', icon: 'muroc_cara_c' },
+  { id: 'tierrac', label: 'Tierra de tumba', icon: 'tierrac_15' },
+  { id: 'huesosc', label: 'Huesos regados', icon: 'huesosc_15' },
+  { id: 'osario', label: 'Polvo de osario (combates)', icon: 'suelo_osario' },
+  { id: 'hongos', label: 'Hongos pálidos', icon: 'hongos_15' },
+  { id: 'aguan', label: 'Agua negra', icon: 'aguan_15' },
+  { id: 'rioalma', label: 'Río de almas', icon: 'rioalma_15' },
+  { id: 'puentec', label: 'Puente de hueso', icon: 'puentec_10' },
+  { id: 'muellec', label: 'Muelle del barquero', icon: 'muellec_10' },
+  { id: 'losavel', label: 'Losas de Vela Eterna', icon: 'losa_velada' },
 ];
 
-const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_(\d+|[hv])|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_(\d+|[hv])|caminor_\d+|roca_(\d+|grava|musgo)|nieve_(\d+|huellas)|abismo_\d+|hielo_\d+|mesetan_\d+|cara_n_[ab]_[icd]|colgante_(\d+|[hv])|hierba_nevada|basalto(_grieta)?|ceniza_(\d+|pomez|huellas)|lava_\d+|azufre_\d+|quemado_\d+|obsidiana_\d+|caminov_\d+|mesetav_\d+|cara_v_[ab]_[icd]|hierba_quemada|losa_basalto(_runa)?|puente_basalto_(\d+|[hv])|arena(_conchas|_huellas)?|arenan_\d+|pastoc_\d+|coral_\d+|barro_\d+|caminoc_\d+|bajo_\d+|mar_\d+|banco(_alta)?|hierba_salada|muelle_\d+|nieveh_\d+|fiordo_\d+|musgo_\d+|losa_hielo(_runa)?|muellen_\d+|lago_\d+)$/;
+const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_(\d+|[hv])|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_(\d+|[hv])|caminor_\d+|roca_(\d+|grava|musgo)|nieve_(\d+|huellas)|abismo_\d+|hielo_\d+|mesetan_\d+|cara_n_[ab]_[icd]|colgante_(\d+|[hv])|hierba_nevada|basalto(_grieta)?|ceniza_(\d+|pomez|huellas)|lava_\d+|azufre_\d+|quemado_\d+|obsidiana_\d+|caminov_\d+|mesetav_\d+|cara_v_[ab]_[icd]|hierba_quemada|losa_basalto(_runa)?|puente_basalto_(\d+|[hv])|arena(_conchas|_huellas)?|arenan_\d+|pastoc_\d+|coral_\d+|barro_\d+|caminoc_\d+|bajo_\d+|mar_\d+|banco(_alta)?|hierba_salada|muelle_\d+|nieveh_\d+|fiordo_\d+|musgo_\d+|losa_hielo(_runa)?|muellen_\d+|lago_\d+|losa_catacumba(_b|_cera)?|tierrac_\d+|huesosc_\d+|hongos_\d+|aguan_\d+|rioalma_\d+|muroc_(\d+|cara_[icd]|nicho|vela)|suelo_osario|losa_velada(_runa)?|puentec_\d+|muellec_\d+)$/;
 
 // (y en la Tundra: el camino entre la nieve profunda o el musgo también lleva orilla de roca)
 const MOUNTAIN = ['roca', 'nieve', 'mesetan', 'hierban', 'abismo', 'hielo', 'nieveh', 'musgo', 'lago'];
@@ -84,6 +97,18 @@ const COAST = ['arena', 'arenan', 'pastoc', 'coral', 'barro', 'bajo', 'mar', 'ba
 
 export function terrainOfName(name) {
   if (!name) return 'pasto';
+  // v10 (Catacumbas): antes que las reglas generales (losa_catacumba no es losa)
+  if (/^losa_catacumba/.test(name)) return 'losac';
+  if (/^tierrac_/.test(name)) return 'tierrac';
+  if (/^huesosc_/.test(name)) return 'huesosc';
+  if (/^hongos_/.test(name)) return 'hongos';
+  if (/^aguan_/.test(name)) return 'aguan';
+  if (/^rioalma_/.test(name)) return 'rioalma';
+  if (/^muroc_/.test(name)) return 'muroc';
+  if (name === 'suelo_osario') return 'osario';
+  if (/^losa_velada/.test(name)) return 'losavel';
+  if (/^puentec_/.test(name)) return 'puentec';
+  if (/^muellec_/.test(name)) return 'muellec';
   // v9 (Tundra): antes que las reglas generales (losa_hielo no es losa, muellen no es muelle)
   if (/^nieveh_/.test(name)) return 'nieveh';
   if (/^fiordo_/.test(name)) return 'fiordo';
@@ -163,6 +188,9 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
   const randomAsh = () => { const r = Math.random(); return r < 0.06 ? T.ceniza_pomez : r < 0.1 ? T.ceniza_huellas : T.ceniza_15; };
   const basaltFamily = new Set([T.basalto, T.basalto_grieta].filter(Boolean));
   const sandFamily = new Set([T.arena, T.arena_conchas, T.arena_huellas].filter(Boolean));
+  const catSlabFamily = new Set([T.losa_catacumba, T.losa_catacumba_b, T.losa_catacumba_cera].filter(Boolean));
+  const randomCatSlab = () => { const r = Math.random(); return r < 0.07 ? T.losa_catacumba_b : r < 0.12 ? T.losa_catacumba_cera : T.losa_catacumba; };
+  const wallFaceFamily = new Set([T.muroc_cara_c, T.muroc_nicho, T.muroc_vela].filter(Boolean));
   const randomSand = () => { const r = Math.random(); return r < 0.05 ? T.arena_conchas : r < 0.08 ? T.arena_huellas : T.arena; };
 
   const randomPasto = () => {
@@ -253,6 +281,31 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
       case 'losah': return [T.losa_hielo, T.losa_hielo_runa].includes(cur) ? cur : (Math.random() < 0.06 ? T.losa_hielo_runa : T.losa_hielo);
       case 'muellen': return T[`muellen_${mask((n) => n !== 'fiordo')}`];
       case 'lago': return T[`lago_${mask((n) => n === 'lago')}`];
+      // v10 (Catacumbas): como en art/mapas/generar_catacumbas.js. La tierra, los huesos y el osario se
+      // funden entre sí (el borde de losa solo aparece contra las losas)
+      case 'losac': return catSlabFamily.has(cur) ? cur : randomCatSlab();
+      case 'tierrac': return T[`tierrac_${mask((n) => ['tierrac', 'huesosc', 'osario', null].includes(n))}`];
+      case 'huesosc': return T[`huesosc_${mask((n) => ['huesosc', 'tierrac', 'osario', null].includes(n))}`];
+      case 'hongos': return T[`hongos_${mask((n) => n === 'hongos' || n === null)}`];
+      case 'aguan': return T[`aguan_${mask((n) => ['aguan', 'muellec', 'puentec', null].includes(n))}`];
+      case 'rioalma': return T[`rioalma_${mask((n) => ['rioalma', 'puentec', 'muellec', null].includes(n))}`];
+      case 'puentec': return T[`puentec_${mask((n) => n !== 'rioalma' && n !== 'aguan')}`];
+      case 'muellec': return T[`muellec_${mask((n) => n !== 'aguan' && n !== 'rioalma')}`];
+      case 'osario': return T.suelo_osario;
+      case 'losavel': return [T.losa_velada, T.losa_velada_runa].includes(cur) ? cur : (Math.random() < 0.08 ? T.losa_velada_runa : T.losa_velada);
+      case 'muroc': {
+        // la pared que da a un pasillo (abajo no hay pared) muestra su cara, con nichos; el resto es techo
+        const below = tAt(x, y + 1);
+        if (below !== 'muroc' && below !== null) {
+          const sideOk = (n) => n === 'muroc' || n === null;
+          if (!sideOk(tAt(x - 1, y))) return T.muroc_cara_i;
+          if (!sideOk(tAt(x + 1, y))) return T.muroc_cara_d;
+          if (wallFaceFamily.has(cur)) return cur;
+          const r = Math.random();
+          return r < 0.12 ? T.muroc_nicho : r < 0.2 ? T.muroc_vela : T.muroc_cara_c;
+        }
+        return T[`muroc_${mask((n) => n === 'muroc' || n === null)}`];
+      }
       case 'agua': return T[`agua_${mask(isWater)}`];
       case 'puente': return bridge('puente', 'agua', () => (isWater(tAt(x - 1, y)) && isWater(tAt(x + 1, y)) ? T.puente_v : T.puente_h));
       case 'hierba': return T.hierba_alta;
