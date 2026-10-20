@@ -1,15 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { api } from '../../api/client';
 import bus from '../../game/bus';
-import { ATLAS_ZONES, ATLAS_ROADS, ZONE_EXITS, CONTINENT_PATH } from '../../game/atlas';
+import { ATLAS_ZONES, ZONE_EXITS } from '../../game/atlas';
 import GameIcon from '../GameIcon';
 import { MythicMark } from './coleccionArt';
 import './BestiarioPanel.css';
 import FloatingPanel from './FloatingPanel';
 import { ORDENES, emblemaDe, ordenDe } from './OrderPanel';
 import './MapPanel.css';
+import WorldAtlas from './WorldAtlas';
 
 // Mapa (M). Pestaña "Zona": el mapa entero de la zona donde estás (como el minimapa, pero
 // completo) con las subzonas y sus niveles, NPCs, jefes, salidas y tu posición en vivo.
@@ -302,109 +300,6 @@ function ZoneMap({ onWorld, orden, coop }) {
           <button type="button" className={zoom === 2 ? 'on' : ''} onClick={() => setZoom(2)}>Cerca</button>
           <button type="button" className="mp-world-btn" onClick={onWorld}><GameIcon name="world" artist="lorc" /> Mundo</button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function WorldAtlas({ currentZoneId, onZone }) {
-  const { player, token } = useAuth();
-  const navigate = useNavigate();
-  const [zones, setZones] = useState([]);
-  const [selected, setSelected] = useState(currentZoneId);
-
-  useEffect(() => {
-    api.getPlayerZones(player.id, token).then(setZones).catch(() => setZones([]));
-  }, [player, token]);
-
-  const info = (id) => {
-    const a = ATLAS_ZONES[id];
-    const z = zones.find((q) => String(q.id) === String(id));
-    return {
-      id, ...a, name: a.name ?? z?.name ?? '…', levels: a.levels ?? z?.levelRange ?? null,
-      description: a.description ?? z?.description ?? '', unlocked: id === 'capital' ? true : !!z?.unlocked, bossDefeated: !!z?.bossDefeated,
-    };
-  };
-  const ids = Object.keys(ATLAS_ZONES);
-  const sel = info(selected);
-  const here = (id) => String(id) === String(currentZoneId);
-
-  return (
-    <div className="mp-world">
-      <svg className="mp-atlas" viewBox="0 0 600 400" role="img" aria-label="Mapa del mundo">
-        <defs>
-          <radialGradient id="mp-sea" cx="50%" cy="50%" r="70%">
-            <stop offset="0%" stopColor="#2d5a73" />
-            <stop offset="100%" stopColor="#14283a" />
-          </radialGradient>
-          <linearGradient id="mp-land" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#e6d3a3" />
-            <stop offset="100%" stopColor="#c9b07a" />
-          </linearGradient>
-          <filter id="mp-rough"><feTurbulence baseFrequency="0.04" numOctaves="3" seed="7" /><feDisplacementMap in="SourceGraphic" scale="6" /></filter>
-        </defs>
-        <rect width="600" height="400" fill="url(#mp-sea)" />
-        {/* olas */}
-        {[[40, 380], [520, 30], [570, 300], [20, 150], [300, 395]].map(([x, y]) => (
-          <path key={`${x}-${y}`} d={`M${x - 12} ${y} q6 -5 12 0 t12 0`} className="mp-wave" />
-        ))}
-        <path d={CONTINENT_PATH} fill="url(#mp-land)" stroke="#6b5326" strokeWidth="2.5" filter="url(#mp-rough)" />
-        {/* relieve decorativo: montañas al este, árboles al oeste */}
-        {[[392, 190], [410, 176], [430, 192], [448, 178], [404, 232], [440, 232], [500, 140], [520, 98]].map(([x, y]) => (
-          <path key={`m${x}${y}`} d={`M${x - 10} ${y + 8} L${x} ${y - 9} L${x + 10} ${y + 8} Z`} className="mp-mount" />
-        ))}
-        {[[150, 230], [162, 244], [140, 252], [190, 190], [60, 250], [76, 236]].map(([x, y]) => (
-          <circle key={`t${x}${y}`} cx={x} cy={y} r="6" className="mp-tree" />
-        ))}
-        {ATLAS_ROADS.map(([a, b]) => (
-          <line key={`${a}-${b}`} x1={ATLAS_ZONES[a].x} y1={ATLAS_ZONES[a].y} x2={ATLAS_ZONES[b].x} y2={ATLAS_ZONES[b].y} className="mp-road" />
-        ))}
-        {ids.map((id) => {
-          const z = info(id);
-          const on = String(selected) === String(id);
-          return (
-            <g key={id} className={`mp-node${z.unlocked ? '' : ' locked'}${on ? ' on' : ''}`} transform={`translate(${z.x} ${z.y})`} onClick={() => setSelected(id)}>
-              <circle r={id === 'capital' ? 22 : 19} fill={z.color} className="mp-node-disc" />
-              {here(id) && <circle r="27" className="mp-here-ring" />}
-              <text y={id === 'capital' ? 36 : 33} className="mp-node-name">{z.name}</text>
-              {z.levels && <text y={id === 'capital' ? 47 : 44} className="mp-node-lv">Nv {z.levels}</text>}
-            </g>
-          );
-        })}
-        <g transform="translate(560 360)" className="mp-rose">
-          <circle r="16" />
-          <path d="M0 -14 L4 0 L0 14 L-4 0 Z" />
-          <text y="-19">N</text>
-        </g>
-      </svg>
-      {/* iconos encima del SVG (GameIcon es HTML) */}
-      <div className="mp-icons">
-        {ids.map((id) => {
-          const z = info(id);
-          return (
-            <button key={id} type="button" className={`mp-icon${z.unlocked ? '' : ' locked'}`} style={{ left: `${(z.x / 600) * 100}%`, top: `${(z.y / 400) * 100}%` }} onClick={() => setSelected(id)} title={z.name}>
-              <GameIcon name={z.unlocked ? z.icon[0] : 'padlock'} artist={z.unlocked ? z.icon[1] : 'lorc'} />
-              {z.bossDefeated && <span className="mp-crown"><GameIcon name="crown" artist="lorc" /></span>}
-              {here(id) && <span className="mp-here">Estás aquí</span>}
-            </button>
-          );
-        })}
-      </div>
-      <div className="mp-info">
-        <div>
-          <h3>{sel.name} {sel.levels && <small>Nv {sel.levels}</small>}</h3>
-          <p>{sel.description}</p>
-          <p className="mp-route"><GameIcon name="direction-signs" artist="delapouite" /> {sel.route}</p>
-        </div>
-        {here(sel.id) ? (
-          <button type="button" className="wp-btn wp-btn--gold" onClick={onZone}>Ver la zona</button>
-        ) : sel.soon ? (
-          <span className="mp-status">Próximamente</span>
-        ) : sel.unlocked ? (
-          <button type="button" className="wp-btn" title="Esta zona todavía no está en el mundo abierto" onClick={() => navigate(`/combat/${sel.id}`)}>Explorar</button>
-        ) : (
-          <span className="mp-status locked">Bloqueada</span>
-        )}
       </div>
     </div>
   );

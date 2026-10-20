@@ -280,174 +280,368 @@
   height: 15px;
 }
 
-/* ------------------------------------------------------------ mundo */
-.mp-world {
-  position: relative;
+/* ------------------------------------------------------------ mundo (components/world/WorldAtlas.js) */
+.ma-loading {
+  padding: 40px 0;
+  text-align: center;
+  font: 0.9rem 'EB Garamond', serif;
+  color: var(--text-soft, #cfc3a5);
 }
 
-.mp-atlas {
-  display: block;
-  width: 100%;
+.ma-view {
+  position: relative;
+  overflow: hidden;
+  background: #1c4468;
   border: 2px solid #6b5326;
   border-radius: 4px;
-  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6);
+  box-shadow: inset 0 0 0 1px #2a1f0e, 0 2px 10px rgba(0, 0, 0, 0.5);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
 }
 
-.mp-wave {
-  fill: none;
-  stroke: rgba(180, 220, 240, 0.35);
-  stroke-width: 1.5;
+.ma-view:active {
+  cursor: grabbing;
 }
 
-.mp-mount {
-  fill: #a08a62;
-  stroke: #5a4626;
-  stroke-width: 1.2;
-}
-
-.mp-tree {
-  fill: #7d9a52;
-  stroke: #4a5a2a;
-  stroke-width: 1;
-}
-
-.mp-road {
-  stroke: #7a5a2a;
-  stroke-width: 2.5;
-  stroke-dasharray: 6 5;
-  stroke-linecap: round;
-}
-
-.mp-node {
-  cursor: pointer;
-}
-
-.mp-node-disc {
-  stroke: #3a2a10;
-  stroke-width: 2.5;
-  opacity: 0.95;
-}
-
-.mp-node.on .mp-node-disc {
-  stroke: #fff3c0;
-  stroke-width: 3.5;
-  filter: drop-shadow(0 0 6px rgba(255, 230, 140, 0.9));
-}
-
-.mp-node.locked .mp-node-disc {
-  fill: #7a7468;
-  opacity: 0.8;
-}
-
-.mp-here-ring {
-  fill: none;
-  stroke: #ffe066;
-  stroke-width: 2;
-  animation: mp-ring 1.6s ease-out infinite;
-  transform-origin: center;
-  transform-box: fill-box;
-}
-
-@keyframes mp-ring {
-  from { transform: scale(0.8); opacity: 1; }
-  to { transform: scale(1.4); opacity: 0; }
-}
-
-.mp-node-name {
-  text-anchor: middle;
-  font: 700 12px 'Cinzel', serif;
-  fill: #2a1a08;
-  paint-order: stroke;
-  stroke: rgba(240, 225, 185, 0.85);
-  stroke-width: 3px;
-}
-
-.mp-node-lv {
-  text-anchor: middle;
-  font: 600 10.5px 'EB Garamond', serif;
-  fill: #5a3a10;
-  paint-order: stroke;
-  stroke: rgba(240, 225, 185, 0.85);
-  stroke-width: 3px;
-}
-
-.mp-node.locked .mp-node-name,
-.mp-node.locked .mp-node-lv {
-  fill: #5a5448;
-}
-
-.mp-rose circle {
-  fill: rgba(240, 225, 185, 0.7);
-  stroke: #6b5326;
-}
-
-.mp-rose path {
-  fill: #8a2a1a;
-}
-
-.mp-rose text {
-  text-anchor: middle;
-  font: 700 11px 'Cinzel', serif;
-  fill: #f0e1b9;
-}
-
-.mp-icons {
+.ma-world {
   position: absolute;
-  inset: 0 0 auto 0;
-  aspect-ratio: 600 / 400;
+  top: 0;
+  left: 0;
+}
+
+.ma-img,
+.ma-fog,
+.ma-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.ma-img {
+  image-rendering: pixelated;
   pointer-events: none;
 }
 
-.mp-icon {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  color: #2a1a08;
-  background: none;
-  border: 0;
+/* la niebla se dibuja a una casilla por píxel: estirada y difuminada queda con bordes suaves */
+.ma-fog {
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+.ma-svg {
+  overflow: visible;
+}
+
+.ma-zone {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 2px;
+  stroke-dasharray: 6 4;
+  vector-effect: non-scaling-stroke;
   cursor: pointer;
+  transition: stroke 0.15s, fill 0.15s;
+}
+
+.ma-zone.on {
+  fill: rgba(255, 224, 138, 0.07);
+  stroke: #ffe08a;
+}
+
+.ma-zone:hover:not(.on) {
+  stroke: rgba(255, 236, 190, 0.45);
+}
+
+.ma-route {
+  fill: none;
+  stroke: #f4ead0;
+  stroke-width: 2px;
+  stroke-dasharray: 7 5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.85;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.6));
+  animation: ma-sail 1.6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes ma-sail {
+  to { stroke-dashoffset: -24; }
+}
+
+/* lugares */
+.ma-pin {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* el centro del ícono cae justo en el lugar; el nombre cuelga debajo */
+  transform: translate(-50%, -9px);
   pointer-events: auto;
 }
 
-.mp-icon .game-icon {
-  width: 22px;
-  height: 22px;
+.ma-pin .game-icon {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  margin-top: 3px;
+  color: #f4ead0;
 }
 
-.mp-icon.locked {
-  color: #3a3630;
-}
-
-.mp-crown {
+.ma-pin::before {
+  content: '';
   position: absolute;
-  top: -16px;
-  right: -12px;
+  top: 0;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  background: rgba(20, 14, 6, 0.82);
+  border: 1px solid #8a6c34;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.ma-pin--ciudad .game-icon { color: #ffe08a; }
+.ma-pin--mazmorra .game-icon { color: #c9a0ff; }
+.ma-pin--jefe .game-icon { color: #ff8a7a; }
+.ma-pin--barco .game-icon,
+.ma-pin--bote .game-icon { color: #9ad8ff; }
+.ma-pin--trineo .game-icon { color: #dff4ff; }
+.ma-pin--estatua .game-icon { color: #fff6d8; }
+
+.ma-pin.capital {
+  transform: translate(-50%, -12px);
+}
+
+.ma-pin.capital::before {
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  border-color: #ffe08a;
+}
+
+.ma-pin.capital .game-icon {
+  width: 16px;
+  height: 16px;
+  margin-top: 4px;
+}
+
+.ma-pin.capital em {
+  margin-top: 6px;
+}
+
+.ma-pin em {
+  margin-top: 3px;
+  font: 700 0.62rem 'Cinzel', serif;
+  font-style: normal;
+  color: #fff3d0;
+  white-space: nowrap;
+  text-shadow: 0 0 2px #000, 0 1px 2px #000, 0 0 4px #000;
+}
+
+/* nombre de cada zona */
+.ma-label {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  text-shadow: 0 0 2px #000, 0 1px 2px #000, 0 0 6px #000;
+}
+
+.ma-label b {
+  font: 700 0.95rem 'Cinzel', serif;
+  color: #fff3d0;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.ma-label.on b {
+  color: #ffe08a;
+}
+
+.ma-label small {
+  font: 700 0.72rem 'Cinzel', serif;
+}
+
+.ma-label i {
+  font: 0.7rem 'EB Garamond', serif;
+  font-style: normal;
+  color: #d8c8a0;
+}
+
+.ma-label > .game-icon {
+  width: 16px;
+  height: 16px;
+  color: #c9c0b0;
+}
+
+.ma-label.locked b {
+  color: #b8b0a0;
+}
+
+.ma-crown {
   color: #ffd84a;
   filter: drop-shadow(0 1px 1px #000);
 }
 
-.mp-crown .game-icon {
-  width: 16px;
-  height: 16px;
+.ma-crown .game-icon {
+  width: 14px;
+  height: 14px;
 }
 
-.mp-here {
+/* dónde estás */
+.ma-hero {
   position: absolute;
-  bottom: 34px;
-  left: 50%;
-  transform: translateX(-50%);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.ma-hero i {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  background: #ffe066;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.ma-hero i::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border: 2px solid #ffe066;
+  border-radius: 50%;
+  animation: ma-ping 1.6s ease-out infinite;
+}
+
+@keyframes ma-ping {
+  from { transform: scale(0.5); opacity: 1; }
+  to { transform: scale(1.8); opacity: 0; }
+}
+
+.ma-hero em {
+  position: absolute;
+  bottom: 9px;
+  left: 0;
   padding: 1px 7px;
-  font: 700 0.68rem 'Cinzel', serif;
+  font: 700 0.64rem 'Cinzel', serif;
+  font-style: normal;
   color: #241a08;
   white-space: nowrap;
   background: #ffe066;
   border: 1px solid #6b5326;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  transform: translateX(-50%);
+}
+
+.ma-rose {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  font: 700 0.8rem/1 'Cinzel', serif;
+  color: #f4ead0;
+  text-align: center;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.ma-tools {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ma-tools button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font: 700 1.1rem/1 'Cinzel', serif;
+  color: #ffe08a;
+  background: rgba(20, 14, 6, 0.85);
+  border: 1px solid #8a6c34;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ma-tools button:hover:not(:disabled) {
+  background: rgba(60, 44, 16, 0.95);
+}
+
+.ma-tools button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ma-tools .game-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.ma-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 6px 2px 0;
+  font: 0.78rem 'EB Garamond', serif;
+  color: #d8c8a0;
+}
+
+.ma-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ma-legend .game-icon {
+  width: 13px;
+  height: 13px;
+  color: #ffe08a;
+}
+
+.ma-l-route {
+  display: inline-block;
+  width: 18px;
+  border-top: 2px dashed #f4ead0;
+}
+
+.ma-l-fog {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background: rgba(18, 24, 38, 0.85);
+  border: 1px solid #5a4626;
+}
+
+.ma-far button {
+  padding: 0;
+  font: inherit;
+  color: #d8c8a0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.ma-far button.on {
+  color: #ffe08a;
 }
 
 .mp-info {
