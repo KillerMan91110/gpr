@@ -36,8 +36,8 @@ export const refugesMethods = {
         const lx = o.x - z.ox;
         const ly = o.y - z.oy;
         const sz = z.world.subzonas?.find((s) => s.name !== z.world.nombre && lx >= s.x0 && lx < s.x1 && ly >= s.y0 && ly < s.y1);
-        // en las Catacumbas los refugios son las lámparas de alma (world/llama.js)
-        const fuego = z.dir === 'catacumbas' ? 'la lámpara de alma' : 'la fogata';
+        // en las Catacumbas los refugios son las lámparas de alma (world/llama.js); en las Ruinas, las fuentes de lágrimas
+        const fuego = { catacumbas: 'la lámpara de alma', ruinas: 'la fuente de lágrimas' }[z.dir] ?? 'la fogata';
         const name = o.type === 'pilar' ? 'el Pilar de Aethra' : `${fuego} de ${sz?.name ?? z.world.nombre}`;
         return { x: o.x, y: o.y + 24, zone: o.zone, name };
       });

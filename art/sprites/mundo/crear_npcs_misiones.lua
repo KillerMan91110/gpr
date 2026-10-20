@@ -94,6 +94,9 @@ for _, e in ipairs({
   {"Tr","7ac4b4"},{"Trd","4e9688"},{"Tf","5ab0d8"},{"Tfd","2e78a8"},
   -- Velados (Catacumbas del Abismo): espíritus de piel azul pálida con los ojos encendidos; y hueso
   {"Vs","c4dae6"},{"Vsd","8ea6b8"},{"Ve","8ae0f8"},{"Bo","e8dcc0"},{"Bod","b4a484"},
+  -- aethrinos (Ruinas Ancestrales): piel clara y tibia, la marca de oro en la frente y la lágrima celeste bajo los ojos; y los
+  -- peregrinos de piedra, grises como el mármol viejo
+  {"As","f6eadc"},{"Asd","d2bea6"},{"Ps","b8b2a8"},{"Psd","847e74"},
 }) do C[e[1]] = hex(e[2]) end
 
 -- st: skin/skinD, hair/hairD, style (corto|largo|mono|calvo|capucha|gorra|casco|sombrero|mago), top/topD/topL,
@@ -124,6 +127,7 @@ local function headFront(G, st, bob)
   end
   if st.beard then G.rect(10,15+bob,21,19+bob,st.beard); G.rect(12,20+bob,19,20+bob,st.beard); G.rect(14,21+bob,17,22+bob,st.beard); G.rect(14,15+bob,17,15+bob,"R") end
   if st.race == "elfo" then G.rect(6,10+bob,8,11+bob,"F"); G.px(5,9+bob,"F"); G.rect(23,10+bob,25,11+bob,"F"); G.px(26,9+bob,"F") end
+  if st.race == "aethrino" then G.px(12,15+bob,"gl"); G.px(19,15+bob,"gl") end
   if st.race == "felino" then
     for i=0,3 do G.rect(10+i//2,1+i+bob,12-i//2+1,1+i+bob,st.ears or h); G.rect(19+i//2,1+i+bob,21-i//2+1,1+i+bob,st.ears or h) end
     G.px(11,3+bob,"fr"); G.px(20,3+bob,"fr"); G.px(9,15+bob,"W"); G.px(22,15+bob,"W")
@@ -328,6 +332,7 @@ local function portrait(st)
     G.rect(19,30,20,36,skd)
   end
   if st.race == "velado" then G.px(24,29,"Ve"); G.px(41,29,"Ve"); G.rect(26,32,27,33,"W"); G.rect(38,32,39,33,"W") end
+  if st.race == "aethrino" then G.rect(26,37,26,39,"gl"); G.rect(38,37,38,39,"gl"); G.rect(31,22,33,23,"go") end
   return G
 end
 
@@ -473,6 +478,19 @@ local NPCS = {
   npc_osvaldo = {race="esqueleto", style="casco", hat="R", top="Cr", topD="r", topL="R", tabard="Cy", pants="Cn", boots="b", belt="b", skin="Bo", skinD="Bod", eyesWalk="K", eyes="K"},
   -- Velkan, el Encapuchado: capa gris oscura con capucha y ribete morado; los ojos de Aldren
   npc_velkan = {race="humano", style="capucha", hair="L", hairD="l", top="L", topD="l", topL="Lh", robe=true, trim="Cp", neck="Cp", skin=P, skinD=Pd},
+  -- Ruinas Ancestrales: los aethrinos del Santuario de las Lágrimas, los peregrinos y Ptolio
+  -- Seraphine, la Última Sacerdotisa: aethrina de pelo plateado largo, túnica blanca con ribete y collar de oro
+  npc_seraphine = {race="aethrino", style="largo", hair="Hs", hairD="Hg", top="Cw", topD="m2", topL="W", robe=true, trim="go", neck="go", skin="As", skinD="Asd"},
+  -- Orin, el picapedrero: aethrino joven de pelo rubio corto, camisa gris de cantera y delantal de cuero
+  npc_orin = {race="aethrino", style="corto", hair="Y", hairD="y", top="Cs", topD="Csd", topL="Ah", apron="N", pants="Cn", boots="b", belt="b", skin="As", skinD="Asd"},
+  -- Madre Tilda, la peregrina más vieja: capucha parda de camino, pelo blanco y delantal de cocina
+  npc_tilda = {race="humano", style="capucha", hair="Cn", hairD="b", top="Cg", topD="g", topL="Gh", apron="Cw", pants="Cn", boots="b", skin=P, skinD=Pd},
+  -- Casio, el último peregrino: sombrero de paja con pluma azul, chaleco de viaje y cinturón de oro de mercader
+  npc_casio = {race="humano", style="sombrero", hat="T", hatD="t", pluma="Cb", hair="B", top="Cy", topD="y", topL="Y", vest="N", neck="go", pants="Cn", boots="b", belt="go", skin=D, skinD=Dd},
+  -- Ptolio, el aprendiz del astrónomo: un fantasma amable con sombrero puntiagudo azul y túnica de estrellas
+  npc_ptolio = {race="velado", style="mago", hat="Cb", hair="Hs", hairD="Hg", top="Cb", topD="a4", topL="a1", robe=true, trim="go", neck="go", skin="Vs", skinD="Vsd", eyesWalk="Ve", eyes="Ve"},
+  -- un peregrino de piedra que se despierta (escolta de «Peregrinos perdidos»): capucha y piel de mármol gris
+  npc_peregrino = {race="humano", style="capucha", hair="Ps", hairD="Psd", top="Ps", topD="Psd", topL="sw", robe=true, trim="sd", skin="Ps", skinD="Psd", eyesWalk="Psd", eyes="Psd"},
 }
 -- solo=npc_a,npc_b genera solo esos (para no rehacer los que ya tienen retoques)
 local solo = app.params.solo

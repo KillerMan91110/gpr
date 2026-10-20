@@ -65,6 +65,16 @@ local SETS = {
   {"trono",         {"f4ecd6","c6ba9a","8c7e66", "ffe08a","c89a2a", "ece4cc","c6ba9a","8c7e66","5a5040", "e2a6ff","8a50d8"}},
   -- Sala del Sexto Sello nv 84: hueso negro del Centinela, tela de luto y la llama azul de su capucha
   {"centinela",     {"5a5664","34303e","1c1a24", "c0f6ff","4cbcdc", "3a3644","26222e","18161e","0e0c12", "e0fbff","6ad0f0"}},
+  -- Ruinas Ancestrales nv 91: oro primordial, el azul de la noche de las Ruinas y las lágrimas celestes
+  {"estelar",       {"fff4d0","e0c070","a07c30", "e0f8ff","64bcde", "4c3c94","2e2a66","1e1a44","100e26", "fff8c0","a6e2f4"}},
+  -- Observatorio Roto nv 93: bronce viejo de las cúpulas, verdín y el cristal de la lente
+  {"observatorio",  {"d8c890","a8905a","6a5a34", "7ae0c8","2e9c8a", "3a4a6a","2a3654","1c2440","10162a", "e0f8ff","64bcde"}},
+  -- Centinela Cósmico nv 97: el cielo roto, negro violeta con estrellas doradas
+  {"cosmico",       {"6a5ab4","3e3488","221c52", "fff8c0","c8b060", "3a2e72","2a2058","1c1640","0e0a22", "f0d8ff","a070f0"}},
+  -- el Primer Vigía nv 100: mármol blanco y oro, con la luz cálida que quedó de él
+  {"vigia_primero", {"fffaf0","e8dcc0","b0a080", "ffe08a","c89a2a", "f4f0e6","dfd8c8","c2b9a6","978e7c", "fff4c0","ffd060"}},
+  -- la Lágrima de Aethra nv 100 (el final): cristal celeste que brilla, con oro blanco y la gema de la lágrima
+  {"lagrima",       {"e0f8ff","a6e2f4","64bcde", "fffaf0","ffe08a", "e8eef8","c8d4e8","9aa8c4","6a7898", "ffffff","a6e2f4"}},
 }
 local WOOD = {"a8703c","6a4428"}
 local SET_INDEX = {}

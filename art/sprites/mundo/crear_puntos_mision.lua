@@ -719,6 +719,80 @@ sprite("trueno_hongos", 32, 32, function(G, f)
   G.px(3, 17 + f, "fu1")
 end)
 
+-- ---------------------------------------------------------------- Ruinas Ancestrales
+for k, v in pairs({
+  mm1="f4f0e6", mm2="dfd8c8", mm3="c2b9a6", mm4="978e7c",  -- mármol
+  lg1="e0f8ff", lg2="a6e2f4", lg3="64bcde",                -- lágrimas
+  ns1="4c3c94", ns2="2e2a66", nst="fff8c0",                -- el cielo y sus estrellas
+  pj1="b6d878", pj2="6c9640",                              -- el prado de las Ruinas
+  vl1="f6f8fc", vl2="e2e8f2",                              -- la niebla del Velo
+}) do PAL[k] = hex(v) end
+
+-- una estatua chica de Aethra, sucia de musgo, que llora una lágrima de luz
+sprite("estatua_llora", 32, 32, function(G, f)
+  G.ellipse(16, 29, 8, 2, "mm4"); G.rect(10, 25, 22, 28, "mm3"); G.rect(10, 25, 22, 25, "mm2")
+  G.poly({{12, 25}, {20, 25}, {19, 12}, {13, 12}}, "mm2"); G.poly({{17, 25}, {20, 25}, {19, 12}, {17, 12}}, "mm3")
+  G.ellipse(16, 9, 3.5, 4, "mm1"); G.rect(12, 6, 13, 13, "mm2"); G.rect(19, 6, 20, 13, "mm2")
+  for _, p in ipairs({{12, 20}, {14, 23}, {19, 18}, {18, 24}}) do G.px(p[1], p[2], "pj2") end
+  local y = f == 0 and 11 or 14
+  G.px(15, 10, "lg3"); G.px(15, y, "lg2"); G.px(15, y + 1, "lg1")
+end)
+-- una lágrima de Aethra en el suelo: una gota que brilla y no se evapora
+sprite("lagrima_suelo", 32, 32, function(G, f)
+  G.ellipse(16, 26, 7, 2, "pj2")
+  G.poly({{16, 10}, {20, 19}, {20, 23}, {16, 26}, {12, 23}, {12, 19}}, "lg3")
+  G.ellipse(16, 22, 4, 4, "lg3"); G.ellipse(15, 21, 3, 3, "lg2"); G.px(14, 19, "lg1")
+  if f == 0 then G.px(8, 12, "lg1"); G.px(24, 16, "W") else G.px(22, 10, "lg1"); G.px(9, 19, "W") end
+end)
+-- el mapa de estrellas del astrónomo: un pergamino azul con constelaciones, sujeto con una piedra
+sprite("mapa_estrellas", 32, 32, function(G, f)
+  G.poly({{4, 22}, {8, 12}, {28, 12}, {24, 22}}, "ns2"); G.line(4, 22, 24, 22, "ns1")
+  G.rect(4, 22, 24, 24, "pa"); G.rect(8, 10, 28, 11, "pa")
+  local st = {{10, 19}, {13, 15}, {17, 17}, {21, 14}, {23, 18}}
+  for i = 1, #st - 1 do G.line(st[i][1], st[i][2], st[i + 1][1], st[i + 1][2], "ns1") end
+  for i, p in ipairs(st) do G.px(p[1], p[2], (i + f) % 2 == 0 and "W" or "nst") end
+  G.ellipse(25, 15, 2.5, 2, "rk2"); G.px(24, 14, "rk1")
+end)
+-- una ofrenda en una tumba de Vigía: la losa con la lanza tallada y flores de luz
+sprite("ofrenda_vigia", 32, 32, function(G, f)
+  G.ellipse(16, 29, 10, 2, "pj2")
+  G.rect(9, 8, 23, 28, "rk2"); G.ellipse(16, 8, 7, 4, "rk2"); G.rect(20, 8, 23, 28, "rk3")
+  G.line(16, 6, 16, 22, "rk3"); G.poly({{14, 9}, {16, 5}, {18, 9}}, "rk3")
+  for i, x in ipairs({10, 14, 19}) do
+    G.line(x, 28, x, 25, "pj2"); G.ellipse(x, 24, 1.6, 1.4, "lg2"); G.px(x, 24, (i + f) % 2 == 0 and "W" or "lg1")
+  end
+end)
+-- un peregrino de piedra sentado, dormido, con la capucha gris y una lágrima de luz en la mejilla
+sprite("peregrino_dormido", 32, 32, function(G, f)
+  G.ellipse(16, 29, 10, 2, "mm4")
+  G.poly({{8, 28}, {24, 28}, {22, 16}, {10, 16}}, "rk2"); G.poly({{18, 28}, {24, 28}, {22, 16}, {19, 16}}, "rk3")
+  G.ellipse(16, 12, 6, 6, "rk2"); G.ellipse(16, 13, 4, 4, "rk1"); G.line(14, 13, 15, 13, "rk3"); G.line(17, 13, 18, 13, "rk3")
+  G.px(18, 14 + f, "lg2")
+  if f == 1 then G.px(23, 6, "W"); G.px(25, 4, "W") else G.px(24, 5, "W") end
+end)
+-- un pedazo de la lente del telescopio, en el suelo, con un ojo morado reflejado
+sprite("lente_rota", 32, 32, function(G, f)
+  G.ellipse(16, 26, 10, 2.5, "rk3")
+  G.poly({{6, 24}, {10, 12}, {22, 9}, {27, 20}, {20, 25}}, "bl1"); G.poly({{6, 24}, {10, 12}, {14, 18}}, "W")
+  G.ellipse(17, 17, 4, 3, "ec1"); G.ellipse(17, 17, 2, 2, f == 0 and "ev" or "ev2"); G.px(17, 17, "K")
+  G.line(22, 9, 27, 20, "fe2")
+end)
+-- la losa de las siete trompetas: la tapa de la escalera de los Heraldos, con una trompeta en el medio
+sprite("losa_trompetas", 32, 32, function(G, f)
+  G.rect(3, 9, 28, 27, "mm3"); G.rect(3, 9, 28, 11, "mm2"); G.rect(3, 26, 28, 27, "mm4")
+  for i = 0, 6 do local x = 5 + i * 3.4; G.line(x, 14, x + 1, 22, "mm4") end
+  G.thick(9, 19, 21, 19, 2, "go2"); G.poly({{20, 16}, {25, 13}, {25, 25}, {20, 22}}, "go1")
+  if f == 1 then G.px(27, 12, "W"); G.px(29, 16, "W") end
+end)
+-- Trueno metido hasta la mitad en la niebla del Velo
+sprite("trueno_velo", 32, 32, function(G, f)
+  horse(G, 2, 0, f == 0 and 8 or 7, true)
+  for y = 14, 30 do for x = 0, 31 do
+    local n = math.sin(x / 4 + y / 3 + f) + math.sin(x / 7 - y / 5)
+    if x > 14 + math.sin(y / 3) * 2 and n > -0.4 then G.px(x, y, n > 0.6 and "vl1" or "vl2") end
+  end end
+end)
+
 -- ---------------------------------------------------------------- salida
 local dir, png = app.params.dir, app.params.png
 local manifest = {}

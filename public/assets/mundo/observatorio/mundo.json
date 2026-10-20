@@ -1,0 +1,116 @@
+{
+ "nombre": "El Observatorio Roto",
+ "zona": 7,
+ "interior": true,
+ "mazmorra": "observatorio",
+ "musica": "observatorio",
+ "tileset": "observatorio",
+ "terrenos": [
+  "suelo",
+  "muro",
+  "abismo",
+  "puente",
+  "puentev",
+  "escalera",
+  "tumba"
+ ],
+ "tile": 32,
+ "mazmorraArte": {
+  "brasero": "lampara_cristal",
+  "puerta": "puerta_bronce",
+  "luzPuerta": 14853887,
+  "accion": "Encender"
+ },
+ "chunkWidth": 40,
+ "chunkHeight": 30,
+ "columns": 1,
+ "rows": 2,
+ "encuentroHierba": 0,
+ "gidHierba": 0,
+ "inicio": {
+  "x": 640,
+  "y": 208
+ },
+ "clima": {
+  "estacion": "interior",
+  "lluvia": 0
+ },
+ "gids": {
+  "flores": [],
+  "agua": [],
+  "prado": [],
+  "arboles": [],
+  "dorados": [],
+  "seco": []
+ },
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
+  }
+ ],
+ "subzonas": [
+  {
+   "name": "Escalera de la Cúpula",
+   "x0": 416,
+   "y0": 96,
+   "x1": 864,
+   "y1": 480,
+   "levels": "92-96"
+  },
+  {
+   "name": "Sala de los Astrolabios",
+   "x0": 128,
+   "y0": 480,
+   "x1": 1152,
+   "y1": 768,
+   "levels": "92-96"
+  },
+  {
+   "name": "Pasarela Celeste",
+   "x0": 128,
+   "y0": 768,
+   "x1": 1152,
+   "y1": 960,
+   "levels": "92-96"
+  },
+  {
+   "name": "Sala de los Mapas",
+   "x0": 320,
+   "y0": 960,
+   "x1": 1088,
+   "y1": 1248,
+   "levels": "92-96"
+  },
+  {
+   "name": "Cámara de las Estrellas",
+   "x0": 288,
+   "y0": 1248,
+   "x1": 992,
+   "y1": 1568,
+   "levels": "92-96"
+  },
+  {
+   "name": "La Gran Lente",
+   "x0": 224,
+   "y0": 1568,
+   "x1": 1056,
+   "y1": 1888,
+   "levels": "92-96"
+  },
+  {
+   "name": "El Observatorio Roto",
+   "x0": 0,
+   "y0": 0,
+   "x1": 1280,
+   "y1": 1920,
+   "levels": null
+  }
+ ]
+}

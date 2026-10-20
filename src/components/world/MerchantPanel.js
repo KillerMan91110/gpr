@@ -24,6 +24,7 @@ const iconOfArtisan = (a) => ARTISAN_ICON[(a.specialty || '').toLowerCase()] ?? 
 const LOCAL_MERCHANT = {
   MERCADER_ASCUARIA: { portrait: 'marga', role: 'Mercader de Ascuaria', greeting: '«Lo del volcán, sin meter la mano en la lava. ¿Qué te llevas?»' },
   MERCADER_PUERTO: { portrait: 'salitre', role: 'Mercader del Puerto Antiguo', greeting: '«Todo lo que escupe el mar, seco y sin arena. Casi sin arena.»' },
+  MERCADER_SANTUARIO: { portrait: 'casio', role: 'El último peregrino', greeting: '«Tres años siguiendo una canción, y mira: terminé vendiendo pan. ¿Qué te llevas?»' },
 };
 const PORTRAITS = `${process.env.PUBLIC_URL}/assets/mundo/retratos`;
 function ArtisanFace({ a }) {

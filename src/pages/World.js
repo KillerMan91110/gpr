@@ -39,6 +39,8 @@ import MapPanel from '../components/world/MapPanel';
 import WorldSocial from '../components/world/WorldSocial';
 import SocialPanel from '../components/world/SocialPanel';
 import { setTideOffset } from '../game/world/marea';
+import { setEclipseOffset } from '../game/world/eclipse';
+import { isFinalFight } from '../game/world/shared';
 import { OfrendaPanel, LibroPanel, VinculoPanel } from '../components/world/CityPanels';
 import OrderPanel from '../components/world/OrderPanel';
 import GuildRegistryPanel from '../components/world/GuildRegistryPanel';
@@ -140,7 +142,8 @@ const DEFAULT_ZONE_DIR = 'aurelia';
 const ZONE_TITLES = { aurelia: ['La capital', 'Aurelia'], pradera: ['', 'Pradera Dorada'], cripta: ['Mazmorra', 'La Cripta del Vigía'],
   montanas: ['', 'Montañas Grises'], mina_profunda: ['Mazmorra', 'La Mina Profunda'],
   volcan: ['', 'Volcán Rojo'], fisura: ['Mazmorra', 'La Fisura Infernal'], costas: ['', 'Costas Muertas'], arrecife: ['Mazmorra', 'El Arrecife Hundido'], tundra: ['', 'Tundra Eterna'], cripta_congelada: ['Mazmorra', 'La Cripta Congelada'],
-  catacumbas: ['Bajo tierra', 'Catacumbas del Abismo'], trono_huesos: ['Mazmorra', 'El Trono de Huesos'] };
+  catacumbas: ['Bajo tierra', 'Catacumbas del Abismo'], trono_huesos: ['Mazmorra', 'El Trono de Huesos'], ruinas: ['Detrás del Velo', 'Ruinas Ancestrales'],
+  observatorio: ['Mazmorra', 'El Observatorio Roto'] };
 // recorrido del guía Tomás por Aurelia (lugar, posición en píxeles y qué hay ahí)
 const AURELIA_TOUR = [
   { name: 'Catedral de Aethra', x: 59.5 * 32, y: 16 * 32, info: 'Aquí te curan y aquí despiertas si caes en combate.' },
@@ -261,6 +264,19 @@ export default function World() {
     bus.on('llama', onLlama);
     return () => bus.off('llama', onLlama);
   }, []);
+  // el eclipse de las Ruinas (game/world/eclipse.js): { activo, seguro, segundos } o null fuera de ellas
+  const [eclipse, setEclipse] = useState(null);
+  useEffect(() => {
+    const onEclipse = (e) => setEclipse(e?.activo ? e : null);
+    bus.on('eclipse', onEclipse);
+    return () => bus.off('eclipse', onEclipse);
+  }, []);
+  const eclipseBuff = eclipse && {
+    id: 'eclipse', icon: ['eclipse', 'lorc'], label: `${eclipse.segundos}s`, bad: !eclipse.seguro, name: 'Eclipse',
+    desc: eclipse.seguro
+      ? 'El Devorador mira las Ruinas, pero junto a esta fuente de lágrimas no te alcanza: aquí no hay combates.'
+      : 'El Devorador mira las Ruinas: los monstruos salen corrompidos, con +20% de fuerza y +25% de botín. Junto a las fuentes de lágrimas no te alcanza.',
+  };
   const llamaBuff = llama && (llama.aOscuras
     ? { id: 'llama', icon: ['candle-skull', 'lorc'], label: '0%', bad: true, name: 'A oscuras',
       desc: 'Tu llama se apagó: ves mucho menos y los muertos te encuentran antes. Acércate a una lámpara de alma o enciende una Vela de Sebo.' }
@@ -276,6 +292,7 @@ export default function World() {
     }] : []),
     ...(coldBuff ? [coldBuff] : []),
     ...(llamaBuff ? [llamaBuff] : []),
+    ...(eclipseBuff ? [eclipseBuff] : []),
   ];
   // barra de lanzamiento (recolectar): { label, ms, key }
   const [cast, setCast] = useState(null);
@@ -574,7 +591,8 @@ export default function World() {
   }, []);
 
   useEffect(() => {
-    audio.music(battle ? (battle.kind === 'boss' || battle.kind === 'mythic' || battle.target === 'jefe' ? 'jefe' : 'batalla') : zoneInfo.music);
+    // el final (R13) tiene su tema: el ritual de las sacerdotisas
+    audio.music(battle ? (isFinalFight(battle) ? 'final' : battle.kind === 'boss' || battle.kind === 'mythic' || battle.target === 'jefe' ? 'jefe' : 'batalla') : zoneInfo.music);
   }, [battle, zoneInfo.music]);
 
   // ---- salto de zona (diligencia, salidas a zonas fuera del continente) ----
@@ -675,6 +693,16 @@ export default function World() {
         audio.sfx('monedas');
         bus.emit('social-toast', { text: `🛶 Óbolo empuja la barca con la pértiga. El agua negra no hace ruido. Te deja en ${r.nombre}.`, kind: 'tour' });
         loadHud();
+        bus.emit('zone-change', { zoneDir: r.zona, x: r.x, y: r.y });
+      } catch (err) {
+        audio.sfx('error');
+        bus.emit('social-toast', { text: err.message, kind: 'error' });
+      }
+    } else if (o.action === 'escalinata') {
+      try {
+        const r = await api.escalinata(player.id, o.destino, token);
+        audio.sfx('curar');
+        bus.emit('social-toast', { text: `✨ Subes por la escalera de luz, que se arma escalón por escalón bajo tus pies, y bajas en ${r.nombre}.`, kind: 'tour' });
         bus.emit('zone-change', { zoneDir: r.zona, x: r.x, y: r.y });
       } catch (err) {
         audio.sfx('error');
@@ -822,7 +850,13 @@ export default function World() {
   useEffect(() => {
     if (!player?.id) return;
     const t0 = Date.now();
-    api.marea(player.id, token).then((r) => { if (r?.ahora) setTideOffset(r.ahora - Math.round((t0 + Date.now()) / 2)); }).catch(() => {});
+    api.marea(player.id, token).then((r) => {
+      if (!r?.ahora) return;
+      const offset = r.ahora - Math.round((t0 + Date.now()) / 2);
+      setTideOffset(offset);
+      // los eclipses de las Ruinas usan el mismo reloj (gprback/lib/eclipse.js)
+      setEclipseOffset(offset);
+    }).catch(() => {});
   }, [player?.id, token]);
 
   // la tormenta de las Montañas: un rayo te alcanzó (el servidor te quita vida, nunca hasta 0)

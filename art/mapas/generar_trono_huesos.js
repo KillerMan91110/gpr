@@ -68,6 +68,7 @@ rectT(18, 47, 21, 48, 'suelo'); // hueco de la Puerta de Hueso
 rectT(7, 49, 32, 58, 'suelo'); // Sala del Trono
 rectT(17, 54, 22, 57, 'tumba');
 rectT(28, 49, 29, 49, 'escalera'); // subida a las Catacumbas (al vencer al Coloso)
+rectT(13, 49, 14, 49, 'escalera'); // subida al templo de las Ruinas (la Cripta de los Heraldos, R4)
 // bocas del pozo de huesos en la Cámara y en la sala (lejos de las rondas)
 rectT(9, 39, 10, 39, 'abismo'); rectT(29, 46, 30, 46, 'abismo');
 rectT(7, 57, 9, 58, 'abismo'); rectT(30, 57, 32, 58, 'abismo');
@@ -143,6 +144,12 @@ const KEY = { brasero: [], guardian: [] };
 const vuelta = [prop('destino', 'string', 'catacumbas'), prop('x', 'int', CATACUMBAS_VUELTA.x), prop('y', 'int', CATACUMBAS_VUELTA.y), prop('etiqueta', 'string', 'Catacumbas del Abismo')];
 pt({ name: 'salida_catacumbas', type: 'salida', x: px(18), y: px(3), width: 128, height: 32, properties: vuelta });
 pt({ name: 'salida_trono', type: 'salida', x: px(28), y: px(49), width: 64, height: 32, properties: vuelta });
+// «el Trono de Huesos se abre al templo»: la escalera del rincón oeste de la Sala del Trono sube a la Cripta de
+// los Heraldos de las Ruinas Ancestrales (generar_ruinas.js), sellada hasta la R4 «Los Heraldos Olvidados»
+pt({ name: 'subida_ruinas', type: 'salida', x: px(13), y: px(49), width: 64, height: 32, properties: [
+  prop('destino', 'string', 'ruinas'), prop('x', 'int', 99), prop('y', 'int', 68), prop('etiqueta', 'string', 'Ruinas Ancestrales'),
+  prop('fase', 'string', 'RUINAS_Q4_HERALDOS_OLVIDADOS@3+|RUINAS_Q4_HERALDOS_OLVIDADOS'),
+  prop('sellada', 'string', 'Una escalera de mármol blanco sube hacia la luz. Una losa con siete trompetas talladas la tapa desde arriba.')] });
 // velas de control (orden 1 y 2): al encenderlas, si caes o sales, retomas desde ahí
 const vela = (orden, x, y, nombre) => { KEY.brasero.push({ orden, x, y }); pt({ name: `brasero_${orden}`, type: 'brasero', x: px(x), y: px(y), properties: [prop('orden', 'int', orden), prop('etiqueta', 'string', nombre)] }); };
 vela(1, 13, 9, 'Vela del Arco');

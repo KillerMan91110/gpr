@@ -1,4 +1,4 @@
--- Efectos propios de cada habilidad de los monstruos (las 105 de todas las zonas): cada habilidad tiene
+-- Efectos propios de cada habilidad de los monstruos (las 115 de todas las zonas): cada habilidad tiene
 -- su animación de 8 cuadros de 64x64, con su forma y sus colores. Las usa game/BattleScene.js
 -- (fxMonsterSkill) según su modo:
 --   golpe      se dibuja sobre el objetivo (mordidas, zarpazos, estocadas, golpes): el monstruo se
@@ -598,10 +598,14 @@ local PAL = {
   -- las Catacumbas del Abismo (zona 6): esporas de los hongos y el azul de las almas
   espora = { hex("f0e8ff"), hex("c6a2ff"), hex("4c8a80"), hex("a4f4dc") },
   alma = { hex("ffffff"), hex("8ae0f8"), hex("2a6e9a"), hex("c0f6ff") },
+  -- las Ruinas Ancestrales (zona 7): el cielo roto, el agua de lágrimas y el mármol del templo
+  cosmos = { hex("fff8c0"), hex("9a8ae0"), hex("2e2a66"), hex("e2a6ff") },
+  lagrima = { hex("ffffff"), hex("a6e2f4"), hex("3490be"), hex("e0f8ff") },
+  marmol = { hex("ffffff"), hex("dfd8c8"), hex("978e7c"), hex("f0d878") },
 }
 
 -- =====================================================================================
--- Las 105 habilidades: código, modo, mezcla (add = brilla; normal = tapa), generador, paleta, opciones
+-- Las 115 habilidades: código, modo, mezcla (add = brilla; normal = tapa), generador, paleta, opciones
 -- =====================================================================================
 local HAB = {}
 local function H(code, modo, mezcla, gen, pal, o) HAB[#HAB + 1] = { code = code, modo = modo, mezcla = mezcla, gen = gen, pal = PAL[pal], o = o or {} } end
@@ -726,6 +730,18 @@ H("JUICIO_ECLIPSE", "proyectil", "add", "proyectil8", "oscuro", { forma = "sigil
 H("TRAGAR", "golpe", "add", "mordida8", "tierra", { w = 26, teeth = hex("ffffff"), pesado = true })
 H("TAJO_SOMBRIO", "golpe", "add", "zarpazo8", "sombra", { n = 1, ang = 30, r = 26, w = 4 })
 H("SIEGA", "area", "add", "remolino", "sombra", {})
+
+-- las Ruinas Ancestrales (zona 7): al final, para no mover los cuadros de las de antes
+H("GOLPE_PEREGRINO", "golpe", "normal", "golpe8", "marmol", { rays = 10, pesado = true })
+H("PICADO_GRIFO", "proyectil", "add", "proyectil8", "blanco", { forma = "picada", impacto = "estrella" })
+H("CHORRO_LAGRIMAS", "proyectil", "add", "proyectil8", "lagrima", { forma = "chorro", impacto = "salpicadura" })
+H("TROMPETA_HERALDO", "area", "add", "anillos", "luz", {})
+H("LLUVIA_ESTRELLAS", "area", "add", "geiser", "cosmos", { sd = 18 })
+H("ABRAZO_VACIO", "golpe", "add", "zarpazo8", "cosmos", { n = 4, w = 3, pesado = true })
+H("MIRADA_VACIO", "golpe", "add", "sello8", "cosmos", {})
+H("GRAVEDAD_ROTA", "area", "add", "remolino", "cosmos", {})
+H("ECLIPSE_TOTAL", "area", "add", "anillos", "oscuro", {})
+H("DERRUMBE", "area", "normal", "geiser", "marmol", { sd = 14 })
 
 -- =====================================================================================
 -- Lámina, .aseprite y json

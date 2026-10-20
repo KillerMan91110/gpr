@@ -893,6 +893,199 @@
     }
    ],
    "tierra": "/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+//AMKB4f/AgcHg/8DDw+D9AMAD4PkAAAAAEAAAAAAA"
+  },
+  {
+   "dir": "ruinas",
+   "zona": 7,
+   "nombre": "Ruinas Ancestrales",
+   "ciudad": false,
+   "x": 174,
+   "y": 14,
+   "w": 160,
+   "h": 120,
+   "subzonas": [
+    {
+     "nombre": "Santuario de las Lágrimas",
+     "niveles": null,
+     "segura": true,
+     "x": 214,
+     "y": 74,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Puerta del Velo",
+     "niveles": "86-87",
+     "segura": false,
+     "x": 214,
+     "y": 104,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Campo de los Vigías",
+     "niveles": "87-89",
+     "segura": false,
+     "x": 174,
+     "y": 104,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Escalinata de los Peregrinos",
+     "niveles": "88-90",
+     "segura": false,
+     "x": 174,
+     "y": 74,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Cantera de Mármol",
+     "niveles": "88-90",
+     "segura": false,
+     "x": 254,
+     "y": 104,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Camino de las Cumbres",
+     "niveles": "89-91",
+     "segura": false,
+     "x": 294,
+     "y": 104,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Bosque Petrificado",
+     "niveles": "90-92",
+     "segura": false,
+     "x": 174,
+     "y": 44,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Cripta de los Heraldos",
+     "niveles": "90-92",
+     "segura": false,
+     "x": 254,
+     "y": 74,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Patio de las Estatuas",
+     "niveles": "91-93",
+     "segura": false,
+     "x": 214,
+     "y": 44,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Lago de las Lágrimas",
+     "niveles": "91-93",
+     "segura": false,
+     "x": 294,
+     "y": 74,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Jardines de las Lágrimas",
+     "niveles": "92-94",
+     "segura": false,
+     "x": 294,
+     "y": 44,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Torres del Velo",
+     "niveles": "93-95",
+     "segura": false,
+     "x": 174,
+     "y": 14,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Observatorio Roto",
+     "niveles": "93-95",
+     "segura": false,
+     "x": 214,
+     "y": 14,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Templo Sagrado",
+     "niveles": "94-96",
+     "segura": false,
+     "x": 254,
+     "y": 44,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Grieta Estelar",
+     "niveles": "96-98",
+     "segura": false,
+     "x": 294,
+     "y": 14,
+     "w": 40,
+     "h": 30
+    },
+    {
+     "nombre": "Corazón del Templo",
+     "niveles": "98-100",
+     "segura": false,
+     "x": 254,
+     "y": 14,
+     "w": 40,
+     "h": 30
+    }
+   ],
+   "lugares": [
+    {
+     "tipo": "jefe",
+     "nombre": "Centinela Cósmico",
+     "nivel": 97,
+     "x": 274,
+     "y": 43
+    },
+    {
+     "tipo": "jefe",
+     "nombre": "Gran Esqueleto del Abismo",
+     "nivel": 100,
+     "x": 274,
+     "y": 31
+    },
+    {
+     "tipo": "jefe",
+     "nombre": "Guardián Ancestral Primordial",
+     "nivel": 94,
+     "x": 263,
+     "y": 59
+    },
+    {
+     "tipo": "jefe",
+     "nombre": "la Entidad Corrupta del Templo",
+     "nivel": 95,
+     "x": 274,
+     "y": 61
+    },
+    {
+     "tipo": "ciudad",
+     "nombre": "Santuario de las Lágrimas",
+     "x": 234,
+     "y": 89
+    }
+   ],
+   "tierra": "+P8+cPD///////////9//////0f+////8P7////z////////////////////////////////////////////////////7////////v/////////////////x/////3f/////x//////7////////////f/////9//////9//////H////////////////////++P/39/"
   }
  ],
  "rutas": [

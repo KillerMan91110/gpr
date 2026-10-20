@@ -76,6 +76,15 @@ local ORDER = {
   {"cw1","f6ecd2"},{"cw2","d2c2a0"},{"cw3","a08c6c"},
   {"vl1","b4ecff"},{"vl2","70b4dc"},
   {"vc1","4c3c6c"},{"vc2","2f2548"},
+  -- v11 (Ruinas Ancestrales): el mármol blanco del templo, el prado claro, la hierba sagrada dorada, el
+  -- agua de lágrimas, el cielo estelar de la Grieta, la niebla del Velo y el oro viejo
+  {"jm1","f4f0e6"},{"jm2","dfd8c8"},{"jm3","c2b9a6"},{"jm4","978e7c"},{"jm5","6c6656"},
+  {"jp1","b6d878"},{"jp2","92bc5a"},{"jp3","6c9640"},{"jp4","4a7030"},
+  {"jh1","f0d878"},{"jh2","caa848"},{"jh3","94782c"},
+  {"jl1","e0f8ff"},{"jl2","a6e2f4"},{"jl3","64bcde"},{"jl4","3490be"},
+  {"jc1","1e1a44"},{"jc2","2e2a66"},{"jc3","4c3c94"},{"jc4","9a8ae0"},
+  {"jv1","f6f8fc"},{"jv2","e2e8f2"},{"jv3","c8d0e0"},
+  {"jo3","a4802c"},
 }
 local C = {}
 for _,e in ipairs(ORDER) do C[e[1]] = hex(e[2]) end
@@ -2708,6 +2717,373 @@ addGrid("cripta_catedral", 3, 3, function(V)
 end)
 
 
+-- v11 (Ruinas Ancestrales): al aire libre, detrás del Velo de Aethra. El prado claro de las Ruinas es el
+-- suelo de base (como las losas en las Catacumbas) y los terrenos nuevos lo muerden en el borde: el
+-- mármol del templo, la calzada de mármol, el agua de lágrimas (choca), el cielo estelar de la Grieta
+-- (el suelo se rompe y abajo se ven estrellas; choca) y el Velo (niebla blanca; choca). Las paredes del
+-- templo tienen techo de mármol y una cara con columnas y vitrales. La hierba sagrada dorada es el
+-- "pasto alto" de los combates. Objetos: columnas rotas, estatuas de Aethra y de los Vigías, fuentes de
+-- lágrimas (los refugios), arcos, árboles de piedra, el telescopio roto, el altar del Sello, las torres
+-- del Velo, la Puerta del Velo, la escalera a la Cripta de los Heraldos y el Santuario de las Lágrimas
+-- (cada casa en ruinas y restaurada: la restaurada se dibuja encima con un punto "escena" con fase).
+-- Los tiles nuevos van al FINAL para no cambiar los ids viejos.
+-- ---------------------------------------------------------------------------------------
+local function meadowPx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 9 and "jp1" or (n < 17 and "jp3" or "jp2"))
+end
+-- el prado de las Ruinas: hierba clara verde dorada, con florcitas que brillan
+local function meadow(G, seed)
+  for y=0,31 do for x=0,31 do meadowPx(G, x, y, seed) end end
+  for y=0,31 do for x=0,31 do if noise(x, y, seed + 7) < 3 then G.px(x, y, "jp4") end end end
+end
+TILES[#TILES+1] = {"prado_ruinas", function(G) meadow(G, 701) end}
+TILES[#TILES+1] = {"prado_ruinas_b", function(G)
+  meadow(G, 702)
+  for _,p in ipairs({{6,8},{20,5},{13,19},{26,24}}) do G.px(p[1],p[2],"jp4"); G.px(p[1] + 1,p[2] - 1,"jp4"); G.px(p[1] - 1,p[2] - 1,"jp4") end
+end}
+TILES[#TILES+1] = {"prado_ruinas_flores", function(G)
+  meadow(G, 703)
+  for _,p in ipairs({{5,6},{18,9},{10,20},{25,17},{21,27},{4,26}}) do G.px(p[1],p[2],"jl1"); G.px(p[1] + 1,p[2],"jh1"); G.px(p[1],p[2] + 1,"jp4") end
+end}
+-- el pasto alto de los combates: hierba sagrada dorada, alta, con espigas de luz
+TILES[#TILES+1] = {"hierba_sagrada", function(G)
+  G.rect(0,0,31,31,"jh2")
+  for y=0,31 do for x=0,31 do local n = noise(x, y, 711); if n < 12 then G.px(x, y, "jh3") elseif n < 22 then G.px(x, y, "jh1") end end end
+  for x=1,31,3 do local h = 5 + noise(x, 1, 713) % 6; local y0 = 4 + (x * 7) % 22
+    for i=0,h do G.px(x + (i // 3) % 2, y0 + 6 - i, i < 2 and "jh3" or "jh1") end; G.px(x + 1, y0 + 6 - h, "jl1") end
+end}
+-- mármol del templo: losas grandes, blancas, con vetas y grietas
+local function marblePx(G, x, y, seed)
+  local n = noise(x, y, seed)
+  G.px(x, y, n < 10 and "jm1" or (n < 16 and "jm3" or "jm2"))
+end
+local function marble(G, seed)
+  for y=0,31 do for x=0,31 do marblePx(G, x, y, seed) end end
+  G.rect(0,0,31,0,"jm3"); G.rect(0,0,0,31,"jm3"); G.rect(0,16,31,16,"jm3"); G.rect(16,0,16,15,"jm3"); G.rect(8,17,8,31,"jm3"); G.rect(24,17,24,31,"jm3")
+  for i=0,9 do G.px(3 + i, 5 + (i * 3) % 7, "jm4") end
+end
+local function meadowEdge(G, mask, seed, rim)
+  local depth = function(i, side) return 3 + (noise(i, side, seed + mask) % 5) end
+  sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, rim) end)
+  sideBand(G, mask, depth, function(x, y) meadowPx(G, x, y, 719) end)
+end
+local function marbleTile(mask)
+  return function(G) marble(G, 721); meadowEdge(G, mask, 723, "jm4") end
+end
+-- la calzada de mármol: adoquines claros con juntas doradas
+local function marblePathTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"jm2")
+    for y=0,31,6 do local o = ((y // 6) % 2) * 4
+      G.rect(0,y,31,y,"jm4"); for x=o,31,8 do G.rect(x,y,x,y + 5,"jm4") end
+      for x=o + 1,31,8 do G.rect(x,y + 1,x + 2,y + 1,"jm1") end
+    end
+    for y=0,31 do for x=0,31 do if noise(x, y, 731) < 4 then G.px(x, y, "jm3") end end end
+    for _,p in ipairs({{12,9},{4,21},{27,15}}) do G.px(p[1],p[2],"go") end
+    meadowEdge(G, mask, 733, "jm4")
+  end
+end
+-- el agua de lágrimas: clara, celeste, con brillos; orilla de mármol y pasto
+local function tearWaterBase(G, seed)
+  G.rect(0,0,31,31,"jl3")
+  for y=0,31 do for x=0,31 do local n = noise(x, y, seed); if n < 9 then G.px(x, y, "jl4") elseif n < 15 then G.px(x, y, "jl2") end end end
+  for _,p in ipairs({{3,6},{17,11},{9,21},{22,27}}) do G.rect(p[1],p[2],p[1] + 5,p[2],"jl2"); G.px(p[1] + 6,p[2],"jl1") end
+  G.px(26,4,"W"); G.px(12,15,"jl1"); G.px(29,20,"W")
+end
+local function tearRim(G, mask, seed)
+  local depth = function(i, side) return 3 + (noise(i, side, seed + mask) % 3) end
+  sideBand(G, mask, function(i, side) return depth(i, side) + 2 end, function(x, y) G.px(x, y, "jm3") end)
+  sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "jm1") end)
+  sideBand(G, mask, depth, function(x, y) meadowPx(G, x, y, 739) end)
+end
+local function tearWaterTile(mask)
+  return function(G) tearWaterBase(G, 741); tearRim(G, mask, 743) end
+end
+-- el cielo estelar de la Grieta: el suelo se rompió y abajo se ven las estrellas; borde de piedra flotante
+local function starSkyBase(G, seed)
+  G.rect(0,0,31,31,"jc1")
+  for y=0,31 do for x=0,31 do local n = noise(x, y, seed); if n < 10 then G.px(x, y, "jc2") elseif n < 12 then G.px(x, y, "jc3") end end end
+  for _,p in ipairs({{4,5},{19,3},{11,14},{27,12},{6,24},{22,22},{15,29}}) do G.px(p[1],p[2],"W") end
+  for _,p in ipairs({{9,9},{25,26}}) do G.px(p[1],p[2],"jc4"); G.px(p[1] - 1,p[2],"jc3"); G.px(p[1] + 1,p[2],"jc3"); G.px(p[1],p[2] - 1,"jc3"); G.px(p[1],p[2] + 1,"jc3") end
+end
+local function starSkyTile(mask)
+  return function(G)
+    starSkyBase(G, 751)
+    local depth = function(i, side) return 3 + (noise(i, side, 753 + mask) % 4) end
+    -- la roca que flota: arriba el prado, abajo la piedra que se ve rota
+    sideBand(G, mask, function(i, side) return depth(i, side) + 3 end, function(x, y) G.px(x, y, "jm5") end)
+    sideBand(G, mask, function(i, side) return depth(i, side) + 1 end, function(x, y) G.px(x, y, "jm4") end)
+    sideBand(G, mask, depth, function(x, y) meadowPx(G, x, y, 757) end)
+  end
+end
+-- el Velo de Aethra: niebla blanca y tibia que no deja pasar
+local function veilBase(G, seed)
+  G.rect(0,0,31,31,"jv2")
+  for y=0,31 do for x=0,31 do local n = noise(x, y, seed); if n < 14 then G.px(x, y, "jv1") elseif n < 22 then G.px(x, y, "jv3") end end end
+  for _,p in ipairs({{2,7},{14,4},{23,13},{6,20},{18,25}}) do G.rect(p[1],p[2],p[1] + 7,p[2],"jv1"); G.rect(p[1] + 2,p[2] + 1,p[1] + 9,p[2] + 1,"jv1") end
+end
+local function veilTile(mask)
+  return function(G)
+    veilBase(G, 761)
+    -- en el borde, el prado asoma entre jirones de niebla
+    local depth = function(i, side) return 2 + (noise(i, side, 763 + mask) % 5) end
+    sideBand(G, mask, depth, function(x, y) if noise(x, y, 765) < 55 then meadowPx(G, x, y, 767) else G.px(x, y, "jv3") end end)
+  end
+end
+for m=0,15 do TILES[#TILES+1] = {"marmol_" .. m, marbleTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"caminom_" .. m, marblePathTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"lagrima_" .. m, tearWaterTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"cielo_" .. m, starSkyTile(m)} end
+for m=0,15 do TILES[#TILES+1] = {"velo_" .. m, veilTile(m)} end
+-- losas de oro y mármol de las plazas del templo (con el sol de Aethra)
+local function goldSlab(G)
+  G.rect(0,0,31,31,"jm1")
+  for y=0,31,8 do for x=0,31,8 do G.rect(x + 1, y + 1, x + 6, y + 6, ((x + y) // 8) % 2 == 0 and "jm2" or "jm1") end end
+  G.rect(0,0,31,0,"jo3"); G.rect(0,0,0,31,"jo3")
+end
+TILES[#TILES+1] = {"losa_oro", goldSlab}
+TILES[#TILES+1] = {"losa_oro_sol", function(G)
+  goldSlab(G)
+  G.ellipse(16,16,7,7,"go"); G.ellipse(16,16,5,5,"Y"); G.ellipse(16,16,2,2,"god")
+  for i=0,7 do local a = i * math.pi / 4; G.px(16 + math.floor(math.cos(a) * 10), 16 + math.floor(math.sin(a) * 10), "go") end
+end}
+-- pared del templo: el techo (mármol oscuro con filo claro) y la cara con columnas y vitrales
+local function templeTopTile(mask)
+  return function(G)
+    G.rect(0,0,31,31,"jm4")
+    for y=0,31 do for x=0,31 do if noise(x, y, 771) < 8 then G.px(x, y, "jm5") end end end
+    if mask & 1 == 0 then G.rect(0,0,31,1,"jm2") end
+    if mask & 2 == 0 then G.rect(30,0,31,31,"jm2") end
+    if mask & 8 == 0 then G.rect(0,0,1,31,"jm2") end
+    if mask & 4 == 0 then G.rect(0,31,31,31,"jm5") end
+  end
+end
+for m=0,15 do TILES[#TILES+1] = {"murot_" .. m, templeTopTile(m)} end
+local function templeFace(side, extra)
+  return function(G)
+    G.rect(0,0,31,31,"jm2")
+    for y=0,31 do for x=0,31 do if noise(x, y, 781) < 8 then G.px(x, y, "jm1") end end end
+    for y=4,31,9 do G.rect(0,y,31,y,"jm3"); for x=((y // 9) % 2) * 8,31,16 do G.rect(x,y,x,y + 8,"jm3") end end
+    G.rect(0,0,31,3,"jm4"); G.rect(0,1,31,1,"jo3"); G.rect(0,28,31,31,"jm3"); G.rect(0,31,31,31,"jm5")
+    if side == "i" then G.rect(0,0,2,31,"jm3") end
+    if side == "d" then G.rect(29,0,31,31,"jm3") end
+    if extra then extra(G) end
+  end
+end
+TILES[#TILES+1] = {"murot_cara_i", templeFace("i")}
+TILES[#TILES+1] = {"murot_cara_c", templeFace("c")}
+TILES[#TILES+1] = {"murot_cara_d", templeFace("d")}
+-- una media columna pegada a la pared y un vitral con las lágrimas de Aethra
+TILES[#TILES+1] = {"murot_columna", templeFace("c", function(G)
+  G.rect(11,4,20,30,"jm1"); G.rect(11,4,12,30,"W"); G.rect(19,4,20,30,"jm3"); G.rect(9,4,22,6,"jm3"); G.rect(9,27,22,30,"jm3")
+  for y=8,26,4 do G.px(15,y,"jm3"); G.px(16,y,"jm3") end
+end)}
+TILES[#TILES+1] = {"murot_vitral", templeFace("c", function(G)
+  G.ellipse(16,11,7,6,"jm5"); G.rect(9,11,23,26,"jm5"); G.ellipse(16,11,5,4,"jl2"); G.rect(11,11,21,24,"jl2")
+  G.rect(16,7,16,24,"jm5"); G.rect(11,16,21,16,"jm5"); G.px(13,13,"go"); G.px(19,19,"R"); G.px(13,21,"jl1"); G.px(19,12,"jl1")
+  G.ellipse(16,20,1.5,2.5,"jl4")
+end)}
+-- puente de mármol sobre el agua de lágrimas
+local RUIN_BRIDGES = {
+  {name="puenter", bg=tearWaterTile(15), shadow="jl4",
+    deck=function(a, b) if a % 8 == 0 then return "jm3" end; if (b + (a // 8) * 4) % 8 == 0 then return "jm3" end; return noise(a, b, 795) < 6 and "jm1" or "jm2" end,
+    rail=function(d, i, post) if d == 0 or d == 3 then return "jm4" end; if post then return "go" end; return d == 1 and "jm1" or "jm2" end},
+}
+for _, K in ipairs(RUIN_BRIDGES) do for m = 0, 15 do TILES[#TILES+1] = {K.name .. "_" .. m, bridgeTile(K, m)} end end
+
+-- decoración pequeña
+deco("flor_luminosa", function(G)
+  for _,p in ipairs({{8,24},{16,27},{23,22},{12,18}}) do
+    G.rect(p[1],p[2] - 4,p[1],p[2],"jp4"); G.px(p[1] - 1,p[2] - 2,"jp3")
+    G.ellipse(p[1],p[2] - 6,2.5,2,"jl2"); G.px(p[1],p[2] - 6,"W"); G.px(p[1] - 2,p[2] - 6,"jl1"); G.px(p[1] + 2,p[2] - 6,"jl1")
+  end
+end)
+deco("escombros_m", function(G)
+  G.ellipse(16,27,13,3,"jp4")
+  G.rect(4,18,14,26,"jm2"); G.rect(4,18,14,19,"jm1"); G.rect(13,20,14,26,"jm3")
+  G.rect(16,21,27,27,"jm3"); G.rect(16,21,27,22,"jm2"); G.rect(10,13,18,18,"jm1"); G.rect(17,14,18,18,"jm3"); G.px(22,19,"jm4")
+end)
+deco("banco_marmol", function(G)
+  G.ellipse(16,28,13,2,"jp4"); G.rect(3,17,28,21,"jm1"); G.rect(3,21,28,22,"jm3")
+  G.rect(5,22,8,28,"jm2"); G.rect(23,22,26,28,"jm2"); G.rect(7,22,8,28,"jm3"); G.rect(25,22,26,28,"jm3")
+end)
+deco("vasija_ofrenda", function(G)
+  G.ellipse(16,28,9,2,"jp4"); G.ellipse(16,20,8,8,"jm2"); G.ellipse(15,19,6,6,"jm1"); G.rect(12,8,20,12,"jm2"); G.rect(11,7,21,8,"jm1")
+  G.rect(9,20,23,20,"go"); G.px(16,15,"go")
+  for _,f in ipairs({{12,4},{16,2},{20,5}}) do G.ellipse(f[1],f[2] + 2,1.5,1.5,"jl2"); G.px(f[1],f[2] + 2,"W") end
+end)
+deco("tumba_vigia", function(G)
+  G.ellipse(16,29,9,2,"jp4"); G.ellipse(16,10,8,6,"jm2"); G.rect(8,10,24,28,"jm2"); G.rect(8,10,10,28,"jm1"); G.rect(22,10,24,28,"jm3")
+  -- el ojo abierto de los Vigías
+  G.ellipse(16,16,5,3,"jm4"); G.ellipse(16,16,2,2,"go"); G.rect(11,23,21,23,"jm3")
+end)
+deco("tumba_vacia", function(G)
+  G.ellipse(16,29,9,2,"jp4"); G.ellipse(16,10,8,6,"jm2"); G.rect(8,10,24,22,"jm2"); G.rect(8,10,10,22,"jm1"); G.rect(22,10,24,22,"jm3")
+  G.ellipse(16,16,5,3,"jm4"); G.ellipse(16,16,2,2,"go")
+  -- la tierra abierta delante de la lápida
+  G.rect(8,23,24,30,"te2"); G.rect(10,24,22,29,"te3"); G.px(12,26,"jm3"); G.px(19,25,"jm3")
+end)
+deco("farol_templo", function(G)
+  G.ellipse(16,29,6,2,"jp4"); G.rect(15,12,17,29,"jo3"); G.rect(12,27,20,29,"jm3")
+  G.rect(11,3,21,12,"go"); G.rect(13,5,19,10,"jl1"); G.ellipse(16,7,2,2,"W"); G.rect(10,2,22,3,"jo3")
+end)
+deco("escalinata_luz", function(G)
+  -- un círculo de luz en el suelo: aquí se sube a las Escalinatas de Luz (viaje rápido)
+  G.ellipse(16,18,13,8,"jm3"); G.ellipse(16,18,11,6,"jl2"); G.ellipse(16,18,7,4,"jl1"); G.ellipse(16,18,3,2,"W")
+  for i=0,5 do local a = i * math.pi / 3; G.px(16 + math.floor(math.cos(a) * 12), 18 + math.floor(math.sin(a) * 7), "go") end
+end)
+
+-- objetos grandes
+addGrid("columna_rota_m", 1, 2, function(V)
+  V.ellipse(16,61,10,2,"jp4"); V.rect(5,54,26,61,"jm2"); V.rect(5,54,26,55,"jm1")
+  V.rect(8,22,23,54,"jm1"); V.rect(8,22,10,54,"W"); V.rect(20,22,23,54,"jm3")
+  for y=26,50,6 do V.rect(14,y,14,y + 3,"jm3"); V.rect(18,y,18,y + 3,"jm3") end
+  -- partida arriba, en diagonal
+  for i=0,15 do V.rect(8 + i, 14 + (i * 5) // 8, 8 + i, 22, "jm1") end
+  for i=0,15 do V.px(8 + i, 14 + (i * 5) // 8, "jm3") end
+  V.rect(20,58,30,61,"jm3"); V.rect(1,57,6,61,"jm1")
+end)
+addGrid("estatua_aethra", 1, 2, function(V)
+  V.ellipse(16,61,11,2,"jp4"); V.rect(4,52,27,61,"jm3"); V.rect(4,52,27,53,"jm2")
+  for y=18,51 do local half = math.floor(4 + (y - 18) * 0.2); V.rect(16 - half, y, 16 + half, y, (y // 6) % 2 == 0 and "jm1" or "jm2") end
+  V.ellipse(16,13,5,6,"jm1"); V.rect(10,12,12,28,"jm2"); V.rect(20,12,22,28,"jm2")
+  -- llora: dos lágrimas de luz que caen al pedestal
+  V.px(14,15,"jl3"); V.px(18,15,"jl3"); V.rect(14,16,14,22,"jl2"); V.rect(18,16,18,20,"jl2")
+  V.ellipse(16,32,4,3,"jm1"); V.ellipse(16,5,6,2,"go")
+end)
+addGrid("estatua_vigia", 1, 2, function(V)
+  V.ellipse(16,61,11,2,"jp4"); V.rect(4,52,27,61,"jm3"); V.rect(4,52,27,53,"jm2")
+  for y=20,51 do local half = math.floor(6 + (y - 20) * 0.12); V.rect(16 - half, y, 16 + half, y, (y // 5) % 2 == 0 and "jm2" or "jm3") end
+  V.ellipse(16,14,6,7,"jm2"); V.ellipse(17,15,4,4,"jm4"); V.px(17,15,"go")
+  -- la lanza del Vigía
+  V.rect(25,4,26,52,"jm3"); V.rect(24,2,27,6,"jm1"); V.px(25,1,"jm1")
+end)
+addGrid("arbol_piedra", 2, 2, function(V)
+  V.ellipse(32,59,16,4,"jp4"); V.rect(28,30,36,58,"jm3"); V.rect(28,30,29,58,"jm2")
+  for i=0,12 do V.px(28 - i, 34 - i, "jm3"); V.px(27 - i, 34 - i, "jm3"); V.px(36 + i, 30 - i, "jm3"); V.px(37 + i, 30 - i, "jm3") end
+  -- hojas de piedra blanca, con flores que todavía brillan
+  for _,p in ipairs({{14,18,9,7},{48,14,10,7},{32,10,14,9},{22,26,7,5},{42,26,8,5}}) do V.ellipse(p[1],p[2],p[3],p[4],"jm2"); V.ellipse(p[1] - 2,p[2] - 2,p[3] - 3,p[4] - 3,"jm1") end
+  for _,p in ipairs({{12,14},{30,6},{50,10},{40,24},{20,24}}) do V.px(p[1],p[2],"jl1"); V.px(p[1] + 1,p[2],"jl2") end
+end)
+addGrid("fuente_lagrimas", 2, 2, function(V)
+  V.ellipse(32,56,28,6,"jp4"); V.ellipse(32,50,26,9,"jm3"); V.ellipse(32,48,24,7,"jm2"); V.ellipse(32,48,20,5,"jl3"); V.ellipse(30,47,14,3,"jl2")
+  V.rect(28,18,36,46,"jm1"); V.rect(34,18,36,46,"jm3"); V.ellipse(32,18,10,4,"jm2"); V.ellipse(32,17,8,3,"jl2")
+  -- el agua que cae de arriba, como lágrimas
+  for _,x in ipairs({24,40}) do for y=20,44,3 do V.px(x + (y % 2),y,"jl1") end end
+  V.ellipse(32,10,4,5,"jm1"); V.px(31,8,"jl3"); V.px(33,8,"jl3"); V.ellipse(32,4,4,2,"go")
+end)
+addGrid("fuente_seca", 2, 2, function(V)
+  V.ellipse(32,56,28,6,"jp4"); V.ellipse(32,50,26,9,"jm3"); V.ellipse(32,48,24,7,"jm2"); V.ellipse(32,48,20,5,"jm4"); V.ellipse(30,48,10,2,"te3")
+  V.rect(28,24,36,46,"jm2"); V.rect(34,24,36,46,"jm3"); V.ellipse(32,24,10,4,"jm3")
+  for i=0,8 do V.px(29 + i // 3, 26 + i * 2, "jm4") end; V.rect(38,40,44,44,"jm2")
+end)
+-- arco del templo: se pasa por debajo (solo chocan los pilares)
+addGrid("arco_templo", 3, 2, function(V)
+  V.ellipse(16,61,10,2,"jp4"); V.ellipse(80,61,10,2,"jp4")
+  for _,x in ipairs({6,74}) do V.rect(x,14,x + 15,60,"jm1"); V.rect(x,14,x + 2,60,"W"); V.rect(x + 12,14,x + 15,60,"jm3"); V.rect(x - 2,56,x + 17,61,"jm2") end
+  V.rect(4,6,91,16,"jm2"); V.rect(4,6,91,7,"jm1"); V.rect(4,15,91,16,"jm3")
+  for i=0,16 do V.rect(22 + i,16,22 + i,16 + (16 - i) // 3,"jm2"); V.rect(73 - i,16,73 - i,16 + (16 - i) // 3,"jm2") end
+  V.ellipse(48,10,5,3,"go"); V.px(48,9,"Y")
+end)
+addGrid("altar_sello", 2, 2, function(V)
+  V.ellipse(32,58,28,4,"jp4"); V.rect(6,30,57,56,"jm2"); V.rect(6,30,57,33,"jm1"); V.rect(6,52,57,56,"jm3")
+  for x=12,54,10 do V.rect(x,36,x,50,"jm3") end
+  -- el Sello: un círculo de oro con siete marcas, una por tierra
+  V.ellipse(32,18,14,12,"go"); V.ellipse(32,18,11,9,"jm1"); V.ellipse(32,18,6,5,"jl2")
+  for i=0,6 do local a = i * math.pi * 2 / 7 - math.pi / 2; V.ellipse(32 + math.cos(a) * 9, 18 + math.sin(a) * 7.5, 1.5, 1.5, i == 6 and "jl4" or "god") end
+end)
+addGrid("cristal_eclipse_g", 1, 2, function(V)
+  V.ellipse(16,60,11,3,"jp4"); V.ellipse(16,58,9,3,"jm4")
+  for _,s in ipairs({{10,58,4,26},{17,58,5,44},{23,58,3,20}}) do
+    local x, y, w, h = s[1], s[2], s[3], s[4]
+    for i=0,h do local ww = math.floor(w * (1 - i / h)); V.rect(x - ww, y - i, x + ww, y - i, i < h * 0.4 and "ob1" or "ob2") end
+    V.rect(x, y - h + 3, x, y - 2, "obh")
+  end
+end)
+addGrid("telescopio_roto", 3, 3, function(V)
+  V.ellipse(48,90,42,5,"jp4")
+  -- la base de piedra y el tubo de bronce partido, apuntando al cielo
+  V.rect(14,62,81,90,"jm2"); V.rect(14,62,81,65,"jm1"); V.rect(14,86,81,90,"jm3")
+  for x=20,76,14 do V.rect(x,68,x + 2,84,"jm3") end
+  V.rect(42,40,53,62,"jo3"); V.rect(44,40,51,62,"go")
+  for i=0,30 do V.rect(30 + i, 44 - i, 37 + i, 50 - i, i % 6 == 0 and "god" or "jo3"); V.px(31 + i, 44 - i, "go") end
+  -- la lente rota, colgando
+  V.ellipse(70,12,9,8,"jo3"); V.ellipse(70,12,6,5,"jl2"); for i=0,6 do V.px(66 + i,9 + i,"W") end
+  V.ellipse(24,80,4,3,"jl1"); V.px(60,84,"jl1"); V.px(58,86,"jl2")
+end)
+-- las torres del Velo: altas y blancas, se ven desde Aurelia
+addGrid("torre_velo", 2, 4, function(V)
+  V.ellipse(32,124,26,4,"jp4")
+  for y=30,123 do local half = 18 + (y > 110 and 4 or 0); V.rect(32 - half, y, 32 + half, y, "jm1"); V.rect(32 + half - 5, y, 32 + half, y, "jm3"); V.px(32 - half, y, "W") end
+  for y=40,118,12 do V.rect(14,y,50,y,"jm3") end
+  for _,y in ipairs({52,80,104}) do V.ellipse(32,y,4,6,"jm4"); V.ellipse(32,y,2,4,"jl2") end
+  for y=2,32 do local half = math.floor((y - 2) * 0.62); V.rect(32 - half, y, 32 + half, y, ((y // 4) % 2 == 0) and "go" or "jo3") end
+  V.rect(31,0,32,3,"go"); V.ellipse(32,30,22,3,"jm2")
+end)
+-- la Puerta del Velo: dos pilares con el sol de Aethra y la niebla abierta en el medio (se pasa por debajo)
+addGrid("puerta_velo", 3, 3, function(V)
+  V.ellipse(48,92,44,3,"jp4")
+  for _,x in ipairs({4,74}) do V.rect(x,22,x + 17,92,"jm1"); V.rect(x,22,x + 2,92,"W"); V.rect(x + 14,22,x + 17,92,"jm3"); V.rect(x - 2,86,x + 19,92,"jm2"); V.ellipse(x + 8,20,10,4,"jm2") end
+  V.rect(6,8,89,20,"jm2"); V.rect(6,8,89,9,"jm1"); V.rect(6,19,89,20,"jm3")
+  V.ellipse(48,10,9,8,"go"); V.ellipse(48,10,6,5,"Y"); for i=0,7 do local a = i * math.pi / 4; V.px(48 + math.floor(math.cos(a) * 12), 10 + math.floor(math.sin(a) * 10), "go") end
+  for _,p in ipairs({{28,40},{60,52},{36,70},{54,30}}) do V.rect(p[1],p[2],p[1] + 10,p[2],"jv1"); V.rect(p[1] + 3,p[2] + 1,p[1] + 12,p[2] + 1,"jv2") end
+end)
+-- la escalera que baja de la Cripta de los Heraldos al Trono de Huesos (se entra por el centro de abajo)
+addGrid("escalera_heraldos", 3, 3, function(V)
+  V.ellipse(48,91,46,4,"jp4")
+  V.rect(4,16,91,92,"jm4")
+  V.ellipse(48,50,40,42,"jm2"); V.rect(8,50,87,93,"jm2"); V.ellipse(48,54,30,34,"cs5"); V.rect(18,54,77,93,"cs5")
+  for i=0,7 do local y = 88 - i * 8; local half = 26 - i * 2; V.rect(48 - half, y - 5, 48 + half, y, i % 2 == 0 and "cs2" or "cs3"); V.rect(48 - half, y, 48 + half, y, "cs4") end
+  -- abajo, el frío de las catacumbas: cráneos en el arco
+  for a=0,8 do local t = math.pi * a / 8; V.ellipse(48 + math.floor(math.cos(t) * 34), 48 - math.floor(math.sin(t) * 38), 2.5, 2, "hu1") end
+  V.rect(8,50,12,93,"jm3"); V.rect(83,50,87,93,"jm3")
+end)
+-- el altar del Santuario, donde espera Seraphine
+addGrid("altar_santuario", 2, 2, function(V)
+  V.ellipse(32,58,26,4,"jp4"); V.rect(8,34,55,56,"jm1"); V.rect(8,34,55,36,"W"); V.rect(8,52,55,56,"jm3")
+  V.rect(14,40,49,48,"jl2"); V.rect(14,40,49,41,"jl1")
+  V.ellipse(32,20,10,12,"jm2"); V.ellipse(32,20,7,9,"jl2"); V.ellipse(32,22,3,4,"jl1"); V.px(32,14,"W")
+  for _,x in ipairs({12,52}) do V.rect(x - 1,22,x + 1,34,"jm3"); V.ellipse(x,20,2,3,"jl2"); V.px(x,19,"W") end
+end)
+
+-- el Santuario de las Lágrimas: cada casa restaurada (de mármol, con tejado celeste y oro) y en ruinas
+-- (paredes caídas, sin techo). La restaurada se dibuja encima con un punto "escena" con fase.
+local function ruinOf(name, w, h)
+  addGrid(name, w, h, function(V)
+    local W, H = w * 32, h * 32
+    local wt = math.floor(H * 0.42)
+    V.ellipse(W // 2, H - 4, W // 2 - 2, 5, "jp4")
+    -- el piso de la casa, con pasto que se metió
+    V.rect(4, wt + 6, W - 5, H - 3, "jm2")
+    for y = wt + 6, H - 3, 6 do V.rect(4, y, W - 5, y, "jm3") end
+    for i = 0, 40 do local x = 6 + noise(i, 1, 801) % (W - 12); local y = wt + 8 + noise(i, 2, 802) % (H - wt - 14); V.px(x, y, "jp2") end
+    -- lo que queda de las paredes: tramos a distinta altura
+    for x = 4, W - 5, 8 do
+      local top = wt + 2 + noise(x, 3, 803) % 20
+      if (x // 8) % 3 ~= 1 then V.rect(x, top, x + 7, H - 3, "jm1"); V.rect(x + 6, top, x + 7, H - 3, "jm3"); V.rect(x, top, x + 7, top, "jm4") end
+    end
+    V.rect(W // 2 - 8, H - 24, W // 2 + 7, H - 3, "jm2")
+    for i = 0, 5 do V.rect(10 + i * 9, H - 6 - (i % 2) * 2, 15 + i * 9, H - 3, "jm3") end
+  end)
+end
+building("casa_aethrina", 3, 3, {wall="marmol", roof={"jl3","jl4"}, shadow="jp4", doorC="go", arch=true, glow=true, extra=function(V, W, H, wt)
+  V.ellipse(W // 2, wt + 6, 5, 4, "jl2"); V.px(W // 2, wt + 5, "W")
+end})
+ruinOf("ruina_casa", 3, 3)
+building("posada_santuario", 4, 3, {wall="marmol", roof={"jl3","jl4"}, hip=true, chimney=true, glow=true, shadow="jp4", doorW=18, doorC="go", arch=true, extra=function(V, W, H, wt)
+  V.rect(10, wt + 20, W - 11, wt + 22, "jm3"); for x = 14, W - 16, 10 do V.ellipse(x, wt + 19, 3, 2, "jl2"); V.px(x + 2, wt + 18, "W") end
+  V.ellipse(W // 2, wt + 6, 7, 5, "go"); V.rect(W // 2 - 3, wt + 3, W // 2 + 2, wt + 9, "jl2")
+end})
+ruinOf("ruina_posada", 4, 3)
+building("forja_santuario", 3, 3, {wall="marmol", roof={"jm4","jm5"}, shadow="jp4", doorW=24, doorH=22, doorC="jm5", noWin=true, extra=function(V, W, H, wt)
+  V.ellipse(W // 2, H - 14, 9, 6, "jl3"); V.ellipse(W // 2, H - 15, 5, 3, "jl1")
+  V.rect(W - 28, 2, W - 20, wt - 6, "jm4"); V.ellipse(W - 24, 2, 5, 3, "jl2")
+  V.rect(10, wt + 8, 22, wt + 10, "go"); V.rect(W - 22, wt + 8, W - 10, wt + 10, "go")
+end})
+ruinOf("ruina_forja", 3, 3)
+
+
 local COLLIDE = {arbol=true, roca=true, arbusto=true, valla=true, agua=true, cartel=true, fogata=true, orilla_agua_arriba=true,
   arbol_grande_bi=true, arbol_grande_bd=true, carpa_ai=true, carpa_ad=true, carpa_bi=true, carpa_bd=true,
   puesto_ai=true, puesto_ad=true, puesto_bi=true, puesto_bd=true, yunque=true, barril=true, caja=true, farol=true}
@@ -2818,6 +3194,31 @@ for _, n in ipairs({"portal_trono","escalera_helada","escalera_catedral","cripta
   for r=0,1 do for c=0,2 do COLLIDE[string.format("%s_%d_%d", n, r, c)] = true end end
   COLLIDE[n .. "_2_0"] = true; COLLIDE[n .. "_2_2"] = true
 end
+
+-- v11 (Ruinas): el agua de lágrimas, el cielo estelar, el Velo y las paredes del templo chocan; el prado,
+-- el mármol, la calzada, las losas de oro, la hierba sagrada y los puentes se caminan
+for m=0,15 do COLLIDE["lagrima_" .. m] = true; COLLIDE["cielo_" .. m] = true; COLLIDE["velo_" .. m] = true; COLLIDE["murot_" .. m] = true end
+for _, n in ipairs({"murot_cara_i","murot_cara_c","murot_cara_d","murot_columna","murot_vitral",
+  "escombros_m","banco_marmol","vasija_ofrenda","tumba_vigia","tumba_vacia","farol_templo"}) do COLLIDE[n] = true end
+bigCollide("columna_rota_m", 1, 2, 1); bigCollide("estatua_aethra", 1, 2, 1); bigCollide("estatua_vigia", 1, 2, 1)
+bigCollide("cristal_eclipse_g", 1, 2, 1); bigCollide("arbol_piedra", 2, 2, 1); bigCollide("fuente_lagrimas", 2, 2, 1)
+bigCollide("fuente_seca", 2, 2, 1); bigCollide("altar_sello", 2, 2, 0); bigCollide("altar_santuario", 2, 2, 1)
+bigCollide("telescopio_roto", 3, 3, 1); bigCollide("torre_velo", 2, 4, 2)
+for _, n in ipairs({"columna_rota_m","estatua_aethra","estatua_vigia","cristal_eclipse_g"}) do ABOVE[n .. "_0_0"] = true end
+for _, n in ipairs({"arbol_piedra","fuente_lagrimas","fuente_seca","altar_santuario"}) do ABOVE[n .. "_0_0"] = true; ABOVE[n .. "_0_1"] = true end
+for c=0,2 do ABOVE[string.format("telescopio_roto_0_%d", c)] = true end
+aboveRows("torre_velo", 2, 2)
+-- el arco del templo: se pasa por debajo; solo chocan los pilares
+COLLIDE["arco_templo_1_0"] = true; COLLIDE["arco_templo_1_2"] = true; aboveRows("arco_templo", 3, 1)
+-- la Puerta del Velo: los pilares chocan, el medio se camina y el dintel tapa al héroe
+for r=0,2 do COLLIDE[string.format("puerta_velo_%d_0", r)] = true; COLLIDE[string.format("puerta_velo_%d_2", r)] = true end
+ABOVE["puerta_velo_0_1"] = true
+-- el Santuario: las casas restauradas y en ruinas
+for _, b in ipairs({{"casa_aethrina",3},{"posada_santuario",4},{"forja_santuario",3}}) do bigCollide(b[1], b[2], 3, 1); aboveRows(b[1], b[2], 1) end
+for _, b in ipairs({{"ruina_casa",3},{"ruina_posada",4},{"ruina_forja",3}}) do bigCollide(b[1], b[2], 3, 2) end
+-- la escalera a la Cripta de los Heraldos: se entra por el centro de abajo
+for r=0,1 do for c=0,2 do COLLIDE[string.format("escalera_heraldos_%d_%d", r, c)] = true end end
+COLLIDE["escalera_heraldos_2_0"] = true; COLLIDE["escalera_heraldos_2_2"] = true
 
 local COLS = 8
 local ROWS = math.ceil(#TILES / COLS)

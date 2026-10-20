@@ -1,0 +1,67 @@
+[
+ {
+  "id": "marmol_cantera",
+  "tipo": "bloque_marmol",
+  "spots": 4
+ },
+ {
+  "id": "marmol_patio",
+  "tipo": "bloque_marmol",
+  "spots": 3
+ },
+ {
+  "id": "oro_cantera",
+  "tipo": "veta_oro_primordial",
+  "spots": 2
+ },
+ {
+  "id": "oro_torres",
+  "tipo": "veta_oro_primordial",
+  "spots": 3
+ },
+ {
+  "id": "flores_jardines",
+  "tipo": "flores_luminosas",
+  "spots": 4
+ },
+ {
+  "id": "flores_bosque",
+  "tipo": "flores_luminosas",
+  "spots": 3
+ },
+ {
+  "id": "lagrimas_lago",
+  "tipo": "fuente_lagrimas",
+  "spots": 3
+ },
+ {
+  "id": "lagrimas_jardines",
+  "tipo": "fuente_lagrimas",
+  "spots": 2
+ },
+ {
+  "id": "crater_torres",
+  "tipo": "crater_estrella",
+  "spots": 2
+ },
+ {
+  "id": "crater_grieta",
+  "tipo": "crater_estrella",
+  "spots": 4
+ },
+ {
+  "id": "relicario_campo",
+  "tipo": "relicario_templo",
+  "spots": 1
+ },
+ {
+  "id": "relicario_torres",
+  "tipo": "relicario_templo",
+  "spots": 1
+ },
+ {
+  "id": "relicario_jardines",
+  "tipo": "relicario_templo",
+  "spots": 1
+ }
+]

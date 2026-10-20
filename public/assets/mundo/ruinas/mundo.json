@@ -1,0 +1,270 @@
+{
+ "nombre": "Ruinas Ancestrales",
+ "zona": 7,
+ "musica": "ruinas",
+ "tileset": "pradera",
+ "terrenos": [
+  "prador",
+  "marmol",
+  "caminom",
+  "losaoro",
+  "sagrada",
+  "lagrima",
+  "puenter",
+  "cielo",
+  "murot",
+  "velo"
+ ],
+ "tile": 32,
+ "chunkWidth": 40,
+ "chunkHeight": 30,
+ "columns": 4,
+ "rows": 4,
+ "encuentroHierba": 0.06,
+ "gidHierba": 1675,
+ "inicio": {
+  "x": 1936,
+  "y": 2576
+ },
+ "clima": {
+  "estacion": "verano",
+  "lluvia": 0.05
+ },
+ "gids": {
+  "flores": [
+   1674
+  ],
+  "agua": [],
+  "prado": [
+   1672,
+   1673
+  ],
+  "arboles": [
+   1809,
+   1810
+  ],
+  "dorados": [],
+  "seco": []
+ },
+ "chunks": [
+  {
+   "cx": 0,
+   "cy": 0,
+   "file": "chunk_0_0.json"
+  },
+  {
+   "cx": 1,
+   "cy": 0,
+   "file": "chunk_1_0.json"
+  },
+  {
+   "cx": 2,
+   "cy": 0,
+   "file": "chunk_2_0.json"
+  },
+  {
+   "cx": 3,
+   "cy": 0,
+   "file": "chunk_3_0.json"
+  },
+  {
+   "cx": 0,
+   "cy": 1,
+   "file": "chunk_0_1.json"
+  },
+  {
+   "cx": 1,
+   "cy": 1,
+   "file": "chunk_1_1.json"
+  },
+  {
+   "cx": 2,
+   "cy": 1,
+   "file": "chunk_2_1.json"
+  },
+  {
+   "cx": 3,
+   "cy": 1,
+   "file": "chunk_3_1.json"
+  },
+  {
+   "cx": 0,
+   "cy": 2,
+   "file": "chunk_0_2.json"
+  },
+  {
+   "cx": 1,
+   "cy": 2,
+   "file": "chunk_1_2.json"
+  },
+  {
+   "cx": 2,
+   "cy": 2,
+   "file": "chunk_2_2.json"
+  },
+  {
+   "cx": 3,
+   "cy": 2,
+   "file": "chunk_3_2.json"
+  },
+  {
+   "cx": 0,
+   "cy": 3,
+   "file": "chunk_0_3.json"
+  },
+  {
+   "cx": 1,
+   "cy": 3,
+   "file": "chunk_1_3.json"
+  },
+  {
+   "cx": 2,
+   "cy": 3,
+   "file": "chunk_2_3.json"
+  },
+  {
+   "cx": 3,
+   "cy": 3,
+   "file": "chunk_3_3.json"
+  }
+ ],
+ "subzonas": [
+  {
+   "name": "Santuario de las Lágrimas",
+   "x0": 1280,
+   "y0": 1920,
+   "x1": 2560,
+   "y1": 2880,
+   "levels": null,
+   "safe": true
+  },
+  {
+   "name": "Puerta del Velo",
+   "x0": 1280,
+   "y0": 2880,
+   "x1": 2560,
+   "y1": 3840,
+   "levels": "86-87"
+  },
+  {
+   "name": "Campo de los Vigías",
+   "x0": 0,
+   "y0": 2880,
+   "x1": 1280,
+   "y1": 3840,
+   "levels": "87-89"
+  },
+  {
+   "name": "Escalinata de los Peregrinos",
+   "x0": 0,
+   "y0": 1920,
+   "x1": 1280,
+   "y1": 2880,
+   "levels": "88-90"
+  },
+  {
+   "name": "Cantera de Mármol",
+   "x0": 2560,
+   "y0": 2880,
+   "x1": 3840,
+   "y1": 3840,
+   "levels": "88-90"
+  },
+  {
+   "name": "Camino de las Cumbres",
+   "x0": 3840,
+   "y0": 2880,
+   "x1": 5120,
+   "y1": 3840,
+   "levels": "89-91"
+  },
+  {
+   "name": "Bosque Petrificado",
+   "x0": 0,
+   "y0": 960,
+   "x1": 1280,
+   "y1": 1920,
+   "levels": "90-92"
+  },
+  {
+   "name": "Cripta de los Heraldos",
+   "x0": 2560,
+   "y0": 1920,
+   "x1": 3840,
+   "y1": 2880,
+   "levels": "90-92"
+  },
+  {
+   "name": "Patio de las Estatuas",
+   "x0": 1280,
+   "y0": 960,
+   "x1": 2560,
+   "y1": 1920,
+   "levels": "91-93"
+  },
+  {
+   "name": "Lago de las Lágrimas",
+   "x0": 3840,
+   "y0": 1920,
+   "x1": 5120,
+   "y1": 2880,
+   "levels": "91-93"
+  },
+  {
+   "name": "Jardines de las Lágrimas",
+   "x0": 3840,
+   "y0": 960,
+   "x1": 5120,
+   "y1": 1920,
+   "levels": "92-94"
+  },
+  {
+   "name": "Torres del Velo",
+   "x0": 0,
+   "y0": 0,
+   "x1": 1280,
+   "y1": 960,
+   "levels": "93-95"
+  },
+  {
+   "name": "Observatorio Roto",
+   "x0": 1280,
+   "y0": 0,
+   "x1": 2560,
+   "y1": 960,
+   "levels": "93-95"
+  },
+  {
+   "name": "Templo Sagrado",
+   "x0": 2560,
+   "y0": 960,
+   "x1": 3840,
+   "y1": 1920,
+   "levels": "94-96"
+  },
+  {
+   "name": "Grieta Estelar",
+   "x0": 3840,
+   "y0": 0,
+   "x1": 5120,
+   "y1": 960,
+   "levels": "96-98"
+  },
+  {
+   "name": "Corazón del Templo",
+   "x0": 2560,
+   "y0": 0,
+   "x1": 3840,
+   "y1": 960,
+   "levels": "98-100"
+  },
+  {
+   "name": "Ruinas Ancestrales",
+   "x0": 0,
+   "y0": 0,
+   "x1": 5120,
+   "y1": 3840,
+   "levels": "86-100"
+  }
+ ]
+}

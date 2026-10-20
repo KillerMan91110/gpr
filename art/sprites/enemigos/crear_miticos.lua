@@ -1,4 +1,5 @@
--- Jefes míticos de las Montañas, del Volcán, de las Costas, de la Tundra y de las Catacumbas (gprback/lib/mythic.js) y sus esbirros:
+-- Jefes míticos de las Montañas, del Volcán, de las Costas, de la Tundra, de las Catacumbas y de las Ruinas
+-- (gprback/lib/mythic.js) y sus esbirros:
 --   mitico_truenocuerno  Truenocuerno, el Carnero de la Tormenta (Montañas), 64x64
 --   cabra_tronadora      Cabra Tronadora, su esbirro, 48x48
 --   mitico_ignivora      Ignivora, la Madre Salamandra (Volcán), 64x64
@@ -9,6 +10,8 @@
 --   lobezno_aurora       Lobezno de la Aurora, su esbirro, 48x48
 --   mitico_morgath       Morgath, la Polilla de la Vela Negra (Catacumbas), 64x64: una polilla enorme de sombra
 --   polilla_ceniza       Polilla de Ceniza, su esbirro, 48x48
+--   mitico_astrea        Astrea, la Ballena de las Estrellas (Ruinas), 64x64: una ballena hecha de cielo nocturno
+--   pez_estelar          Pez Estelar, su esbirro, 48x48
 -- (Aullaluna, el de la Pradera, está en art/sprites/mundo/crear_coleccion.lua.)
 -- Mismo estilo que crear_enemigos_volcan.lua: se dibujan mirando a la derecha, contorno oscuro
 -- automático y se voltean (en combate miran a los héroes, a la izquierda).
@@ -43,9 +46,11 @@ for k, v in pairs({
   -- polilla de sombra (alas negras violáceas, ojos de las alas morados, llama azul que brilla), ceniza y losas
   md1="4a4458", md2="342f40", md3="211e2a", mp1="e2a6ff", mp2="8a50d8", mf1="c0f6ff", mf2="4cbcdc",
   as1="d8d0c4", as2="a8a094", as3="78706a", ls1="6c6678", ls2="4e4a5a",
+  -- cielo nocturno de Astrea, sus estrellas (brillan) y la luz celeste de sus peces
+  cz1="9a8ae0", cz2="4c3c94", cz3="2e2a66", cz4="1e1a44", sr="fff8c0", lg2="a6e2f4", lg3="64bcde",
 }) do C[k] = hex(v) end
 -- colores que brillan: no reciben contorno a su alrededor
-local GLOW = {K=true, f1=true, f2=true, f3=true, zz1=true, zz2=true, zz3=true, wa1=true, wa2=true, au1=true, au2=true, st=true, mp1=true, mf1=true}
+local GLOW = {K=true, f1=true, f2=true, f3=true, zz1=true, zz2=true, zz3=true, wa1=true, wa2=true, au1=true, au2=true, st=true, mp1=true, mf1=true, sr=true}
 
 local function newGrid(W, H, ground)
   ground = ground or H - 1
@@ -530,6 +535,66 @@ local function polilla(P)
   return G
 end
 
+-- Astrea, la Ballena de las Estrellas (64x64): una ballena hecha de cielo nocturno, con constelaciones en la
+-- piel, una estrella por ojo y una cola de luz. Nada en el aire, cantando
+local function astrea(P)
+  local G = newGrid(64, 64, 61)
+  local dx, b = P.dx or 0, P.bob or 0
+  local ph = P.phase or 0
+  G.ellipse(32, 60, 24, 3, "ls2"); G.ellipse(32, 59, 18, 2, "ls1")
+  if P.dead then
+    G.ellipse(30,55,24,5,"cz3"); G.ellipse(28,53,16,3,"cz2")
+    for i=0,8 do G.px(8 + i * 6, 50 - (i % 3) * 3, "sr") end
+    return G
+  end
+  local by = 28 + b
+  -- la cola: dos aletas de luz atrás (a la izquierda; se dibuja mirando a la derecha)
+  local tail = (ph % 2 == 0) and -4 or 4
+  for i=0,8 do G.ellipse(10 - i + dx, by - 2 - i + tail * i / 8, 3 - i * 0.2, 2, i % 2 == 0 and "cz2" or "cz1") end
+  for i=0,8 do G.ellipse(10 - i + dx, by + 4 + i + tail * i / 8, 3 - i * 0.2, 2, i % 2 == 0 and "cz2" or "cz1") end
+  -- el cuerpo: cielo profundo arriba, más claro abajo
+  G.ellipse(32+dx, by, 24, 14, "cz3"); G.ellipse(30+dx, by - 3, 20, 9, "cz4")
+  G.ellipse(34+dx, by + 7, 18, 5, "cz2")
+  for x=18,48,4 do G.line(x+dx, by + 6, x + 2 + dx, by + 11, "cz1") end
+  -- constelaciones en la piel
+  local stars = {{20, by - 6}, {26, by - 10}, {33, by - 7}, {38, by - 11}, {28, by - 1}}
+  for i=1,#stars - 1 do G.line(stars[i][1]+dx, stars[i][2], stars[i+1][1]+dx, stars[i+1][2], "cz1") end
+  for i, s in ipairs(stars) do G.px(s[1]+dx, s[2], "sr"); if (i + ph) % 2 == 0 then G.px(s[1]+dx+1, s[2], "sr") end end
+  -- la aleta del pecho
+  G.ellipse(36+dx, by + 12, 6, 3, "cz2"); G.line(32+dx, by + 12, 40+dx, by + 15, "cz1")
+  -- la cabeza: la boca larga y el ojo, una estrella
+  local hx, hy = dx + (P.hx or 0), (P.hy or 0)
+  G.line(44+hx, by + 4 + hy, 55+hx, by + 1 + hy, "cz1")
+  if P.pain then G.line(46+hx, by - 4 + hy, 49+hx, by - 4 + hy, "K")
+  else G.ellipse(47+hx, by - 4 + hy, 2, 2, "W"); G.px(47+hx, by - 4 + hy, "sr"); G.px(47+hx, by - 7 + hy, "sr"); G.px(44+hx, by - 4 + hy, "sr"); G.px(50+hx, by - 4 + hy, "sr") end
+  -- el surtidor: un chorro de polvo de estrellas
+  if P.cast then
+    for i=0,6 do G.px(36+dx + (i % 2), by - 15 - i * 3, "sr"); G.px(34+dx - i, by - 18 - i * 2, "sr"); G.px(38+dx + i, by - 18 - i * 2, "sr") end
+    for _,r in ipairs({28, 31}) do for a=0,359,15 do G.px(32+dx + math.cos(math.rad(a)) * r, by + math.sin(math.rad(a)) * (r * 0.55), "lg2") end end
+  end
+  if P.bite then for i=0,4 do G.thick(52+dx, by - 2 + i * 3, 63, by - 6 + i * 4, 2, i % 2 == 0 and "sr" or "lg2") end end
+  return G
+end
+
+-- Pez Estelar (48x48): un pececito de luz que nada en el aire
+local function pezEstelar(P)
+  local G = newGrid(48, 48, 45)
+  local dx, b = P.dx or 0, P.bob or 0
+  local ph = P.phase or 0
+  G.ellipse(24, 45, 10, 2, "ls2")
+  if P.dead then G.ellipse(24,42,8,2,"cz2"); G.px(20,40,"sr"); G.px(28,41,"sr"); return G end
+  local by = 22 + b
+  local t = (ph % 2 == 0) and -3 or 3
+  G.ellipse(10+dx, by + t, 4, 6, "cz1"); G.ellipse(10+dx, by + t, 2, 4, "lg2")
+  G.ellipse(24+dx, by, 12, 7, "lg3"); G.ellipse(23+dx, by - 2, 9, 4, "lg2"); G.ellipse(25+dx, by + 3, 8, 2, "cz1")
+  G.ellipse(24+dx, by - 8, 4, 2, "lg2"); G.ellipse(24+dx, by + 8, 3, 2, "lg3")
+  for _, p in ipairs({{18, by - 1}, {22, by + 2}, {27, by - 3}}) do G.px(p[1]+dx, p[2], "sr") end
+  local hx, hy = dx + (P.hx or 0), (P.hy or 0)
+  if P.pain then G.px(31+hx, by - 2 + hy, "K") else G.ellipse(31+hx, by - 2 + hy, 1.5, 1.5, "W"); G.px(31+hx, by - 2 + hy, "sr") end
+  if P.cast or P.snap then for i=0,4 do G.px(36+dx + i * 2, by - 2 + (i % 2) * 2, "sr") end end
+  return G
+end
+
 local MONSTERS = {
   {key="mitico_truenocuerno", size=64, draw=truenocuerno, anims={
     {"idle",   {{bob=0,phase=0,dur=500},{bob=1,phase=1,dur=500}}},
@@ -596,6 +661,20 @@ local MONSTERS = {
   }},
   {key="polilla_ceniza", size=48, draw=polilla, anims={
     {"idle",   {{bob=0,phase=0,dur=220},{bob=-2,phase=1,dur=220}}},
+    {"attack", {{bob=-1,hx=-2,phase=0,dur=200},{dx=4,snap=true,phase=1,dur=140},{dx=1,phase=0,dur=220}}},
+    {"cast",   {{bob=-2,phase=0,dur=200},{cast=true,phase=1,dur=300},{cast=true,phase=0,dur=220}}},
+    {"hurt",   {{dx=-2,hy=-1,pain=true,dur=250}}},
+    {"die",    {{bob=1,pain=true,dur=200},{dead=true,dur=1000}}},
+  }},
+  {key="mitico_astrea", size=64, draw=astrea, anims={
+    {"idle",   {{bob=0,phase=0,dur=480},{bob=-2,phase=1,dur=480}}},
+    {"attack", {{bob=-1,hx=-2,phase=0,dur=260},{dx=4,bite=true,phase=1,dur=170},{dx=1,phase=0,dur=280}}},
+    {"cast",   {{bob=-2,phase=0,dur=240},{cast=true,phase=1,dur=360},{cast=true,phase=0,dur=280}}},
+    {"hurt",   {{dx=-3,pain=true,phase=1,dur=300}}},
+    {"die",    {{bob=3,pain=true,phase=1,dur=300},{dead=true,dur=1400}}},
+  }},
+  {key="pez_estelar", size=48, draw=pezEstelar, anims={
+    {"idle",   {{bob=0,phase=0,dur=260},{bob=-2,phase=1,dur=260}}},
     {"attack", {{bob=-1,hx=-2,phase=0,dur=200},{dx=4,snap=true,phase=1,dur=140},{dx=1,phase=0,dur=220}}},
     {"cast",   {{bob=-2,phase=0,dur=200},{cast=true,phase=1,dur=300},{cast=true,phase=0,dur=220}}},
     {"hurt",   {{dx=-2,hy=-1,pain=true,dur=250}}},

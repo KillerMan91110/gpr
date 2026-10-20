@@ -230,6 +230,68 @@ const TRACKS = {
       ) },
     ],
   },
+  // el final: el ritual de Elenya y Seraphine en la Plaza del Pilar. Re menor que sube a re mayor; un órgano grave,
+  // un tambor lento como un corazón y las dos voces que cantan la canción de los Sellos, una contra la otra
+  final: {
+    bpm: 96,
+    drums: 'k - - - k - s -',
+    voices: [
+      { wave: 'sawtooth', gain: 0.05, steps: bars(
+        'D2 . . . . . . .', 'A#1 . . . . . . .', 'F1 . . . . . . .', 'A1 . . . . . . .',
+        'D2 . . . . . . .', 'G1 . . . . . . .', 'A1 . . . . . . .', 'D2 . . . F#2 . . .',
+      ) },
+      { wave: 'triangle', gain: 0.07, steps: bars(
+        'D4 . F4 . A4 . . .', 'A#4 . A4 . G4 . F4 .', 'F4 . A4 . C5 . . .', 'E4 . . . C#4 . . .',
+        'D4 . F4 . A4 . D5 .', 'D5 . C5 . A#4 . G4 .', 'A4 . C#5 . E5 . . .', 'F#4 . A4 . D5 . . .',
+      ) },
+      { wave: 'sine', gain: 0.03, steps: bars(
+        'A5 . . . . . . .', 'F5 . . . . . . .', 'A5 . . . C6 . . .', 'A5 . . . . . . .',
+        'F5 . . . A5 . . .', 'A#5 . . . . . . .', 'C#6 . . . E6 . . .', 'F#6 . . . . . . .',
+      ) },
+    ],
+  },
+  // las Ruinas Ancestrales: re mayor, luminoso; un arpa que sube y baja en arpegios, un coro lejano de notas
+  // largas (los aethrinos que ya no están) y una campanita muy arriba, como una lágrima que cae; sin tambores
+  ruinas: {
+    bpm: 84,
+    voices: [
+      { wave: 'triangle', gain: 0.045, steps: bars(
+        'D2 . . . . . . .', 'B1 . . . . . . .', 'G1 . . . . . . .', 'A1 . . . . . . .',
+        'D2 . . . . . . .', 'F#2 . . . . . . .', 'G1 . . . A1 . . .', 'D2 . . . . . . .',
+      ) },
+      { wave: 'sine', gain: 0.05, short: true, steps: bars(
+        'D4 F#4 A4 D5 A4 F#4 D4 F#4', 'B3 D4 F#4 B4 F#4 D4 B3 D4', 'G3 B3 D4 G4 D4 B3 G3 B3', 'A3 C#4 E4 A4 E4 C#4 A3 C#4',
+        'D4 F#4 A4 D5 A4 F#4 D4 F#4', 'F#3 A3 C#4 F#4 C#4 A3 F#3 A3', 'G3 B3 D4 G4 A3 C#4 E4 A4', 'D4 F#4 A4 D5 - - - -',
+      ) },
+      { wave: 'sawtooth', gain: 0.012, steps: bars(
+        'F#5 . . . . . . .', 'D5 . . . . . . .', 'B4 . . . . . . .', 'C#5 . . . . . . .',
+        'A5 . . . . . . .', 'F#5 . . . . . . .', 'D5 . . . E5 . . .', 'F#5 . . . . . . .',
+      ) },
+      { wave: 'sine', gain: 0.016, short: true, steps: bars(
+        '- - - - - - A6 -', '- - - - - - - -', '- - - - F#6 - - -', '- - - - - - - -',
+        '- - - - - - D7 -', '- - - - - - - -', '- - - - - - B6 -', '- - - - A6 - - -',
+      ) },
+    ],
+  },
+  // el Observatorio Roto: mi menor, una caja de música que se quedó dando cuerda mil años, cuerdas lentas
+  // abajo y, muy arriba, una nota que tiembla como una estrella; sin tambores (adentro todo es silencio)
+  observatorio: {
+    bpm: 76,
+    voices: [
+      { wave: 'triangle', gain: 0.05, steps: bars(
+        'E2 . . . . . . .', 'C2 . . . . . . .', 'A1 . . . . . . .', 'B1 . . . . . . .',
+        'E2 . . . . . . .', 'G2 . . . . . . .', 'C2 . . . D2 . . .', 'B1 . . . . . . .',
+      ) },
+      { wave: 'sine', gain: 0.045, short: true, steps: bars(
+        'E5 B5 G5 B5 E6 B5 G5 B5', 'C5 G5 E5 G5 C6 G5 E5 G5', 'A4 E5 C5 E5 A5 E5 C5 E5', 'B4 F#5 D#5 F#5 B5 F#5 D#5 F#5',
+        'E5 B5 G5 B5 E6 B5 G5 B5', 'G5 D6 B5 D6 G6 D6 B5 D6', 'C5 G5 E5 G5 D5 A5 F#5 A5', 'B4 F#5 D#5 F#5 B5 - - -',
+      ) },
+      { wave: 'sine', gain: 0.018, short: true, steps: bars(
+        '- - - - - - B6 -', '- - - - - - - -', '- - - - E7 - - -', '- - - - - - - -',
+        '- - - - - - G6 -', '- - - - - - - -', '- - - - - - A6 -', '- - - - D#7 - - -',
+      ) },
+    ],
+  },
   batalla: {
     bpm: 150,
     drums: 'k h s h k k s h',

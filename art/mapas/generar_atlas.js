@@ -110,7 +110,7 @@ const smooth = (x, y, sc, s) => {
 };
 const noise = (x, y) => smooth(x, y, 16, 3) * 0.55 + smooth(x, y, 7, 7) * 0.3 + smooth(x, y, 3, 5) * 0.15;
 // tierra que sirve de muestra para lo que hay afuera: no agua, no paredes del borde del mapa
-const isLandTile = (k) => zoneOf[k] > 0 && !solid[k] && !/^(mar|fiordo|bajo|agua|canal|cara|camino|adoquin|muelle|losa|piedra_plaza)/.test(NOMBRES[ground[k]] ?? '');
+const isLandTile = (k) => zoneOf[k] > 0 && !solid[k] && !/^(mar_|fiordo|bajo|agua|canal|cara|camino|adoquin|muelle|losa|piedra_plaza)/.test(NOMBRES[ground[k]] ?? '');
 const NOMBRES = Object.fromEntries(require('../sprites/mundo/tileset_pradera.json').tiles.map((t) => [t.id + 1, t.nombre]));
 const R = 24;
 const near = [null, new Int16Array(W * H).fill(-1), new Int16Array(W * H).fill(-1)];
@@ -167,7 +167,8 @@ fs.mkdirSync(OUT, { recursive: true });
 // El mapa del mundo solo tapa con niebla esos cuadros: el mar y las paredes macizas, que nunca se
 // recorren, quedan a la vista.
 const CELDA = 4;
-const isWaterName = (n) => /^(mar|fiordo|bajo|agua|canal)/.test(n ?? '');
+// (mar_: el mar; el mármol de las Ruinas también empieza con «mar»)
+const isWaterName = (n) => /^(mar_|fiordo|bajo|agua|canal)/.test(n ?? '');
 for (const z of out.zonas) {
   const cols = Math.ceil(z.w / CELDA);
   const rows = Math.ceil(z.h / CELDA);

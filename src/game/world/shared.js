@@ -18,8 +18,14 @@ export const DUNGEONS = {
   arrecife: { min: 52, max: 58, codePrefix: 'ARRECIFE_', bossCodes: ['SENOR_OCEANO'] },
   cripta_congelada: { min: 67, max: 73, codePrefix: 'CRIPTAH_' },
   trono_huesos: { min: 80, max: 84, codePrefix: 'TRONOH_' },
+  observatorio: { min: 92, max: 96, codePrefix: 'OBSERV_' },
 };
 export const isDungeon = (dir) => !!DUNGEONS[dir];
+// el final (la R13 de las Ruinas): las emboscadas de la Plaza del Pilar de Aurelia contra la sombra del Devorador y
+// sus hijos se pelean con su fondo (la plaza de noche) y su música
+const FINAL_MONSTERS = ['SOMBRA_DEVORADOR', 'ENGENDRO_DEVORADOR', 'OJO_ERRANTE', 'AVATAR_ECLIPSE'];
+export const isFinalFight = (encounter) => encounter?.kind === 'emboscada' && encounter.position?.zona === 'aurelia'
+  && (encounter.monsters ?? []).some((m) => FINAL_MONSTERS.includes(m.code));
 export const SPEED = 110;
 // Las ciudades son grandes: dentro se corre un 50% más rápido (bufo "Paso de la ciudad", que se
 // ve en el HUD y se pierde al salir). Una zona puede fijar el suyo con "velocidad" en su
@@ -119,6 +125,13 @@ export const RESOURCES = {
   candelabro_olvidado: { sheet: 'recursos8', frames: [6, 7], label: 'Juntar la cera del candelabro', glint: 0xfff4c0 },
   pozo_almas: { sheet: 'recursos8', frames: [8, 9], label: 'Llenar un frasco en el pozo de almas', glint: 0xc0f6ff },
   sarcofago_tesoro: { sheet: 'recursos8', frames: [10, 11], label: 'Registrar el sarcófago', glint: 0xffd84a },
+  // Ruinas Ancestrales (art/sprites/mundo/crear_recursos9.lua)
+  bloque_marmol: { sheet: 'recursos9', frames: [0, 1], label: 'Cortar el bloque de mármol', glint: 0xf4f0e6 },
+  veta_oro_primordial: { sheet: 'recursos9', frames: [2, 3], label: 'Picar la veta de oro primordial', glint: 0xffe08a },
+  flores_luminosas: { sheet: 'recursos9', frames: [4, 5], label: 'Recoger las flores luminosas', glint: 0xa6e2f4 },
+  fuente_lagrimas: { sheet: 'recursos9', frames: [6, 7], label: 'Llenar un frasco en la fuente de lágrimas', glint: 0xe0f8ff },
+  crater_estrella: { sheet: 'recursos9', frames: [8, 9], label: 'Juntar el polvo del cráter', glint: 0xfff8c0 },
+  relicario_templo: { sheet: 'recursos9', frames: [10, 11], label: 'Abrir el relicario del templo', glint: 0xffd84a },
 };
 // mascotas.png: 2 frames por especie, en este orden
 export const PET_SPECIES = ['lobo', 'ave', 'limo', 'gato', 'dragon', 'zorro', 'tortuga', 'arana'];

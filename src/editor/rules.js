@@ -16,7 +16,9 @@ export const TERRAIN_LIST = ['pasto', 'dorado', 'camino', 'agua', 'hierba', 'pla
   // v9 (Tundra Eterna)
   'nieveh', 'fiordo', 'musgo', 'losah', 'muellen', 'lago',
   // v10 (Catacumbas del Abismo)
-  'losac', 'tierrac', 'huesosc', 'hongos', 'aguan', 'rioalma', 'muroc', 'osario', 'losavel', 'puentec', 'muellec'];
+  'losac', 'tierrac', 'huesosc', 'hongos', 'aguan', 'rioalma', 'muroc', 'osario', 'losavel', 'puentec', 'muellec',
+  // v11 (Ruinas Ancestrales)
+  'prador', 'marmol', 'caminom', 'losaoro', 'sagrada', 'lagrima', 'puenter', 'cielo', 'murot', 'velo'];
 
 // Pinceles de terreno de la paleta (orden y nombre que se ven)
 export const TERRAIN_BRUSHES = [
@@ -84,9 +86,19 @@ export const TERRAIN_BRUSHES = [
   { id: 'puentec', label: 'Puente de hueso', icon: 'puentec_10' },
   { id: 'muellec', label: 'Muelle del barquero', icon: 'muellec_10' },
   { id: 'losavel', label: 'Losas de Vela Eterna', icon: 'losa_velada' },
+  { id: 'prador', label: 'Prado de las Ruinas', icon: 'prado_ruinas' },
+  { id: 'marmol', label: 'Mármol del templo', icon: 'marmol_15' },
+  { id: 'caminom', label: 'Calzada de mármol', icon: 'caminom_15' },
+  { id: 'losaoro', label: 'Losas de oro', icon: 'losa_oro' },
+  { id: 'sagrada', label: 'Hierba sagrada (combates)', icon: 'hierba_sagrada' },
+  { id: 'lagrima', label: 'Agua de lágrimas', icon: 'lagrima_15' },
+  { id: 'puenter', label: 'Puente de mármol', icon: 'puenter_10' },
+  { id: 'cielo', label: 'Cielo estelar (la Grieta)', icon: 'cielo_15' },
+  { id: 'murot', label: 'Pared del templo', icon: 'murot_cara_c' },
+  { id: 'velo', label: 'El Velo (niebla)', icon: 'velo_15' },
 ];
 
-const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_(\d+|[hv])|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_(\d+|[hv])|caminor_\d+|roca_(\d+|grava|musgo)|nieve_(\d+|huellas)|abismo_\d+|hielo_\d+|mesetan_\d+|cara_n_[ab]_[icd]|colgante_(\d+|[hv])|hierba_nevada|basalto(_grieta)?|ceniza_(\d+|pomez|huellas)|lava_\d+|azufre_\d+|quemado_\d+|obsidiana_\d+|caminov_\d+|mesetav_\d+|cara_v_[ab]_[icd]|hierba_quemada|losa_basalto(_runa)?|puente_basalto_(\d+|[hv])|arena(_conchas|_huellas)?|arenan_\d+|pastoc_\d+|coral_\d+|barro_\d+|caminoc_\d+|bajo_\d+|mar_\d+|banco(_alta)?|hierba_salada|muelle_\d+|nieveh_\d+|fiordo_\d+|musgo_\d+|losa_hielo(_runa)?|muellen_\d+|lago_\d+|losa_catacumba(_b|_cera)?|tierrac_\d+|huesosc_\d+|hongos_\d+|aguan_\d+|rioalma_\d+|muroc_(\d+|cara_[icd]|nicho|vela)|suelo_osario|losa_velada(_runa)?|puentec_\d+|muellec_\d+)$/;
+const GROUND_NAME = /^(pasto|pasto_matas|pasto_flores|camino(_\d+)?|agua(_\d+)?|orilla_agua_arriba|trigo_\d+|seco_\d+|dorado_\d+|meseta_\d+|cara_[ab]_[icd]|escalera|puente_(\d+|[hv])|piedra_plaza|suelo_guarida|hierba_alta|adoquin(_\d+|_b|_musgo)?|losa(_b)?|mosaico|canal_\d+|puente_piedra_(\d+|[hv])|caminor_\d+|roca_(\d+|grava|musgo)|nieve_(\d+|huellas)|abismo_\d+|hielo_\d+|mesetan_\d+|cara_n_[ab]_[icd]|colgante_(\d+|[hv])|hierba_nevada|basalto(_grieta)?|ceniza_(\d+|pomez|huellas)|lava_\d+|azufre_\d+|quemado_\d+|obsidiana_\d+|caminov_\d+|mesetav_\d+|cara_v_[ab]_[icd]|hierba_quemada|losa_basalto(_runa)?|puente_basalto_(\d+|[hv])|arena(_conchas|_huellas)?|arenan_\d+|pastoc_\d+|coral_\d+|barro_\d+|caminoc_\d+|bajo_\d+|mar_\d+|banco(_alta)?|hierba_salada|muelle_\d+|nieveh_\d+|fiordo_\d+|musgo_\d+|losa_hielo(_runa)?|muellen_\d+|lago_\d+|losa_catacumba(_b|_cera)?|tierrac_\d+|huesosc_\d+|hongos_\d+|aguan_\d+|rioalma_\d+|muroc_(\d+|cara_[icd]|nicho|vela)|suelo_osario|losa_velada(_runa)?|puentec_\d+|muellec_\d+|prado_ruinas(_b|_flores)?|marmol_\d+|caminom_\d+|losa_oro(_sol)?|hierba_sagrada|lagrima_\d+|puenter_\d+|cielo_\d+|murot_(\d+|cara_[icd]|columna|vitral)|velo_\d+)$/;
 
 // (y en la Tundra: el camino entre la nieve profunda o el musgo también lleva orilla de roca)
 const MOUNTAIN = ['roca', 'nieve', 'mesetan', 'hierban', 'abismo', 'hielo', 'nieveh', 'musgo', 'lago'];
@@ -97,6 +109,17 @@ const COAST = ['arena', 'arenan', 'pastoc', 'coral', 'barro', 'bajo', 'mar', 'ba
 
 export function terrainOfName(name) {
   if (!name) return 'pasto';
+  // v11 (Ruinas Ancestrales)
+  if (/^prado_ruinas/.test(name)) return 'prador';
+  if (/^marmol_/.test(name)) return 'marmol';
+  if (/^caminom_/.test(name)) return 'caminom';
+  if (/^losa_oro/.test(name)) return 'losaoro';
+  if (name === 'hierba_sagrada') return 'sagrada';
+  if (/^lagrima_/.test(name)) return 'lagrima';
+  if (/^puenter_/.test(name)) return 'puenter';
+  if (/^cielo_/.test(name)) return 'cielo';
+  if (/^murot_/.test(name)) return 'murot';
+  if (/^velo_/.test(name)) return 'velo';
   // v10 (Catacumbas): antes que las reglas generales (losa_catacumba no es losa)
   if (/^losa_catacumba/.test(name)) return 'losac';
   if (/^tierrac_/.test(name)) return 'tierrac';
@@ -191,6 +214,9 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
   const catSlabFamily = new Set([T.losa_catacumba, T.losa_catacumba_b, T.losa_catacumba_cera].filter(Boolean));
   const randomCatSlab = () => { const r = Math.random(); return r < 0.07 ? T.losa_catacumba_b : r < 0.12 ? T.losa_catacumba_cera : T.losa_catacumba; };
   const wallFaceFamily = new Set([T.muroc_cara_c, T.muroc_nicho, T.muroc_vela].filter(Boolean));
+  const meadowFamily = new Set([T.prado_ruinas, T.prado_ruinas_b, T.prado_ruinas_flores].filter(Boolean));
+  const randomMeadow = () => { const r = Math.random(); return r < 0.07 ? T.prado_ruinas_flores : r < 0.14 ? T.prado_ruinas_b : T.prado_ruinas; };
+  const templeFaceFamily = new Set([T.murot_cara_c, T.murot_columna, T.murot_vitral].filter(Boolean));
   const randomSand = () => { const r = Math.random(); return r < 0.05 ? T.arena_conchas : r < 0.08 ? T.arena_huellas : T.arena; };
 
   const randomPasto = () => {
@@ -293,6 +319,30 @@ export function makeRules(meta, terrainList = TERRAIN_LIST) {
       case 'muellec': return T[`muellec_${mask((n) => n !== 'aguan' && n !== 'rioalma')}`];
       case 'osario': return T.suelo_osario;
       case 'losavel': return [T.losa_velada, T.losa_velada_runa].includes(cur) ? cur : (Math.random() < 0.08 ? T.losa_velada_runa : T.losa_velada);
+      // v11 (Ruinas): como en art/mapas/generar_ruinas.js. El mármol, la calzada, las losas de oro y la pared
+      // del templo se funden entre sí; el borde de pasto aparece contra el prado y la hierba sagrada
+      case 'prador': return meadowFamily.has(cur) ? cur : randomMeadow();
+      case 'marmol': return T[`marmol_${mask((n) => ['marmol', 'caminom', 'losaoro', 'murot', 'puenter', 'escalera', null].includes(n))}`];
+      case 'caminom': return T[`caminom_${mask((n) => ['caminom', 'marmol', 'losaoro', 'puenter', 'escalera', null].includes(n))}`];
+      case 'losaoro': return [T.losa_oro, T.losa_oro_sol].includes(cur) ? cur : (Math.random() < 0.08 ? T.losa_oro_sol : T.losa_oro);
+      case 'sagrada': return T.hierba_sagrada;
+      case 'lagrima': return T[`lagrima_${mask((n) => ['lagrima', 'puenter', null].includes(n))}`];
+      case 'puenter': return T[`puenter_${mask((n) => n !== 'lagrima')}`];
+      case 'cielo': return T[`cielo_${mask((n) => n === 'cielo' || n === null)}`];
+      case 'velo': return T[`velo_${mask((n) => n === 'velo' || n === null)}`];
+      case 'murot': {
+        // como la pared de las catacumbas: la que da a un patio muestra su cara (columnas y vitrales)
+        const below = tAt(x, y + 1);
+        if (below !== 'murot' && below !== null) {
+          const sideOk = (n) => n === 'murot' || n === null;
+          if (!sideOk(tAt(x - 1, y))) return T.murot_cara_i;
+          if (!sideOk(tAt(x + 1, y))) return T.murot_cara_d;
+          if (templeFaceFamily.has(cur)) return cur;
+          const r = Math.random();
+          return r < 0.15 ? T.murot_columna : r < 0.24 ? T.murot_vitral : T.murot_cara_c;
+        }
+        return T[`murot_${mask((n) => n === 'murot' || n === null)}`];
+      }
       case 'muroc': {
         // la pared que da a un pasillo (abajo no hay pared) muestra su cara, con nichos; el resto es techo
         const below = tAt(x, y + 1);

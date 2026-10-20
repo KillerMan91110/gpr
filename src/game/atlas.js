@@ -22,7 +22,7 @@ export const ATLAS_ZONES = {
   4: { dir: 'costas', x: 420, y: 362, color: '#4a9cb8', icon: ['lighthouse', 'delapouite'], route: 'Al sur del Volcán Rojo, bajando por la Bajada de Basalto desde la Caldera del Titán. El Puerto Antiguo y los palafitos de Coralia están junto al mar.' },
   5: { dir: 'tundra', x: 520, y: 120, color: '#bfe2f2', icon: ['ice-bolt', 'lorc'], route: 'Lejos al noreste, al otro lado del Mar del Norte: solo se llega en el barco de Rhaegar, que zarpa del Puerto Antiguo. Fiordo Blanco, la ciudad de los norteños, está junto al muelle.' },
   6: { dir: 'catacumbas', x: 112, y: 298, color: '#7a5aa0', icon: ['ghost', 'lorc'], route: 'Bajo tierra: se baja por la escalera sellada del fondo de la Cripta Congelada, en la Tundra. Más adelante también por la cripta de la Catedral de Aurelia. Vela Eterna, la ciudad de los Velados, está en el medio.' },
-  7: { x: 96, y: 102, color: '#5fb39a', icon: ['crystal-ball', 'lorc'], route: 'Al lado de Aurelia, detrás del Velo de Aethra: una niebla que no deja pasar hasta reunir los siete Fragmentos.' },
+  7: { dir: 'ruinas', x: 96, y: 102, color: '#5fb39a', icon: ['crystal-ball', 'lorc'], route: 'Al lado de Aurelia y al norte de las Montañas Grises, detrás del Velo de Aethra: una niebla blanca que no deja pasar. Se abre un solo hueco, la Puerta del Velo, al norte del Pinar Nevado, cuando Elenya pone los seis Fragmentos en el Pilar. El Santuario de las Lágrimas, el último de los aethrinos, está pasando la Puerta.' },
 };
 
 // caminos entre zonas (para dibujarlos en el mapa)

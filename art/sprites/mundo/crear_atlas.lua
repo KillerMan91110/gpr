@@ -41,7 +41,7 @@ local function isWater(gid)
   if gid == 0 then return true end
   if waterCache[gid] == nil then
     local n = nameOf(gid)
-    waterCache[gid] = (n:find("^mar") or n:find("^fiordo") or n:find("^bajo") or n:find("^agua") or n:find("^canal")) and true or false
+    waterCache[gid] = (n:find("^mar_") or n:find("^fiordo") or n:find("^bajo") or n:find("^agua") or n:find("^canal")) and true or false
   end
   return waterCache[gid]
 end

@@ -48,6 +48,11 @@ export const DIALOGUES_CATACUMBAS = {
     greet: (ctx) => {
       if (ctx.mark === '?') return 'Volviste con la llama encendida. Bien. Cuéntame qué viste allá afuera.';
       if (ctx.mark === '!') return 'Vivo. Acércate a la luz. Tengo algo que pedirte, y la oscuridad escucha.';
+      // el final (R13 de las Ruinas): Liora subió a Aurelia a ver el sol, como pidió en la A14
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return pick([
+        'Vi el sol, vivo. En la plaza de Aurelia, después del canto. Era más amarillo de lo que me acordaba. Gracias por llevarme.',
+        'Les conté a los Velados cómo es el sol. No me creen que quema un poco. Tendrán que subir a verlo ellos.',
+      ]);
       if (lichCaido(ctx)) return pick([
         'Mi maestro ya no está. Pensé que me iba a sentir libre. Me siento… cansada. Es parecido.',
         'Los Velados cantan otra vez en la Catedral de abajo. Hacía mil años que no cantaban. Desafinan. Es hermoso.',

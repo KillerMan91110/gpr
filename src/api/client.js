@@ -239,6 +239,8 @@ export const api = {
   trineo: (playerId, destino, token) => request(`/api/player/${playerId}/world/trineo`, { method: 'POST', body: { destino }, token }),
   // la barca de Óbolo en las Catacumbas (gprback/lib/barca.js)
   barca: (playerId, destino, token) => request(`/api/player/${playerId}/world/barca`, { method: 'POST', body: { destino }, token }),
+  // las Escalinatas de Luz de las Ruinas (gprback/lib/escalinatas.js)
+  escalinata: (playerId, destino, token) => request(`/api/player/${playerId}/world/escalinata`, { method: 'POST', body: { destino }, token }),
   brasa: (playerId, token) => request(`/api/player/${playerId}/world/brasa`, { method: 'POST', token }),
   // el frío de la Tundra: te entumeciste (gprback/lib/frio.js)
   frio: (playerId, token) => request(`/api/player/${playerId}/world/frio`, { method: 'POST', token }),

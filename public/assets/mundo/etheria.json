@@ -1,12 +1,13 @@
 {
  "nombre": "Etheria",
- "nota": "Mundo continuo: cada zona es un mapa por trozos colocado en su lugar del continente (x, y en casillas). Se camina de una a otra sin pantallas de carga. Todo el continente está 120 casillas más abajo que antes para hacerle lugar a la fila norte (la Tundra); cada zona usa sus coordenadas propias, así que no cambia ningún mapa ni ninguna posición guardada. La Tundra no toca a pie a ninguna otra zona: se llega en el barco de Rhaegar.",
+ "nota": "Mundo continuo: cada zona es un mapa por trozos colocado en su lugar del continente (x, y en casillas). Se camina de una a otra sin pantallas de carga. Todo el continente está 120 casillas más abajo que antes para hacerle lugar a la fila norte (la Tundra); cada zona usa sus coordenadas propias, así que no cambia ningún mapa ni ninguna posición guardada. La Tundra no toca a pie a ninguna otra zona: se llega en el barco de Rhaegar. Las Ruinas Ancestrales están rodeadas por el Velo de Aethra (niebla que choca); su único hueco es la Puerta del Velo, frente al paso abierto en el borde norte de las Montañas.",
  "zonas": [
   { "dir": "aurelia", "x": 20, "y": 120 },
   { "dir": "pradera", "x": 0, "y": 210 },
   { "dir": "montanas", "x": 160, "y": 210 },
   { "dir": "volcan", "x": 160, "y": 330 },
   { "dir": "costas", "x": 160, "y": 450 },
-  { "dir": "tundra", "x": 320, "y": 90 }
+  { "dir": "tundra", "x": 320, "y": 90 },
+  { "dir": "ruinas", "x": 160, "y": 90 }
  ]
 }

@@ -15,7 +15,8 @@ export const SHAPES = ['espada', 'gran_espada', 'hacha', 'espada_runica', 'daga'
   'botas_pesadas', 'botas', 'sandalias'];
 export const SETS = ['hierro', 'acero', 'pradera', 'montana', 'capitan', 'titan', 'acantilado', 'volcan', 'rey_montana', 'caldera', 'titan_fuego',
   'costas', 'oceano', 'profundidades', 'tundra', 'rey_hielo', 'catacumbas', 'lich', 'ancestral', 'arcano', 'sagrado', 'vigia', 'escarcha', 'hierro_negro',
-  'obsidiana', 'forja_negra', 'coral', 'abismo', 'glaciar', 'reina', 'guardian', 'sepulcral', 'trono', 'centinela'];
+  'obsidiana', 'forja_negra', 'coral', 'abismo', 'glaciar', 'reina', 'guardian', 'sepulcral', 'trono', 'centinela',
+  'estelar', 'observatorio', 'cosmico', 'vigia_primero', 'lagrima'];
 // formas que tienen hoja de combate (arma en la mano o pieza en la mano de atrás)
 export const COMBAT_WEAPONS = ['espada', 'gran_espada', 'espada_runica', 'hacha', 'daga', 'arco', 'ballesta', 'baculo_arcano', 'varita', 'baculo_sagrado'];
 export const COMBAT_OFFHANDS = ['escudo', 'carcaj', 'orbe', 'cristal', 'daga_gemela', 'simbolo'];
@@ -45,6 +46,11 @@ const SET_BY_CODE = [
   [/_SEPULCRAL$/, 'sepulcral'], // tier medio de las Catacumbas (nv 81)
   [/_TRONO$/, 'trono'], // armas del Trono de Huesos (nv 82)
   [/_CENTINELA(_MAGO)?$/, 'centinela'], // set del Centinela de la Muerte (nv 84)
+  [/_ESTELAR$/, 'estelar'], // tier medio de las Ruinas (nv 91)
+  [/_OBSERVATORIO$/, 'observatorio'], // armas del Observatorio Roto (nv 93)
+  [/_COSMICO(_MAGO)?$/, 'cosmico'], // set del Centinela Cósmico (nv 97)
+  [/_VIGIA_PRIMERO(_MAGO)?$/, 'vigia_primero'], // set del Primer Vigía (nv 100)
+  [/_WEAPON_LAGRIMA$/, 'lagrima'], // la Lágrima de Aethra, el arma del final (nv 100)
   [/TITAN_F\b|TITAN_F$/, 'titan_fuego'], [/TITAN_P\b|TITAN_P$/, 'titan'], [/REY_MONT/, 'rey_montana'], [/REY_HIELO/, 'rey_hielo'],
   [/PRADERA/, 'pradera'], [/MONTANAS/, 'montana'], [/CAPITAN/, 'capitan'], [/ACANT/, 'acantilado'], [/VOLCAN/, 'volcan'],
   [/CALDERA/, 'caldera'], [/COSTAS/, 'costas'], [/OCEANO/, 'oceano'], [/PROFU/, 'profundidades'], [/TUNDRA/, 'tundra'],
@@ -204,7 +210,16 @@ export const OBJETOS = ['pocion_vida_menor', 'pocion_vida_mayor', 'pocion_mana_m
   'corona_huesos', 'carne_gusano', 'pescado_ciego', 'sopa_setas_palidas', 'pan_ofrenda', 'pescado_ciego_asado',
   'te_cera_eterna', 'guiso_sepulturero', 'vino_velados', 'caldo_hueso_antiguo',
   // la oscuridad de las Catacumbas
-  'vela_sebo'];
+  'vela_sebo',
+  // Ruinas Ancestrales
+  'polvo_marmol', 'pluma_grifo', 'escama_lagrima', 'trompeta_rota', 'carne_estelar', 'iris_vacio', 'corazon_marmol',
+  'corona_eclipsada', 'nucleo_cosmico', 'nucleo_antiguo', 'piedra_runica', 'esencia_ancestral_fuego', 'esencia_ancestral_agua',
+  'esencia_ancestral_hielo', 'nucleo_primordial', 'fragmento_templo_corrupto', 'alma_gran_esqueleto', 'polvo_de_estrellas',
+  'fragmento_de_luz', 'oro_primordial', 'hierro_primordial', 'flor_luminosa', 'marmol_sagrado', 'lagrima_aethra',
+  'bronce_celeste', 'fragmento_lente', 'carne_grifo', 'pescado_lago', 'miel_abeja_antigua', 'pan_peregrino',
+  'sopa_flor_luminosa', 'agua_lagrimas', 'pescado_lago_asado', 'miel_lagrimas', 'nectar_estelar', 'guiso_vigias',
+  // el final
+  'lagrima_cristalizada', 'fragmento_sello_ruinas'];
 const OBJETO_BY_NAME = {
   'pocion de vida menor': 'pocion_vida_menor', 'pocion de vida mayor': 'pocion_vida_mayor',
   'pocion de mana menor': 'pocion_mana_menor', 'pocion de mana mayor': 'pocion_mana_mayor',
@@ -297,6 +312,21 @@ const OBJETO_BY_NAME = {
   'sopa de setas palidas': 'sopa_setas_palidas', 'pan de ofrenda': 'pan_ofrenda', 'pescado ciego asado': 'pescado_ciego_asado',
   'te de cera eterna': 'te_cera_eterna', 'guiso del sepulturero': 'guiso_sepulturero', 'vino de los velados': 'vino_velados',
   'caldo de hueso antiguo': 'caldo_hueso_antiguo', 'vela de sebo': 'vela_sebo',
+  'polvo de marmol': 'polvo_marmol', 'pluma de grifo': 'pluma_grifo', 'escama de lagrima': 'escama_lagrima',
+  'trompeta rota': 'trompeta_rota', 'carne estelar': 'carne_estelar', 'iris del vacio': 'iris_vacio',
+  'corazon de marmol': 'corazon_marmol', 'corona eclipsada': 'corona_eclipsada', 'nucleo cosmico': 'nucleo_cosmico',
+  'nucleo antiguo': 'nucleo_antiguo', 'piedra runica': 'piedra_runica', 'esencia ancestral de fuego': 'esencia_ancestral_fuego',
+  'esencia ancestral de agua': 'esencia_ancestral_agua', 'esencia ancestral de hielo': 'esencia_ancestral_hielo',
+  'nucleo primordial': 'nucleo_primordial', 'fragmento del templo corrupto': 'fragmento_templo_corrupto',
+  'alma del gran esqueleto del abismo': 'alma_gran_esqueleto', 'polvo de estrellas': 'polvo_de_estrellas',
+  'fragmento de luz': 'fragmento_de_luz', 'oro primordial': 'oro_primordial', 'hierro primordial': 'hierro_primordial',
+  'flor luminosa': 'flor_luminosa', 'marmol sagrado': 'marmol_sagrado', 'lagrima de aethra': 'lagrima_aethra',
+  'bronce celeste': 'bronce_celeste', 'fragmento de lente': 'fragmento_lente', 'carne de grifo': 'carne_grifo',
+  'pescado del lago de las lagrimas': 'pescado_lago', 'miel de abeja antigua': 'miel_abeja_antigua',
+  'pan de peregrino': 'pan_peregrino', 'sopa de flor luminosa': 'sopa_flor_luminosa', 'agua de lagrimas': 'agua_lagrimas',
+  'pescado del lago asado': 'pescado_lago_asado', 'miel de las lagrimas': 'miel_lagrimas', 'nectar estelar': 'nectar_estelar',
+  'guiso de los vigias': 'guiso_vigias',
+  'lagrima cristalizada': 'lagrima_cristalizada', 'septimo fragmento de sello': 'fragmento_sello_ruinas',
 };
 
 // índice en el atlas de objetos, o null

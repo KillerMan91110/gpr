@@ -49,9 +49,15 @@ const BACKGROUNDS = {
   catacumbas: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
   // el Trono de Huesos (art/sprites/mundo/crear_fondo_trono_huesos.lua): el trono del Lich y la alfombra roja
   trono_huesos: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
+  // las Ruinas Ancestrales (art/sprites/mundo/crear_fondo_ruinas.lua): el templo al atardecer, detrás del Velo
+  ruinas: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
+  // el Observatorio Roto (art/sprites/mundo/crear_fondo_observatorio.lua): la cúpula partida y el gran telescopio
+  observatorio: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
+  // el final, en la Plaza del Pilar de Aurelia de noche (art/sprites/mundo/crear_fondo_final.lua)
+  final: ['1_cielo', '2_montanas', '3_colinas', '4_suelo', '5_primer_plano'],
 };
 // colores para rellenar arriba y abajo del escenario en pantalla vertical
-const FILL_COLORS = { pradera: [0x4f86d6, 0xc9a46a], cripta: [0x0c0a16, 0x3a3650], montanas: [0x5a6478, 0xf4f8fc], volcan: [0x3a1e22, 0x8e8680], fisura: [0x1e181c, 0x6e5e5c], costas: [0x6e8ea0, 0xeedcaa], arrecife: [0x5ec8d8, 0x9cc4ba], tundra: [0x0e1430, 0xf6faff], cripta_congelada: [0x0c1428, 0xb4d0e4], catacumbas: [0x0e0c14, 0x625c70], trono_huesos: [0x0e0c14, 0x625c70] };
+const FILL_COLORS = { pradera: [0x4f86d6, 0xc9a46a], cripta: [0x0c0a16, 0x3a3650], montanas: [0x5a6478, 0xf4f8fc], volcan: [0x3a1e22, 0x8e8680], fisura: [0x1e181c, 0x6e5e5c], costas: [0x6e8ea0, 0xeedcaa], arrecife: [0x5ec8d8, 0x9cc4ba], tundra: [0x0e1430, 0xf6faff], cripta_congelada: [0x0c1428, 0xb4d0e4], catacumbas: [0x0e0c14, 0x625c70], trono_huesos: [0x0e0c14, 0x625c70], ruinas: [0x3a3a7a, 0xdfd8c8] , observatorio: [0x100e26, 0xcfc7b6] , final: [0x0e0c24, 0x6c6678] };
 // cuánto se mueve cada capa respecto de la cámara (parallax)
 const LAYER_SCROLL = [0.05, 0.18, 0.4, 1, 1.25];
 

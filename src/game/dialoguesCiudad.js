@@ -31,6 +31,14 @@ export const DIALOGUES_CIUDAD = {
   elenya: {
     name: 'Elenya', role: 'Sacerdotisa de Aethra', portrait: PORTRAIT('elenya'),
     greet: (ctx) => {
+      // el final (R13 y R14 de las Ruinas Ancestrales): el epílogo
+      if (hecho(ctx, 'RUINAS_HISTORIA_14_VIGIA')) return pick([
+        'Vigía. Todavía me cuesta decirlo sin que me tiemble la voz. Bienvenido a casa.',
+        'Seraphine me escribe cada semana desde el Santuario. Dice que los peregrinos le enseñaron a jugar a las cartas. Y que gana siempre.',
+        'Los siete fragmentos duermen bajo el Pilar. A veces, de noche, el agua del Pilar brilla con siete colores. Nadie más se da cuenta. Nosotros sí.',
+        'El Devorador sueña, y a veces su sombra sale por alguna grieta del mundo. Cuando pase, vas a sentirlo. Todos los Vigías lo sentían.',
+      ]);
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return pick(['Me quedé sin voz de tanto cantar. Seraphine también. Nos reímos como dos chicas. Hacía años que no me reía así.', 'Ve con Brokk e Ignar, que tienen algo para ti. Y después vuelve: todavía falta algo.']);
       if (hecho(ctx, 'PRADERA_HISTORIA_14_MONTANAS') && Math.random() < 0.5) return pick(['El fragmento del Primer Sello descansa bajo el Pilar. El agua lo cuida mejor que cualquier guardia.', 'Rezo por ti cada mañana. Bueno, por ti y por las Montañas. Pero sobre todo por ti.']);
       return ctx.night
         ? 'La catedral nunca cierra. A esta hora el rosetón brilla con la luz de las velas. ¿Vienes herido?'
@@ -91,12 +99,23 @@ export const DIALOGUES_CIUDAD = {
   },
   brokk: {
     name: 'Brokk', role: 'Maestro herrero', portrait: PORTRAIT('brokk'),
-    greet: () => pick(['¡Ja! Otro que viene con la espada mellada. Déjala en el yunque.', 'La forja enana no se apaga desde hace tres siglos. Ni pienso dejar que se apague ahora.']),
-    options: () => [
+    greet: (ctx) => {
+      // el final: la Lágrima de Aethra la forjan juntos Brokk e Ignar (la R13 de las Ruinas)
+      if (hecho(ctx, 'RUINAS_HISTORIA_14_VIGIA')) return pick([
+        'Ignar volvió al Volcán. Me dejó su martillo «para que me acuerde de que el de ella pesa más». Mentira. Pesa igual.',
+        'La Lágrima de Aethra. La mejor pieza que forjé en mi vida. Bueno, que forjamos. Que conste que el filo es mío.',
+      ]);
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return '*Brokk e Ignar te esperan frente al yunque, callados por primera vez en la vida* ¿La trajiste? La lágrima. Ponla en el yunque. Los dos al mismo tiempo, Ignar. A la cuenta de tres. ¡A LA CUENTA DE TRES, DIJE!';
+      return pick(['¡Ja! Otro que viene con la espada mellada. Déjala en el yunque.', 'La forja enana no se apaga desde hace tres siglos. Ni pienso dejar que se apague ahora.']);
+    },
+    options: (ctx) => [
       { label: 'Usar el taller', window: 'taller' },
+      ...(hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL') ? [{ label: '¿Cómo se forja la Lágrima de Aethra?', next: 'lagrima' }] : []),
       bye,
     ],
-    lines: {},
+    lines: {
+      lagrima: 'En el taller, con la Lágrima Cristalizada que cayó del Pilar. No hace falta nada más: el resto lo ponemos nosotros. Ignar el fuego, yo el martillo. Sale una por persona, de tu clase, y no falla nunca. Es la única pieza del mundo que no se puede comprar ni vender.',
+    },
   },
   oswin: {
     name: 'Oswin', role: 'Registro de gremios', portrait: PORTRAIT('oswin'),

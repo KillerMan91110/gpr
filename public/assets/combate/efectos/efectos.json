@@ -103,5 +103,15 @@
   "MONSTRUO_JUICIO_ECLIPSE": { "i": 101, "modo": "proyectil", "mezcla": "add", "color": "#8a4ad8" },
   "MONSTRUO_TRAGAR": { "i": 102, "modo": "golpe", "mezcla": "add", "color": "#a8784a", "pesado": true },
   "MONSTRUO_TAJO_SOMBRIO": { "i": 103, "modo": "golpe", "mezcla": "add", "color": "#5a3a7a" },
-  "MONSTRUO_SIEGA": { "i": 104, "modo": "area", "mezcla": "add", "color": "#5a3a7a" }
+  "MONSTRUO_SIEGA": { "i": 104, "modo": "area", "mezcla": "add", "color": "#5a3a7a" },
+  "MONSTRUO_GOLPE_PEREGRINO": { "i": 105, "modo": "golpe", "mezcla": "normal", "color": "#dfd8c8", "pesado": true },
+  "MONSTRUO_PICADO_GRIFO": { "i": 106, "modo": "proyectil", "mezcla": "add", "color": "#c8d0e0" },
+  "MONSTRUO_CHORRO_LAGRIMAS": { "i": 107, "modo": "proyectil", "mezcla": "add", "color": "#a6e2f4" },
+  "MONSTRUO_TROMPETA_HERALDO": { "i": 108, "modo": "area", "mezcla": "add", "color": "#fff2a0" },
+  "MONSTRUO_LLUVIA_ESTRELLAS": { "i": 109, "modo": "area", "mezcla": "add", "color": "#9a8ae0" },
+  "MONSTRUO_ABRAZO_VACIO": { "i": 110, "modo": "golpe", "mezcla": "add", "color": "#9a8ae0", "pesado": true },
+  "MONSTRUO_MIRADA_VACIO": { "i": 111, "modo": "golpe", "mezcla": "add", "color": "#9a8ae0" },
+  "MONSTRUO_GRAVEDAD_ROTA": { "i": 112, "modo": "area", "mezcla": "add", "color": "#9a8ae0" },
+  "MONSTRUO_ECLIPSE_TOTAL": { "i": 113, "modo": "area", "mezcla": "add", "color": "#8a4ad8" },
+  "MONSTRUO_DERRUMBE": { "i": 114, "modo": "area", "mezcla": "normal", "color": "#dfd8c8" }
 } }

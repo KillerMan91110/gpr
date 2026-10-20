@@ -198,4 +198,14 @@ export const NPC_LUGAR = {
   barca_lago: 'el muelle del Lago Negro',
   barca_rio: 'la orilla del Río de las Almas',
   osvaldo: 'los Nichos de los Sacerdotes',
+  // Ruinas Ancestrales (el Santuario de las Lágrimas y el Observatorio)
+  seraphine: 'el altar del Santuario de las Lágrimas',
+  orin: 'la forja del Santuario de las Lágrimas',
+  tilda: 'la posada del Santuario de las Lágrimas',
+  casio: 'la plaza del Santuario de las Lágrimas',
+  aldren_ruinas: 'la fuente del Santuario de las Lágrimas',
+  ptolio: 'el telescopio roto del Observatorio',
+  escalinata_santuario: 'la Escalinata de Luz del Santuario',
+  escalinata_patio: 'la Escalinata de Luz del Patio de las Estatuas',
+  escalinata_torres: 'la Escalinata de Luz de las Torres del Velo',
 };

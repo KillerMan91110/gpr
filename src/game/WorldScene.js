@@ -22,6 +22,7 @@ import { mareaMethods } from './world/marea';
 import { brasasMethods } from './world/brasas';
 import { frioMethods } from './world/frio';
 import { llamaMethods } from './world/llama';
+import { eclipseMethods } from './world/eclipse';
 import { trackingMethods } from './world/tracking';
 import { escenaMethods } from './world/escena';
 import { enFase } from './story';
@@ -108,6 +109,7 @@ export default class WorldScene extends Phaser.Scene {
     this.load.spritesheet('recursos6', `${ASSETS}/mundo/recursos6.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos7', `${ASSETS}/mundo/recursos7.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('recursos8', `${ASSETS}/mundo/recursos8.png`, { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('recursos9', `${ASSETS}/mundo/recursos9.png`, { frameWidth: 32, frameHeight: 32 });
     this.load.spritesheet('mascotas', `${ASSETS}/mundo/mascotas.png`, { frameWidth: 24, frameHeight: 24 });
     this.load.spritesheet('f_mariposa', `${ASSETS}/mundo/fauna/mariposa.png`, { frameWidth: 8, frameHeight: 8 });
     this.load.spritesheet('f_pajaro', `${ASSETS}/mundo/fauna/pajaro.png`, { frameWidth: 16, frameHeight: 16 });
@@ -860,6 +862,8 @@ export default class WorldScene extends Phaser.Scene {
     else if (this.weather === 'nieve') color = mulColor(color, 0xdce4f0);
     else if (this.weather === 'ceniza') color = mulColor(color, 0xf0c8b0);
     else if (this.weather === 'bruma') color = mulColor(color, 0xe4ecf0);
+    // el eclipse de las Ruinas (world/eclipse.js): el cielo se oscurece y se pone morado
+    color = this.eclipseTint(color);
     this.shade.setFillStyle(color);
     // cuánto "de noche" es (0 de día, 1 en plena noche) para las luces
     const c = Phaser.Display.Color.IntegerToColor(color);
@@ -1348,7 +1352,7 @@ export default class WorldScene extends Phaser.Scene {
     this.updateSubzone();
     if (tile?.index === this.grassGid) audio.sfx('pasos');
     if (!tile || tile.index !== this.grassGid || this.time.now < this.graceUntil) return;
-    if (Math.random() >= this.grassChance * this.darkEncounterMul()) return;
+    if (Math.random() >= this.grassChance * this.darkEncounterMul() * this.eclipseEncounterMul()) return;
     this.encounterLock = true;
     this.lastEncounterMon = null;
     this.stopPlayer();
@@ -1466,6 +1470,8 @@ export default class WorldScene extends Phaser.Scene {
     this.updateCold(time, delta);
     // la llama de las Catacumbas (world/llama.js)
     this.updateLlama(time, delta);
+    // los eclipses de las Ruinas (world/eclipse.js)
+    this.updateEclipse(time);
     this.reportPosition(time);
     this.checkExits(time);
     this.checkRefuge(time);
@@ -1557,4 +1563,4 @@ export default class WorldScene extends Phaser.Scene {
 }
 
 // Partes de la escena que viven en su propio archivo (game/world/*)
-Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods, tormentaMethods, brasasMethods, mareaMethods, frioMethods, llamaMethods, escenaMethods, escoltaMethods);
+Object.assign(WorldScene.prototype, mythicMethods, walkGridMethods, npcsMethods, resourcesMethods, faunaMethods, refugesMethods, guideMethods, exploreMethods, eventsMethods, criptaMethods, questsMethods, trackingMethods, tormentaMethods, brasasMethods, mareaMethods, frioMethods, llamaMethods, eclipseMethods, escenaMethods, escoltaMethods);
