@@ -5,8 +5,9 @@ const ROWS = [
   ['int', 'Inteligencia'], ['magicDef', 'Defensa mágica'], ['spd', 'Velocidad'],
 ];
 
-// Cartel de subida de nivel: el número nuevo en grande y lo que subió cada estadística.
-export default function LevelUpBanner({ level, before, after, onDone }) {
+// Cartel de subida de nivel: el número nuevo en grande, lo que subió cada estadística y las habilidades que se
+// aprendieron solas en ese nivel (aprendidas: las busca World.js).
+export default function LevelUpBanner({ level, before, after, aprendidas, onDone }) {
   useEffect(() => {
     const t = setTimeout(onDone, 5200);
     return () => clearTimeout(t);
@@ -26,6 +27,10 @@ export default function LevelUpBanner({ level, before, after, onDone }) {
         <ul>
           {gains.map((g) => <li key={g.label}>{g.label} <b>+{g.diff}</b></li>)}
         </ul>
+      )}
+      {/* las habilidades de tu clase que se aprenden en este nivel */}
+      {aprendidas?.length > 0 && (
+        <p className="lvlup-hab">¡{aprendidas.length === 1 ? 'Nueva habilidad' : 'Nuevas habilidades'}! <b>{aprendidas.join(', ')}</b></p>
       )}
     </div>
   );

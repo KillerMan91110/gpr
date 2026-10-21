@@ -70,8 +70,9 @@ export default function PetsPanel({ onChanged, onClose, zIndex, onActivate, defa
   const { player, token } = useAuth();
   const [pets, setPets] = useState(null);
   const [catalog, setCatalog] = useState(null);
-  const [incubator, setIncubator] = useState(undefined);
-  const [readyAt, setReadyAt] = useState(null);
+  // los lugares de la incubadora (uno, o dos con 150 Puntos de Gesta): { max, huevos, puntosParaOtra }
+  const [incu, setIncu] = useState({ max: 1, huevos: [], puntosParaOtra: null });
+  const [readyAt, setReadyAt] = useState({});
   const [inventory, setInventory] = useState([]);
   const [tab, setTab] = useState('mascotas');
   const [selId, setSelId] = useState(null);
@@ -82,11 +83,11 @@ export default function PetsPanel({ onChanged, onClose, zIndex, onActivate, defa
   const [message, setMessage] = useState(null);
 
   const load = useCallback(async () => {
-    const [p, inc, inv] = await Promise.all([api.getPets(player.id, token), api.getIncubator(player.id, token), api.getPlayerInventory(player.id, token)]);
+    const [p, inc, inv] = await Promise.all([api.getPets(player.id, token), api.getIncubadoras(player.id, token), api.getPlayerInventory(player.id, token)]);
     setPets(p);
-    setIncubator(inc);
+    setIncu(inc);
     // la cuenta regresiva con el reloj de este navegador (el servidor dice cuántos segundos faltan)
-    setReadyAt(inc ? Date.now() + Number(inc.seconds_left ?? 0) * 1000 : null);
+    setReadyAt(Object.fromEntries(inc.huevos.map((h) => [h.ranura, Date.now() + Number(h.seconds_left ?? 0) * 1000])));
     setNow(Date.now());
     setInventory(inv);
   }, [player, token]);
@@ -94,10 +95,10 @@ export default function PetsPanel({ onChanged, onClose, zIndex, onActivate, defa
   useEffect(() => { load().catch((e) => setMessage({ ok: false, text: e.message })); }, [load]);
   useEffect(() => { api.getPetCatalog(player.id, token).then(setCatalog).catch(() => setCatalog(null)); }, [player, token]);
   useEffect(() => {
-    if (!incubator || incubator.ready) return undefined;
+    if (!incu.huevos.some((h) => !h.ready)) return undefined;
     const iv = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(iv);
-  }, [incubator]);
+  }, [incu]);
   useEffect(() => {
     if (!message) return undefined;
     const t = setTimeout(() => setMessage(null), 4500);
@@ -107,14 +108,19 @@ export default function PetsPanel({ onChanged, onClose, zIndex, onActivate, defa
   const eggs = useMemo(() => inventory
     .filter((i) => i.code?.startsWith('HUEVO_') && eggInfo(i.code) && i.quantity > 0)
     .sort((a, b) => eggOrder(a) - eggOrder(b)), [inventory]);
-  const food = inventory.filter((i) => i.item_type === 'MATERIAL' && !i.code?.startsWith('HUEVO_') && !i.code?.startsWith('SOBRE_') && i.quantity > 0);
+  const food = inventory.filter((i) => i.item_type === 'MATERIAL' && !i.code?.startsWith('HUEVO_') && !i.code?.startsWith('SOBRE_') && !i.favorito && i.quantity > 0);
   const stone = inventory.find((i) => i.code === 'PIEDRA_TRASCENDENCIA' && i.quantity > 0);
   const sorted = useMemo(() => [...(pets ?? [])].sort((a, b) => Number(b.is_active) - Number(a.is_active) || b.level - a.level), [pets]);
   const pet = sorted.find((p) => p.id === selId) ?? sorted[0] ?? null;
   const egg = eggs.find((e) => e.item_id === eggId) ?? eggs[0] ?? null;
-  const left = incubator ? Math.max(0, (readyAt ?? now) - now) : 0;
-  const ready = !!incubator && (incubator.ready || left <= 0);
-  const progress = incubator ? Math.min(100, 100 - (left / 1000 / Math.max(1, incubator.total_seconds)) * 100) : 0;
+  // cada lugar: el huevo que tiene (o null), cuánto le falta y si ya está listo
+  const lugares = Array.from({ length: incu.max }, (_, i) => {
+    const h = incu.huevos.find((x) => x.ranura === i + 1) ?? null;
+    const left = h ? Math.max(0, (readyAt[h.ranura] ?? now) - now) : 0;
+    return { ranura: i + 1, h, left, ready: !!h && (h.ready || left <= 0), progress: h ? Math.min(100, 100 - (left / 1000 / Math.max(1, h.total_seconds)) * 100) : 0 };
+  });
+  const hayLibre = lugares.some((l) => !l.h);
+  const proximo = lugares.filter((l) => l.h && !l.ready).sort((a, b) => a.left - b.left)[0];
 
   const run = async (fn, okText) => {
     if (busy) return;
@@ -134,8 +140,8 @@ export default function PetsPanel({ onChanged, onClose, zIndex, onActivate, defa
     }
   };
 
-  const claim = async () => {
-    const p = await run(() => api.claimIncubator(player.id, token), (r) => `¡Eclosionó ${r?.name ?? 'una mascota'}!`);
+  const claim = async (ranura) => {
+    const p = await run(() => api.claimIncubator(player.id, token, ranura), (r) => `¡Eclosionó ${r?.name ?? 'una mascota'}!`);
     if (p?.id) { setTab('mascotas'); setSelId(p.id); }
   };
 
@@ -150,7 +156,6 @@ export default function PetsPanel({ onChanged, onClose, zIndex, onActivate, defa
   const ownedCodes = useMemo(() => new Set((pets ?? []).map((p) => p.code)), [pets]);
 
   const [pi, pa] = pet ? petIcon(pet.name) : ['paw-print', 'lorc'];
-  const incubatingIcon = incubator ? iconForItem({ name: incubator.egg_name, code: incubator.egg_code }) : null;
 
   const renderPet = () => (pet ? (
     <>
@@ -259,10 +264,10 @@ export default function PetsPanel({ onChanged, onClose, zIndex, onActivate, defa
           </div>
         )}
         <div className="wp-pet-actions">
-          {incubator
+          {!hayLibre
             ? (
-              <button type="button" className="wp-btn" disabled title="La incubadora tiene un solo lugar">
-                {ready ? 'Primero eclosiona el que está listo' : `Incubadora ocupada (${countdown(left)})`}
+              <button type="button" className="wp-btn" disabled title={incu.max > 1 ? 'Los dos lugares están ocupados' : 'La incubadora tiene un solo lugar'}>
+                {lugares.some((l) => l.ready) ? 'Primero eclosiona el que está listo' : `Incubadora ocupada (${countdown(proximo?.left ?? 0)})`}
               </button>
             )
             : (
@@ -292,31 +297,34 @@ export default function PetsPanel({ onChanged, onClose, zIndex, onActivate, defa
       {pets && (
         <div className="wp-pets">
           <aside className="wp-pets-side">
-            {/* la incubadora, siempre a la vista */}
-            <div className={`wp-incubator${ready ? ' wp-incubator--ready' : ''}`}>
-              <span className={`wp-slot wp-slot--lg wp-egg${incubator ? ` wp-rarity-${rarityClass(incubator.egg_rarity)}` : ''}`}>
-                {incubatingIcon ? <ItemIcon icon={incubatingIcon} /> : <GameIcon name="egg-clutch" artist="lorc" />}
-              </span>
-              <div className="wp-incubator-info">
-                <strong>Incubadora</strong>
-                {!incubator && <small>{eggs.length ? 'Vacía: elige un huevo en la pestaña Huevos.' : 'Vacía. Los monstruos sueltan huevos.'}</small>}
-                {incubator && (
-                  <>
-                    <small>{incubator.egg_name}</small>
-                    {ready
-                      ? (
-                        <button type="button" className="wp-btn wp-btn--gold" disabled={busy} onClick={claim}>¡Eclosionar!</button>
-                      )
-                      : (
-                        <>
-                          <div className="wp-bar wp-incubator-bar"><div style={{ width: `${progress}%` }} /></div>
-                          <span className="wp-incubator-time">{countdown(left)}</span>
-                        </>
-                      )}
-                  </>
-                )}
+            {/* la incubadora, siempre a la vista: uno o dos lugares */}
+            {lugares.map((l) => (
+              <div key={l.ranura} className={`wp-incubator${l.ready ? ' wp-incubator--ready' : ''}`}>
+                <span className={`wp-slot wp-slot--lg wp-egg${l.h ? ` wp-rarity-${rarityClass(l.h.egg_rarity)}` : ''}`}>
+                  {l.h ? <ItemIcon icon={iconForItem({ name: l.h.egg_name, code: l.h.egg_code })} /> : <GameIcon name="egg-clutch" artist="lorc" />}
+                </span>
+                <div className="wp-incubator-info">
+                  <strong>Incubadora{incu.max > 1 ? ` ${l.ranura}` : ''}</strong>
+                  {!l.h && <small>{eggs.length ? 'Vacía: elige un huevo en la pestaña Huevos.' : 'Vacía. Los monstruos sueltan huevos.'}</small>}
+                  {l.h && (
+                    <>
+                      <small>{l.h.egg_name}</small>
+                      {l.ready
+                        ? <button type="button" className="wp-btn wp-btn--gold" disabled={busy} onClick={() => claim(l.ranura)}>¡Eclosionar!</button>
+                        : (
+                          <>
+                            <div className="wp-bar wp-incubator-bar"><div style={{ width: `${l.progress}%` }} /></div>
+                            <span className="wp-incubator-time">{countdown(l.left)}</span>
+                          </>
+                        )}
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
+            ))}
+            {incu.puntosParaOtra && (
+              <small className="wp-incubator-next">Con {incu.puntosParaOtra} Puntos de Gesta (Logros, L) se abre un segundo lugar.</small>
+            )}
 
             <div className="wp-pets-tabs">
               <button type="button" className={`wp-pets-tab${tab === 'mascotas' ? ' is-on' : ''}`} onClick={() => setTab('mascotas')}>

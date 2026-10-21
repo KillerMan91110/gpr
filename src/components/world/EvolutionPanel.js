@@ -4,6 +4,7 @@ import { api } from '../../api/client';
 import audio from '../../game/audio';
 import GameIcon from '../GameIcon';
 import FloatingPanel from './FloatingPanel';
+import { NPC_LUGAR } from '../../game/questGivers';
 import './EvolutionPanel.css';
 
 const I = (name, artist) => ({ name, artist });
@@ -21,6 +22,19 @@ const ROLE_ICONS = [
   [/bruto|furia|daño|golpe/, I('crossed-swords', 'lorc')],
 ];
 const roleIcon = (role) => ROLE_ICONS.find(([re]) => re.test((role ?? '').toLowerCase()))?.[1] ?? I('dna2', 'lorc');
+
+// los maestros aethrinos de la Ascensión llegan al Santuario con los peregrinos (la R5 de las Ruinas)
+const AETHRINOS = ['thalor', 'lyssandra', 'eryndel', 'velis', 'seren'];
+// qué dice el cartel de la Prueba de la Orden según en qué quedó (gprback/lib/evolution.js pruebaDelEscalon)
+const pruebaTexto = (p, level) => {
+  const donde = NPC_LUGAR[p.npc] ?? p.lugar;
+  if (p.estado === 'hecha') return 'Prueba superada: las sendas de este escalón ya se pueden recorrer.';
+  if (p.estado === 'activa') return `En curso. Míralo en tu diario de misiones (J) y vuelve con ${p.maestro} al terminar.`;
+  if (p.estado === 'bloqueada') return 'Primero tienes que superar la prueba del escalón anterior.';
+  if (level < p.minLevel) return `Desde el nivel ${p.minLevel}, ${p.maestro} te la va a ofrecer${donde ? ` en ${donde}` : ''}.`;
+  if (AETHRINOS.includes(p.npc)) return `${p.maestro} te espera en ${donde}. Los maestros aethrinos llegan con los peregrinos, cuando cae la Entidad Corrupta del Templo.`;
+  return `${p.maestro} te la ofrece en ${donde}.`;
+};
 
 const PORTRAITS = { GUERRERO: 'Guerrero', MAGO: 'Mago', ARQUERO: 'Arquero', PICARO: 'Picaro', SACERDOTE: 'Sacerdote' };
 
@@ -64,7 +78,9 @@ export default function EvolutionPanel({ stats, onChanged, ...props }) {
     try {
       await api.evolve(player.id, current.evolutionId, token);
       audio.sfx('mision');
-      setMessage({ ok: true, text: `¡Evolucionaste a ${current.toClassName}!` });
+      // lo que se aprende al evolucionar (la firma y lo que ya cumple por nivel)
+      const yaSabe = (current.habilidades ?? []).filter((h) => h.nivel <= (data?.level ?? 0)).map((h) => h.nombre);
+      setMessage({ ok: true, text: `¡Evolucionaste a ${current.toClassName}!${yaSabe.length ? ` Aprendiste: ${yaSabe.join(', ')}.` : ''}` });
       setConfirm(false);
       setSelected(null);
       await load();
@@ -108,6 +124,23 @@ export default function EvolutionPanel({ stats, onChanged, ...props }) {
           ))}
           <small>Nv. {data?.level ?? stats?.level}</small>
         </div>
+      )}
+
+      {data?.prueba && (
+        <div className={`evp-prueba evp-prueba--${data.prueba.estado}`}>
+          <span className="evp-prueba-mark">{data.prueba.estado === 'hecha' ? '✓' : '!'}</span>
+          <div>
+            <strong>Prueba de la Orden · {data.prueba.name}</strong>
+            <small>{pruebaTexto(data.prueba, data.level)}</small>
+          </div>
+        </div>
+      )}
+
+      {/* lo que todavía aprende tu clase actual al subir de nivel */}
+      {data?.proximas?.length > 0 && (
+        <p className="evp-proximas">
+          Próximas habilidades: {data.proximas.map((h) => <span key={h.nombre}><b>{h.nombre}</b> (nv. {h.nivel})</span>)}
+        </p>
       )}
 
       {!data && <p className="wp-empty">Cargando…</p>}
@@ -179,6 +212,19 @@ export default function EvolutionPanel({ stats, onChanged, ...props }) {
               <Req key={i} met={req.met} unknown={req.available === false} text={req.description} current={req.current} target={req.target} />
             ))}
           </ul>
+          {current.habilidades?.length > 0 && (
+            <>
+              <h4 className="evp-habs-titulo">Habilidades</h4>
+              <ul className="evp-habs">
+                {current.habilidades.map((h) => (
+                  <li key={h.nombre} className={h.nivel <= (data?.level ?? 0) ? 'evp-hab--ya' : ''}>
+                    <span className="evp-hab-nivel">nv. {h.nivel}</span>
+                    <span>{h.nombre}{h.firma ? <em> · {h.nivel >= 98 ? 'definitiva' : 'al evolucionar'}</em> : null}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
           {current.canEvolve && (confirm ? (
             <div className="evp-confirm">
               <span>Evolucionar es para siempre. ¿Seguro?</span>

@@ -65,6 +65,8 @@ export const api = {
   evolve: (playerId, evolutionId, token) =>
     request(`/api/player/${playerId}/evolve`, { method: 'POST', body: { evolutionId }, token }),
   getEnchantInfo: (playerId, token) => request(`/api/player/${playerId}/enchant/info`, { token }),
+  // la reforja de calidad de la pieza equipada en ese hueco (gprback/lib/precios.js)
+  reforjar: (playerId, slot, token) => request(`/api/player/${playerId}/reforjar`, { method: 'POST', body: { slot }, token }),
   enchant: (playerId, slot, useCrystal, token) =>
     request(`/api/player/${playerId}/enchant`, { method: 'POST', body: { slot, useCrystal }, token }),
   getEnchantNpcInfo: (playerId, npcId, token) =>
@@ -74,6 +76,10 @@ export const api = {
   getArtisanShop: (playerId, token) => request(`/api/player/${playerId}/artisan-shop`, { token }),
   buyArtisanItem: (playerId, artisanCode, itemCode, quantity, token) =>
     request(`/api/player/${playerId}/artisan-shop/buy`, { method: 'POST', body: { artisanCode, itemCode, quantity }, token }),
+  // candado de una fila de la mochila: no se vende ni se da de comer a la mascota (gprback/lib/mochila.js)
+  alternarFavorito: (playerId, inventoryId, token) => request(`/api/player/${playerId}/inventory/favorito`, { method: 'POST', body: { inventoryId }, token }),
+  // «Vender lo que no usas»: varias cosas de una vez ({ itemId, enchantLevel, quantity })
+  sellArtisanBatch: (playerId, items, token) => request(`/api/player/${playerId}/artisan-shop/sell-batch`, { method: 'POST', body: { items }, token }),
   sellArtisanItem: (playerId, itemId, quantity, enchantLevel = 0, token) =>
     request(`/api/player/${playerId}/artisan-shop/sell`, { method: 'POST', body: { itemId, quantity, enchantLevel }, token }),
   // libro=true (Taller del mundo): también las de pergamino con candado y las básicas por descubrir
@@ -84,6 +90,9 @@ export const api = {
   markCraftSeen: (playerId, recipeCode, token) => request(`/api/player/${playerId}/craft/seen`, { method: 'POST', body: { recipeCode }, token }),
   craft: (playerId, recipeCode, quantity, token) =>
     request(`/api/player/${playerId}/craft`, { method: 'POST', body: { recipeCode, quantity }, token }),
+  // lo que puede salir de desmantelar una pieza, y desmantelar varias de una vez (gprback/lib/desmantelar.js)
+  getDismantlePreview: (playerId, itemId, token) => request(`/api/player/${playerId}/dismantle/preview/${itemId}`, { token }),
+  dismantleBatch: (playerId, items, token) => request(`/api/player/${playerId}/dismantle-batch`, { method: 'POST', body: { items }, token }),
   dismantle: (playerId, itemId, quantity, token) =>
     request(`/api/player/${playerId}/dismantle`, { method: 'POST', body: { itemId, quantity }, token }),
   // comida activa ("bien alimentado"): { foodBuff: { name, text, expiresAt } | null }
@@ -101,12 +110,14 @@ export const api = {
   feedPet: (playerId, playerPetId, itemId, quantity, token) =>
     request(`/api/player/${playerId}/pets/${playerPetId}/feed`, { method: 'POST', body: { itemId, quantity }, token }),
   getIncubator: (playerId, token) => request(`/api/player/${playerId}/pets/incubator`, { token }),
+  // los lugares de la incubadora: { max, huevos: [...], puntosParaOtra } (el segundo se abre con 150 de Gesta)
+  getIncubadoras: (playerId, token) => request(`/api/player/${playerId}/pets/incubadoras`, { token }),
   // todas las mascotas con su zona y cuánto tarda cada huevo (qué puede nacer de cada huevo)
   getPetCatalog: (playerId, token) => request(`/api/player/${playerId}/pets/catalogo`, { token }),
   startIncubation: (playerId, itemId, token) =>
     request(`/api/player/${playerId}/pets/incubator`, { method: 'POST', body: { itemId }, token }),
-  claimIncubator: (playerId, token) =>
-    request(`/api/player/${playerId}/pets/incubator/claim`, { method: 'POST', token }),
+  claimIncubator: (playerId, token, ranura = null) =>
+    request(`/api/player/${playerId}/pets/incubator/claim`, { method: 'POST', body: ranura ? { ranura } : undefined, token }),
   equipItem: (playerId, itemId, enchantLevel = 0, qualityTier = 0, token) =>
     request(`/api/player/${playerId}/equip`, { method: 'POST', body: { itemId, enchantLevel, qualityTier }, token }),
   unequipItem: (playerId, slot, token) =>

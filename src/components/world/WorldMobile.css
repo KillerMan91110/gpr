@@ -84,7 +84,7 @@ body.tactil.en-mundo .chat-box-restore { bottom: auto; top: 104px; left: 8px; }
   body.en-mundo .dlg-portrait { width: 84px; height: 84px; margin-right: -10px; }
   body.en-mundo .boss-prompt-box { width: calc(100vw - 24px); }
   body.en-mundo .hud-zone-title { font-size: 1.4rem; }
-  body.en-mundo .ws-toasts { left: 8px; right: 8px; width: auto; }
+  body.en-mundo .avisos { left: 8px; right: 8px; width: auto; transform: none; }
   body.tactil .hud-context { bottom: calc(150px + env(safe-area-inset-bottom)); }
   body.en-mundo .tc-stick { bottom: calc(150px + env(safe-area-inset-bottom)); }
 

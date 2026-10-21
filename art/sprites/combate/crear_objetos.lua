@@ -2820,6 +2820,120 @@ icon("herradura_goreth", function(G)
   G.px(10, 11, "W"); G.px(11, 10, "W")
 end)
 
+-- ---------------------------------------------------------------- los símbolos de las evoluciones
+-- (gprback/docs/evoluciones_pruebas.md): lo que pide cada rama al evolucionar
+-- cáliz de la furia: copa de obsidiana que todavía hierve
+icon("caliz_de_la_furia", function(G)
+  G.poly({{7, 6}, {25, 6}, {22, 16}, {10, 16}}, "ob2"); G.poly({{7, 6}, {14, 6}, {12, 16}, {10, 16}}, "ob1")
+  G.ellipse(16, 6, 9, 2, "lv3"); G.ellipse(16, 6, 7, 1.4, "lv2"); G.px(13, 5, "lv1"); G.px(19, 6, "lv1")
+  G.rect(15, 16, 17, 24, "ob3"); G.ellipse(16, 27, 7, 2.5, "ob2"); G.line(9, 27, 23, 27, "ob1")
+  G.px(12, 3, "lv2"); G.px(20, 2, "lv1"); G.px(17, 1, "lv2"); G.line(11, 10, 13, 13, "lv3")
+end)
+-- coraza del titán de piedra: un pedazo de pecho de roca con runas
+icon("coraza_titan_piedra", function(G)
+  G.poly({{6, 7}, {16, 4}, {26, 7}, {25, 24}, {16, 29}, {7, 24}}, "rk2")
+  G.poly({{6, 7}, {16, 4}, {16, 29}, {7, 24}}, "rk1"); G.line(16, 4, 16, 29, "rk3")
+  G.line(10, 12, 14, 15, "rk3"); G.line(22, 12, 18, 15, "rk3"); G.ellipse(16, 18, 2.5, 2.5, "sl2"); G.px(16, 18, "sv")
+end)
+-- piedra filosofal: una gema roja que late
+icon("piedra_filosofal", function(G)
+  G.poly({{16, 4}, {25, 12}, {22, 26}, {10, 26}, {7, 12}}, "r3")
+  G.poly({{16, 4}, {25, 12}, {16, 15}}, "r1"); G.poly({{7, 12}, {16, 4}, {16, 15}}, "r2"); G.poly({{10, 26}, {16, 15}, {22, 26}}, "r3")
+  G.ellipse(16, 16, 3, 3, "lv1"); G.px(15, 15, "W"); G.px(12, 9, "W")
+end)
+-- perla de las estrellas: una perla oscura con constelaciones
+icon("perla_estrellas", function(G)
+  G.ellipse(16, 18, 10, 10, "ab2"); G.ellipse(14, 15, 6, 6, "ab1")
+  for _, p in ipairs({{12, 13}, {18, 15}, {15, 21}, {21, 20}, {11, 19}}) do G.px(p[1], p[2], "W") end
+  G.line(12, 13, 18, 15, "abg"); G.line(18, 15, 21, 20, "abg"); G.px(10, 12, "pe1")
+  G.ellipse(16, 29, 7, 1.5, "oc3")
+end)
+-- rama de robleviejo: una rama viva con hojas
+icon("rama_robleviejo", function(G)
+  G.thick(5, 27, 25, 6, 3, "wd2"); G.line(5, 26, 25, 5, "wd1")
+  G.thick(14, 17, 9, 10, 2, "wd2"); G.thick(19, 12, 26, 14, 2, "wd2")
+  for _, p in ipairs({{9, 9}, {26, 15}, {24, 5}, {12, 20}}) do G.ellipse(p[1], p[2], 3, 2, "v2"); G.px(p[1] - 1, p[2] - 1, "v1") end
+end)
+-- arco de los antiguos: un arco élfico sin cuerda, de madera clara con oro
+icon("arco_de_los_antiguos", function(G)
+  for t = 0, 24 do
+    local y = 4 + t
+    local x = 10 + math.floor(math.sin((t / 24) * math.pi) * 10 + 0.5)
+    G.rect(x, y, x + 1, y, t % 6 == 0 and "au2" or "wd1")
+  end
+  G.px(10, 4, "au1"); G.px(10, 28, "au1"); G.ellipse(21, 16, 1.5, 2.5, "v2"); G.px(21, 15, "W")
+end)
+-- cuerno de la tormenta: un cuerno con chispas
+icon("cuerno_tormenta", function(G)
+  G.poly({{5, 24}, {9, 20}, {20, 10}, {26, 6}, {24, 12}, {12, 25}}, "bn")
+  G.poly({{9, 20}, {20, 10}, {22, 12}, {12, 23}}, "pm2"); G.ellipse(7, 24, 3, 3, "rk2")
+  G.line(25, 4, 28, 1, "zz1"); G.line(27, 8, 30, 7, "zz2"); G.line(23, 3, 23, 0, "zz1"); G.px(28, 4, "W")
+end)
+-- cáliz de coral: una copa de coral rosado con agua clara
+icon("caliz_de_coral", function(G)
+  G.poly({{7, 7}, {25, 7}, {22, 16}, {10, 16}}, "cr2"); G.poly({{7, 7}, {13, 7}, {12, 16}, {10, 16}}, "cr1")
+  G.ellipse(16, 7, 9, 2, "oc1"); G.ellipse(16, 7, 6, 1.2, "aq1")
+  G.rect(15, 16, 17, 23, "cr3"); G.ellipse(16, 26, 7, 2.5, "cr2")
+  G.px(6, 12, "cr1"); G.px(26, 11, "cr1"); G.px(25, 13, "cr2")
+end)
+-- cadena del trono: tres eslabones de hueso y hierro
+icon("cadena_del_trono", function(G)
+  for i, p in ipairs({{9, 9}, {16, 16}, {23, 23}}) do
+    G.ellipse(p[1], p[2], 5, 4, i == 2 and "fe2" or "bn"); G.ellipse(p[1], p[2], 2.5, 1.6, nil)
+    for y = -2, 2 do for x = -3, 3 do if (x * x) / 6 + (y * y) / 2.5 <= 1 then G.g[(p[2] + y) * 32 + p[1] + x] = nil end end end
+  end
+  G.px(7, 7, "W"); G.px(14, 14, "fe1")
+end)
+-- ala del templo: una pluma de mármol que brilla
+icon("ala_del_templo", function(G)
+  G.poly({{6, 28}, {9, 18}, {16, 9}, {26, 3}, {22, 13}, {14, 22}}, "pe1")
+  G.poly({{9, 18}, {16, 9}, {26, 3}, {16, 15}}, "pe2"); G.line(6, 28, 24, 6, "pe3")
+  for t = 0, 3 do G.line(10 + t * 4, 22 - t * 4, 14 + t * 4, 22 - t * 4, "pe3") end
+  G.px(27, 2, "al2"); G.px(4, 20, "al1"); G.px(29, 9, "al1")
+end)
+-- escama de la sierpe: una escama de hielo
+icon("escama_sierpe", function(G)
+  G.poly({{16, 3}, {26, 12}, {23, 25}, {16, 29}, {9, 25}, {6, 12}}, "ih3")
+  G.poly({{16, 3}, {26, 12}, {16, 16}}, "ih1"); G.poly({{6, 12}, {16, 3}, {16, 16}}, "ih2")
+  G.line(16, 16, 16, 28, "ih4"); G.line(10, 20, 16, 16, "ih4"); G.line(22, 20, 16, 16, "ih4"); G.px(13, 8, "W")
+end)
+-- corazón del eclipse: un corazón negro con borde morado
+icon("corazon_eclipse", function(G)
+  G.ellipse(11, 12, 6, 6, "ec2"); G.ellipse(21, 12, 6, 6, "ec2"); G.poly({{5, 13}, {27, 13}, {16, 28}}, "ec2")
+  G.ellipse(11, 11, 4, 4, "ec3"); G.ellipse(21, 11, 4, 4, "ec3"); G.poly({{7, 13}, {25, 13}, {16, 25}}, "ec3")
+  G.ellipse(16, 16, 3, 3, "ev"); G.px(16, 16, "W"); G.px(9, 9, "ec1")
+end)
+-- rosario del primer vigía: siete cuentas de piedra en un cordón, con un sello
+icon("rosario_primer_vigia", function(G)
+  for i = 0, 6 do
+    local a = math.pi * (0.1 + 0.8 * i / 6)
+    G.ellipse(16 - math.cos(a) * 11, 5 + math.sin(a) * 15, 2, 2, i % 2 == 0 and "rk1" or "au2")
+  end
+  G.line(16, 20, 16, 23, "le2"); G.ellipse(16, 26, 3.5, 3.5, "au2"); G.ellipse(16, 26, 2, 2, "lg2"); G.px(15, 25, "W")
+end)
+-- corona de flores luminosas
+icon("corona_flores_luminosas", function(G)
+  G.ellipse(16, 19, 12, 5, "v3"); G.ellipse(16, 18, 10, 3, nil)
+  for y = 16, 20 do for x = 7, 25 do local dx, dy = (x - 16) / 10, (y - 18) / 3 if dx * dx + dy * dy <= 1 then G.g[y * 32 + x] = nil end end end
+  for i = 0, 6 do
+    local a = math.pi * (0.05 + 0.9 * i / 6)
+    local x, y = 16 - math.cos(a) * 12, 19 - math.sin(a) * 5 - 2
+    G.ellipse(x, y, 2.2, 2.2, i % 2 == 0 and "lg2" or "al2"); G.px(x, y, "W")
+  end
+end)
+-- núcleo estelar: una esfera apagada con un ojo dormido
+icon("nucleo_estelar", function(G)
+  G.ellipse(16, 16, 11, 11, "ab3"); G.ellipse(16, 16, 9, 9, "ab2"); G.ellipse(13, 12, 4, 3, "ab1")
+  G.ellipse(16, 17, 6, 2.5, "ec1"); G.line(11, 17, 21, 17, "ev"); G.px(16, 17, "W")
+  for _, p in ipairs({{5, 6}, {27, 8}, {26, 26}, {6, 25}}) do G.px(p[1], p[2], "abg") end
+end)
+-- libro de cuentas pirata: un libro de cuero con una calavera
+icon("libro_cuentas_pirata", function(G)
+  G.rect(7, 5, 24, 27, "le3"); G.rect(8, 5, 24, 26, "le2"); G.rect(22, 6, 24, 26, "pe2")
+  G.ellipse(15, 14, 4, 3.5, "bn"); G.rect(13, 17, 17, 19, "bn"); G.px(13, 14, "K"); G.px(17, 14, "K")
+  G.line(10, 22, 20, 22, "au2"); G.px(10, 7, "le1")
+end)
+
 -- ---------------------------------------------------------------- atlas (una fila)
 local n = #ICONS
 local img = Image(n * 32, 32, ColorMode.RGB)

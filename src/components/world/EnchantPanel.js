@@ -7,6 +7,9 @@ import audio from '../../game/audio';
 import FloatingPanel from './FloatingPanel';
 import { iconForItem, SLOT_LABELS } from './itemIcons';
 
+// la calidad de una pieza (la reforja la sube de a un escalón: gprback/lib/precios.js)
+const CALIDAD = ['Común', 'Poco común', 'Rara', 'Épica', 'Legendaria'];
+const CALIDAD_MULT = ['×1', '×1,15', '×1,35', '×1,6', '×2'];
 const prettyCode = (code) => (code ?? '').toLowerCase().split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
 // Encantador como una forja: a quién (héroe o compañeros) arriba, sus piezas equipadas a la
@@ -45,6 +48,24 @@ export default function EnchantPanel({ onChanged, onClose, zIndex, onActivate, d
   const stone = current?.nextCost ? inventory.find((i) => i.code === current.nextCost.stone) : null;
   const stoneHave = stone?.quantity ?? 0;
   const rate = current?.nextCost ? Math.min(100, current.nextCost.successRate + (!npc && useCrystal ? crystalBonus : 0)) : 0;
+
+  const reforjar = async () => {
+    if (!current || busy || npc) return;
+    setBusy(true);
+    try {
+      const r = await api.reforjar(player.id, current.slot, token);
+      setFlash({ ok: r.success, text: r.message });
+      audio.sfx(r.success ? 'mejora' : 'romper');
+      setTimeout(() => setFlash(null), 2600);
+      await loadSlots();
+      onChanged?.();
+    } catch (e) {
+      setFlash({ ok: false, text: e.message });
+      setTimeout(() => setFlash(null), 2600);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const enchant = async () => {
     if (!current || busy) return;
@@ -147,6 +168,30 @@ export default function EnchantPanel({ onChanged, onClose, zIndex, onActivate, d
                     {busy ? 'Encantando…' : `Encantar a +${current.enchantLevel + 1}`}
                   </button>
                 </>
+              )}
+              {/* la reforja de calidad (solo tu héroe): multiplica todas las estadísticas de la pieza */}
+              {!npc && current.qualityTier != null && (
+                <div className="wp-reforja">
+                  <h4 className="wp-section-title">Reforjar calidad</h4>
+                  <div className="wp-reforja-steps" title="Cada escalón multiplica todas las estadísticas de la pieza">
+                    {CALIDAD.map((c, i) => (
+                      <span key={c} className={`wp-reforja-step wp-text-${['comun', 'poco_comun', 'raro', 'epico', 'legendario'][i]}${i <= current.qualityTier ? ' on' : ''}`}>
+                        {c} <small>{CALIDAD_MULT[i]}</small>
+                      </span>
+                    ))}
+                  </div>
+                  {current.reforja
+                    ? (
+                      <div className="wp-reforja-row">
+                        <span className="wp-coins"><GameIcon name="two-coins" artist="delapouite" /> {current.reforja.oro.toLocaleString()}</span>
+                        <span className="wp-reforja-prob">Probabilidad <b>{current.reforja.prob}%</b> · si falla, el oro se pierde</span>
+                        <button type="button" className="wp-btn wp-btn--gold" disabled={busy} onClick={reforjar}>
+                          A {CALIDAD[current.qualityTier + 1]}
+                        </button>
+                      </div>
+                    )
+                    : <p className="wp-forge-max">¡Calidad máxima!</p>}
+                </div>
               )}
               {flash && <p className={`wp-forge-msg ${flash.ok ? 'ok' : 'err'}`}>{flash.text}</p>}
             </section>

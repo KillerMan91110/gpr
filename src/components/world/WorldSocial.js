@@ -6,6 +6,7 @@ import bus from '../../game/bus';
 import audio from '../../game/audio';
 import { socialStore } from '../../game/socialStore';
 import './WorldSocial.css';
+import Aviso from '../Avisos';
 
 // Lo social del mundo 2D del lado de React: entra a la zona por socket y reparte a la escena lo
 // que hacen los demás (posiciones, globitos, gestos, emojis, estados); avisa si estás en
@@ -459,9 +460,10 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
         </div>
       )}
 
-      <div className="ws-toasts" aria-live="polite">
+      {/* en la misma columna que el aviso de logro (components/Avisos.js): nunca se pisan */}
+      <Aviso orden={1}><div className="ws-toasts">
         {toasts.map((t) => <div key={t.id} className={`ws-toast ws-toast--${t.kind}`}>{t.text}</div>)}
-      </div>
+      </div></Aviso>
 
       {tradeAsk && (
         <div className="ws-share ws-trade-ask" role="dialog" aria-label="Solicitud de comercio">

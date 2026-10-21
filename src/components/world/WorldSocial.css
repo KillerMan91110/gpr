@@ -187,13 +187,9 @@
   opacity: 1;
 }
 
-/* avisos (amigo conectado, elogio recibido, rastro) */
+/* avisos (amigo conectado, elogio recibido, rastro): van en la columna de avisos (components/Avisos.css),
+   debajo del aviso de logro */
 .ws-toasts {
-  position: fixed;
-  z-index: 56;
-  top: 92px;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;

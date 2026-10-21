@@ -10,6 +10,7 @@ import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
 import MaterialSources from './MaterialSources';
 import { iconForItem, RARITY_LABELS, STAT_LABELS } from './itemIcons';
+import SeleccionMochila from './SeleccionMochila';
 
 // dónde se fabrica cada receta (crafting_recipes.station en el back)
 const STATION_LABEL = {
@@ -101,7 +102,10 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
   const [onlyMyLevel, setOnlyMyLevel] = useState(false);
   const [hideLocked, setHideLocked] = useState(false);
   const [selCode, setSelCode] = useState(null);
-  const [selItem, setSelItem] = useState(null);
+  // Desmantelar: una o varias piezas elegidas (components/world/SeleccionMochila.js) y lo que puede salir
+  const [dSel, setDSel] = useState(() => new Map());
+  const [dFiltro, setDFiltro] = useState('');
+  const [preview, setPreview] = useState(null);
   const [qty, setQty] = useState(1);
   // material del que se está mirando «¿Dónde?» (sale de dónde conseguirlo)
   const [whereOpen, setWhereOpen] = useState(null);
@@ -241,15 +245,29 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
     }
   };
 
+  // las piezas que se pueden desmantelar (solo equipo) y lo elegido
+  const piezas = useMemo(() => (inventory ?? []).filter((i) => i.quantity > 0 && i.item_type === 'EQUIPMENT'), [inventory]);
+  const dElegidas = piezas.filter((i) => dSel.has(i.inventory_id));
+  const dUna = dElegidas.length === 1 ? dElegidas[0] : null;
+  const dSobra = piezas.filter((i) => i.sobra);
+  // lo que puede salir de la pieza elegida (si es una sola)
+  useEffect(() => {
+    if (!dUna) { setPreview(null); return undefined; }
+    let cancel = false;
+    setPreview(null);
+    api.getDismantlePreview(player.id, dUna.item_id, token).then((r) => { if (!cancel) setPreview(r); }).catch((e) => { if (!cancel) setPreview({ error: e.message }); });
+    return () => { cancel = true; };
+  }, [dUna?.item_id, player, token]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const dismantle = async () => {
-    if (!selItem || busy) return;
+    if (!dElegidas.length || busy) return;
     setBusy(true);
     setError(null);
     try {
-      const r = await api.dismantle(player.id, selItem.item_id, qty, token);
-      setResult({ type: 'dismantle', name: selItem.name, quantity: qty, materials: r.materials ?? [] });
-      setSelItem(null);
-      setQty(1);
+      const r = await api.dismantleBatch(player.id, dElegidas.map((i) => ({ itemId: i.item_id, quantity: dSel.get(i.inventory_id) })), token);
+      audio.sfx('romper');
+      setResult({ type: 'dismantle', name: dUna ? dUna.name : `${r.desmanteladas} piezas`, quantity: dUna ? dSel.get(dUna.inventory_id) : r.desmanteladas, materials: r.materials ?? [] });
+      setDSel(new Map());
       await loadInventory();
       onChanged?.();
     } catch (e) {
@@ -399,6 +417,11 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
                   <div className="wp-craft-stats">
                     <span>Éxito <b>{recipe.successRate}%</b></span>
                     <span>Obtienes <b>x{recipe.resultQuantity}</b></span>
+                    {recipe.goldCost > 0 && (
+                      <span title="Lo que cobra el artesano por su trabajo (por cada intento)">
+                        Trabajo <b><GameIcon name="two-coins" artist="delapouite" /> {(recipe.goldCost * qty).toLocaleString()}</b>
+                      </span>
+                    )}
                   </div>
                   {(() => {
                     const s = STATION_LABEL[recipe.station ?? 'libre'] ?? STATION_LABEL.libre;
@@ -499,51 +522,98 @@ export default function CraftingPanel({ onChanged, onClose, zIndex, onActivate, 
       )}
 
       {tab === 'dismantle' && (
-        <div className="wp-craft">
-          <div className="wp-bag-grid wp-sell-grid">
-            {/* solo el equipo se desmantela (gprback/lib/desmantelar.js): devuelve 1 o 2 de sus materiales al
-                azar, nunca las piezas de jefe, y según la rareza a veces una piedra de encantamiento */}
-            {(inventory ?? []).filter((i) => i.quantity > 0 && i.item_type === 'EQUIPMENT').map((it) => {
-              const icon = iconForItem(it);
-              return (
-                <button
-                  key={it.inventory_id}
-                  type="button"
-                  className={`wp-slot wp-rarity-${(it.rarity || 'COMUN').toLowerCase()}${selItem?.inventory_id === it.inventory_id ? ' wp-slot--sel' : ''}`}
-                  onClick={() => { setSelItem(it); setQty(1); setResult(null); }}
-                >
-                  <ItemIcon icon={icon} />
-                  {it.quantity > 1 && <span className="wp-slot-qty">{it.quantity}</span>}
-                </button>
-              );
-            })}
-            {inventory === null && <p className="wp-empty">Cargando…</p>}
-          </div>
-          <section className="wp-craft-detail">
-            {!selItem && !result && <p className="wp-deal-hint">Elige un equipo de la mochila para romperlo: recuperas uno o dos de sus materiales, al azar. Las piezas raras, épicas y legendarias a veces dejan una piedra de encantamiento. Las piezas de jefe (coronas, yelmos, núcleos…) no vuelven.</p>}
-            {selItem && (
+        <div className="wp-craft wp-desm">
+          {/* solo el equipo se desmantela (gprback/lib/desmantelar.js): devuelve 1 o 2 de sus materiales al azar,
+              nunca las piezas de jefe, y según la rareza a veces una piedra de encantamiento */}
+          <SeleccionMochila
+            items={piezas}
+            sel={dSel}
+            onChange={(m) => { setDSel(m); setResult(null); }}
+            filtro={dFiltro}
+            onFiltro={setDFiltro}
+            vacio={inventory === null ? 'Cargando…' : 'No tienes equipo de esa rareza para desmantelar.'}
+            atajos={[{
+              label: `Marcar lo que no usas (${dSobra.length})`,
+              title: 'Equipo de otra clase o peor que el tuyo',
+              disabled: !dSobra.length,
+              onClick: () => { setDSel(new Map(dSobra.map((i) => [i.inventory_id, i.quantity]))); setResult(null); },
+            }]}
+          />
+          <section className="wp-craft-detail wp-desm-detail">
+            {result?.type === 'dismantle' && (
+              <div className="wp-desm-loot">
+                <strong>Desmantelaste {result.quantity > 1 ? `${result.quantity}× ` : ''}{result.name}</strong>
+                {result.materials.length === 0 && <span className="wp-deal-hint">Esta vez no se recuperó nada.</span>}
+                <div className="wp-desm-loot-grid">
+                  {result.materials.map((m, i) => (
+                    <span key={m.id} className="wp-desm-loot-item" style={{ animationDelay: `${i * 90}ms` }}>
+                      <span className="wp-slot"><ItemIcon icon={iconForItem({ name: m.name })} /><span className="wp-slot-qty">{m.quantity}</span></span>
+                      <small>{m.name}</small>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {!dElegidas.length && !result && (
+              <div className="wp-desm-intro">
+                <span className="wp-desm-anvil"><GameIcon name="anvil-impact" artist="lorc" /></span>
+                <p className="wp-deal-hint">Elige una o varias piezas para romperlas. Recuperas uno o dos de sus materiales, al azar; las raras, épicas y legendarias a veces dejan una piedra de encantamiento. Las piezas de jefe no vuelven.</p>
+              </div>
+            )}
+            {dUna && (
               <>
                 <header className="wp-craft-head">
-                  <span className={`wp-slot wp-slot--lg wp-rarity-${(selItem.rarity || 'COMUN').toLowerCase()}`}>
-                    <ItemIcon icon={iconForItem(selItem)} />
+                  <span className={`wp-slot wp-slot--lg wp-rarity-${(dUna.rarity || 'COMUN').toLowerCase()}`}>
+                    <ItemIcon icon={iconForItem(dUna)} />
                   </span>
                   <div>
-                    <strong className={`wp-text-${(selItem.rarity || 'COMUN').toLowerCase()}`}>{selItem.name}</strong>
-                    <small>{RARITY_LABELS[selItem.rarity] ?? selItem.rarity} · tienes {selItem.quantity}</small>
+                    <strong className={`wp-text-${(dUna.rarity || 'COMUN').toLowerCase()}`}>{dUna.name}</strong>
+                    <small>{RARITY_LABELS[dUna.rarity] ?? dUna.rarity} · tienes {dUna.quantity}</small>
                   </div>
                 </header>
+                <h4 className="wp-section-title">Puede salir {preview?.cuantos && preview.cuantos !== 'todos' ? `(${preview.cuantos} de estos, al azar)` : ''}</h4>
+                {!preview && <p className="wp-deal-hint">Mirando la pieza…</p>}
+                {preview?.error && <p className="wp-deal-hint">{preview.error}</p>}
+                {preview?.materiales && (
+                  <div className="wp-desm-posibles">
+                    {preview.materiales.map((m) => (
+                      <span key={m.itemId} className="wp-desm-posible">
+                        <span className="wp-slot wp-slot--sm"><ItemIcon icon={iconForItem({ name: m.name, code: m.code })} /></span>
+                        <span>{m.name}<small>hasta {m.hasta} por pieza</small></span>
+                      </span>
+                    ))}
+                    {preview.piedras.map((p) => (
+                      <span key={p.itemId} className="wp-desm-posible wp-desm-posible--piedra">
+                        <span className="wp-slot wp-slot--sm"><GameIcon name="rune-stone" artist="lorc" /></span>
+                        <span>{p.name}<small>{p.prob}% por pieza</small></span>
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <div className="wp-deal">
-                  <Stepper value={qty} max={Math.min(99, selItem.quantity)} onChange={setQty} />
+                  <Stepper value={dSel.get(dUna.inventory_id)} max={Math.min(99, dUna.quantity)} onChange={(n) => setDSel(new Map([[dUna.inventory_id, n]]))} />
                   <button type="button" className="wp-btn wp-btn--danger" disabled={busy} onClick={dismantle}>{busy ? '…' : 'Desmantelar'}</button>
                 </div>
               </>
             )}
-            {result && (
-              <div className="wp-craft-result">
-                <strong>Desmantelado: {result.quantity}x {result.name}</strong>
-                {result.materials.length === 0 && <span>No se recuperó ningún material.</span>}
-                {result.materials.map((m) => <span key={m.id} className="ok">✓ {m.quantity}x {m.name}</span>)}
-              </div>
+            {dElegidas.length > 1 && (
+              <>
+                <header className="wp-craft-head">
+                  <span className="wp-desm-anvil"><GameIcon name="anvil-impact" artist="lorc" /></span>
+                  <div>
+                    <strong>{dElegidas.length} piezas elegidas</strong>
+                    <small>{dElegidas.reduce((t, i) => t + (dSel.get(i.inventory_id) ?? 0), 0)} unidades · cada una sortea sus materiales</small>
+                  </div>
+                </header>
+                <div className="wp-desm-mini">
+                  {dElegidas.map((i) => (
+                    <span key={i.inventory_id} className={`wp-slot wp-slot--sm wp-rarity-${(i.rarity || 'COMUN').toLowerCase()}`} title={i.name}><ItemIcon icon={iconForItem(i)} /></span>
+                  ))}
+                </div>
+                <div className="wp-deal">
+                  <button type="button" className="wp-btn wp-btn--danger" disabled={busy} onClick={dismantle}>{busy ? '…' : `Desmantelar (${dElegidas.length})`}</button>
+                </div>
+              </>
             )}
           </section>
         </div>

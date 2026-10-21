@@ -42,6 +42,8 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
   const [search, setSearch] = useState('');
   const [hover, setHover] = useState(null);
   const [message, setMessage] = useState(null);
+  // modo candado: cada clic pone o quita el candado (también Mayús + clic, en cualquier momento)
+  const [modoCandado, setModoCandado] = useState(false);
   const [busy, setBusy] = useState(false);
   // pestaña de cartas de monstruo (se engarzan desde el Bestiario, tecla K)
   const [tab, setTab] = useState('objetos');
@@ -129,12 +131,23 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
     }
   };
 
+  // Mayús + clic: pone o quita el candado (no se vende, no entra en «lo que no usas», no se da de comer)
+  const toggleFavorito = async (it) => {
+    try {
+      const r = await api.alternarFavorito(player.id, it.inventory_id, token);
+      setMessage({ ok: true, text: r.favorito ? `🔒 ${it.name} tiene candado: no se vende ni se da de comer.` : `${it.name} ya no tiene candado.` });
+      load();
+    } catch (err) {
+      setMessage({ ok: false, text: err.message });
+    }
+  };
+
   const hintFor = (it) => {
     if (it.is_quest_item) return 'Objeto de misión: no se vende ni se regala. Se va al entregar o abandonar la misión.';
     if (it.code === 'MUNECO_DE_VENTA') return 'Clic derecho: armar tu puesto';
     if (it.code?.startsWith('SOBRE_')) return 'Clic derecho: abrir el sobre (tres cartas)';
     if (it.is_scroll) return it.recipe_already_learned ? 'Ya conoces todas sus recetas' : 'Clic derecho: leer el pergamino (aprendes sus recetas)';
-    if (it.item_type === 'EQUIPMENT') return 'Clic derecho: equipar';
+    if (it.item_type === 'EQUIPMENT') return it.mejora ? '▲ Mejor que lo que llevas · clic derecho: equipar' : 'Clic derecho: equipar';
     if (it.item_type === 'CONSUMABLE' && !NO_GENERIC_USE.has(it.code)) return 'Clic derecho: usar';
     return null;
   };
@@ -196,13 +209,20 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
           )}
         </>
       ) : (<>
-      <input
-        className="wp-search"
-        type="search"
-        placeholder="Buscar…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      <div className="wp-bag-tools">
+        <input
+          className="wp-search"
+          type="search"
+          placeholder="Buscar…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <button type="button" className={`wp-btn wp-bag-lockbtn${modoCandado ? ' is-on' : ''}`} onClick={() => setModoCandado((m) => !m)}
+          title="Lo que tiene candado no se vende, no se desmantela ni se le da de comer a la mascota">
+          🔒 {modoCandado ? 'Listo' : 'Candados'}
+        </button>
+      </div>
+      {modoCandado && <p className="wp-bag-lockhint">Clic en una casilla para ponerle o quitarle el candado. Lo que tiene candado no se vende, no se desmantela ni se le da de comer a la mascota.</p>}
       <div className="wp-bag-grid" style={{ gridTemplateColumns: `repeat(${COLUMNS}, 44px)` }}>
         <button
           type="button"
@@ -224,14 +244,17 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
             <button
               key={it.inventory_id}
               type="button"
-              className={`wp-slot wp-rarity-${rarity}${it.is_quest_item ? ' wp-slot--quest' : ''}`}
+              className={`wp-slot wp-rarity-${rarity}${it.is_quest_item ? ' wp-slot--quest' : ''}${modoCandado ? ' wp-slot--lockmode' : ''}`}
               onMouseMove={(e) => setHover({ it, x: e.clientX, y: e.clientY })}
               onMouseLeave={() => setHover(null)}
+              onClick={(e) => { if (e.shiftKey || modoCandado) toggleFavorito(it); }}
               onDoubleClick={() => activate(it)}
               onContextMenu={(e) => { e.preventDefault(); activate(it); }}
             >
               <ItemIcon icon={icon} />
+              {it.favorito && <span className="wp-slot-lock" aria-label="Con candado">🔒</span>}
               {it.is_quest_item && <span className="wp-slot-quest" aria-label="Objeto de misión">📜</span>}
+              {it.mejora && <span className="wp-slot-up" aria-label="Mejor que lo que llevas">▲</span>}
               {it.enchant_level > 0 && <span className="wp-slot-enchant">+{it.enchant_level}</span>}
               {it.quantity > 1 && <span className="wp-slot-qty">{it.quantity}</span>}
             </button>
@@ -240,7 +263,7 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
       </div>
       {items === null && <p className="wp-empty">Cargando…</p>}
       {items?.length === 0 && <p className="wp-empty">Tu mochila está vacía. Derrota monstruos o visita a los artesanos.</p>}
-      {hover && <ItemTooltip item={toTooltipItem(hover.it)} x={hover.x} y={hover.y} token={token} hint={hintFor(hover.it)} />}
+      {hover && <ItemTooltip item={toTooltipItem(hover.it)} x={hover.x} y={hover.y} token={token} hint={[hintFor(hover.it), hover.it.favorito ? '🔒 Con candado (Mayús + clic: quitarlo)' : 'Mayús + clic: poner candado'].filter(Boolean).join(' · ')} />}
       {stoneHover && (
         <div className="wp-card-tip wp-stone-tip" style={{ left: Math.min(stoneHover.x + 14, window.innerWidth - 260), top: stoneHover.y + 14 }}>
           <b>Piedra de regreso</b>

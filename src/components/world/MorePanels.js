@@ -161,7 +161,7 @@ export function RankingPanel(props) {
   useEffect(() => {
     setRows(null);
     const loaders = {
-      jugadores: () => api.getLeaderboard().then((r) => r.map((x) => ({ pos: x.position, id: x.playerId, name: x.nickname, sub: `${x.className} · Rango ${x.rank}`, value: `Nv. ${x.level}` }))),
+      jugadores: () => api.getLeaderboard().then((r) => r.map((x) => ({ pos: x.position, id: x.playerId, name: x.nickname, sub: `${x.className} · Rango ${x.rank}${x.titulo ? ` · «${x.titulo}»` : ''}`, value: `Nv. ${x.level}` }))),
       riqueza: () => api.getWealthLeaderboard().then((r) => r.map((x) => ({ pos: x.position, id: x.playerId, name: x.nickname, sub: `${x.className} · Nv. ${x.level}`, value: Number(x.gold).toLocaleString(), gold: true }))),
       gremios: () => api.getGuildLeaderboard().then((r) => r.map((x) => ({ pos: x.position, name: x.name, sub: `${x.memberCount} miembros`, value: `Nv. ${x.level}` }))),
       abismo: () => api.getTowerLeaderboard().then((r) => (r.solo ?? []).map((x) => ({ pos: x.position, name: x.members.join(', '), sub: x.difficulty, value: `Piso ${x.floor}` }))),

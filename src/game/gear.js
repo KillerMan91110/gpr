@@ -252,7 +252,9 @@ export const OBJETOS = ['pocion_vida_menor', 'pocion_vida_mayor', 'pocion_mana_m
   // los huevos (los de siempre y los de cada zona, en las cinco rarezas) y los sobres de cartas de cada zona
   ...HUEVOS.map(([k]) => k), ...SOBRES.map(([k]) => k),
   // el regalo de Goreth (la cerca de la Pradera)
-  'herradura_goreth'];
+  'herradura_goreth',
+  // los símbolos de las evoluciones (gprback/docs/evoluciones_pruebas.md)
+  'caliz_de_la_furia', 'coraza_titan_piedra', 'piedra_filosofal', 'perla_estrellas', 'rama_robleviejo', 'arco_de_los_antiguos', 'cuerno_tormenta', 'caliz_de_coral', 'cadena_del_trono', 'ala_del_templo', 'escama_sierpe', 'corazon_eclipse', 'rosario_primer_vigia', 'corona_flores_luminosas', 'nucleo_estelar', 'libro_cuentas_pirata'];
 const OBJETO_BY_NAME = {
   'pocion de vida menor': 'pocion_vida_menor', 'pocion de vida mayor': 'pocion_vida_mayor',
   'pocion de mana menor': 'pocion_mana_menor', 'pocion de mana mayor': 'pocion_mana_mayor',
@@ -362,6 +364,22 @@ const OBJETO_BY_NAME = {
   'lagrima cristalizada': 'lagrima_cristalizada', 'septimo fragmento de sello': 'fragmento_sello_ruinas',
   ...Object.fromEntries([...HUEVOS, ...SOBRES].map(([k, name]) => [name, k])),
   'herradura de goreth': 'herradura_goreth',
+  'caliz de la furia': 'caliz_de_la_furia',
+  'coraza del titan de piedra': 'coraza_titan_piedra',
+  'piedra filosofal': 'piedra_filosofal',
+  'perla de las estrellas': 'perla_estrellas',
+  'rama de robleviejo': 'rama_robleviejo',
+  'arco de los antiguos': 'arco_de_los_antiguos',
+  'cuerno de la tormenta': 'cuerno_tormenta',
+  'caliz de coral': 'caliz_de_coral',
+  'cadena del trono': 'cadena_del_trono',
+  'ala del templo': 'ala_del_templo',
+  'escama de la sierpe': 'escama_sierpe',
+  'corazon del eclipse': 'corazon_eclipse',
+  'rosario del primer vigia': 'rosario_primer_vigia',
+  'corona de flores luminosas': 'corona_flores_luminosas',
+  'nucleo estelar': 'nucleo_estelar',
+  'libro de cuentas pirata': 'libro_cuentas_pirata',
 };
 
 // índice en el atlas de objetos, o null

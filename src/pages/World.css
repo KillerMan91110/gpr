@@ -753,6 +753,8 @@ body.en-mundo .bgm-control { display: none; }
 .lvlup ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: 6px 0 0; padding: 0; list-style: none; }
 .lvlup li { font: 600 0.95rem 'EB Garamond', serif; color: #fff; text-shadow: 0 1px 3px #000; }
 .lvlup li b { color: #7dff9a; }
+.lvlup-hab { margin: 8px 0 0; font: 600 0.95rem 'EB Garamond', serif; color: #fff; text-shadow: 0 1px 3px #000; text-align: center; }
+.lvlup-hab b { color: #ffd84a; }
 
 /* ---- sonido (debajo del minimapa) ---- */
 .hud-sound { position: absolute; top: 186px; right: 18px; z-index: 30; }

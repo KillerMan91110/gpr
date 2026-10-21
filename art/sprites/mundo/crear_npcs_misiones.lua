@@ -490,6 +490,17 @@ local NPCS = {
   -- Ptolio, el aprendiz del astrónomo: un fantasma amable con sombrero puntiagudo azul y túnica de estrellas
   npc_ptolio = {race="velado", style="mago", hat="Cb", hair="Hs", hairD="Hg", top="Cb", topD="a4", topL="a1", robe=true, trim="go", neck="go", skin="Vs", skinD="Vsd", eyesWalk="Ve", eyes="Ve"},
   -- un peregrino de piedra que se despierta (escolta de «Peregrinos perdidos»): capucha y piel de mármol gris
+  -- los maestros aethrinos de las Pruebas de la Orden (gprback/docs/evoluciones_pruebas.md), uno por clase base
+  -- Thalor, el guerrero: pelo blanco corto, casco viejo de la guardia y tabardo de oro sobre placas grises
+  npc_thalor = {race="aethrino", style="casco", hat="go", top="Cs", topD="Csd", topL="Ah", tabard="Cw", pants="Csd", boots="b", belt="go", skin="As", skinD="Asd"},
+  -- Lyssandra, la maga: sombrero puntiagudo morado, pelo plateado largo y túnica de estrellas
+  npc_lyssandra = {race="aethrino", style="mago", hat="Cp", hair="Hs", hairD="Hg", top="Cp", topD="v", topL="Vh", robe=true, trim="go", neck="go", skin="As", skinD="Asd"},
+  -- Eryndel, el arquero: pelo rubio largo, jubón verde de bosque y cinturón de cuero
+  npc_eryndel = {race="aethrino", style="largo", hair="Y", hairD="y", top="Cg", topD="g", topL="Gh", vest="N", pants="Cn", boots="b", belt="b", skin="As", skinD="Asd"},
+  -- Velis, la pícara: capucha gris oscura, pelo negro y la marca de oro escondida bajo la sombra
+  npc_velis = {race="aethrino", style="capucha", hair="L", hairD="l", top="L", topD="l", topL="Lh", vest="Hd", pants="l", boots="b", belt="go", skin="As", skinD="Asd"},
+  -- Seren, el sacerdote: calvo, túnica blanca y dorada, collar de oro
+  npc_seren = {race="aethrino", style="calvo", hair="Hs", hairD="Hg", top="Cw", topD="m2", topL="W", robe=true, trim="Cy", neck="go", skin="As", skinD="Asd"},
   npc_peregrino = {race="humano", style="capucha", hair="Ps", hairD="Psd", top="Ps", topD="Psd", topL="sw", robe=true, trim="sd", skin="Ps", skinD="Psd", eyesWalk="Psd", eyes="Psd"},
 }
 -- solo=npc_a,npc_b genera solo esos (para no rehacer los que ya tienen retoques)

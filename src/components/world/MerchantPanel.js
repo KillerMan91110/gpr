@@ -7,6 +7,7 @@ import audio from '../../game/audio';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
 import { iconForItem, RARITY_LABELS } from './itemIcons';
+import SeleccionMochila from './SeleccionMochila';
 
 
 const ARTISAN_ICON = {
@@ -97,16 +98,28 @@ export default function MerchantPanel({ gold, onChanged, onClose, zIndex, onActi
     [inventory],
   );
 
-  const pick = (sel) => { setSelected(sel); setQty(1); };
-  const switchTab = (t) => { setTab(t); setSelected(null); };
-
-  const buy = async () => {
-    if (!selected || busy) return;
+  // Vender: se eligen una o varias casillas (components/world/SeleccionMochila.js). «Marcar lo que no usas» elige
+  // lo que gprback/lib/mochila.js marca como `sobra`; con una sola elegida se puede ajustar la cantidad.
+  const sobra = useMemo(() => sellable.filter((i) => i.sobra), [sellable]);
+  const [vSel, setVSel] = useState(() => new Map());
+  const [vFiltro, setVFiltro] = useState('');
+  const elegidas = sellable.filter((i) => vSel.has(i.inventory_id));
+  const totalVenta = elegidas.reduce((t, i) => t + i.sell_artisan * (vSel.get(i.inventory_id) ?? 0), 0);
+  const unaSola = elegidas.length === 1 ? elegidas[0] : null;
+  const sellSelected = async () => {
+    if (!elegidas.length || busy) return;
     setBusy(true);
     try {
-      const r = await api.buyArtisanItem(player.id, artisan.code, selected.itemCode, qty, token);
+      // una línea por objeto y encantamiento (las calidades distintas se juntan)
+      const by = new Map();
+      for (const i of elegidas) {
+        const k = `${i.item_id}:${i.enchant_level ?? 0}`;
+        by.set(k, { itemId: i.item_id, enchantLevel: i.enchant_level ?? 0, quantity: (by.get(k)?.quantity ?? 0) + (vSel.get(i.inventory_id) ?? 0) });
+      }
+      const r = await api.sellArtisanBatch(player.id, [...by.values()], token);
       audio.sfx('moneda');
       setMessage({ ok: true, text: r.message });
+      setVSel(new Map());
       await load();
       onChanged?.();
     } catch (err) {
@@ -116,14 +129,16 @@ export default function MerchantPanel({ gold, onChanged, onClose, zIndex, onActi
     }
   };
 
-  const sell = async () => {
+  const pick = (sel) => { setSelected(sel); setQty(1); };
+  const switchTab = (t) => { setTab(t); setSelected(null); setVSel(new Map()); };
+
+  const buy = async () => {
     if (!selected || busy) return;
     setBusy(true);
     try {
-      const r = await api.sellArtisanItem(player.id, selected.item_id, qty, selected.enchant_level ?? 0, token);
+      const r = await api.buyArtisanItem(player.id, artisan.code, selected.itemCode, qty, token);
       audio.sfx('moneda');
       setMessage({ ok: true, text: r.message });
-      setSelected(null);
       await load();
       onChanged?.();
     } catch (err) {
@@ -144,7 +159,6 @@ export default function MerchantPanel({ gold, onChanged, onClose, zIndex, onActi
   });
 
   const maxBuy = selected && tab === 'buy' ? Math.max(1, Math.min(99, Math.floor((gold ?? 0) / Math.max(1, selected.price)))) : 1;
-  const maxSell = selected && tab === 'sell' ? Math.min(99, selected.quantity) : 1;
 
   return (
     <FloatingPanel
@@ -248,54 +262,73 @@ export default function MerchantPanel({ gold, onChanged, onClose, zIndex, onActi
                   <span className="wp-merchant-portrait"><GameIcon name="money-stack" artist="delapouite" /></span>
                   <div>
                     <strong>Vender a los artesanos</strong>
-                    <small>Pagan un precio fijo según la rareza. Lo equipado no se puede vender.</small>
+                    <small>Clic para elegir una o varias cosas (✓). Lo equipado y lo que tiene candado 🔒 no se vende.</small>
                   </div>
                 </header>
-                <div className="wp-bag-grid wp-sell-grid">
-                  {sellable.map((it) => {
-                    const icon = iconForItem(it);
-                    const rarity = (it.rarity || 'COMUN').toLowerCase();
-                    const isSel = selected?.inventory_id === it.inventory_id;
-                    return (
-                      <button
-                        key={it.inventory_id}
-                        type="button"
-                        className={`wp-slot wp-rarity-${rarity}${isSel ? ' wp-slot--sel' : ''}`}
-                        onClick={() => pick(it)}
-                        onMouseMove={(e) => setHover({ it, x: e.clientX, y: e.clientY })}
-                        onMouseLeave={() => setHover(null)}
-                      >
-                        <ItemIcon icon={icon} />
-                        {it.enchant_level > 0 && <span className="wp-slot-enchant">+{it.enchant_level}</span>}
-                        {it.quantity > 1 && <span className="wp-slot-qty">{it.quantity}</span>}
-                      </button>
-                    );
-                  })}
-                  {Array.from({ length: Math.max(0, 40 - sellable.length) }, (_, i) => <span key={`v-${i}`} className="wp-slot wp-slot--empty" />)}
-                </div>
+                <SeleccionMochila
+                  items={sellable}
+                  sel={vSel}
+                  onChange={setVSel}
+                  filtro={vFiltro}
+                  onFiltro={setVFiltro}
+                  onHover={setHover}
+                  vacio="No tienes nada de esa rareza para vender."
+                  atajos={[{
+                    label: `Marcar lo que no usas (${sobra.length})`,
+                    title: 'Equipo de otra clase o peor que el tuyo, y botín que ninguna receta ni misión pide',
+                    disabled: !sobra.length,
+                    onClick: () => setVSel(new Map(sobra.map((i) => [i.inventory_id, i.quantity]))),
+                  }]}
+                />
               </>
             )}
 
             {/* barra de la transacción: lo elegido, cantidad y total */}
-            <div className={`wp-deal${selected ? '' : ' wp-deal--idle'}`}>
-              {!selected && <span className="wp-deal-hint">{tab === 'buy' ? 'Elige una mercancía para comprarla.' : 'Elige un objeto de tu mochila para venderlo.'}</span>}
-              {selected && (
-                <>
-                  <span className={`wp-deal-name wp-text-${(selected.rarity || 'COMUN').toLowerCase()}`}>
-                    {selected.name}
-                    <small>{RARITY_LABELS[selected.rarity] ?? selected.rarity}{tab === 'sell' ? ` · tienes ${selected.quantity}` : ''}</small>
+            {tab === 'buy' && (
+              <div className={`wp-deal${selected ? '' : ' wp-deal--idle'}`}>
+                {!selected && <span className="wp-deal-hint">Elige una mercancía para comprarla.</span>}
+                {selected && (
+                  <>
+                    <span className={`wp-deal-name wp-text-${(selected.rarity || 'COMUN').toLowerCase()}`}>
+                      {selected.name}
+                      <small>{RARITY_LABELS[selected.rarity] ?? selected.rarity}</small>
+                    </span>
+                    <QtyStepper value={qty} max={maxBuy} onChange={setQty} />
+                    <span className="wp-deal-total">Total <Coins value={selected.price * qty} /></span>
+                    <button type="button" className="wp-btn wp-btn--gold" disabled={busy || selected.price * qty > (gold ?? 0)} onClick={buy}>Comprar</button>
+                  </>
+                )}
+              </div>
+            )}
+            {tab === 'sell' && (
+              <div className={`wp-deal${elegidas.length ? '' : ' wp-deal--idle'}`}>
+                {!elegidas.length && <span className="wp-deal-hint">Elige una o varias cosas de tu mochila para venderlas.</span>}
+                {unaSola && (
+                  <>
+                    <span className={`wp-deal-name wp-text-${(unaSola.rarity || 'COMUN').toLowerCase()}`}>
+                      {unaSola.name}
+                      <small>{RARITY_LABELS[unaSola.rarity] ?? unaSola.rarity} · tienes {unaSola.quantity}</small>
+                    </span>
+                    <QtyStepper value={vSel.get(unaSola.inventory_id)} max={unaSola.quantity}
+                      onChange={(n) => setVSel(new Map([[unaSola.inventory_id, n]]))} />
+                  </>
+                )}
+                {elegidas.length > 1 && (
+                  <span className="wp-deal-name">
+                    {elegidas.length} cosas elegidas
+                    <small>{elegidas.reduce((t, i) => t + (vSel.get(i.inventory_id) ?? 0), 0)} unidades en total</small>
                   </span>
-                  <QtyStepper value={qty} max={tab === 'buy' ? maxBuy : maxSell} onChange={setQty} />
-                  <span className="wp-deal-total">
-                    {tab === 'buy' ? 'Total' : 'Recibes'}
-                    <Coins value={(tab === 'buy' ? selected.price : selected.sell_artisan) * qty} />
-                  </span>
-                  {tab === 'buy'
-                    ? <button type="button" className="wp-btn wp-btn--gold" disabled={busy || selected.price * qty > (gold ?? 0)} onClick={buy}>Comprar</button>
-                    : <button type="button" className="wp-btn wp-btn--gold" disabled={busy} onClick={sell}>Vender</button>}
-                </>
-              )}
-            </div>
+                )}
+                {elegidas.length > 0 && (
+                  <>
+                    <span className="wp-deal-total">Recibes <Coins value={totalVenta} /></span>
+                    <button type="button" className="wp-btn wp-btn--gold" disabled={busy} onClick={sellSelected}>
+                      Vender{elegidas.length > 1 ? ` (${elegidas.length})` : ''}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

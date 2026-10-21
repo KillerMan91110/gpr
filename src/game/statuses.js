@@ -34,12 +34,50 @@ const NAMED = {
   BLIND: { name: 'Ceguera', short: 'Ciego', icon: ['blindfold', 'delapouite'], color: '#d8d0ff', hex: 0xb8a8ff },
   WEAKEN: { name: 'Debilitado', short: 'Débil', icon: ['broken-shield', 'lorc'], color: '#c08aff', hex: 0xa070ff },
   TAUNT: { kind: 'buff', name: 'Provocando', short: 'Provoca', icon: ['shouting', 'lorc'], color: '#ff8a5a', hex: 0xff7a4a },
+  // las mecánicas de las habilidades firma (gprback/lib/mecanicas.js); íconos propios en public/Icons/etheria
+  // (art/sprites/combate/crear_iconos_estados.lua)
+  MOJADO: { name: 'Mojado', short: 'Mojado', icon: ['mojado', 'etheria'], color: '#6ac8ff', hex: 0x4ab0ff },
+  CONGELADO: { name: 'Congelado', short: 'Congelado', icon: ['congelado', 'etheria'], color: '#bfeaff', hex: 0x9fe0ff },
+  ENRAIZADO: { name: 'Enraizado', short: 'Atrapado', icon: ['raices', 'etheria'], color: '#9ad06a', hex: 0x7ac04a },
+  SILENCIO: { name: 'Silenciado', short: 'Silencio', icon: ['silencio', 'etheria'], color: '#c8c0e8', hex: 0xb0a8e0 },
+  RUNA: { name: 'Runa grabada', short: 'Runa', icon: ['runa', 'etheria'], color: '#ff9ae0', hex: 0xf07ad0 },
+  SENTENCIA: { name: 'Sentenciado', short: 'Sentencia', icon: ['sentencia', 'etheria'], color: '#ffe9a0', hex: 0xffe080 },
+  PRESA: { name: 'Presa marcada', short: 'Presa', icon: ['presa', 'etheria'], color: '#ff7a5a', hex: 0xff5a3a },
+  PLAGA: { name: 'Plaga', short: 'Plaga', icon: ['plaga', 'etheria'], color: '#a8e05a', hex: 0x8ad03a },
+  RAICES: { name: 'Raíces espinosas', short: 'Raíces', icon: ['raices', 'etheria'], color: '#9ad06a', hex: 0x7ac04a },
+  BARRERA: { kind: 'buff', name: 'Barrera', short: 'Barrera', icon: ['barrera', 'etheria'], color: '#ffe48a', hex: 0xffd860 },
+  SENUELO: { kind: 'buff', name: 'Clon de sombra', short: 'Clon', icon: ['clon', 'etheria'], color: '#b8a8e8', hex: 0x9a88e0 },
+  CONTRA: { kind: 'buff', name: 'Contragolpe', short: 'Contra', icon: ['contragolpe', 'etheria'], color: '#ffc06a', hex: 0xffb04a },
+  VINCULO: { kind: 'buff', name: 'Protegido por un juramento', short: 'Juramento', icon: ['vinculo', 'etheria'], color: '#8fc9ff', hex: 0x8fc9ff },
+  SEMILLA: { kind: 'buff', name: 'Semilla', short: 'Semilla', icon: ['semilla', 'etheria'], color: '#7dff9a', hex: 0x5af07a },
+  CARGAS: { kind: 'buff', name: 'Chi', short: 'Chi', icon: ['chi', 'etheria'], color: '#ffd84a', hex: 0xffd84a },
+  ALIENTO: { kind: 'buff', name: 'Último aliento', short: 'Aliento', icon: ['aliento', 'etheria'], color: '#c8a8ff', hex: 0xb090ff },
 };
+// qué hace cada estado de las mecánicas nuevas (el detalle del ícono)
+const DETALLE_MECANICA = {
+  MOJADO: 'El rayo lo electrocuta, el hielo lo congela y la tierra lo vuelve barro',
+  CONGELADO: 'Pierde su próximo turno',
+  ENRAIZADO: 'Pierde su próximo turno',
+  SILENCIO: 'No puede usar habilidades, solo el ataque básico',
+  RUNA: (e) => `El próximo golpe con elemento la hace estallar (+${e.amount}% de daño)`,
+  SENTENCIA: (e) => `Cada vez que actúa, la luz lo quema por ${e.amount}`,
+  PRESA: 'Recibe más daño; si muere marcado, el cazador recupera maná',
+  BARRERA: (e) => `Absorbe ${e.amount} de daño antes de tocar la vida`,
+  SENUELO: 'El próximo golpe se lo lleva el clon',
+  CONTRA: (e) => `El próximo golpe físico lo desvía y lo devuelve al ${e.amount}%`,
+  VINCULO: 'La mitad del daño que recibe la paga quien juró protegerlo',
+  SEMILLA: (e) => `Cada golpe que recibe lo cura el ${e.amount}% de su vida máxima`,
+  CARGAS: (e) => `${e.amount} de 5 cargas: la Palma Liberada y el Puño del Primer Vigía las gastan todas`,
+  ALIENTO: 'El próximo golpe mortal lo deja con 1 de vida',
+};
+
 // estados que hacen daño por ronda (para el humo, el color y el sonido del daño)
-export const DOT_STATUS = new Set(['DOT', 'BLEED', 'BURN', 'POISON']);
+export const DOT_STATUS = new Set(['DOT', 'BLEED', 'BURN', 'POISON', 'PLAGA', 'RAICES']);
 
 function namedDetail(e, turns, from) {
   const stat = STATS[e.code];
+  const mec = DETALLE_MECANICA[e.code];
+  if (mec) return `${typeof mec === 'function' ? mec(e) : mec}${e.code === 'CARGAS' ? '' : turns}${from}`;
   if (e.code === 'DOT') return `Pierde ${e.amount}% de su vida máxima cada ronda${turns}${from}`;
   if (e.code === 'PARALYZE') return `Puede perder el turno (25%)${turns}${from}`;
   if (e.code === 'BLIND') return `Falla el ${e.amount}% de sus golpes${turns}${from}`;

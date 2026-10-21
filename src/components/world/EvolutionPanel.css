@@ -149,6 +149,32 @@
 .evp-confirm { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; font-size: 0.82rem; color: #ffd0a0; }
 .evp-confirm span { width: 100%; }
 
+/* el cartel de la Prueba de la Orden que abre el escalón */
+.evp-prueba {
+  display: flex; gap: 8px; align-items: center; margin: 0 0 8px; padding: 6px 10px;
+  border: 1px solid rgba(212, 175, 55, 0.35); border-radius: 6px; background: rgba(60, 40, 10, 0.35);
+}
+.evp-prueba strong { display: block; font: 700 0.85rem 'Cinzel', serif; color: #ffe9a8; }
+.evp-prueba small { display: block; font: 0.82rem/1.3 'EB Garamond', serif; color: var(--cream); }
+.evp-prueba-mark {
+  flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  font: 700 0.9rem 'Cinzel', serif; color: #2a1a04; background: linear-gradient(#ffe08a, #c8902a);
+}
+.evp-prueba--hecha { border-color: rgba(125, 255, 154, 0.35); background: rgba(20, 60, 30, 0.35); }
+.evp-prueba--hecha .evp-prueba-mark { background: linear-gradient(#a8ffbc, #3aa85a); }
+.evp-prueba--bloqueada { opacity: 0.7; }
+
+/* lo que aprende cada senda y cuándo, y lo que le falta a tu clase actual */
+.evp-proximas { margin: 0 0 8px; font: 0.82rem/1.4 'EB Garamond', serif; color: var(--text-soft); }
+.evp-proximas span + span::before { content: ' · '; }
+.evp-proximas b { color: var(--cream); font-weight: 600; }
+.evp-habs-titulo { margin: 10px 0 4px; font: 700 0.8rem 'Cinzel', serif; color: #ffe9a8; letter-spacing: 0.05em; }
+.evp-habs { list-style: none; margin: 0; padding: 0; font: 0.85rem/1.35 'EB Garamond', serif; color: var(--text-soft); }
+.evp-habs li { display: flex; gap: 8px; padding: 2px 0; }
+.evp-habs em { color: #ffd84a; font-style: normal; }
+.evp-hab-nivel { flex: none; width: 44px; color: var(--text-soft); }
+.evp-habs .evp-hab--ya { color: #9dffb2; }
+
 /* celular: el árbol se achica en horizontal */
 @media (max-width: 600px) {
   .evp-tree { transform: scale(0.82); transform-origin: left top; margin-bottom: -20px; }

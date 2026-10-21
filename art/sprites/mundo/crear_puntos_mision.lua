@@ -793,6 +793,38 @@ sprite("trueno_velo", 32, 32, function(G, f)
   end end
 end)
 
+-- ---------------------------------------------------------------- las Pruebas de la Orden
+-- (gprback/docs/evoluciones_pruebas.md)
+-- un blanco de tiro de paja del Campo del Halcón, con una flecha clavada
+sprite("blanco_tiro", 32, 32, function(G, f)
+  G.thick(10, 30, 13, 18, 2, "wd2"); G.thick(22, 30, 19, 18, 2, "wd2")
+  G.ellipse(16, 14, 11, 11, "y1"); G.ellipse(16, 14, 8, 8, "gr"); G.ellipse(16, 14, 5, 5, "pa"); G.ellipse(16, 14, 2, 2, "gr")
+  local h = f == 0 and 0 or 1
+  G.line(16, 14, 27 + h, 6, "wd1"); G.line(26 + h, 5, 28 + h, 7, "pa"); G.px(27 + h, 4, "pa")
+end)
+-- una llama arcana que se escapó de un libro, azul y suelta en el aire
+sprite("llama_arcana", 32, 32, function(G, f)
+  G.ellipse(16, 28, 7, 2, "dk")
+  local h = f == 0 and 0 or 1
+  G.poly({{9, 26}, {23, 26}, {20, 12 - h}, {16, 3 - h}, {12, 12 - h}}, "bl3")
+  G.poly({{11, 25}, {21, 25}, {18, 14 - h}, {16, 8 - h}, {14, 14 - h}}, "bl2")
+  G.ellipse(16, 21, 3, 4, "bl1"); G.px(8, 10 + h, "bl2"); G.px(24, 14 - h, "bl1")
+end)
+-- una vela de peregrino sobre una piedra, encendida
+sprite("vela_peregrino", 32, 32, function(G, f)
+  G.ellipse(16, 27, 9, 3, "rk2"); G.ellipse(16, 26, 8, 2.5, "rk1")
+  G.rect(13, 13, 19, 25, "pa"); G.rect(17, 13, 19, 25, "y1"); G.px(14, 17, "y2")
+  local h = f == 0 and 0 or 1
+  G.ellipse(16, 9 - h, 2.5, 3.5, "y1"); G.ellipse(16, 10 - h, 1.2, 2, "W"); G.px(16, 12, "dk")
+end)
+-- el yunque del Bastión donde se forja el juramento, con una espada encima
+sprite("yunque_juramento", 32, 32, function(G, f)
+  G.rect(11, 22, 21, 28, "rk3"); G.rect(9, 27, 23, 29, "rk2")
+  G.poly({{4, 14}, {28, 14}, {26, 20}, {8, 20}}, "fe2"); G.poly({{4, 14}, {28, 14}, {27, 16}, {6, 16}}, "fe1")
+  G.thick(8, 12, 26, 12, 2, "fe1"); G.rect(5, 11, 8, 13, "bz")
+  if f == 1 then G.px(24, 8, "y1"); G.px(27, 10, "y1"); G.px(21, 9, "y2") end
+end)
+
 -- ---------------------------------------------------------------- salida
 local dir, png = app.params.dir, app.params.png
 local manifest = {}

@@ -959,9 +959,16 @@ export default function World() {
       setLevelUp({ level: stats.level, before: prev, after: stats });
       audio.jingle('nivel');
       bus.emit('level-up');
+      // las habilidades de tu clase que se aprenden solas en estos niveles (las de las evoluciones van por nivel)
+      if (player) {
+        api.getClassSkills(player.id, token).then((list) => {
+          const nuevas = (list ?? []).filter((s) => s.learnMethod === 'LEVEL' && !s.isPassive && s.learnLevel > prev.level && s.learnLevel <= stats.level);
+          if (nuevas.length) setLevelUp((l) => (l && l.level === stats.level ? { ...l, aprendidas: nuevas.map((s) => s.name) } : l));
+        }).catch(() => {});
+      }
     }
     bus.emit('hero-level', stats.level);
-  }, [stats]);
+  }, [stats, player, token]);
 
   const confirmBoss = useCallback(() => {
     const b = bossPrompt;

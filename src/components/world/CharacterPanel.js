@@ -14,7 +14,15 @@ const CLASS_WEAPON = { guerrero: 'espada', mago: 'baculo_arcano', arquero: 'arco
 const LEFT = ['HELMET', 'ARMOR', 'GLOVES'];
 const RIGHT = ['BOOTS', 'ACCESSORY'];
 const BOTTOM = ['WEAPON', 'OFFHAND'];
-const TABS = [['personaje', 'Personaje'], ['elementos', 'Elementos'], ['rango', 'Rango']];
+const TABS = [['personaje', 'Personaje'], ['bonos', 'Bonos'], ['elementos', 'Elementos'], ['rango', 'Rango']];
+// los bonos de utilidad del combate (cartas, amuletos, título y Gesta: gprback/lib/coleccion.js utilityBonuses)
+const UTIL = [['xp', 'Experiencia', '+'], ['gold', 'Oro', '+'], ['drop', 'Botín', '+'], ['card', 'Prob. de carta', '+'],
+  ['regen', 'Vida al ganar', '+'], ['mana', 'Maná al ganar', '+'], ['guard', 'Daño recibido', '-'], ['hp', 'Vida máxima', '+']];
+const PET_STAT = {
+  ATK_FLAT: 'Ataque', DEF_FLAT: 'Defensa', MAG_FLAT: 'Inteligencia', MAGIC_DEF_FLAT: 'Defensa mágica', SPD_FLAT: 'Velocidad',
+  CRIT_CHANCE_FLAT: 'Crítico', CRIT_DMG_FLAT: 'Daño crítico', EVASION_FLAT: 'Evasión', HP_FLAT: 'Vida', MANA_FLAT: 'Maná', LUCK_FLAT: 'Suerte',
+  GOLD_PERCENT: 'Oro', XP_PERCENT: 'Experiencia', DROP_RATE_PERCENT: 'Botín',
+};
 
 function Row({ label, value, accent }) {
   return (
@@ -60,6 +68,21 @@ export default function CharacterPanel({ stats, refreshKey, onChanged, onClose, 
   const [hover, setHover] = useState(null);
   const [tab, setTab] = useState('personaje');
   const [message, setMessage] = useState(null);
+  // la pestaña Bonos: de dónde sale cada bono (título, Gesta, mascota, cartas y amuletos)
+  const [bonos, setBonos] = useState(null);
+  useEffect(() => {
+    Promise.all([
+      api.getLogros(player.id, token).catch(() => null),
+      api.getCartas(player.id, token).catch(() => null),
+      api.getPets(player.id, token).catch(() => []),
+    ]).then(([lg, cartas, pets]) => setBonos({
+      titulo: lg?.lista?.find((a) => a.code === lg.titulo) ?? null,
+      gesta: lg?.gesta ?? null,
+      util: cartas?.bonus ?? null,
+      cartas: (cartas?.slots ?? []).filter((s) => s.card),
+      mascota: (pets ?? []).find((p) => p.is_active) ?? null,
+    }));
+  }, [player, token, refreshKey]);
 
   const load = useCallback(() => {
     api.getPlayerEquipment(player.id, token).then(setEquipment).catch(() => setEquipment([]));
@@ -128,7 +151,10 @@ export default function CharacterPanel({ stats, refreshKey, onChanged, onClose, 
         </div>
       )}
     >
-      <div className="wp-char-subtitle">Nivel {stats.level} · <span>{className}</span> · Rango {stats.rank}</div>
+      <div className="wp-char-subtitle">
+        Nivel {stats.level} · <span>{className}</span> · Rango {stats.rank}
+        {bonos?.titulo && <> · <span className="wp-char-titulo">«{bonos.titulo.name}»</span></>}
+      </div>
       <div className="wp-char">
         <div className="wp-char-paperdoll">
           <div className="wp-char-col">{LEFT.map(renderSlot)}</div>
@@ -169,6 +195,40 @@ export default function CharacterPanel({ stats, refreshKey, onChanged, onClose, 
                   {stats.uniqueSkill && <p className="wp-stat-text"><strong>{stats.uniqueSkill.name}.</strong> {stats.uniqueSkill.description}</p>}
                   {stats.innate && <p className="wp-stat-text"><strong>{stats.innate.name}.</strong> {stats.innate.description}</p>}
                 </Section>
+              )}
+            </>
+          )}
+          {tab === 'bonos' && (
+            <>
+              {!bonos && <p className="wp-empty">Cargando…</p>}
+              {bonos && (
+                <>
+                  <Section title="Título y Gesta">
+                    <Row label="Título" value={bonos.titulo ? `«${bonos.titulo.name}»` : 'Ninguno'} />
+                    {bonos.titulo && <p className="wp-stat-text">{bonos.titulo.premio}</p>}
+                    {bonos.gesta && <Row label="Puntos de Gesta" value={bonos.gesta.puntos} accent="up" />}
+                    {bonos.gesta && bonos.gesta.hitos.filter((h) => h.logrado).map((h) => <p key={h.puntos} className="wp-stat-text">✦ {h.texto}</p>)}
+                  </Section>
+                  <Section title="Mascota">
+                    {bonos.mascota
+                      ? (
+                        <>
+                          <Row label={bonos.mascota.name} value={`Nv. ${bonos.mascota.level}`} />
+                          {(bonos.mascota.bonuses ?? []).filter((b) => PET_STAT[b.stat_code]).map((b) => (
+                            <Row key={b.stat_code} label={PET_STAT[b.stat_code]} value={`+${Math.round(Number(b.value) * 100) / 100}${b.stat_code.endsWith('_PERCENT') ? '%' : ''}`} accent="up" />
+                          ))}
+                        </>
+                      )
+                      : <p className="wp-stat-text">Ninguna te acompaña. Invócala en Mascotas.</p>}
+                  </Section>
+                  <Section title="En combate (cartas, amuletos, título y Gesta)">
+                    {bonos.util && UTIL.filter(([k]) => Number(bonos.util[k])).map(([k, label, sign]) => (
+                      <Row key={k} label={label} value={`${sign}${Math.round(Number(bonos.util[k]) * 10) / 10}%`} accent="up" />
+                    ))}
+                    {bonos.util && !UTIL.some(([k]) => Number(bonos.util[k])) && <p className="wp-stat-text">Todavía nada. Engarza cartas (Colección, K) o equipa un título (Logros, L).</p>}
+                    {bonos.cartas.length > 0 && <p className="wp-stat-text">Cartas: {bonos.cartas.map((s) => s.card.name).join(', ')}</p>}
+                  </Section>
+                </>
               )}
             </>
           )}

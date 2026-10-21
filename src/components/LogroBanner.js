@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import GameIcon from './GameIcon';
 import audio from '../game/audio';
+import Aviso from './Avisos';
 import './LogroBanner.css';
 
 // cuánto queda cada aviso: 5 segundos, o 3 si hay más esperando (así una tanda de logros no tapa la pantalla)
@@ -32,15 +33,18 @@ export default function LogroBanner() {
 
   if (!actual) return null;
   return (
-    // clic: se cierran todos los avisos que esperaban (los logros igual quedan en la ventana de Logros)
-    <button type="button" className="logro-banner" onClick={() => setCola([])} title="Cerrar">
-      <span className="logro-banner-medal"><GameIcon name="star-medal" artist="delapouite" /></span>
-      <span className="logro-banner-body">
-        <small>¡Logro!{actual.puntos ? ` · +${actual.puntos} de Gesta` : ''}</small>
-        <strong>{actual.name}</strong>
-        <em>«{actual.lore}»</em>
-        {actual.bono && <span className="logro-banner-bono">Título: {actual.bono}</span>}
-      </span>
-    </button>
+    // va primero en la columna de avisos (components/Avisos.js); clic: se cierran todos los que esperaban
+    // (los logros igual quedan en la ventana de Logros)
+    <Aviso orden={-1}>
+      <button type="button" className="logro-banner" onClick={() => setCola([])} title="Cerrar">
+        <span className="logro-banner-medal"><GameIcon name="star-medal" artist="delapouite" /></span>
+        <span className="logro-banner-body">
+          <small>¡Logro!{actual.puntos ? ` · +${actual.puntos} de Gesta` : ''}</small>
+          <strong>{actual.name}</strong>
+          <em>«{actual.lore}»</em>
+          {actual.bono && <span className="logro-banner-bono">Título: {actual.bono}</span>}
+        </span>
+      </button>
+    </Aviso>
   );
 }

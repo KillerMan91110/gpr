@@ -41,6 +41,24 @@ const escalinata = (aqui) => ({
   },
 });
 
+// los maestros aethrinos de las Pruebas de la Orden (gprback/docs/evoluciones_pruebas.md): enseñaban a los primeros
+// Vigías y vuelven con los peregrinos (R5). Dan la Ascensión (PRUEBA_<CLASE>_3) a los de su clase desde el nivel 90.
+const maestro = ({ name, role, portrait, clase, ambient, saludo, hecho: dicho, vigia, prueba }) => ({
+  name, role, portrait: PORTRAIT(portrait), ambient,
+  greet: (ctx) => {
+    if (ctx.mark === '?') return 'Volviste, y sin un rasguño de más. Cuéntame cómo fue.';
+    if (ctx.mark === '!') return 'Te estaba esperando. Mil años, para ser exactos. Siéntate: es hora de tu Ascensión.';
+    if (hecho(ctx, `PRUEBA_${clase}_3`)) return dicho;
+    return pick(saludo);
+  },
+  options: () => [
+    { label: 'Háblame del primer Vigía', next: 'vigia' },
+    { label: '¿Qué es la Ascensión?', next: 'prueba' },
+    bye,
+  ],
+  lines: { vigia, prueba },
+});
+
 export const DIALOGUES_RUINAS = {
   // ---------------------------------------------------------------- el Santuario de las Lágrimas
   // Seraphine, la Última Sacerdotisa: mil años cuidando el Séptimo Sello sola
@@ -219,6 +237,48 @@ export const DIALOGUES_RUINAS = {
       aedan: 'Era el más joven de los primeros Vigías. Juró quedarse de guardia en el Corazón del Templo mientras quedara un Sello, y se quedó. Mil años. La oscuridad del Devorador se le metió adentro mientras esperaba: así es la oscuridad, entra por los que esperan mucho. Pero no se fue nunca. Hasta que alguien de su sangre le dijo que ya podía.',
     },
   },
+
+  // ---------------------------------------------------------------- los maestros de la Ascensión
+  thalor: maestro({
+    name: 'Thalor', role: 'Maestro de armas de los Vigías', portrait: 'thalor', clase: 'GUERRERO',
+    ambient: ['*hace girar una espada vieja sin mirarla*', 'Piernas firmes. Siempre piernas firmes.', '*se rasca el casco: hace mil años que no se lo saca*'],
+    saludo: ['Soy Thalor. Le enseñé a Borin a pararse. El resto lo aprendió solo.', 'Los guerreros de ahora llevan demasiado metal. Borin peleaba con una camisa y una promesa.'],
+    hecho: 'Llevas la marca de oro. Borin la llevaba igual, torcida, porque se movió cuando se la puse. Tú no te moviste.',
+    vigia: 'Borin no tenía escudo. Decía que un escudo te enseña a esconderte. Se ponía delante de los demás y aguantaba. Murió de pie delante del Tercer Sello, cuando cayó. Cuando lo encontramos, todavía estaba de pie.',
+    prueba: 'Los guerreros de tu Orden que llegan lejos vienen aquí. Les pido un recuerdo de su viaje y los mando a pelear contra su propia sombra, al pie de la Escalinata del Patio. La sombra no se cansa, no tiene miedo y sabe todo lo que sabes. Si le ganas, te marco con el oro de los Vigías.',
+  }),
+  lyssandra: maestro({
+    name: 'Lyssandra', role: 'Maestra arcana de los Vigías', portrait: 'lyssandra', clase: 'MAGO',
+    ambient: ['*cuenta estrellas con los dedos, aunque es de día*', 'Ilyra habría corregido eso.', '*el sombrero se le mueve solo*'],
+    saludo: ['Soy Lyssandra. Le enseñé a Ilyra a leer el cielo. Después ella me corregía a mí.', 'Los magos de Aurelia escriben demasiado. Ilyra decía que un hechizo que necesitas anotar, no lo entendiste.'],
+    hecho: 'La marca te queda bien. Ilyra diría que está un poco corrida. Ilyra decía eso de todo.',
+    vigia: 'Ilyra leyó en las estrellas que el Devorador volvería con un eclipse, mil años antes de que pasara. Nadie le creyó. Se pasó la vida dejando avisos en el Observatorio para quien viniera después. Para ti, supongo.',
+    prueba: 'Un mago que llega aquí ya sabe muchos hechizos. Lo que no sabe es qué haría si alguien supiera exactamente los mismos. Tráeme un fragmento de eclipse y sube a pelear contra tu sombra, al pie de la Escalinata del Patio.',
+  }),
+  eryndel: maestro({
+    name: 'Eryndel', role: 'Maestro arquero de los Vigías', portrait: 'eryndel', clase: 'ARQUERO',
+    ambient: ['*tensa un arco sin flecha y lo suelta despacio*', 'El viento viene del este. Siempre del este.', '*mira un pájaro muy lejano*'],
+    saludo: ['Soy Eryndel. Le enseñé a Taren a esperar. Tirar lo sabía desde chico.', 'Ese carcaj está muy lleno. Los buenos arqueros llevan pocas flechas.'],
+    hecho: 'Taren tiraba a la pluma, tú le diste a tu sombra en el corazón. Bueno. Cada Vigía tiene su estilo.',
+    vigia: 'Taren cazaba grifos en las cumbres del norte sin matarlos: les tiraba a una pluma, de lejos, y se la llevaba como trofeo. Decía que un arquero que no elige dónde pega, no es arquero. Cuidó el Cuarto Sello hasta el final.',
+    prueba: 'Tu sombra no falla nunca. Esa es toda la prueba: tienes que no fallar tú tampoco. Antes, tráeme una pluma de grifo, para que Taren sepa que vienes de su parte. Después, la Escalinata del Patio.',
+  }),
+  velis: maestro({
+    name: 'Velis', role: 'Maestra de sombras de los Vigías', portrait: 'velis', clase: 'PICARO',
+    ambient: ['*no estaba ahí hace un segundo*', 'Shh.', '*juega con una moneda que aparece y desaparece*'],
+    saludo: ['Soy Velis. Le enseñé a Sael todo lo que sabía. Después ella me robó la bolsa. Orgullo de maestra.', 'No me mires así. Llevo mil años aquí y todavía nadie me vio llegar.'],
+    hecho: 'La marca de oro y ni pestañeaste. Sael lloró. De risa, pero lloró.',
+    vigia: 'Sael le robó una moneda a Óbolo, el barquero de los muertos, y la usó para volver del otro lado. Eso dicen. Yo estaba ahí: la moneda se la regaló él, porque Sael lo hizo reír. A Óbolo nadie lo hace reír.',
+    prueba: 'Pídele una moneda a Óbolo, en las Catacumbas. Si te la da, es que le caes bien, y eso vale más que cualquier robo. Después pelea contra la única sombra que no puedes esquivar: la tuya, al pie de la Escalinata del Patio.',
+  }),
+  seren: maestro({
+    name: 'Seren', role: 'Maestro de la luz de los Vigías', portrait: 'seren', clase: 'SACERDOTE',
+    ambient: ['*reza en voz baja con los ojos abiertos*', 'La fuente tiene agua otra vez. Qué alegría.', '*le sonríe a un peregrino que pasa*'],
+    saludo: ['Soy Seren. Le enseñé a Edrin a curar. Él me enseñó a no tener miedo de no poder.', 'La luz no se tiene, se presta. Eso lo dijo Edrin. Yo solo lo repito desde hace mil años.'],
+    hecho: 'Ya te prestaron la luz entera. Úsala bien. Y de vez en cuando, cúrate a ti también.',
+    vigia: 'Edrin juntó las lágrimas de Aethra una por una, cuando caían, y con ellas hizo el agua de la fuente. Cuidó el Quinto Sello curando a los que lo defendían. Nunca levantó un arma. Nunca le hizo falta.',
+    prueba: 'Tráeme una lágrima de Aethra, que Edrin la reconozca. Después sube a la Escalinata del Patio. Tu sombra cura igual que tú y no se cansa de curarse: no le ganas a golpes, le ganas con paciencia.',
+  }),
 
   // ---------------------------------------------------------------- las Escalinatas de Luz
   escalinata_santuario: escalinata('santuario'),

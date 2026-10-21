@@ -561,6 +561,13 @@ async function main() {
   npc('aldren_ruinas', 'Aldren, último de los Vigías', P.fuente.x + 4, P.fuente.y + 1, 1, 'RUINAS_HISTORIA_07_OBSERVATORIO', 'npc_anciano');
   // Ptolio, el aprendiz fantasma, afuera del Observatorio, junto al telescopio roto
   npc('ptolio', 'Ptolio, el astrónomo', P.telescopio.x + 1, P.telescopio.y + 5, 1);
+  // los maestros aethrinos de las Pruebas de la Orden (gprback/docs/evoluciones_pruebas.md): esperan en el Santuario
+  // desde que vuelven los peregrinos, en semicírculo alrededor de la fuente
+  npc('thalor', 'Thalor, maestro de armas', P.fuente.x - 5, P.fuente.y - 2, 0, R5);
+  npc('lyssandra', 'Lyssandra, maestra arcana', P.fuente.x - 3, P.fuente.y - 4, 0, R5);
+  npc('eryndel', 'Eryndel, maestro arquero', P.fuente.x + 4, P.fuente.y - 4, 0, R5);
+  npc('velis', 'Velis, maestra de sombras', P.fuente.x + 6, P.fuente.y - 2, 0, R5);
+  npc('seren', 'Seren, maestro de la luz', P.fuente.x - 6, P.fuente.y + 2, 0, R5);
   console.log('NPCs:', npcsPuestos.join(' · '));
   // el Observatorio Roto (mazmorra, generar_observatorio.js): la puerta de bronce bajo el telescopio roto. La
   // cierra el servidor (lib/observatorio.js): se abre con la Llave del Astrolabio de Seraphine (R6)

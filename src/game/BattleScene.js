@@ -26,6 +26,22 @@ const HERO_SLOTS = [{ x: 214, y: 312 }, { x: 166, y: 290 }, { x: 140, y: 332 }, 
 const ENEMY_SLOTS = HERO_SLOTS.map((s) => ({ x: VW - s.x, y: s.y }));
 
 const BASE_CLASSES = ['guerrero', 'mago', 'arquero', 'picaro', 'sacerdote'];
+
+// Las invocaciones se dibujan con un monstruo parecido de enemigos.json, mirando hacia los enemigos. Lo alzado por el
+// Nigromante ("<monstruo> alzado", gprback/lib/mecanicas.js) usa la hoja de ese mismo monstruo.
+const INVOCACIONES = {
+  'Golem Elemental': 'GOLEM_MENHIR', 'Espíritu Arcano': 'ELEMENTAL_TORMENTA', 'Familiar Arcano': 'MURCIELAGO_CAVERNA',
+  'Demonio Infernal': 'DIABLILLO_CALDERA', 'Serafín Divino': 'GUARDIAN_RUINAS', 'Bestia Primordial': 'LOBO_FEROZ',
+  'Espíritu Ancestral': 'GUARDIAN_AGUA_ANCESTRAL',
+};
+function codigoInvocacion(p, catalog) {
+  if (INVOCACIONES[p.name]) return INVOCACIONES[p.name];
+  const alzado = (p.name ?? '').match(/^(.+) alzado$/);
+  if (!alzado) return null;
+  return Object.entries(catalog).find(([, m]) => m.name === alzado[1])?.[0] ?? null;
+}
+// las reacciones elementales y los estados de las mecánicas que el registro anuncia: un texto sobre el objetivo
+const REACCIONES = { Electrocutado: '#ffe95a', Congelado: '#bfeaff', Vapor: '#e8f4ff', Derretir: '#ff9a4a', Barro: '#c8a070' };
 const CLASS_WEAPON = { guerrero: 'espada', mago: 'baculo_arcano', arquero: 'arco', picaro: 'daga', sacerdote: 'baculo_sagrado' };
 
 const BACKGROUNDS = {
@@ -299,9 +315,11 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   spawnUnits(catalog) {
-    const heroes = this.state.participants.filter((p) => p.side === 'PLAYER');
+    const heroes = this.state.participants.filter((p) => p.side === 'PLAYER' && !p.is_summon);
     const enemies = this.state.participants.filter((p) => p.side === 'ENEMY');
     heroes.forEach((p, i) => this.spawnHero(p, HERO_SLOTS[i % HERO_SLOTS.length]));
+    // las invocaciones que ya estaban (las nuevas entran en playLogs)
+    this.state.participants.filter((p) => p.is_summon && p.hp > 0).forEach((p) => { this.invocar(p, false); });
     enemies.forEach((p, i) => this.spawnMonster(p, ENEMY_SLOTS[i % ENEMY_SLOTS.length], catalog[p.monster_code]));
     // jefes y minijefes (rank en enemigos.json): tienen entrada propia y barra de vida grande
     this.bosses = enemies
@@ -335,12 +353,61 @@ export default class BattleScene extends Phaser.Scene {
       elementCode: p.element_code ?? null, imbued: p.imbued_element_code ?? null, resistances: {},
     };
     this.units.set(p.id, unit);
+    if (this.isMyHero(p)) this.myHeroUnit = unit;
     this.playUnit(unit, unit.alive ? 'idle' : 'ko');
     this.syncStatuses(unit, p, true);
   }
 
+  // la Ascensión (gprback/docs/evoluciones_pruebas.md): tu sombra es tu héroe, con tu ropa y tu arma, oscuro y
+  // mirándote de frente. Sin tu héroe en la pelea, usa su hoja propia (la de enemigos.json)
+  spawnSombra(p, slot) {
+    const me = this.myHeroUnit;
+    if (!me || !this.textures.exists(me.bodyTex)) return false;
+    const tex = { body: this.texturaSombra(me.bodyTex), weapon: me.weapon && this.texturaSombra(me.weaponTex), offhand: me.offhand && this.texturaSombra(me.offhandTex) };
+    const shadow = this.shadow(slot.x, slot.y, 34);
+    const mk = (t, depth) => this.add.sprite(slot.x, slot.y, t, 0).setOrigin(26 / 48, 46 / 48).setScale(UNIT_SCALE).setFlipX(true).setDepth(depth);
+    const weapon = tex.weapon ? mk(tex.weapon, slot.y) : null;
+    const body = mk(tex.body, slot.y + 0.5);
+    const offhand = tex.offhand ? mk(tex.offhand, slot.y + 0.6) : null;
+    const top = slot.y - 48 * UNIT_SCALE * 0.82;
+    const label = this.add.text(slot.x, top - 10, p.name.replace(/ Lv\.\d+$/, ''), {
+      fontFamily: 'Cinzel, Georgia, serif', fontSize: '8px', fontStyle: 'bold', color: '#c8b8f0', stroke: '#141420', strokeThickness: 3,
+    }).setOrigin(0.5, 1).setDepth(1100).setResolution(6);
+    const unit = {
+      pid: p.id, side: 'ENEMY', kind: 'monster', code: p.monster_code, sombra: { ...tex, ranged: me.ranged }, body, weapon, offhand, shadow,
+      bar: this.add.graphics().setDepth(1100), label, home: { ...slot }, alive: p.hp > 0, maxHp: p.max_hp, hp: p.hp, barY: top - 6, name: p.name,
+      elementCode: p.element_code ?? null, imbued: null, resistances: p.resistances ?? {},
+    };
+    this.units.set(p.id, unit);
+    this.drawBar(unit);
+    this.playUnit(unit, 'idle');
+    this.syncStatuses(unit, p, true);
+    this.syncShield(unit, p.shield, true);
+    return true;
+  }
+
+  // copia oscura (morado casi negro, con el borde apenas visible) de una hoja de 48x48 del héroe, con sus animaciones
+  texturaSombra(tex) {
+    const key = `sombra_${tex}`;
+    if (!this.textures.exists(key)) {
+      const src = this.textures.get(tex).getSourceImage();
+      const canvas = document.createElement('canvas');
+      canvas.width = src.width;
+      canvas.height = src.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(src, 0, 0);
+      ctx.globalCompositeOperation = 'source-atop';
+      ctx.fillStyle = 'rgba(34, 18, 58, 0.8)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      this.textures.addSpriteSheet(key, canvas, { frameWidth: 48, frameHeight: 48 });
+    }
+    this.makeUnitAnims(key);
+    return key;
+  }
+
   spawnMonster(p, slot, info) {
     const code = p.monster_code;
+    if (code === 'SOMBRA_HEROE' && this.spawnSombra(p, slot)) return;
     const size = info?.frameSize.w ?? 48;
     const scale = UNIT_SCALE * (size > 48 ? 1.15 : 1);
     const shadow = this.shadow(slot.x, slot.y, size > 48 ? 70 : 38);
@@ -374,6 +441,14 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   playUnit(u, tag) {
+    // la sombra usa las animaciones de tu héroe (ataca como tú; al morir cae como tú)
+    if (u.sombra) {
+      const t = { attack: u.sombra.ranged ? 'attack_bow' : 'attack_melee', die: 'ko' }[tag] ?? tag;
+      u.body.play(`${u.sombra.body}_${t}`, true);
+      u.weapon?.play(`${u.sombra.weapon}_${t}`, true);
+      u.offhand?.play(`${u.sombra.offhand}_${t}`, true);
+      return;
+    }
     if (u.kind === 'hero') {
       u.body.play(`${u.bodyTex}_${tag}`, true);
       u.weapon?.play(`${u.weaponTex}_${tag}`, true);
@@ -399,12 +474,12 @@ export default class BattleScene extends Phaser.Scene {
     const heroes = [...this.units.values()].filter((u) => u.kind === 'hero');
     const monsters = [...this.units.values()].filter((u) => u.kind === 'monster');
     heroes.forEach((u) => [u.body, u.weapon, u.offhand, u.shadow].filter(Boolean).forEach((o) => { o.x -= 140; }));
-    monsters.forEach((u) => [u.body, u.shadow, u.label].forEach((o) => o.setAlpha(0)));
+    monsters.forEach((u) => [u.body, u.weapon, u.offhand, u.shadow, u.label].filter(Boolean).forEach((o) => o.setAlpha(0)));
     heroes.forEach((u, i) => {
       this.playUnit(u, 'idle');
       this.tweens.add({ targets: [u.body, u.weapon, u.offhand, u.shadow].filter(Boolean), x: `+=140`, duration: 650, delay: i * 90, ease: 'Cubic.easeOut' });
     });
-    monsters.forEach((u, i) => this.tweens.add({ targets: [u.body, u.shadow, u.label], alpha: 1, duration: 500, delay: 300 + i * 120 }));
+    monsters.forEach((u, i) => this.tweens.add({ targets: [u.body, u.weapon, u.offhand, u.shadow, u.label].filter(Boolean), alpha: 1, duration: 500, delay: 300 + i * 120 }));
     await wait(this, 1000);
     bus.emit('battle-bosses', this.bosses ?? []);
     if (this.bosses?.length) await this.bossEntrance(this.units.get(this.bosses[0].pid));
@@ -458,6 +533,67 @@ export default class BattleScene extends Phaser.Scene {
     this.playUnit(u, u.alive ? 'idle' : 'ko');
   }
 
+  // Una invocación: la hoja de su monstruo (se carga si hace falta), al lado de quien la llamó y mirando a los
+  // enemigos. entra = aparece con un destello (las que nacen en medio del combate).
+  async invocar(p, entra) {
+    const catalog = this.cache.json.get('enemigos')?.monsters ?? {};
+    const code = codigoInvocacion(p, catalog);
+    const info = code && catalog[code];
+    if (!info || this.units.has(p.id)) return;
+    const tex = `mon_${code}`;
+    if (!this.textures.exists(tex)) {
+      this.load.spritesheet(tex, `${ASSETS}/sprites/combate/${info.sheet}`, { frameWidth: info.frameSize.w, frameHeight: info.frameSize.h });
+      await new Promise((resolve) => { this.load.once('complete', resolve); this.load.start(); });
+    }
+    for (const [tag, a] of Object.entries(info.animations)) {
+      const key = `m_${code}_${tag}`;
+      if (!this.anims.exists(key)) {
+        this.anims.create({ key, frames: a.frames.map((f, i) => ({ key: tex, frame: f, duration: a.durations[i] })), repeat: a.loop ? -1 : 0 });
+      }
+    }
+    const dueno = this.units.get(Number(p.summoner_id));
+    const base = dueno?.home ?? HERO_SLOTS[0];
+    const slot = { x: base.x + 34, y: base.y + 22 };
+    const size = info.frameSize.w;
+    const scale = UNIT_SCALE * (size > 48 ? 0.95 : 0.85);
+    const shadow = this.shadow(slot.x, slot.y, 30);
+    const body = this.add.sprite(slot.x, slot.y, tex, 0).setOrigin(0.5, (size - 2) / size).setScale(scale).setFlipX(true).setDepth(slot.y + 0.5);
+    const top = slot.y - size * scale * 0.82;
+    const unit = {
+      pid: p.id, side: 'PLAYER', kind: 'monster', invocacion: true, code, body, shadow, bar: this.add.graphics().setDepth(1100), label: null,
+      home: { ...slot }, alive: true, maxHp: p.max_hp, hp: p.hp, barY: top - 6, name: p.name,
+      elementCode: p.element_code ?? null, imbued: null, resistances: {},
+    };
+    this.units.set(p.id, unit);
+    this.drawBar(unit);
+    this.playUnit(unit, 'idle');
+    if (entra) {
+      body.setAlpha(0);
+      this.burst(slot.x, slot.y - 20, 0xb07aff, 16);
+      await tween(this, { targets: body, alpha: 1, duration: 400 });
+    }
+  }
+
+  // La Definitiva (lib/mecanicas.js): la pantalla se oscurece y el nombre aparece en grande antes del golpe
+  async definitivaFx(actor, log) {
+    const nombre = ((log.description ?? '').match(/ usa (.+?)(?: sobre | y cura|\.)/) ?? [])[1] ?? 'Definitiva';
+    const v = this.cameras.main.worldView;
+    const velo = this.add.rectangle(v.centerX, v.centerY, v.width * 2, v.height * 2, 0x000000).setDepth(2000).setAlpha(0);
+    const estilo = { fontFamily: 'Cinzel, Georgia, serif', fontStyle: 'bold', stroke: '#1a1004', strokeThickness: 5 };
+    const titulo = this.add.text(v.centerX, v.centerY - 14, nombre.toUpperCase(), { ...estilo, fontSize: '18px', color: '#ffe9a8' })
+      .setOrigin(0.5).setDepth(2001).setResolution(6).setAlpha(0).setScale(1.6);
+    const sub = this.add.text(v.centerX, v.centerY + 8, '— DEFINITIVA —', { ...estilo, fontSize: '8px', color: '#ffd84a', strokeThickness: 3 })
+      .setOrigin(0.5).setDepth(2001).setResolution(6).setAlpha(0);
+    audio.sfx('critico');
+    this.tweens.add({ targets: velo, alpha: 0.7, duration: 260 });
+    await tween(this, { targets: [titulo, sub], alpha: 1, scale: 1, duration: 380, ease: 'Back.easeOut' });
+    this.cameras.main.shake(320, 0.01);
+    this.burst(actor.home.x, actor.home.y - 30, 0xffd84a, 26);
+    await wait(this, 750);
+    await tween(this, { targets: [velo, titulo, sub], alpha: 0, duration: 260 });
+    [velo, titulo, sub].forEach((o) => o.destroy());
+  }
+
   // ---------------------------------------------------------------- registro de combate
   async playLogs(logs, participants, ctx = {}) {
     // vida final de cada uno: sirve para repartir el resultado de las habilidades de área
@@ -471,6 +607,16 @@ export default class BattleScene extends Phaser.Scene {
           await this.reinforce(p);
         } catch (err) {
           console.error('[batalla] no se pudo sumar al refuerzo', p, err);
+        }
+      }
+      // invocaciones nuevas (o lo que alzó el Nigromante): aparecen junto a quien las llamó
+      for (const p of participants ?? []) {
+        if (!p.is_summon || p.hp <= 0 || this.units.has(p.id)) continue;
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          await this.invocar(p, true);
+        } catch (err) {
+          console.error('[batalla] no se pudo dibujar la invocación', p, err);
         }
       }
       for (const log of logs) {
@@ -534,6 +680,27 @@ export default class BattleScene extends Phaser.Scene {
       await this.paralyzedFx(actor);
       return;
     }
+    // las notas de las mecánicas (gprback/lib/mecanicas.js): un texto, sin animación de habilidad
+    const nota = (log.description ?? '').match(/(contraataca a|recibe el golpe y se deshace|se niega a caer|se rompe\.|por su juramento|sentencia quema|no dejan moverse|El hielo no deja moverse|se cobra la presa|La plaga salta)/);
+    if (nota && log.action === 'SKILL' && !/ usa /.test(log.description ?? '')) {
+      const u = target ?? actor;
+      const TEXTO = {
+        'contraataca a': ['¡Contragolpe!', '#ffc06a'], 'recibe el golpe y se deshace': ['¡Clon!', '#b8a8e8'], 'se niega a caer': ['¡Último aliento!', '#c8a8ff'],
+        'se rompe.': ['Barrera rota', '#ffe48a'], 'por su juramento': ['Juramento', '#8fc9ff'], 'sentencia quema': [log.damage ? `${log.damage}` : 'Sentencia', '#ffe9a0'],
+        'no dejan moverse': ['Atrapado', '#9ad06a'], 'El hielo no deja moverse': ['Congelado', '#bfeaff'], 'se cobra la presa': ['¡Presa!', '#ff7a5a'],
+        'La plaga salta': ['Plaga', '#a8e05a'],
+      }[nota[1]];
+      if (u && TEXTO) {
+        this.floatText(u, TEXTO[0], TEXTO[1], 11);
+        if (nota[1] === 'sentencia quema') this.burst(u.home.x, u.home.y - 28, 0xffe080, 12);
+      }
+      if (u && log.hp_after != null) { u.hp = log.hp_after; this.drawBar(u); if (log.hp_after <= 0) await this.kill(u); }
+      await wait(this, 420);
+      return;
+    }
+    if (actor && log.action === 'SKILL' && /¡DEFINITIVA!/.test(log.description ?? '')) await this.definitivaFx(actor, log);
+    const reaccion = (log.description ?? '').match(/¡(Electrocutado|Congelado|Vapor|Derretir|Barro)!/);
+    if (reaccion && target) this.time.delayedCall(650, () => this.floatText(target, `¡${reaccion[1]}!`, REACCIONES[reaccion[1]], 14));
     switch (log.action) {
       case 'ATTACK':
         if (actor && target) await this.attack(actor, target, log, element);
@@ -772,7 +939,7 @@ export default class BattleScene extends Phaser.Scene {
       this.playUnit(u, 'die');
       u.label?.setVisible(false);
       await wait(this, 350);
-      this.tweens.add({ targets: [u.body, u.shadow], alpha: 0, duration: 600 });
+      this.tweens.add({ targets: [u.body, u.weapon, u.offhand, u.shadow].filter(Boolean), alpha: 0, duration: 600 });
       this.burst(u.home.x, u.home.y - 20, 0xffffff, 16);
     }
   }

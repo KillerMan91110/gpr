@@ -10911,6 +10911,366 @@
           "loop": false
         }
       }
+    },
+    "RECLUTA_CUARTEL": {
+      "name": "Recluta del Cuartel",
+      "rank": "comun",
+      "sheet": "enemigos/recluta_cuartel.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            460,
+            460
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            160,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "CAMPEON_CUARTEL": {
+      "name": "Campeón del Cuartel",
+      "rank": "miniboss",
+      "sheet": "enemigos/campeon_cuartel.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            460,
+            460
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            160,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "GOLEM_RUNAS": {
+      "name": "Gólem de Runas",
+      "rank": "miniboss",
+      "sheet": "enemigos/golem_runas.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            460,
+            460
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            160,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "SOMBRA_NOX": {
+      "name": "Sombra de Nox",
+      "rank": "miniboss",
+      "sheet": "enemigos/sombra_nox.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            420,
+            420
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            170,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
+    },
+    "SOMBRA_HEROE": {
+      "name": "Tu Sombra",
+      "rank": "jefe",
+      "sheet": "enemigos/sombra_nox.png",
+      "frameSize": {
+        "w": 48,
+        "h": 48
+      },
+      "anchor": {
+        "x": 24,
+        "y": 46
+      },
+      "animations": {
+        "idle": {
+          "frames": [
+            0,
+            1
+          ],
+          "durations": [
+            420,
+            420
+          ],
+          "loop": true
+        },
+        "attack": {
+          "frames": [
+            2,
+            3,
+            4
+          ],
+          "durations": [
+            220,
+            170,
+            240
+          ],
+          "loop": false
+        },
+        "cast": {
+          "frames": [
+            5,
+            6,
+            7
+          ],
+          "durations": [
+            220,
+            320,
+            240
+          ],
+          "loop": false
+        },
+        "hurt": {
+          "frames": [
+            8
+          ],
+          "durations": [
+            260
+          ],
+          "loop": false
+        },
+        "die": {
+          "frames": [
+            9,
+            10
+          ],
+          "durations": [
+            240,
+            1100
+          ],
+          "loop": false
+        }
+      }
     }
   }
 }
