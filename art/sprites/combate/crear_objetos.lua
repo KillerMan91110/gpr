@@ -2671,6 +2671,155 @@ icon("fragmento_sello_ruinas", function(G)
   G.line(10, 11, 7, 22, "op2"); G.px(13, 7, "W")
 end)
 
+-- ---------------------------------------------------------------- huevos y sobres de cartas por zona
+-- Cada zona tiene su huevo (en las cinco rarezas) y su sobre de cartas. La rareza del huevo se ve en la
+-- gema de abajo a la derecha (gris, verde, azul, morada y dorada) y en los destellos de alrededor.
+for k, v in pairs({
+  hvc1="fbf6e8", hvc2="e2d6b8", hvc3="ac9c7a",           -- cáscara de huevo común
+  hvp1="f8f2da", hvp2="ddd0a4", hvp3="a8966a",           -- cáscara de la Pradera
+  hvb1="f0ead8", hvb2="c8bc9c", hvb3="8a7e64",           -- hueso (Catacumbas)
+  hvm1="fffaf0", hvm2="f0e0b0", hvm3="c0a060",           -- mármol dorado (Ruinas)
+}) do PAL[k] = hex(v) end
+
+local RAREZAS = {
+  {code = "comun", gema = {"fe1", "fe2"}, chispas = 0},
+  {code = "poco_comun", gema = {"v1", "v2"}, chispas = 0},
+  {code = "raro", gema = {"b1", "b2"}, chispas = 1},
+  {code = "epico", gema = {"p1", "p2"}, chispas = 2},
+  {code = "legendario", gema = {"au1", "au2"}, chispas = 4},
+}
+
+-- el huevo: luz arriba a la izquierda, sombra abajo a la derecha
+local function egg(G, c, fn)
+  G.ellipse(15, 17, 9, 12, c[2], function(x, y)
+    local dx, dy = (x - 15) / 9, (y - 17) / 12
+    local col = fn and fn(x, y)
+    if col then return col end
+    if dx + dy > 0.75 then return c[3] end
+    if dx * dx + (dy + 0.35) ^ 2 < 0.12 and dx < 0 then return c[1] end
+    return c[2]
+  end)
+  G.px(11, 10, "W"); G.px(10, 12, "W")
+end
+
+-- gema de la rareza (con su borde) y destellos alrededor
+local function rareza(G, r)
+  G.poly({{25, 20}, {30, 25}, {25, 30}, {20, 25}}, "K")
+  G.poly({{25, 21}, {29, 25}, {25, 29}, {21, 25}}, r.gema[2])
+  G.poly({{25, 21}, {29, 25}, {25, 25}, {21, 25}}, r.gema[1]); G.px(24, 23, "W")
+  local spots = {{27, 6}, {4, 9}, {27, 14}, {3, 24}}
+  for i = 1, r.chispas do
+    local p = spots[i]
+    G.px(p[1], p[2], "W"); G.px(p[1] - 1, p[2], r.gema[1]); G.px(p[1] + 1, p[2], r.gema[1]); G.px(p[1], p[2] - 1, r.gema[1]); G.px(p[1], p[2] + 1, r.gema[1])
+  end
+end
+
+local ZONAS_HUEVO = {
+  -- los huevos de siempre (sin zona): cáscara clara con pintas del color de su rareza
+  {code = nil, draw = function(G, r)
+    egg(G, {"hvc1", "hvc2", "hvc3"}, function(x, y)
+      for _, p in ipairs({{17, 12}, {12, 19}, {19, 22}, {20, 16}}) do
+        if (x - p[1]) ^ 2 + (y - p[2]) ^ 2 <= 2 then return r.gema[2] end
+      end
+    end)
+  end},
+  -- Pradera: cáscara crema con pintas verdes y un brote arriba
+  {code = "pradera", draw = function(G)
+    egg(G, {"hvp1", "hvp2", "hvp3"}, function(x, y)
+      for _, p in ipairs({{18, 13}, {12, 20}, {19, 23}, {21, 18}, {14, 15}}) do
+        if (x - p[1]) ^ 2 + (y - p[2]) ^ 2 <= 1.5 then return "v2" end
+      end
+    end)
+    G.line(15, 5, 15, 2, "v3"); G.poly({{15, 3}, {19, 0}, {20, 2}, {16, 4}}, "v2"); G.poly({{15, 3}, {11, 1}, {11, 3}, {14, 4}}, "v1")
+  end},
+  -- Montañas: piedra gris con una grieta y la punta nevada
+  {code = "montana", draw = function(G)
+    egg(G, {"rk1", "rk2", "rk3"}, function(x, y)
+      if y <= 9 + math.abs(x - 15) * 0.4 then return (x < 15) and "wl1" or "wl2" end
+    end)
+    G.line(18, 14, 16, 18, "rk3"); G.line(16, 18, 19, 22, "rk3"); G.line(19, 22, 17, 25, "rk3")
+    G.px(12, 21, "sl2"); G.px(13, 22, "sl1")
+  end},
+  -- Volcán: obsidiana con grietas de lava encendida
+  {code = "volcan", draw = function(G)
+    egg(G, {"ob1", "ob2", "ob3"})
+    G.line(10, 14, 14, 17, "lv2"); G.line(14, 17, 13, 21, "lv2"); G.line(13, 21, 17, 24, "lv2")
+    G.line(19, 10, 17, 14, "lv3"); G.line(17, 14, 20, 17, "lv3")
+    G.px(14, 17, "lv1"); G.px(13, 21, "lv1"); G.px(17, 14, "lv1"); G.px(11, 10, "obh"); G.px(10, 12, "obh")
+  end},
+  -- Costas: nácar con olas
+  {code = "costas", draw = function(G)
+    egg(G, {"pe1", "pe2", "pe3"}, function(x, y)
+      for _, base in ipairs({13, 19, 24}) do
+        if y == base + math.floor(math.sin(x * 0.9) * 1.2 + 0.5) then return (base == 19) and "oc3" or "oc2" end
+      end
+    end)
+  end},
+  -- Tundra: hielo con un copo de escarcha
+  {code = "tundra", draw = function(G)
+    egg(G, {"ih1", "ih2", "ih3"})
+    G.line(16, 13, 16, 23, "W"); G.line(11, 18, 21, 18, "W"); G.line(13, 15, 19, 21, "ih1"); G.line(19, 15, 13, 21, "ih1")
+    G.px(16, 18, "ih4"); G.px(8, 20, "ih4"); G.px(22, 24, "ih4")
+  end},
+  -- Catacumbas: hueso con venas moradas y una gota de cera
+  {code = "catacumbas", draw = function(G)
+    egg(G, {"hvb1", "hvb2", "hvb3"})
+    G.line(10, 16, 13, 19, "ec1"); G.line(13, 19, 12, 23, "ec1"); G.line(20, 12, 18, 16, "ev"); G.line(18, 16, 20, 20, "ec1")
+    G.rect(14, 3, 16, 6, "pe1"); G.px(16, 4, "pe3"); G.px(16, 5, "pe3"); G.px(15, 2, "K"); G.px(15, 1, "lv1"); G.px(15, 0, "lv2")
+  end},
+  -- Ruinas: mármol dorado con una banda y estrellas
+  {code = "ruinas", draw = function(G)
+    egg(G, {"hvm1", "hvm2", "hvm3"}, function(x, y)
+      if y == 18 or y == 19 then return "au2" end
+    end)
+    for _, p in ipairs({{17, 12}, {12, 23}, {19, 24}}) do G.px(p[1], p[2], "au3"); G.px(p[1] - 1, p[2], "au1"); G.px(p[1] + 1, p[2], "au1") end
+    G.px(15, 18, "W"); G.px(16, 19, "W")
+  end},
+}
+for _, z in ipairs(ZONAS_HUEVO) do
+  for _, r in ipairs(RAREZAS) do
+    icon(z.code and ("huevo_" .. z.code .. "_" .. r.code) or ("huevo_" .. r.code), function(G) z.draw(G, r); rareza(G, r) end)
+  end
+end
+
+-- sobre de cartas: papel sellado con los bordes dentados, del color de la zona, con su emblema
+local function sobre(G, c, emblema)
+  G.rect(7, 4, 24, 28, c[2])
+  for x = 7, 24 do
+    if x % 2 == 0 then G.px(x, 3, c[2]); G.px(x, 29, c[2]) end
+  end
+  G.rect(7, 4, 9, 28, c[1]); G.rect(22, 4, 24, 28, c[3])
+  G.rect(7, 7, 24, 7, c[3]); G.rect(7, 25, 24, 25, c[3])
+  G.ellipse(16, 16, 6, 6, "pa"); G.ellipse(16, 16, 6, 6, nil, function(x, y)
+    if (x - 16) ^ 2 + (y - 16) ^ 2 >= 25 then return "au2" end
+  end)
+  emblema(G)
+  G.px(10, 5, "W"); G.px(11, 5, "W")
+end
+local SOBRES = {
+  {code = "pradera", c = {"v1", "v2", "v3"}, e = function(G) G.poly({{13, 19}, {16, 12}, {20, 13}, {18, 18}}, "v2"); G.line(13, 19, 18, 14, "v3") end},
+  {code = "montana", c = {"rk1", "rk2", "rk3"}, e = function(G) G.poly({{11, 20}, {16, 12}, {21, 20}}, "rk3"); G.poly({{14, 15}, {16, 12}, {18, 15}}, "W") end},
+  {code = "volcan", c = {"lv3", "dc2", "lv4"}, e = function(G) G.ellipse(16, 18, 3, 3, "lv2"); G.poly({{13, 18}, {16, 11}, {19, 18}}, "lv2"); G.ellipse(16, 18, 1.5, 2, "lv1") end},
+  {code = "costas", c = {"oc1", "oc2", "oc3"}, e = function(G) for x = 11, 21 do G.px(x, 15 + math.floor(math.sin(x) + 0.5), "oc3"); G.px(x, 18 + math.floor(math.sin(x) + 0.5), "oc2") end end},
+  {code = "tundra", c = {"ih2", "ih3", "ih4"}, e = function(G) G.line(16, 11, 16, 21, "ih3"); G.line(11, 16, 21, 16, "ih3"); G.line(13, 13, 19, 19, "ih4"); G.line(19, 13, 13, 19, "ih4") end},
+  {code = "catacumbas", c = {"p2", "p3", "ec2"}, e = function(G) G.rect(15, 15, 17, 20, "hvb1"); G.px(16, 14, "K"); G.px(16, 13, "lv2"); G.px(16, 12, "lv1") end},
+  {code = "ruinas", c = {"au1", "au2", "au3"}, e = function(G)
+    G.poly({{16, 11}, {17, 15}, {21, 16}, {17, 17}, {16, 21}, {15, 17}, {11, 16}, {15, 15}}, "au2"); G.px(16, 16, "W")
+  end},
+}
+for _, s in ipairs(SOBRES) do icon("sobre_" .. s.code, function(G) sobre(G, s.c, s.e) end) end
+
+-- la herradura de Goreth: forjada a mano, colgada de un cordón de cuero (el regalo de la cerca)
+icon("herradura_goreth", function(G)
+  G.line(9, 2, 13, 9, "le2"); G.line(23, 2, 19, 9, "le2"); G.line(9, 2, 23, 2, "le3")
+  G.ellipse(16, 18, 10, 11, "fe2")
+  G.ellipse(16, 18, 10, 11, nil, function(x, y) if x < 13 and y < 18 then return "fe1" end; if x > 19 or y > 24 then return "fe3" end end)
+  G.erase(16, 20, 5, 7); G.rect(11, 22, 21, 30, nil)
+  for y = 23, 31 do for x = 11, 21 do G.g[y * 32 + x] = nil end end
+  for _, p in ipairs({{8, 14}, {7, 19}, {24, 14}, {25, 19}, {9, 23}, {23, 23}}) do G.px(p[1], p[2], "K") end
+  G.px(10, 11, "W"); G.px(11, 10, "W")
+end)
+
 -- ---------------------------------------------------------------- atlas (una fila)
 local n = #ICONS
 local img = Image(n * 32, 32, ColorMode.RGB)

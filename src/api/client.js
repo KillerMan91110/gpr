@@ -262,6 +262,8 @@ export const api = {
   getCartas: (playerId, token) => request(`/api/player/${playerId}/coleccion/cartas`, { token }),
   socketCarta: (playerId, slot, monsterId, token) => request(`/api/player/${playerId}/coleccion/cartas/engarzar`, { method: 'POST', body: { slot, monsterId }, token }),
   unsocketCarta: (playerId, slot, token) => request(`/api/player/${playerId}/coleccion/cartas/quitar`, { method: 'POST', body: { slot }, token }),
+  // sobre de cartas de una zona: se gasta y da tres cartas de sus monstruos
+  abrirSobre: (playerId, itemId, token) => request(`/api/player/${playerId}/coleccion/cartas/sobre`, { method: 'POST', body: { itemId }, token }),
   getMitico: () => request('/api/world/mitico'),
   getCazadores: () => request('/api/world/cazadores'),
   getMiticoAporte: (playerId, token) => request(`/api/player/${playerId}/coleccion/mitico/aporte`, { token }),

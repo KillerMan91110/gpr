@@ -75,13 +75,23 @@ export function gearTexture(scene, piece, kind) {
 
 // cuerpo de la clase con la ropa del color de la armadura puesta: devuelve la clave de textura
 export function bodyTexture(scene, cls, armor) {
-  const base = `b_${cls}`;
   const art = gearArt(armor);
+  return art ? bodyTextureSet(scene, cls, art.set) : `b_${cls}`;
+}
+
+// cuerpo de la clase con la ropa de un set (sin pieza de por medio)
+export function bodyTextureSet(scene, cls, set) {
+  const base = `b_${cls}`;
   const roles = BODY_ROLES[cls];
-  if (!art || !roles) return base;
-  const colors = setColors(scene, art.set);
+  const colors = roles && setColors(scene, set);
   if (!colors) return base;
   const map = new Map(Object.entries(roles).map(([h, role]) => [rgbInt(hexToRgb(h)), typeof role === 'function' ? role(colors) : colors[role]]));
-  const dst = `b_${cls}__${art.set}`;
+  const dst = `b_${cls}__${set}`;
   return recolor(scene, base, dst, map) ? dst : base;
 }
+
+// Los aliados del final (R13, gprback/lib/aliados.js) no traen equipo: van con la ropa del color de su gente.
+export const ALLY_SETS = {
+  Ren: 'pradera', Tilo: 'acero', Rhaegar: 'costas', Eirik: 'escarcha',
+  Hela: 'reina', Velkan: 'lich', Liora: 'catacumbas', Aldren: 'sagrado',
+};

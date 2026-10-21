@@ -43,6 +43,8 @@ export const DIALOGUES_TUNDRA = {
     greet: (ctx) => {
       if (ctx.mark === '?') return '¿Y? ¿Lo encontraste? Dime que sí. Ese caballo se comió media bodega.';
       if (ctx.mark === '!') return 'Tú. Sí, tú. Tengo un problema con cuatro patas y crin.';
+      // el final (R13): peleó a tu lado en la segunda grieta
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return pick(['Pelear en tierra firme, en una plaza, sin barco. Lo que hago por ti.', 'El príncipe y yo peleamos espalda con espalda. Él congelaba, yo cortaba. Buen equipo. No se lo digas.']);
       if (juzgo(ctx)) return pick(['Llevé a la hija del rey a Aurelia. No habló en todo el viaje. Galleta tampoco. Fue el viaje más callado de mi vida.', 'La justicia está bien. Pero el barco se sintió frío sin ella. Más frío, digo.']);
       if (perdono(ctx)) return pick(['La hija del rey me trajo pescado ayer. Para Galleta. Galleta la ama. Yo… la tolero.', 'Perdonar no es fácil. Yo perdoné a tu capitán Bastida. Bueno, casi.']);
       return pick([
@@ -136,6 +138,8 @@ export const DIALOGUES_TUNDRA = {
     greet: (ctx) => {
       if (ctx.mark === '?') return '¿Y? Dime cómo salió. Sin rodeos. Los rodeos son para los sureños.';
       if (ctx.mark === '!') return 'Te necesito. No me gusta decirlo, así que no me hagas repetirlo.';
+      // el final (R13): peleó a tu lado en la segunda grieta
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return pick(['Peleé en el sur, bajo un sol que quemaba, contra algo que no tenía cuerpo. Mi abuela dice que estuve bien. Viniendo de ella, es una fiesta.', 'El pirata peleaba bien. Hablaba demasiado, pero peleaba bien.']);
       if (perdono(ctx)) return pick(['Hela y yo patinamos en el Lago ayer. Ganó ella. Como siempre. Gracias, sureño. De verdad.', 'Mi hermana se ríe otra vez. Me había olvidado de cómo sonaba.']);
       if (juzgo(ctx)) return pick(['Le escribo a Hela cada semana. Ella me contesta todas. Diez años sin una carta y ahora no para.', 'Fue justo. Lo sé. Igual la extraño.']);
       if (reyCaido(ctx)) return pick(['Mi padre se fue sonriendo. ¿Lo viste? Sonrió.', 'Ahora me toca decidir qué hacemos con Hela. Y no quiero decidirlo solo.']);
@@ -160,6 +164,8 @@ export const DIALOGUES_TUNDRA = {
     ambient: (ctx) => (perdono(ctx) ? ['*quema el pan otra vez*', 'Abuela, ¡no estaba quemado! Estaba tostado.', '*mira la Grieta por la ventana*'] : ['*mira el fuego sin parpadear*', '*se abraza las rodillas*']),
     greet: (ctx) => {
       if (ctx.mark === '?') return '¿Qué decidiste? Dímelo. No me voy a enojar. Ya no tengo fuerzas para enojarme.';
+      // el final (R13): con el perdón, peleó a tu lado contra la Sombra del Devorador
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return pick(['Usé el hielo para proteger a alguien. Por primera vez. Se sintió raro. Raro y bien.', 'Frente a la Sombra no tuve miedo. Tú ibas adelante. Me acordé de cuando Eirik iba adelante, de chicos.']);
       if (perdono(ctx)) return pick(['Cuido el Sello todos los días. Bajo a la Grieta y escucho. Está tranquilo. Como yo, casi.', 'Gracias por dejarme quedar. No sé si lo merezco. Pero voy a intentar merecerlo.', 'Eirik me dejó una carta en la Grieta. Dice «perdón» y algo más. No te digo qué. Es mío.']);
       return pick(['Mi padre se fue. Mi madre también. Solo quedan mi abuela, mi hermano y lo que hice.', 'No me mires así. Ya sé lo que hice.']);
     },
@@ -170,11 +176,14 @@ export const DIALOGUES_TUNDRA = {
   hela_aurelia: {
     name: 'Hela', role: 'La hija del Rey del Hielo', portrait: PORTRAIT('hela'),
     ambient: ['*mira el Pilar*', 'Aquí hace calor. Demasiado.', '*escribe una carta*'],
-    greet: (ctx) => pick([
+    greet: (ctx) => (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL') ? pick([
+      'Vi el ritual desde la ventana de la enfermería. Las siete estrellas, el canto, la luz. Le escribí a Eirik esa misma noche.',
+      'Liora y Aldren pelearon contra la Sombra en mi lugar. Yo curaba a los heridos con frío. También es pelear, dice Elenya.',
+    ]) : pick([
       'Le conté a la sacerdotisa todo lo que sé de los Ocultos. Todo. Hasta lo que me daba vergüenza.',
       'Mi hermano me escribe cada semana. Le contesto todas. Dice que en el norte el fiordo ya tiene agua.',
       ctx.night ? 'De noche miro al norte. Desde aquí no se ve la aurora. La extraño.' : 'Elenya me deja ayudar en la enfermería. Curo con frío: bajo la fiebre. Es lo único bueno que sé hacer con el hielo.',
-    ]),
+    ])),
     options: () => [{ label: 'Háblame de tu madre', next: 'madre' }, { label: '¿Por qué ayudaste a los Ocultos?', next: 'ocultos' }, bye],
     lines: helaLines,
   },
@@ -242,6 +251,8 @@ export const DIALOGUES_TUNDRA = {
     greet: (ctx) => {
       if (ctx.mark === '?') return '¿Y? ¿Y? ¿Lo encontraste? ¡Dime que sí!';
       if (ctx.mark === '!') return '¡Eh! ¡Ven! ¡Tengo un plan! ¡Es un plan de nieve!';
+      // el final (R13): peleó a tu lado frente al Pilar, en la primera grieta
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return pick(['¡Peleé con el Vigía! ¡Contra los hijos de la Sombra! Después volví a la nieve. Un héroe también necesita vacaciones.', 'Les conté a las focas lo del Pilar. No entendieron nada. Igual aplaudieron.']);
       if (hecho(ctx, 'TUNDRA_SEC_MUNECO_2')) return pick(['Las focas siguen con mi muñeco. Lo visitan. Le llevan pescado. Creo que lo eligieron rey.', 'Anka me escribió. Dice que le devuelva el pañuelo. ¡Lo tiene una foca!']);
       return pick(['¡Nunca vi tanta nieve! ¡En el sur la nieve dura un día y es gris!', '¡Hice un ángel de nieve! Bueno, parece una papa. Pero una papa con alas.']);
     },
@@ -300,6 +311,8 @@ export const DIALOGUES_TUNDRA = {
     greet: (ctx) => {
       if (ctx.mark === '?') return '¿Y? ¿Qué viste? ¡Cuéntame todo! Despacio, que anoto.';
       if (ctx.mark === '!') return '¡Eh! ¡Tú! ¡Necesito ayuda con algo raro!';
+      // el final (R13): peleó a tu lado frente al Pilar, en la primera grieta
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return pick(['¡Peleé a tu lado frente al Pilar! ¡Yo! ¡Ren, de la Pradera! Lo anoté todo, por si nadie me cree.', 'En Aurelia hacía calor. Por primera vez en meses se me descongelaron los dedos. Justo a tiempo para tirar flechas.']);
       if (hecho(ctx, 'TUNDRA_SEC_EXPLORADOR_2')) return pick(['¿Marta te dijo algo? ¿Que vuelva? ¡Vuelvo en primavera! Bueno, en verano. Bueno, cuando se derrita.', 'Le escribí a Marta otra carta. Esta tiene más tachones que la primera.']);
       return pick(['¡Ren, de la Pradera! ¿Te acuerdas? Me vine a ver los pinos blancos. Y me quedé a ver todo lo demás.', 'En la Pradera los lobos aúllan. Aquí no. Cazan en silencio. Me da escalofríos. Bueno, me da escalofríos todo, hace mucho frío.']);
     },

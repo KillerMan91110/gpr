@@ -119,11 +119,14 @@ export const DIALOGUES_CATACUMBAS = {
   velkan_vela: {
     name: 'Velkan', role: 'El hijo de Aldren', portrait: PORTRAIT('velkan'),
     ambient: ['*se acomoda una capucha que ya no lleva*', '*mira la Gran Vela de cerca, como un chico*', 'Mi padre ronca. Siempre roncó.'],
-    greet: () => pick([
+    greet: (ctx) => (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL') ? pick([
+      'Pelear del lado de la luz. Veinte años del otro lado y resulta que este pesa menos.',
+      'Mi padre me vio pelear a tu lado contra la Sombra. No dijo nada. Lloró. Es lo mismo.',
+    ]) : pick([
       'No sé qué decirte. «Gracias» queda chico. «Perdón» también. Me quedo con los dos.',
       'Veinte años sirviendo a alguien que me prometía no tener miedo. Ahora duermo con una vela. Es mejor trato.',
       'Mi padre me contó lo que hiciste en el norte con la hija del rey. Que la perdonaste. Ahora entiendo por qué me miraste así en el altar.',
-    ]),
+    ])),
     options: () => [{ label: '¿Quién te convenció de unirte a los Ocultos?', next: 'ocultos' }, { label: '¿Qué vas a hacer ahora?', next: 'ahora' }, bye],
     lines: {
       ocultos: 'Un hombre sin cara, en la Biblioteca. Hablaba con la voz del Lich, pero no era él: el Lich no sale de su sala. Me dijo que los Sellos eran una cárcel para un dios que solo quería despertar, y que el que lo ayudara no iba a morir nunca. Tenía dieciséis años y miedo. Le creí. Al que te hable así, no le creas.',

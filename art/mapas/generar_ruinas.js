@@ -5,7 +5,9 @@
 // Todo el borde es el Velo de Aethra (niebla que choca). Se entra por un solo hueco: la Puerta del Velo, al
 // sur, frente al paso que se abrió en las Montañas (casillas 63-65 del borde norte del Pinar Nevado). Hasta
 // la R1 una niebla (punto "escena" con fase) tapa ese hueco. El otro camino es la escalera de la Cripta de
-// los Heraldos, que baja al Trono de Huesos (R4). Diseño completo en gprback/docs/zona7_ruinas.md.
+// los Heraldos, que baja al Trono de Huesos (R4). Después del final (la R14) se abre un segundo hueco: el Paso
+// de las Cumbres, en el borde este, que cruza a la Tundra por un puente de hielo (generar_tundra.js).
+// Diseño completo en gprback/docs/zona7_ruinas.md.
 //
 // Diseño (norte arriba), una subzona por trozo:
 //   Torres del Velo · Observatorio Roto · Corazón del Templo (el Séptimo Sello) · Grieta Estelar
@@ -129,6 +131,8 @@ const P = {
   telescopio: { x: 58, y: 10 }, patio: { x: 60, y: 45 }, lago: { x: 140, y: 75 }, jardines: { x: 140, y: 45 },
   grieta: { x: 140, y: 15 }, torres: { x: 20, y: 15 }, bosque: { x: 20, y: 45 }, escalinata: { x: 20, y: 75 },
   campo: { x: 20, y: 105 }, cantera: { x: 100, y: 105 }, cumbres: { x: 140, y: 105 },
+  // el Paso de las Cumbres: el hueco del borde este (filas 88-90) hacia la Tundra, que se abre con la R14
+  pasoCumbres: { x: 151, y: 88 },
   tumbaVacia: { x: 21, y: 101 },
 };
 
@@ -228,6 +232,7 @@ for (let x = 0; x < W; x++) for (const y of [0, 1, H - 2, H - 1]) if (!(y >= H -
 for (let y = 0; y < H; y++) for (const x of [0, 1, W - 2, W - 1]) setT(x, y, 'velo');
 // el hueco de la Puerta: tres casillas de calzada hasta el borde (del otro lado, el paso de las Montañas)
 rectT(P.puerta.x, P.puerta.y, P.puerta.x + 2, H - 1, 'caminom');
+// el Paso de las Cumbres (el hueco del borde este hacia la Tundra) se abre al final, en main(): ver más abajo
 
 // subzonas: nombre y niveles al entrar (la primera que contenga al héroe gana)
 const subzones = [
@@ -516,6 +521,13 @@ async function main() {
   pt({ name: 'niebla_puerta', type: 'escena', x: px(P.puerta.x), y: px(H - 2), properties: [
     prop('sprite', 'string', 'niebla_velo'), prop('ancho', 'int', 96), prop('alto', 'int', 64), prop('solido', 'bool', true), prop('encima', 'bool', true),
     prop('fase', 'string', '!RUINAS_HISTORIA_01_VELO@2+,!RUINAS_HISTORIA_01_VELO')] });
+  // la niebla del Velo que tapa el Paso de las Cumbres hasta el final (la R14): una por fila, porque cada
+  // escena choca solo con su mitad de abajo
+  for (let i = 0; i < 3; i++) {
+    pt({ name: `niebla_cumbres_${i + 1}`, type: 'escena', x: px(W - 3), y: px(P.pasoCumbres.y - 1 + i), properties: [
+      prop('sprite', 'string', 'niebla_velo'), prop('ancho', 'int', 96), prop('alto', 'int', 64), prop('solido', 'bool', true), prop('encima', 'bool', true),
+      prop('fase', 'string', '!RUINAS_HISTORIA_14_VIGIA')] });
+  }
   // la escalera de la Cripta de los Heraldos baja al Trono de Huesos (generar_trono_huesos.js); se abre en la R4
   pt({ name: 'bajada_trono', type: 'salida', x: px(P.heraldos.x + 1), y: px(P.heraldos.y + 2), width: 32, height: 32, properties: [
     prop('destino', 'string', 'trono_huesos'), prop('x', 'int', 14), prop('y', 'int', 51), prop('etiqueta', 'string', 'El Trono de Huesos'),
@@ -693,11 +705,38 @@ async function main() {
   // los recursos también (se recogen parado al lado)
   for (const [x, y] of resPoints) if (![[0, 1], [1, 0], [-1, 0], [0, -1]].some(([dx, dy]) => reach(x + dx, y + dy))) lost.push(`recurso ${x},${y}`);
   if (lost.length) console.warn('OJO, no se llega caminando a:', lost.join(', '));
-  // el Velo tiene que cerrar todo el borde, salvo el hueco de la Puerta
+  // el Velo tiene que cerrar todo el borde, salvo el hueco de la Puerta (el Paso de las Cumbres se abre después)
   const leaks = [];
   for (let x = 0; x < W; x++) for (const y of [0, H - 1]) if (walkable(x, y) && !(y === H - 1 && x >= P.puerta.x && x <= P.puerta.x + 2)) leaks.push(`${x},${y}`);
   for (let y = 0; y < H; y++) for (const x of [0, W - 1]) if (walkable(x, y)) leaks.push(`${x},${y}`);
   if (leaks.length) throw new Error(`el Velo tiene huecos en el borde: ${leaks.slice(0, 10).join(' ')}`);
+
+  // ---------------------------------------------------------------- el Paso de las Cumbres (al final: sin tocar el azar)
+  // Tres filas de calzada desde el Camino de las Cumbres hasta el borde este; del otro lado, el puente de hielo
+  // de la Tundra (generar_tundra.js). Lo tapa la niebla del Velo hasta la R14 (los puntos "niebla_cumbres")
+  const TERRENO_PASO = 'caminom';
+  {
+    const PX0 = P.pasoCumbres.x, PX1 = W - 1, PY0 = P.pasoCumbres.y, PY1 = P.pasoCumbres.y + 2;
+    // lo que haya cerca (árboles, rocas y sus copas) se quita entero, para no dejar medio árbol
+    for (let y = PY0 - 2; y <= PY1 + 2; y++) for (let x = PX0 - 1; x <= PX1 + 1; x++) {
+      if (x < 0 || x >= W || y < 0 || y >= H) continue;
+      if (y >= PY0 && y <= PY1 && x >= PX0 && x <= PX1) setT(x, y, TERRENO_PASO);
+      if (y >= PY0 - 1 && y <= PY1 + 1) { objects[y * W + x] = 0; above[y * W + x] = 0; }
+    }
+    // el suelo de esas casillas y sus vecinas, con un azar aparte (el del mapa ya se usó)
+    let s2 = 7;
+    const mathRandom2 = Math.random;
+    Math.random = () => ((s2 = (s2 * 1103515245 + 12345) % 2147483648) / 2147483648);
+    for (let y = PY0 - 1; y <= PY1 + 1; y++) for (let x = PX0 - 1; x <= PX1 + 1; x++) put(ground, x, y, R.groundGid(at, x, y, 0));
+    Math.random = mathRandom2;
+  }
+
+  // se llega caminando desde la calzada y sale al borde
+  {
+    const ok = [0, 1, 2].every((i) => walkable(W - 1, P.pasoCumbres.y + i))
+      && [0, 1, 2].some((i) => reach(P.pasoCumbres.x - 1, P.pasoCumbres.y + i));
+    if (!ok) throw new Error('el Paso de las Cumbres no conecta con la calzada');
+  }
 
   // ---------------------------------------------------------------- partir en trozos
   fs.mkdirSync(outDir, { recursive: true });

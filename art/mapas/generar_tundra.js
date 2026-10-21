@@ -1,9 +1,10 @@
 // Genera la Tundra Eterna (zona 5) como un mundo de 4x4 trozos de 40x30 tiles, igual que las Costas:
 //   public/assets/mundo/tundra/chunk_<cx>_<cy>.json  (mapas de Tiled, uno por trozo)
 //   public/assets/mundo/tundra/mundo.json            (índice: trozos, subzonas, inicio)
-// Va arriba a la derecha del continente (etheria.json: x 320, y 90). No toca a pie ninguna otra zona:
-// se llega en el barco de Rhaegar desde el Puerto Antiguo hasta el muelle de Fiordo Blanco
-// (gprback/lib/barco.js). Diseño completo en gprback/docs/zona5_tundra.md.
+// Va arriba a la derecha del continente (etheria.json: x 320, y 90). Se llega en el barco de Rhaegar desde
+// el Puerto Antiguo hasta el muelle de Fiordo Blanco (gprback/lib/barco.js). Después del final, también a pie
+// desde las Ruinas: el puente de hielo del borde oeste (filas 88-90) sale al Paso de las Cumbres, que la
+// niebla del Velo tapa hasta la R14 (generar_ruinas.js). Diseño completo en gprback/docs/zona5_tundra.md.
 //
 // Diseño (norte arriba): arriba, el Palacio de Hielo (noroeste), la Grieta del Glaciar, el Cementerio
 // Real (la entrada de la Cripta Congelada) y la Torre de Cristal (noreste). En medio, el Valle de los
@@ -136,6 +137,7 @@ for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
 }
 // el fiordo entra hacia la ciudad (el muelle va sobre él)
 blobT(134, 108, 8, 4, 'fiordo', 0.3, 13);
+// el puente de hielo del oeste (hacia las Ruinas) se tiende al final, en main(): ver más abajo
 // islotes y una lengua de hielo en el Mar Helado
 for (const [cx, cy, rx, ry] of [[30, 104, 6, 3], [64, 108, 5, 3], [92, 103, 4, 2]]) blobT(cx, cy, rx, ry, 'nieve', 0.35, cx);
 blobT(64, 101, 3, 4, 'lago', 0.2, 14);
@@ -632,6 +634,26 @@ async function main() {
       name: a.name, type: 'encuentro', x: px(a.x), y: px(a.y), width: px(a.w), height: px(a.h),
       properties: [prop('monstruos', 'string', a.monstruos.join(',')), prop('cantidad', 'int', Math.max(3, Math.round((a.w * a.h) / 22)))],
     }));
+  }
+
+  // ---------------------------------------------------------------- el puente de hielo hacia las Ruinas (al final: sin tocar el azar)
+  // Cruza el mar helado del borde oeste hasta el Paso de las Cumbres de las Ruinas (generar_ruinas.js), en
+  // las mismas filas. Hielo que se camina, como la lengua de hielo del Mar Helado
+  const TERRENO_PASO = 'lago';
+  {
+    const PX0 = 0, PX1 = 2, PY0 = 88, PY1 = 88 + 2;
+    // lo que haya cerca (árboles, rocas y sus copas) se quita entero, para no dejar medio árbol
+    for (let y = PY0 - 2; y <= PY1 + 2; y++) for (let x = PX0 - 1; x <= PX1 + 1; x++) {
+      if (x < 0 || x >= W || y < 0 || y >= H) continue;
+      if (y >= PY0 && y <= PY1 && x >= PX0 && x <= PX1) setT(x, y, TERRENO_PASO);
+      if (y >= PY0 - 1 && y <= PY1 + 1) { objects[y * W + x] = 0; above[y * W + x] = 0; }
+    }
+    // el suelo de esas casillas y sus vecinas, con un azar aparte (el del mapa ya se usó)
+    let s2 = 7;
+    const mathRandom2 = Math.random;
+    Math.random = () => ((s2 = (s2 * 1103515245 + 12345) % 2147483648) / 2147483648);
+    for (let y = PY0 - 1; y <= PY1 + 1; y++) for (let x = PX0 - 1; x <= PX1 + 1; x++) put(ground, x, y, R.groundGid(at, x, y, 0));
+    Math.random = mathRandom2;
   }
 
   // ---------------------------------------------------------------- partir en trozos

@@ -58,6 +58,8 @@ export const DIALOGUES_RUINAS = {
         'Ya no soy la Última Sacerdotisa. Tres peregrinas me pidieron que les enseñe la canción. Desafinan. Es perfecto.',
         'Fui a Aurelia y volví. Vi el mar desde el Camino Real. Mil años, y nunca había visto el mar.',
         'El Devorador duerme. A veces lo escucho dar vueltas en sueños. Le canto un poco y se calma. Como cualquier chico.',
+        // el Paso de las Cumbres (generar_ruinas.js): después de la R14 el Velo se abre al este, hacia la Tundra
+        'El Velo se abrió en las cumbres, al este. Del otro lado hay un puente de hielo y el norte de los reyes del frío. Aethra ya no necesita escondernos.',
       ]);
       if (ritual(ctx)) return 'Lo hicimos, Vigía. Elenya canta mejor que yo; no se lo digas. Ve a Aurelia: te están esperando.';
       if (septimo(ctx)) return pick([

@@ -166,6 +166,15 @@ export function iconCell(art) {
 // ---------------------------------------------------------------- objetos sin forma de equipo
 // Pociones, elixires, comidas que curan y accesorios (art/sprites/combate/crear_objetos.lua):
 // atlas de una fila, 32x32, en el orden de OBJETOS. Se reconocen por el nombre.
+// Huevos y sobres de cartas por zona (los nombres los arma gprback/lib/huevos.js).
+// Van al final del atlas, en este orden: los huevos de siempre, los de cada zona (cinco rarezas) y los sobres.
+const ZONAS_OBJ = [['pradera', 'de la pradera'], ['montana', 'de las montanas'], ['volcan', 'del volcan'], ['costas', 'de las costas'],
+  ['tundra', 'de la tundra'], ['catacumbas', 'de las catacumbas'], ['ruinas', 'de las ruinas']];
+const RAREZAS_OBJ = [['comun', 'comun'], ['poco_comun', 'poco comun'], ['raro', 'raro'], ['epico', 'epico'], ['legendario', 'legendario']];
+const HUEVOS = [null, ...ZONAS_OBJ].flatMap((z) => RAREZAS_OBJ.map(([r, rn]) => (z
+  ? [`huevo_${z[0]}_${r}`, `huevo ${rn} ${z[1]}`]
+  : [`huevo_${r}`, `huevo ${rn}`])));
+const SOBRES = ZONAS_OBJ.map(([z, de]) => [`sobre_${z}`, `sobre de cartas ${de}`]);
 export const OBJETOS = ['pocion_vida_menor', 'pocion_vida_mayor', 'pocion_mana_menor', 'pocion_mana_mayor',
   'elixir_regeneracion', 'esencia_restauradora', 'estofado_lobo', 'sopa_goblin', 'guiso_troll',
   'amuleto_pradera', 'collar_pradera', 'brazalete_pradera', 'anillo_pradera', 'amuleto_capitan', 'anillo_fuerza', 'amuleto_brujo',
@@ -219,7 +228,11 @@ export const OBJETOS = ['pocion_vida_menor', 'pocion_vida_mayor', 'pocion_mana_m
   'bronce_celeste', 'fragmento_lente', 'carne_grifo', 'pescado_lago', 'miel_abeja_antigua', 'pan_peregrino',
   'sopa_flor_luminosa', 'agua_lagrimas', 'pescado_lago_asado', 'miel_lagrimas', 'nectar_estelar', 'guiso_vigias',
   // el final
-  'lagrima_cristalizada', 'fragmento_sello_ruinas'];
+  'lagrima_cristalizada', 'fragmento_sello_ruinas',
+  // los huevos (los de siempre y los de cada zona, en las cinco rarezas) y los sobres de cartas de cada zona
+  ...HUEVOS.map(([k]) => k), ...SOBRES.map(([k]) => k),
+  // el regalo de Goreth (la cerca de la Pradera)
+  'herradura_goreth'];
 const OBJETO_BY_NAME = {
   'pocion de vida menor': 'pocion_vida_menor', 'pocion de vida mayor': 'pocion_vida_mayor',
   'pocion de mana menor': 'pocion_mana_menor', 'pocion de mana mayor': 'pocion_mana_mayor',
@@ -327,6 +340,8 @@ const OBJETO_BY_NAME = {
   'pescado del lago asado': 'pescado_lago_asado', 'miel de las lagrimas': 'miel_lagrimas', 'nectar estelar': 'nectar_estelar',
   'guiso de los vigias': 'guiso_vigias',
   'lagrima cristalizada': 'lagrima_cristalizada', 'septimo fragmento de sello': 'fragmento_sello_ruinas',
+  ...Object.fromEntries([...HUEVOS, ...SOBRES].map(([k, name]) => [name, k])),
+  'herradura de goreth': 'herradura_goreth',
 };
 
 // índice en el atlas de objetos, o null

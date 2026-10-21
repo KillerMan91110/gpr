@@ -927,7 +927,7 @@ Se puede usar cada ${s.cooldownRounds} rondas.` : '';
                   <span className="bt-levelup">
                     <GameIcon name={result.rewards.crypt.bossIcon ?? 'lighthouse'} artist="delapouite" /> {result.rewards.crypt.bossDownText ?? '¡El Vigía Caído se apaga!'}
                     {result.rewards.crypt.chest
-                      ? ` ${result.rewards.crypt.chestName ?? 'Cofre del Vigía'}: +${Number(result.rewards.crypt.chest.gold).toLocaleString()} oro${result.rewards.crypt.chest.item ? ` y ${result.rewards.crypt.chest.item.name} x${result.rewards.crypt.chest.item.quantity}` : ''}.`
+                      ? ` ${result.rewards.crypt.chestName ?? 'Cofre del Vigía'}: +${Number(result.rewards.crypt.chest.gold).toLocaleString()} oro${result.rewards.crypt.chest.item ? ` y ${result.rewards.crypt.chest.item.name} x${result.rewards.crypt.chest.item.quantity}` : ''}${result.rewards.crypt.chest.sobre ? `, y un ${result.rewards.crypt.chest.sobre}` : ''}.`
                       : ' Su cofre ya lo abriste hoy: vuelve mañana por otro.'}
                   </span>
                 )}

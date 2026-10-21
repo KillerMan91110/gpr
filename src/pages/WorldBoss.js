@@ -386,11 +386,12 @@ export default function WorldBoss() {
     );
   }
 
-  if (playerLevel < 10) {
+  // el Devorador es el final del juego: solo lo enfrenta quien entregó la R14 de las Ruinas (y siempre a nivel 100)
+  if (status.vigia === false) {
     return (
       <div className="placeholder-page">
         <h1><GameIcon name="galaxy" artist="delapouite" /> World Boss</h1>
-        <p>Necesitas nivel 10 para enfrentar al World Boss. Todavía estás en nivel {playerLevel}.</p>
+        <p>Solo el Vigía de Etheria puede enfrentar al Devorador de Estrellas. Termina la historia de las Ruinas Ancestrales (la misión «El Vigía de Etheria») y vuelve: aquí lo enfrentarás a nivel 100.</p>
         <Link to="/combat">Volver a zonas</Link>
       </div>
     );

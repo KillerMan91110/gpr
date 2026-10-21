@@ -94,7 +94,7 @@ export default function Pets() {
   useEffect(() => () => clearTimeout(hatchResultTimer.current), []);
 
   const eggItems = (inventory || []).filter((i) => i.code?.startsWith('HUEVO_'));
-  const materialItems = (inventory || []).filter((i) => i.item_type === 'MATERIAL' && !i.code?.startsWith('HUEVO_'));
+  const materialItems = (inventory || []).filter((i) => i.item_type === 'MATERIAL' && !i.code?.startsWith('HUEVO_') && !i.code?.startsWith('SOBRE_'));
   const transcendenceStone = (inventory || []).find((i) => i.code === 'PIEDRA_TRASCENDENCIA') || null;
   const activePet = (pets || []).find((p) => p.is_active);
   const readyNow = incubator && (incubator.ready || new Date(incubator.hatch_ready_at).getTime() <= now);

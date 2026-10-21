@@ -16,6 +16,9 @@ const pick = (list) => list[Math.floor(Math.random() * list.length)];
 // ¿este jugador ya completó esa misión? (ctx.done: códigos de sus misiones completadas). Lo que
 // dicen los NPCs sigue la historia de cada jugador: nadie te agradece algo que no hiciste.
 const hecho = (ctx, code) => !!ctx?.done?.has?.(code);
+// la parte 3 de la cerca (Pradera): le avisaste a Goreth o le seguiste la broma a Bruno (gprback/lib/eleccion.js)
+const conGoreth = (ctx) => hecho(ctx, 'PRADERA_SEC_CERCA_3');
+const conBruno = (ctx) => hecho(ctx, 'PRADERA_SEC_CERCA_3_BRUNO');
 // ¿la tiene en curso? (cualquier paso). Para lo demás (paso N, sin empezar…): enFase(ctx.fase, 'CODE@2'), ver game/story.js
 const enCurso = (ctx, code) => enFase(ctx?.fase, `${code}@activa`);
 // globitos que siguen la historia: ambient puede ser una lista o (ctx) => lista
@@ -88,6 +91,8 @@ export const DIALOGUES = {
         'Tengo trabajo para alguien con buen pulso. Los monstruos se están acercando demasiado al campamento.',
         'Llegas justo a tiempo. El tablón está lleno de encargos y no me alcanzan las flechas para todos.',
       ]);
+      // el final (R13): peleó a tu lado frente al Pilar, en la primera grieta
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return pick(['¡Peleé a tu lado frente al Pilar! ¡Yo! ¡Ren, de la Pradera! Lo anoté todo, por si nadie me cree.', 'Me temblaban las flechas. Las tiré igual. Algunas hasta le dieron a algo.']);
       if (hecho(ctx, 'PRADERA_Q3_TITAN_PRADERA')) return pick(['El Titán ya no ruge. La hierba vuelve a crecer en el sureste, despacito.', 'Los lobos vuelven a temerle al fuego. Como debe ser. Eso lo hiciste tú.']);
       if (hecho(ctx, 'PRADERA_HISTORIA_10_RITUAL')) return 'Desde que rompiste el ritual, el Círculo ya no brilla rojo. La manada, en cambio, sigue rara.';
       return night
@@ -226,6 +231,16 @@ export const DIALOGUES = {
     ],
     greet: (ctx) => {
       if (hecho(ctx, 'PRADERA_SEC_CERCA_4') && Math.random() < 0.4) return pick(['Bruno me saludó ayer. Con la mano entera, no con un dedo. Progreso.', 'La vaca era de Mirna. Todo este tiempo. Hmph. Le debo una disculpa a Bruno. No se la voy a dar.']);
+      if (conGoreth(ctx) && Math.random() < 0.6) return pick([
+        '¡Ahí está! El que me salvó el estómago. ¿Llevas la herradura? Bien. Que se vea.',
+        'Para ti, descuento de amigo. …No, no hay descuento. Pero te hablo bonito, que es más de lo que hago con el resto.',
+        'Si alguien te molesta en la aldea, me avisas. Tú me avisaste a mí.',
+      ]);
+      if (conBruno(ctx) && Math.random() < 0.6) return pick([
+        'Hmph. Tú. Una semana con la panza revuelta. Ya sé que fuiste tú: Bruno no sabe cerrar la boca.',
+        'Te forjo lo que me pidas. Es mi trabajo. Pero a comer no te invito. Nunca más.',
+        '*te mira de arriba abajo* ¿Traes algo en los bolsillos? ¿Algo verde? ¿Viscoso? Hmph.',
+      ]);
       return ctx.night
         ? pick(['El fuego de la fragua no se apaga nunca. Como mi mal humor.', 'Hmph. Otro que no duerme. ¿Qué necesitas forjar?'])
         : pick(['Trae materiales y te forjo algo que no se rompa al primer golpe.', '¿Esa espada? He visto palos más afilados. Déjame ver qué puedo hacer.']);
@@ -298,6 +313,8 @@ export const DIALOGUES = {
       const { night, mark } = ctx;
       if (mark === '?') return '¡Volviste! ¡Cuéntame todo, todo, todo!';
       if (mark === '!') return '¡Oye, oye! ¡Tengo una misión importantísima para ti!';
+      // el final (R13): peleó a tu lado frente al Pilar, en la primera grieta
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return pick(['¡Peleé con el Vigía! ¡Contra los hijos de la Sombra! ¡Partelobos ya no alcanza: mi espada ahora se llama Parteestrellas!', 'Cuando era chico te pedía misiones. Ahora peleo a tu lado. ¿Viste? Te dije que iba a ser héroe.']);
       if (hecho(ctx, 'PRADERA_SEC_TILO_3')) return pick(['Ya le conté tu aventura a toda la aldea. Le agregué un dragón. Queda mejor.', '¡Partelobos y yo practicamos todos los días! Ayer partí una calabaza. De Bruno. No le digas.']);
       return night
         ? pick(['Mi mamá dice que me vaya a dormir, pero los héroes no duermen. Bueno, un poquito.', 'De noche hago guardia. Desde la ventana. Con la manta.'])
@@ -326,7 +343,17 @@ export const DIALOGUES = {
       const { night, mark } = ctx;
       if (mark === '?') return 'Hmph. ¿Ya está? Bueno, pasa, pasa.';
       if (mark === '!') return 'Tú. Sí, tú. Necesito a alguien que no sea un inútil. ¿Lo eres?';
-      if (hecho(ctx, 'PRADERA_SEC_CERCA_4')) return pick(['Margarita viene a comerse mi cerca y yo la dejo. Es de Mirna. Con Mirna no se discute.', 'Goreth me arregló la azada. Gratis. Hmph. Sus calabazas siguen siendo normalitas.']);
+      if (hecho(ctx, 'PRADERA_SEC_CERCA_4') && Math.random() < 0.5) return pick(['Margarita viene a comerse mi cerca y yo la dejo. Es de Mirna. Con Mirna no se discute.', 'Goreth me arregló la azada. Gratis. Hmph. Sus calabazas siguen siendo normalitas.']);
+      if (conBruno(ctx)) return pick([
+        '¡Mi cómplice! Goreth todavía pregunta quién fue. Yo silbo y miro las nubes.',
+        'Pasa, pasa. Para ti siempre hay pan. Para el herrero, no.',
+        'Si algún día necesitas una cerca, una calabaza o una coartada, ya sabes dónde vivo.',
+      ]);
+      if (conGoreth(ctx)) return pick([
+        'Hmph. El chismoso. Te conté mi plan y fuiste corriendo a contárselo al herrero.',
+        'Mi cerca no te habla. Yo tampoco. …Bueno, un poco. Pero enojado.',
+        '¿Qué miras? ¿Vienes a ver si hay algo más que contarle a Goreth?',
+      ]);
       return night
         ? pick(['¿No duermes? Yo tampoco. Ese yunque no para ni de noche.', 'Vigilo mi cerca. Por si acaso.'])
         : pick(['¿Qué miras? Es una cerca. Una cerca normal.', 'Si vienes de parte de Goreth, ya te puedes ir.']);
@@ -929,6 +956,8 @@ export const DIALOGUES = {
       const { mark } = ctx;
       if (mark === '?') return '¿Y bien? ¿Lo encontraste? ¿Está entero? ¿Está gordo? ¡Dime algo!';
       if (mark === '!') return '¡Tú! ¡Por fin una cara conocida! Tengo un problema. Bueno, dos. Uno tiene cuatro patas.';
+      // el epílogo: se enteró del final
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return pick(['Me contaron que salvaste el mundo. Yo salvé a Trueno de una gaviota. Cada uno hace lo que puede.', '¿Tú eres el del Pilar? ¿El mismo que me encontró el caballo? ¡Con razón lo encontraste!']);
       if (enFase(ctx.fase, 'VOLCAN_SEC_TRUENO@4+')) return '¿Ese es…? ¡ES ÉL! ¡Trueno, bribón! No, no, no lo sueltes, que se me escapa otra vez.';
       if (enCurso(ctx, 'VOLCAN_SEC_TRUENO')) return '¿Lo viste? Gris, mancha blanca, cara de no haber hecho nada. Si huele a trigo quemado, va por ahí.';
       if (hecho(ctx, 'VOLCAN_SEC_TRUENO')) return pick(['Trueno ya no se escapa. Le compré unas herraduras de basalto. Ahora no puede correr: pesan una tonelada.', 'Los dracónidos dicen que Trueno es el primer caballo que pisa Ascuaria. Está insoportable de orgulloso.']);

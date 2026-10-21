@@ -91,7 +91,12 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
         openWindow?.('mi_puesto');
         return;
       }
-      if (it.is_scroll) {
+      if (it.code?.startsWith('SOBRE_')) {
+        // sobre de cartas de una zona: se abre y da tres cartas de sus monstruos (gprback/lib/huevos.js)
+        const r = await api.abrirSobre(player.id, it.item_id, token);
+        audio.sfx('descubrir');
+        setMessage({ ok: true, text: `🃏 ${r.message} Míralas en la Colección (K).` });
+      } else if (it.is_scroll) {
         // pergamino de receta: se lee y enseña a fabricar su set (se busca en el Taller, tecla U)
         if (it.recipe_already_learned) {
           setMessage({ ok: false, text: 'Ya conoces todas las recetas de este pergamino.' });
@@ -127,6 +132,7 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
   const hintFor = (it) => {
     if (it.is_quest_item) return 'Objeto de misión: no se vende ni se regala. Se va al entregar o abandonar la misión.';
     if (it.code === 'MUNECO_DE_VENTA') return 'Clic derecho: armar tu puesto';
+    if (it.code?.startsWith('SOBRE_')) return 'Clic derecho: abrir el sobre (tres cartas)';
     if (it.is_scroll) return it.recipe_already_learned ? 'Ya conoces todas sus recetas' : 'Clic derecho: leer el pergamino (aprendes sus recetas)';
     if (it.item_type === 'EQUIPMENT') return 'Clic derecho: equipar';
     if (it.item_type === 'CONSUMABLE' && !NO_GENERIC_USE.has(it.code)) return 'Clic derecho: usar';

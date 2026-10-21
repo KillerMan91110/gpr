@@ -76,6 +76,8 @@ export const DIALOGUES_COSTAS = {
       const { mark } = ctx;
       if (mark === '?') return '¿Y? ¿Y? ¿Qué pasó? ¡Cuéntame todo!';
       if (mark === '!') return hecho(ctx, 'COSTAS_HISTORIA_09_ALIANZA') ? 'Oye… ¿puedo pedirte un favor? Uno raro. Uno del corazón.' : '¡Eh! ¡Tengo una misión! Bueno, la tiene el capitán. Pero yo te aviso.';
+      // el final (R13): peleó a tu lado frente al Pilar, en la primera grieta
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return pick(['¡Peleé con el Vigía! ¡Contra los hijos de la Sombra! Anka dice que ahora mi yelmo es menos ridículo. Un poco menos.', 'Bastida escribió el artículo noventa y uno: «Tilo puede contar lo del Pilar solo una vez por día». Lo cuento dos.']);
       if (hecho(ctx, 'COSTAS_SEC_AMOR_3')) return pick(['Anka viene al muelle los domingos. Hablamos de barcos. Bueno, ella habla y yo me caigo al agua.', '¡Me dijo que sí! ¡Tres veces! Ya te lo conté. Te lo cuento otra vez.']);
       if (hecho(ctx, 'COSTAS_HISTORIA_12_BARCO')) return pick(['¡Hundiste el barco sin bandera! Yo lo vi desde el muelle. Bueno, vi humo. Pero fue increíble.', 'El capitán me dejó usar la campana. ¡La toqué tres veces! Se me cayó el yelmo.']);
       return pick(['Aldren me escribe cada mes. Dice que la Aldea te extraña. Y que me lave las orejas.', 'Desde que me fui de la Aldea crecí un montón. Medio dedo. Pero un montón.', 'Cuido el muelle. Es un trabajo importante. El muelle no se va a ningún lado, pero lo cuido igual.']);
@@ -159,6 +161,8 @@ export const DIALOGUES_COSTAS = {
       const { mark } = ctx;
       if (mark === '?') return '¿Lo encontraste? ¿Está mojado? ¿Está contento? ¿Está mojado Y contento?';
       if (mark === '!') return '¡Tú otra vez! ¿Adivinas qué pasó? Exacto. Trueno.';
+      // el epílogo: se enteró del final
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return pick(['Me contaron que salvaste el mundo. Yo salvé a Trueno de una gaviota. Cada uno hace lo que puede.', 'Trueno relinchó toda la noche del ritual. Mirando al este. Ese caballo sabe cosas.']);
       if (enCurso(ctx, 'COSTAS_SEC_TRUENO')) return 'Gris, mancha blanca, huele a algas. Si lo ves subido a un barco, es él. Ningún otro caballo es tan tonto.';
       if (hecho(ctx, 'COSTAS_SEC_TRUENO')) return pick(['Trueno ahora nada todas las mañanas. Dice Ondina que mejor que un tritón. Yo lo miro desde la orilla.', 'Volcán, montaña y mar. Este caballo conoce más Etheria que yo. Y yo soy cochero.']);
       return pick(['Bajé la Bajada de Basalto detrás de Trueno. Él, saltando. Yo, rodando.', '¿Sabes que aquí no hay caminos para la diligencia? Hay muelles. Los muelles no me sirven.']);
@@ -207,6 +211,8 @@ export const DIALOGUES_COSTAS = {
       const { mark } = ctx;
       if (mark === '?') return '¿Y bien? Cuéntamelo como se cuentan las cosas en un barco: con exageraciones.';
       if (mark === '!') return 'Tengo trabajo para ti. Del bueno. Del que da miedo.';
+      // el final (R13): peleó a tu lado en la segunda grieta
+      if (hecho(ctx, 'RUINAS_HISTORIA_13_RITUAL')) return pick(['Pelear en tierra firme, en una plaza, sin barco. Lo que hago por ti.', 'Galleta le picoteó el ojo a esa cosa, el Ojo Errante. Ahora se cree un héroe. El loro, digo. Yo ya lo era.']);
       if (hecho(ctx, 'COSTAS_Q3_BESTIA_PROFUNDIDADES')) return pick(['La Bestia canta de nuevo. ¿La oyes? Esa canción la escuché de niño. Pensé que no la iba a oír nunca más.', 'El Encapuchado huyó al norte, hacia el hielo. Cuando se abra el paso, La Gaviota Insolente te lleva. Gratis. Bueno, casi.']);
       if (hecho(ctx, 'COSTAS_HISTORIA_12_BARCO')) return pick(['El barco sin bandera está en el fondo. Diez años esperando esto. Sabe raro. Sabe bien.', 'Ahora queda la Bestia. Y el faro. Bartolo te está esperando: el viejo no duerme desde que le robaron la luz.']);
       return pick(['La Gaviota Insolente está lista para zarpar. Yo también. Tú, no sé.', 'Bastida me devolvió el sable. Lo había guardado en un cajón, con una etiqueta. «Sable de pirata. Peligroso.» Me emocioné.']);

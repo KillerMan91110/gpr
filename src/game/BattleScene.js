@@ -3,7 +3,7 @@ import bus from './bus';
 import audio from './audio';
 import { ELEMENTS } from './elements';
 import { DOT_STATUS, STATUS_ICONS, statusesOf } from './statuses';
-import { preloadGear, gearTexture, bodyTexture } from './battleGear';
+import { preloadGear, gearTexture, bodyTexture, bodyTextureSet, ALLY_SETS } from './battleGear';
 import { splitHits } from './combatLog';
 
 // Escena de combate estilo Octopath (2.5D): fondo en capas con parallax y desenfoque, héroes a la
@@ -320,7 +320,9 @@ export default class BattleScene extends Phaser.Scene {
     const gear = p.gear;
     const weaponTex = (gear?.weapon && gearTexture(this, gear.weapon, 'weapon')) || `w_${CLASS_WEAPON[cls]}`;
     const offhandTex = gear?.offhand ? gearTexture(this, gear.offhand, 'offhand') : null;
-    const bodyTex = gear ? bodyTexture(this, cls, gear.armor) : `b_${cls}`;
+    // los aliados del final (sin jugador ni compañero detrás) se visten con los colores de su gente
+    const allySet = !p.player_id && !p.npc_id && !p.is_summon && ALLY_SETS[p.name];
+    const bodyTex = gear ? bodyTexture(this, cls, gear.armor) : allySet ? bodyTextureSet(this, cls, allySet) : `b_${cls}`;
     [weaponTex, offhandTex, bodyTex].forEach((t) => t && this.makeUnitAnims(t));
     const showWeapon = gear ? !!gear.weapon : (!this.isMyHero(p) || this.heroHasWeapon);
     const shadow = this.shadow(slot.x, slot.y, 34);

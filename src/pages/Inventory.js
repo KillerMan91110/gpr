@@ -230,6 +230,22 @@ export default function Inventory() {
     }
   }
 
+  // sobre de cartas de una zona: se abre y da tres cartas de sus monstruos
+  async function handleOpenSobre(itemId) {
+    setError('');
+    setMessage('');
+    setBusyId(`sobre-${itemId}`);
+    try {
+      const res = await api.abrirSobre(player.id, itemId, token);
+      setMessage(`${res.message} Míralas en la Colección.`);
+      await loadAll();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function handleUseScroll(itemId) {
     setError('');
     setBusyId(`scroll-${itemId}`);
@@ -519,6 +535,15 @@ export default function Inventory() {
                     <Link to="/pets" className="rpg-button equipment-action">
                       <GameIcon name="paw-print" artist="lorc" /> Incubar
                     </Link>
+                  )}
+                  {item.code?.startsWith('SOBRE_') && (
+                    <button
+                      className="rpg-button equipment-action"
+                      disabled={!!busyId}
+                      onClick={() => handleOpenSobre(item.item_id)}
+                    >
+                      {busyId === `sobre-${item.item_id}` ? 'Abriendo...' : 'Abrir sobre'}
+                    </button>
                   )}
                   {item.item_type === 'CONSUMABLE' && !NO_GENERIC_USE.has(item.code) && (
                     <button

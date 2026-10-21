@@ -77,7 +77,7 @@ export default function PetsPanel({ onChanged, onClose, zIndex, onActivate, defa
   }, [message]);
 
   const eggs = inventory.filter((i) => i.code?.startsWith('HUEVO_') && i.quantity > 0);
-  const food = inventory.filter((i) => i.item_type === 'MATERIAL' && !i.code?.startsWith('HUEVO_') && i.quantity > 0);
+  const food = inventory.filter((i) => i.item_type === 'MATERIAL' && !i.code?.startsWith('HUEVO_') && !i.code?.startsWith('SOBRE_') && i.quantity > 0);
   const stone = inventory.find((i) => i.code === 'PIEDRA_TRASCENDENCIA' && i.quantity > 0);
   const sorted = useMemo(() => [...(pets ?? [])].sort((a, b) => Number(b.is_active) - Number(a.is_active) || b.level - a.level), [pets]);
   const pet = sorted.find((p) => p.id === selId) ?? sorted[0] ?? null;
