@@ -53,6 +53,8 @@ export default function IncubatorAlert() {
   if (!isAuthenticated || !player) return null;
   if (location.pathname === '/login' || location.pathname === '/register') return null;
   if (location.pathname === '/pets') return null;
+  // en el mundo no: ahí el huevo se ve y se eclosiona en la ventana de Mascotas
+  if (location.pathname.startsWith('/mundo')) return null;
   if (!incubator?.ready) return null;
 
   const inCombat = isCombatInProgress(getActiveCombat());

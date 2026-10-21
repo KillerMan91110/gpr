@@ -1205,6 +1205,12 @@ export default class WorldScene extends Phaser.Scene {
     if (sig === this.lastReportSig) return;
     this.lastReportSig = sig;
     bus.emit('hero-moved', msg);
+    // y queda guardada para que al recargar (F5) aparezcas donde estabas, no en el último combate o viaje
+    // (src/pages/World.js la lee al arrancar). Dentro de una mazmorra no: ahí se vuelve a la entrada.
+    if (!this.crypt && (!moving || time - (this.lastPosSave ?? 0) > 1000)) {
+      this.lastPosSave = time;
+      try { sessionStorage.setItem('mundo_posicion_v2', JSON.stringify(pos)); } catch { /* sin guardar */ }
+    }
   }
 
   // niveles de la subzona que contiene el punto (la primera de la lista que lo contenga)
