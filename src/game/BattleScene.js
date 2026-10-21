@@ -349,7 +349,9 @@ export default class BattleScene extends Phaser.Scene {
     const offhand = offhandTex ? this.add.sprite(slot.x, slot.y, offhandTex, 0).setOrigin(22 / 48, 46 / 48).setScale(UNIT_SCALE).setDepth(slot.y + 0.6) : null;
     const unit = {
       pid: p.id, side: 'PLAYER', kind: 'hero', cls, weaponTex, bodyTex, offhandTex, body, weapon, offhand, shadow,
-      home: { ...slot }, alive: p.hp > 0, ranged: cls === 'arquero', maxHp: p.max_hp, name: p.name,
+      // a distancia solo con arco o ballesta en la mano (un arquero sin arco pelea cuerpo a cuerpo)
+      home: { ...slot }, alive: p.hp > 0, ranged: cls === 'arquero' && (gear ? /^(Arco|Ballesta)\b/i.test(gear.weapon?.name ?? '') : true),
+      maxHp: p.max_hp, name: p.name,
       elementCode: p.element_code ?? null, imbued: p.imbued_element_code ?? null, resistances: {},
     };
     this.units.set(p.id, unit);
@@ -681,13 +683,13 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
     // las notas de las mecánicas (gprback/lib/mecanicas.js): un texto, sin animación de habilidad
-    const nota = (log.description ?? '').match(/(contraataca a|recibe el golpe y se deshace|se niega a caer|se rompe\.|por su juramento|sentencia quema|no dejan moverse|El hielo no deja moverse|se cobra la presa|La plaga salta)/);
+    const nota = (log.description ?? '').match(/(contraataca a|recibe el golpe y se deshace|se niega a caer|se rompe\.|por su juramento|sentencia quema|no puede moverse y pierde|El hielo no deja moverse|se cobra la presa|La plaga salta)/);
     if (nota && log.action === 'SKILL' && !/ usa /.test(log.description ?? '')) {
       const u = target ?? actor;
       const TEXTO = {
         'contraataca a': ['¡Contragolpe!', '#ffc06a'], 'recibe el golpe y se deshace': ['¡Clon!', '#b8a8e8'], 'se niega a caer': ['¡Último aliento!', '#c8a8ff'],
         'se rompe.': ['Barrera rota', '#ffe48a'], 'por su juramento': ['Juramento', '#8fc9ff'], 'sentencia quema': [log.damage ? `${log.damage}` : 'Sentencia', '#ffe9a0'],
-        'no dejan moverse': ['Atrapado', '#9ad06a'], 'El hielo no deja moverse': ['Congelado', '#bfeaff'], 'se cobra la presa': ['¡Presa!', '#ff7a5a'],
+        'no puede moverse y pierde': ['Atrapado', '#9ad06a'], 'El hielo no deja moverse': ['Congelado', '#bfeaff'], 'se cobra la presa': ['¡Presa!', '#ff7a5a'],
         'La plaga salta': ['Plaga', '#a8e05a'],
       }[nota[1]];
       if (u && TEXTO) {

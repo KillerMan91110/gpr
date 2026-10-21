@@ -22,6 +22,8 @@ const STATS = {
 };
 
 const BUFF = { color: '#ffd84a', hex: 0xffd84a };
+// las estadísticas femeninas (para decir «Velocidad aumentada» y no «aumentado»)
+const FEMENINAS = new Set(['DEF', 'MAG', 'MAGIC_DEF', 'SPD', 'EVASION', 'CRIT_CHANCE', 'HEAL_BONUS', 'HP']);
 
 // Estados con nombre propio (combat_participant_buffs.status_code): todas las filas de un mismo
 // estado se muestran como un solo ícono (la quemadura es daño por turno + menos ataque).
@@ -176,7 +178,7 @@ export function describeEffect(e) {
   // el valor ya viene con signo (negativo = reducido); el flag solo desempata el 0
   const up = e.amount > 0 || (e.amount === 0 && !e.debuff);
   return {
-    key: `${code}_${up ? 'UP' : 'DOWN'}`, kind: up ? 'buff' : 'debuff', name: `${stat.name} ${up ? 'aumentado' : 'reducido'}`,
+    key: `${code}_${up ? 'UP' : 'DOWN'}`, kind: up ? 'buff' : 'debuff', name: `${stat.name} ${up ? 'aumentad' : 'reducid'}${FEMENINAS.has(code) ? 'a' : 'o'}`,
     short: `${stat.short} ${up ? '↑' : '↓'}`, icon: stat.icon, ...(up ? BUFF : DEBUFF),
     detail: `${e.amount > 0 ? '+' : ''}${e.amount} ${stat.name.toLowerCase()}${turns}${from}`,
   };

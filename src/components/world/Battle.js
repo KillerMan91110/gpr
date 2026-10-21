@@ -808,8 +808,8 @@ Se puede usar cada ${s.cooldownRounds} rondas.` : '';
                     key={s.id}
                     type="button"
                     className="bt-sub"
-                    disabled={!s.supported || noMana || waitRounds > 0}
-                    title={s.supported ? `${s.description ?? ''}${reload}` : s.unsupportedReason}
+                    disabled={!s.supported || noMana || waitRounds > 0 || s.armaOk === false}
+                    title={!s.supported ? s.unsupportedReason : s.armaOk === false ? s.armaMotivo : `${s.description ?? ''}${reload}`}
                     onClick={() => pickSkill(s)}
                   >
                     <span className="bt-sub-name">
@@ -819,9 +819,11 @@ Se puede usar cada ${s.cooldownRounds} rondas.` : '';
                         <em className="bt-tag bt-tag--weak" title="Algún enemigo es débil a este elemento">▲</em>
                       )}
                     </span>
-                    {waitRounds > 0
-                      ? <small className="bt-nomana" title="Rondas para poder usarla otra vez">⌛ {waitRounds}</small>
-                      : <small className={noMana ? 'bt-nomana' : ''}>{s.manaCost} MP</small>}
+                    {s.armaOk === false
+                      ? <small className="bt-nomana" title={s.armaMotivo}>Falta {s.armaNombre?.toLowerCase()}</small>
+                      : waitRounds > 0
+                        ? <small className="bt-nomana" title="Rondas para poder usarla otra vez">⌛ {waitRounds}</small>
+                        : <small className={noMana ? 'bt-nomana' : ''}>{s.manaCost} MP</small>}
                   </button>
                 );
               })}

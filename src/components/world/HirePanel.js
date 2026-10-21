@@ -9,7 +9,7 @@ import './MarketPanel.css';
 
 // Contratar aventureros del gremio, dentro del mundo (antes era la pantalla /guild/adventurers
 // metida en un marco). Mismos endpoints: pool del gremio, refrescar (gratis cada tanto) y contratar.
-const STATS = [['HP', 'hp'], ['MP', 'mana'], ['ATK', 'atk'], ['DEF', 'def'], ['INT', 'int'], ['MDEF', 'magicDef'], ['SPD', 'spd'], ['CRIT', 'crit', '%']];
+const STATS = [['HP', 'hp'], ['MP', 'mana'], ['ATK', 'atk'], ['DEF', 'def'], ['MAG', 'int'], ['MDEF', 'magicDef'], ['SPD', 'spd'], ['CRIT', 'crit', '%']];
 
 function clock(secs) {
   const m = Math.floor(secs / 60);

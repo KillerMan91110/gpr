@@ -153,7 +153,7 @@ export const DIALOGUES = {
     ],
     greet: ({ night }) => (night
       ? pick(['¿A estas horas? Bueno, para un buen cliente la tienda nunca cierra.', 'Los artesanos ya duermen, pero yo me encargo de sus encargos. ¿Qué buscas?'])
-      : pick(['¡Bienvenido! Hierbas frescas, esencias y materiales de los mejores artesanos del gremio.', 'Si traes botín de tus cacerías, te lo compro a buen precio. Palabra de mercader.'])),
+      : pick(['¡Adelante! Hierbas frescas, esencias y materiales de los mejores artesanos del gremio.', 'Si traes botín de tus cacerías, te lo compro a buen precio. Palabra de mercader.'])),
     options: () => [
       { label: 'Comerciar', window: 'artesanos' },
       { label: '¿Qué vale la pena recolectar?', next: 'recolectar' },
@@ -176,7 +176,7 @@ export const DIALOGUES = {
     ],
     greet: ({ night }) => (night
       ? pick(['Shh… los muñecos duermen, pero yo no. ¿Quieres uno?', 'De noche cosen mejor los ojitos. ¿Te llevas un muñeco?'])
-      : pick(['¡Hola, hola! ¿Tienes cosas que vender y poco tiempo? Mis muñecos atienden tu puesto por ti.', '¡Bienvenido al taller de Pip! Cada muñeco que hago es un vendedor incansable.'])),
+      : pick(['¡Hola, hola! ¿Tienes cosas que vender y poco tiempo? Mis muñecos atienden tu puesto por ti.', '¡Te doy la bienvenida al taller de Pip! Cada muñeco que hago es un vendedor incansable.'])),
     options: () => [
       { label: 'Comprar un Muñeco de Venta (200 de oro)', action: 'muneco' },
       { label: '¿Cómo funcionan?', next: 'como' },
@@ -206,7 +206,7 @@ export const DIALOGUES = {
       if (hecho(ctx, 'PRADERA_SEC_CERCA_4') && Math.random() < 0.5) return pick(['Margarita ya tiene corral. Con candado. Con DOS candados. Igual se escapa.', 'Bruno y Goreth almorzaron juntos ayer. No se hablaron, pero almorzaron. Es un comienzo.']);
       return night
         ? pick(['¿Tan tarde? Bueno, la tienda de una aldea nunca cierra del todo.', 'Los grillos y yo, siempre despiertos. ¿Qué buscas?'])
-        : pick(['¡Bienvenido a la Aldea Espiga! Tengo hierbas, pociones y lo que traen los artesanos de la capital.', 'Si traes botín de tus cacerías, te lo compro. Palabra de Mirna.']);
+        : pick(['¡Te doy la bienvenida a la Aldea Espiga! Tengo hierbas, pociones y lo que traen los artesanos de la capital.', 'Si traes botín de tus cacerías, te lo compro. Palabra de Mirna.']);
     },
     options: () => [
       { label: 'Comerciar', window: 'artesanos' },
@@ -385,7 +385,7 @@ export const DIALOGUES = {
       if (hecho(ctx, 'PRADERA_HISTORIA_05_MOLINO')) return pick(['¡Los cuatro engranajes en su sitio! Gira, gira, rueda… como debe ser.', 'Desde que me devolviste los engranajes no paro de moler. Harina para todo el Festival.']);
       return night
         ? pick(['De noche el molino descansa. Yo no: cuento los sacos.', 'Escucha el viento entre las aspas. Es la mejor canción de la Pradera.'])
-        : pick(['Bienvenido a la Colina del Molino. Si traes trigo, sales con harina.', 'Sin este molino, la aldea no tendría pan. Ni yo trabajo, claro.']);
+        : pick(['Te doy la bienvenida a la Colina del Molino. Si traes trigo, sales con harina.', 'Sin este molino, la aldea no tendría pan. Ni yo trabajo, claro.']);
     },
     options: () => [
       { label: '¿Cómo se hace el pan?', next: 'pan' },
@@ -415,7 +415,7 @@ export const DIALOGUES = {
       if (hecho(ctx, 'PRADERA_HISTORIA_06_RAICES')) return pick(['El roble viejo echó una hoja nueva. Una sola. Pero verde.', 'Desde que le untaste el ungüento, el bosque suena distinto. Mejor.']);
       return night
         ? pick(['De noche el bosque cruje distinto. Quédate cerca del fuego.', 'No duermo bien desde que los jabalíes enloquecieron.'])
-        : pick(['Bienvenido al campamento de leñadores. Cuidado con el tronco, que no es asiento.', 'Si buscas madera de roble, la que cae sola es la mejor.']);
+        : pick(['Te doy la bienvenida al campamento de leñadores. Cuidado con el tronco, que no es asiento.', 'Si buscas madera de roble, la que cae sola es la mejor.']);
     },
     options: (ctx) => [
       { label: '¿Qué le pasa al bosque?', next: hecho(ctx, 'PRADERA_HISTORIA_06_RAICES') ? 'bosque_despues' : 'bosque' },
@@ -446,7 +446,7 @@ export const DIALOGUES = {
       if (hecho(ctx, 'MONTANAS_SEC_BARBA') && Math.random() < 0.5) return pick(['¿Qué miras? Es azul. Los enanos importantes llevan la barba azul. Desde ahora.', 'Hilda dice que la boda es en primavera. Yo digo que en invierno, que hay menos trabajo. Va a ser en primavera.']);
       return night
         ? pick(['De noche los rayos caen más cerca. Duerme con un ojo abierto.', 'Hmph. Otro que no duerme. Yo tampoco, desde que la mina se volvió loca.'])
-        : pick(['Bienvenido al Bastión de Hierro. No toques nada que brille.', 'Si vienes a cavar, cava. Si vienes a mirar, mira desde lejos.']);
+        : pick(['Te doy la bienvenida al Bastión de Hierro. No toques nada que brille.', 'Si vienes a cavar, cava. Si vienes a mirar, mira desde lejos.']);
     },
     options: () => [
       { label: '¿Qué pasa en la mina?', next: 'mina' },
@@ -552,7 +552,7 @@ export const DIALOGUES = {
       if (hecho(ctx, 'MONTANAS_SEC_CABRA_REINA')) return pick(['Les dejé el saco de sal en el cruce. Ni una carreta volcada desde entonces. ¡Viva la cabra reina!', 'Pell quiere ir a saludar a la cabra reina. Le dije que primero aprenda a correr.']);
       return night
         ? pick(['De noche no sale ninguna carreta. Los lobos no respetan los horarios.', 'Quédate cerca del fuego, que en el Paso el viento muerde.'])
-        : pick(['Bienvenido a las Montañas Grises. Sigue el camino al este y llegas al Bastión de Hierro.', 'Si ves una carreta volcada, no es mía. Bueno, seguro sí es mía.']);
+        : pick(['Te doy la bienvenida a las Montañas Grises. Sigue el camino al este y llegas al Bastión de Hierro.', 'Si ves una carreta volcada, no es mía. Bueno, seguro sí es mía.']);
     },
     options: () => [
       { label: '¿Qué es este puesto?', next: 'puesto' },
@@ -695,7 +695,7 @@ export const DIALOGUES = {
       if (hecho(ctx, 'MONTANAS_SEC_BIGOTES')) return pick(['¡Bigotes ya espanta sierpes solito! Bueno, las espanta un poco. Y después se esconde.', 'Bigotes creció dos dedos. Mi abuelo estaría orgulloso. O asustado.']);
       return night
         ? pick(['De noche el hielo cruje. A veces parece que alguien camina debajo.', 'El lago brilla de noche. Mi abuelo decía que es el Viejo Bigotes, que lee con linterna.'])
-        : pick(['Bienvenido al Lago Helado. No pises donde el hielo está gris.', 'El lago no se derrite ni en verano. Pero tampoco se congela del todo. Raro, ¿no?']);
+        : pick(['Te doy la bienvenida al Lago Helado. No pises donde el hielo está gris.', 'El lago no se derrite ni en verano. Pero tampoco se congela del todo. Raro, ¿no?']);
     },
     options: () => [
       { label: '¿Quién es el Viejo Bigotes?', next: 'bigotes' },
@@ -803,7 +803,7 @@ export const DIALOGUES = {
     greet: (ctx) => {
       if (ctx.mark === '!') return '¡Psst! Tengo un problema. Uno grande. Uno con forma de olla.';
       if (hecho(ctx, 'MONTANAS_SEC_OLLA')) return pick(['Hilda ya no me mira feo. Bueno, menos feo. Gracias por lo de la olla.', 'Los orcos pasan por el cruce a buscar su guiso y se van. ¡Ni un asalto esta semana!']);
-      return pick(['Bienvenido al Bastión de Hierro. Durgan está en la entrada de la mina, Hilda en la lonja.', 'Los puestos del camino tienen fogata. Si caes en la nieve, despiertas en la última junto a la que descansaste.']);
+      return pick(['Te doy la bienvenida al Bastión de Hierro. Durgan está en la entrada de la mina, Hilda en la lonja.', 'Los puestos del camino tienen fogata. Si caes en la nieve, despiertas en la última junto a la que descansaste.']);
     },
     options: () => [{ label: 'Adiós', close: true }],
     lines: {},
@@ -864,7 +864,7 @@ export const DIALOGUES = {
       if (hecho(ctx, 'PRADERA_SEC_INSCRIPCIONES')) return pick(['Mandé tus tres inscripciones a la Biblioteca. No me creen. La Biblioteca nunca me cree.', 'Releo tus notas cada noche. Fascinante. Y un poco aterrador.']);
       return night
         ? pick(['De noche las inscripciones parecen moverse. Seguro es el cansancio. Seguro.', 'Los esqueletos no me dejan dormir. Ni trabajar. Ni pensar.'])
-        : pick(['Bienvenido a la excavación de la Torre del Vigía, por encargo de la Biblioteca de Aurelia.', 'Cada piedra de estas ruinas cuenta una historia. La mayoría, tristes.']);
+        : pick(['Te doy la bienvenida a la excavación de la Torre del Vigía, por encargo de la Biblioteca de Aurelia.', 'Cada piedra de estas ruinas cuenta una historia. La mayoría, tristes.']);
     },
     options: () => [
       { label: '¿Quiénes eran los Vigías?', next: 'vigias' },
@@ -893,7 +893,7 @@ export const DIALOGUES = {
       if (hecho(ctx, 'PRADERA_SEC_RECUERDO')) return 'Mi hija duerme abrazada a su muñeca. Y yo, por fin, duermo un poco también.';
       return night
         ? pick(['Hacemos guardia por turnos. Las luces del Círculo se ven desde aquí.', 'Los niños preguntan cuándo volvemos a casa. No sé qué decirles.'])
-        : pick(['Bienvenido al campamento. No tenemos mucho, pero el fuego es de todos.', 'Mi granja estaba a una hora de aquí. Ahora es de los lobos.']);
+        : pick(['Te doy la bienvenida al campamento. No tenemos mucho, pero el fuego es de todos.', 'Mi granja estaba a una hora de aquí. Ahora es de los lobos.']);
     },
     options: () => [
       { label: '¿Por qué huyeron?', next: 'huida' },
@@ -1025,7 +1025,7 @@ export const DIALOGUES = {
       if (hecho(ctx, 'VOLCAN_HISTORIA_09_MAESTRO')) return pick(['Yo forjé esos cristales. Sin saberlo, pero los forjé. El fuego no perdona eso. Yo tampoco.', 'Si el Encapuchado vuelve por aquí, que traiga un buen escudo.']);
       return night
         ? pick(['La Gran Forja no duerme. Yo tampoco. Bueno, a veces. Sobre el yunque.', '¿A estas horas? Bien. El metal sale mejor de noche. No sé por qué. Pero sale.'])
-        : pick(['Bienvenido a la Gran Forja. Aquí el fuego viene directo del volcán: ni carbón, ni fuelle, ni excusas.', '¿Esa espada la hizo Brokk? Se nota. Ven, déjame mostrarte lo que es forjar.']);
+        : pick(['Te doy la bienvenida a la Gran Forja. Aquí el fuego viene directo del volcán: ni carbón, ni fuelle, ni excusas.', '¿Esa espada la hizo Brokk? Se nota. Ven, déjame mostrarte lo que es forjar.']);
     },
     options: () => [
       { label: 'Usar la Gran Forja', window: 'taller' },
@@ -1057,7 +1057,7 @@ export const DIALOGUES = {
       if (hecho(ctx, 'VOLCAN_SEC_PICANTE')) return pick(['Mi chile de azufre ya es famoso. Ignar lloró. Dijo que era el humo. No era el humo.', '¿Otra ración de chile? Tú sí que tienes escamas por dentro.']);
       return night
         ? pick(['La parrilla no se apaga ni de noche. La lava la mantiene caliente.', 'Siéntate. A esta hora todo sabe mejor.'])
-        : pick(['¡Bienvenido a la mejor parrilla de Etheria! También es la única de Ascuaria, pero eso no importa.', 'Tráeme carne de salamandra, colas o lo que tenga escamas y te preparo algo que te dure todo el camino.']);
+        : pick(['¡Te doy la bienvenida a la mejor parrilla de Etheria! También es la única de Ascuaria, pero eso no importa.', 'Tráeme carne de salamandra, colas o lo que tenga escamas y te preparo algo que te dure todo el camino.']);
     },
     options: () => [
       { label: 'Cocinar', window: 'taller' },
@@ -1114,7 +1114,7 @@ export const DIALOGUES = {
       if (hecho(ctx, 'VOLCAN_SEC_OLOR')) return pick(['Ahora huelo a flor de ceniza. Ascalia me dejó entrar al pueblo. ¡Por primera vez en diez años!', 'El perfume funciona. Tuli dice que todavía huelo a huevo. Pero a huevo fresco.']);
       return night
         ? pick(['De noche las fumarolas brillan. Es precioso. Y tóxico. Pero precioso.', 'No duermo mucho. Las pociones no se vigilan solas.'])
-        : pick(['Bienvenido a mi laboratorio. Todo el campo es mi laboratorio. Y mi casa. Y mi jardín.', 'Las fumarolas dan el mejor azufre de Etheria. Si las picas con cuidado.']);
+        : pick(['Te doy la bienvenida a mi laboratorio. Todo el campo es mi laboratorio. Y mi casa. Y mi jardín.', 'Las fumarolas dan el mejor azufre de Etheria. Si las picas con cuidado.']);
     },
     options: () => [
       { label: '¿Para qué sirve el azufre?', next: 'azufre' },
@@ -1199,7 +1199,7 @@ export const DIALOGUES = {
       if (hecho(ctx, 'VOLCAN_HISTORIA_09_MAESTRO')) return pick(['Los gólems ya no se despiertan solos. El Maestro de la Lava los llamaba. Ya no llama a nadie.', 'Ignar forjó esos cristales sin saberlo. No me alegro. Bueno, un poquito.']);
       return night
         ? pick(['De noche la obsidiana refleja la lava. Parece que la cantera arde por dentro.', 'No tallo de noche. Solo miro. La piedra te dice dónde cortar.'])
-        : pick(['Bienvenido a la Cantera de Obsidiana. No toques los bordes. No te lo repito.', 'Cada pieza de obsidiana tiene un filo escondido. Mi trabajo es encontrarlo.']);
+        : pick(['Te doy la bienvenida a la Cantera de Obsidiana. No toques los bordes. No te lo repito.', 'Cada pieza de obsidiana tiene un filo escondido. Mi trabajo es encontrarlo.']);
     },
     options: () => [
       { label: '¿Qué es la obsidiana?', next: 'obsidiana' },
@@ -1228,7 +1228,7 @@ export const DIALOGUES = {
       if (!hecho(ctx, 'VOLCAN_HISTORIA_03_PUERTAS')) return 'Un forastero. Mmm. Ascalia no te dejó entrar todavía, pero el oro no tiene escamas. ¿Qué traes?';
       return night
         ? pick(['¿A estas horas? Para un buen cliente el puesto no cierra nunca.', 'De noche se vende poco y se cuenta mucho. ¿Vienes a vender o a comprar?'])
-        : pick(['Bienvenido a mi puesto. Si viene del Volcán, te lo compro; si lo necesitas para el camino, te lo vendo.', 'Las caravanas de Aurelia me traen hierbas, aceite y carbón. Lo que te falte, pregúntame.']);
+        : pick(['Te doy la bienvenida a mi puesto. Si viene del Volcán, te lo compro; si lo necesitas para el camino, te lo vendo.', 'Las caravanas de Aurelia me traen hierbas, aceite y carbón. Lo que te falte, pregúntame.']);
     },
     options: () => [
       { label: 'Comerciar', window: 'artesanos' },

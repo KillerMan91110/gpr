@@ -225,7 +225,7 @@ export default function ChatBox() {
     }
     async function poll() {
       try {
-        setGuild(await api.getMyGuild(token));
+        setGuild(await api.getMyGuildOpcional(token));
       } catch {
         setGuild(null);
       }

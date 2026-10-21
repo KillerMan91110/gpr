@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 const ROWS = [
   ['maxHp', 'Vida'], ['maxMana', 'Maná'], ['atk', 'Ataque'], ['def', 'Defensa'],
-  ['int', 'Inteligencia'], ['magicDef', 'Defensa mágica'], ['spd', 'Velocidad'],
+  ['int', 'Magia'], ['magicDef', 'Defensa mágica'], ['spd', 'Velocidad'],
 ];
 
 // Cartel de subida de nivel: el número nuevo en grande, lo que subió cada estadística y las habilidades que se

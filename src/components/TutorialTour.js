@@ -7,8 +7,8 @@ import GameIcon from './GameIcon';
 const STEPS = [
   {
     icon: { name: 'fleur-de-lys', artist: 'delapouite' },
-    title: '¡Bienvenido a Etheria!',
-    body: 'Eres un nuevo aventurero del reino. Te muestro rápido qué puedes hacer — puedes saltear esto cuando quieras.',
+    title: '¡Te damos la bienvenida a Etheria!',
+    body: 'Acabas de llegar al reino. Te muestro rápido qué puedes hacer — puedes saltarlo cuando quieras.',
   },
   {
     icon: { name: 'compass', artist: 'lorc' },

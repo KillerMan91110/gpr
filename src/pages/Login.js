@@ -17,7 +17,7 @@ export default function Login() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate('/');
+      navigate('/mundo');
     } catch (err) {
       setError(err.message);
     } finally {

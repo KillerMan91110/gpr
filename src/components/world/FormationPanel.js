@@ -8,7 +8,7 @@ import { CLASS_ICON } from '../../utils/classIcons';
 import { getAbyssCheckpoint } from '../../utils/abyssCheckpoint';
 
 const STATS = [
-  ['hp', 'PV'], ['mana', 'PM'], ['atk', 'ATQ'], ['def', 'DEF'], ['int', 'INT'],
+  ['hp', 'PV'], ['mana', 'PM'], ['atk', 'ATQ'], ['def', 'DEF'], ['int', 'MAG'],
   ['magicDef', 'DMAG'], ['spd', 'VEL'], ['crit', 'CRIT', '%'],
 ];
 

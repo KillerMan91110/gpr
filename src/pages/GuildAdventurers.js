@@ -10,7 +10,7 @@ const NPC_STATS = [
   { label: 'MP',   key: 'mana' },
   { label: 'ATK',  key: 'atk' },
   { label: 'DEF',  key: 'def' },
-  { label: 'INT',  key: 'int' },
+  { label: 'MAG',  key: 'int' },
   { label: 'MDEF', key: 'magicDef' },
   { label: 'SPD',  key: 'spd' },
   { label: 'CRIT',     key: 'crit',       suffix: '%' },

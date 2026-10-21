@@ -36,7 +36,7 @@ export const SKILL_TYPE_ICONS = {
   ESPECIAL: { name: 'sparkles', artist: 'delapouite' },
 };
 const STAT_LABELS = {
-  ATK: 'ATK', DEF: 'DEF', MAG: 'INT', MAGIC_DEF: 'DEF MAG', SPD: 'SPD',
+  ATK: 'ATK', DEF: 'DEF', MAG: 'MAG', MAGIC_DEF: 'DEF MAG', SPD: 'SPD',
   CRIT_CHANCE: 'CRIT', CRIT_DAMAGE: 'CRIT DMG', EVASION: 'Evasión', HP: 'HP', LUCK: 'Suerte',
 };
 

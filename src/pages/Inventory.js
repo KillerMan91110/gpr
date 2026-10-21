@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import GameIcon from '../components/GameIcon';
+import { avisoArmas } from '../components/world/itemIcons';
 
 const SLOT_LABELS = {
   WEAPON: 'Arma',
@@ -266,8 +267,9 @@ export default function Inventory() {
     setError('');
     setBusyId(`${itemId}-${enchantLevel}-${qualityTier}`);
     try {
-      await api.equipItem(player.id, itemId, enchantLevel, qualityTier, token);
+      const r = await api.equipItem(player.id, itemId, enchantLevel, qualityTier, token);
       await loadAll();
+      if (r?.avisoArmas?.length) setError(avisoArmas(r.avisoArmas).trim());
     } catch (err) {
       setError(err.message);
     } finally {
@@ -279,8 +281,9 @@ export default function Inventory() {
     setError('');
     setBusyId(slot);
     try {
-      await api.unequipItem(player.id, slot, token);
+      const r = await api.unequipItem(player.id, slot, token);
       await loadAll();
+      if (r?.avisoArmas?.length) setError(avisoArmas(r.avisoArmas).trim());
     } catch (err) {
       setError(err.message);
     } finally {

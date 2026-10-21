@@ -180,7 +180,7 @@ export const DIALOGUES_CATACUMBAS = {
       if (hecho(ctx, 'CATACUMBAS_HISTORIA_05_CATEDRAL')) return pick(['Ya no tengo que pasar por la reja oxidada para subir a la Catedral. Me cambió la vida. Bueno, las rodillas.', 'Elenya bajó a probar mi guiso. Dijo «interesante». Viniendo de una sacerdotisa, es un elogio.']);
       return pick([
         'Soy Ilse. Cuido las tumbas de la Catedral desde abajo. Alguien tiene que barrer, aunque sea a los muertos.',
-        'Bienvenido a la única cocina de Vela Eterna. Siéntate. Los Velados solo vienen a oler.',
+        'Te doy la bienvenida a la única cocina de Vela Eterna. Siéntate. Los Velados solo vienen a oler.',
       ]);
     },
     options: () => [
@@ -202,7 +202,7 @@ export const DIALOGUES_CATACUMBAS = {
       if (hecho(ctx, 'CATACUMBAS_SEC_RELIQUIAS_2')) return pick(['Los Velados ahora me saludan. Es incómodo. Prefería cuando me miraban mal.', 'Devolví tres cosas esta semana. Tres. Me estoy volviendo blando.']);
       if (hecho(ctx, 'CATACUMBAS_SEC_RELIQUIAS_1')) return pick(['Le devolviste el relicario a Liora. Bien hecho. Lo digo en serio, aunque me duela el bolsillo.', 'Liora me sonrió ayer. Creo. Es difícil saber con la luz.']);
       return pick([
-        'Bienvenido al puesto de Hollin. Reliquias, amuletos, cosas brillantes. Todo con garantía. La garantía es mi palabra.',
+        'Te doy la bienvenida al puesto de Hollin. Reliquias, amuletos, cosas brillantes. Todo con garantía. La garantía es mi palabra.',
         'Bajé a saquear una tumba hace quince años. Me perdí. Me encontraron los Velados. Me quedé. Ahora vendo.',
       ]);
     },

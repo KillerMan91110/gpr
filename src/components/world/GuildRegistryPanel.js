@@ -23,7 +23,7 @@ export default function GuildRegistryPanel({ id, tab: startTab = 'unirse', gold,
   const [message, setMessage] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const loadMine = useCallback(() => api.getMyGuild(token).then(setMine).catch(() => setMine(null)), [token]);
+  const loadMine = useCallback(() => api.getMyGuildOpcional(token).then(setMine).catch(() => setMine(null)), [token]);
   const loadList = useCallback((q) => api.getGuilds(token, q).then(setGuilds).catch((e) => setMessage({ ok: false, text: e.message })), [token]);
   useEffect(() => { loadList(''); }, [loadList]);
   // también al cambiar algo en otra ventana (p. ej. salir del gremio desde G)

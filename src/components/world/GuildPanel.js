@@ -84,7 +84,7 @@ export default function GuildPanel({ onClose, zIndex, onActivate, defaultPos, op
   const [buy, setBuy] = useState({ item: '', qty: 1, to: '' });
 
   const loadGuild = useCallback(async () => {
-    const g = await api.getMyGuild(token).catch(() => null);
+    const g = await api.getMyGuildOpcional(token).catch(() => null);
     setGuild(g);
     if (g && (g.myRole === 'LEADER' || g.myRole === 'OFFICER')) {
       setRequests(await api.getGuildRequests(token, g.id).catch(() => []));

@@ -117,7 +117,7 @@ export const RARITY_LABELS = {
 export const TYPE_LABELS = { EQUIPMENT: 'Equipo', CONSUMABLE: 'Consumible', MATERIAL: 'Material' };
 
 export const STAT_LABELS = {
-  ATK: 'Ataque', DEF: 'Defensa', MAG: 'Inteligencia', MAGIC_DEF: 'Defensa mágica', SPD: 'Velocidad',
+  ATK: 'Ataque', DEF: 'Defensa', MAG: 'Magia', MAGIC_DEF: 'Defensa mágica', SPD: 'Velocidad',
   CRIT_CHANCE: 'Prob. de crítico', CRIT_DAMAGE: 'Daño crítico', EVASION: 'Evasión', HP: 'Vida', LUCK: 'Suerte',
   RESIST_DARK: 'Resistencia a oscuridad',
   // extras de las piezas de jefe
@@ -126,3 +126,8 @@ export const STAT_LABELS = {
   HEAL_HP: 'de vida', HEAL_MP: 'de maná', BUFF_ATK: 'de ataque en combate', BUFF_DEF: 'de defensa en combate',
   BUFF_MAG: 'de inteligencia en combate', BUFF_SPD: 'de velocidad en combate', HOT: 'de vida por ronda',
 };
+
+// las habilidades que un cambio de equipo deja sin poder usarse (el servidor manda avisoArmas)
+export const avisoArmas = (nombres) => (nombres?.length
+  ? ` Sin el arma que piden ya no puedes usar: ${nombres.slice(0, 3).join(', ')}${nombres.length > 3 ? ` y ${nombres.length - 3} más` : ''}.`
+  : '');

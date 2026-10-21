@@ -354,6 +354,8 @@ export const api = {
   getGuilds: (token, search) =>
     request(`/api/guilds${search ? `?search=${encodeURIComponent(search)}` : ''}`, { token }),
   getMyGuild: (token) => request('/api/guilds/mine', { token }),
+  // igual, pero sin gremio devuelve null en vez de un 404 (el chat lo pregunta seguido)
+  getMyGuildOpcional: (token) => request('/api/guilds/mine?opcional=1', { token }),
   createGuild: (token, body) => request('/api/guilds', { method: 'POST', body, token }),
   joinGuild: (token, guildId) => request(`/api/guilds/${guildId}/join`, { method: 'POST', token }),
   leaveGuild: (token, guildId) => request(`/api/guilds/${guildId}/leave`, { method: 'DELETE', token }),

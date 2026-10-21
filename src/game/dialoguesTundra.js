@@ -197,7 +197,7 @@ export const DIALOGUES_TUNDRA = {
       if (ctx.mark === '?') return '¿Trajiste lo que te pedí? Muéstrame. Rápido, que el fuego no espera.';
       if (ctx.mark === '!') return '¡Tú! Tienes piernas largas. Necesito un cartero.';
       if (hecho(ctx, 'TUNDRA_SEC_FORJAS')) return pick(['«Aceptable», dijo el enano. ACEPTABLE. Lo voy a enmarcar.', 'El año que viene: concurso de las tres forjas. Tú haces de juez. Y no te dejes sobornar. Salvo por mí.']);
-      return pick(['Bienvenido a la Forja de la Casa Larga. Si es de hielo eterno, lo forjo. Si es de hierro del sur, me río y después lo forjo.', 'Tráeme hielo eterno, colmillos y zarpas, y te hago algo que no se rompe nunca.']);
+      return pick(['Te doy la bienvenida a la Forja de la Casa Larga. Si es de hielo eterno, lo forjo. Si es de hierro del sur, me río y después lo forjo.', 'Tráeme hielo eterno, colmillos y zarpas, y te hago algo que no se rompe nunca.']);
     },
     options: () => [
       { label: 'Usar la forja', window: 'taller' },
@@ -218,7 +218,7 @@ export const DIALOGUES_TUNDRA = {
       if (ctx.mark === '!') return '¡SUREÑO! ¡Necesito un favor! ¡Y después brindamos!';
       if (perdono(ctx)) return pick(['¡La hija del rey viene a ayudar a la cocina! ¡Quema todo! ¡La adoro!', '¡POR LOS HERMANOS DEL HIELO! ¡Que vivan!']);
       if (reyCaido(ctx)) return pick(['¡Por el Rey del Hielo! *se le quiebra la voz* Por el Rey. Que descanse.', '¡El fiordo tiene agua! ¡AGUA! ¡Mañana pescamos en barco como antes!']);
-      return pick(['¡Bienvenido a El Cuerno Caliente! ¡Pasa, siéntate, come y no te vayas sin brindar!', '¡Tengo estofado de mamut, pescado a la brasa y hidromiel! ¡Tráeme lo que cazas y te lo cocino!']);
+      return pick(['¡Te doy la bienvenida a El Cuerno Caliente! ¡Pasa, siéntate, come y no te vayas sin brindar!', '¡Tengo estofado de mamut, pescado a la brasa y hidromiel! ¡Tráeme lo que cazas y te lo cocino!']);
     },
     options: () => [
       { label: 'Cocinar', window: 'taller' },

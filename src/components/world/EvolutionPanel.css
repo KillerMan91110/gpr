@@ -180,3 +180,8 @@
   .evp-tree { transform: scale(0.82); transform-origin: left top; margin-bottom: -20px; }
   .evp-node-text { min-width: 110px; }
 }
+
+/* celular angosto: el árbol se achica con zoom (sí cambia el espacio que ocupa) para no salirse de la pantalla */
+@media (max-width: 440px) {
+  .evp-tree { transform: none; zoom: 0.68; margin-bottom: 0; }
+}

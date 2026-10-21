@@ -7,7 +7,7 @@ import ItemIcon from './ItemIcon';
 import { iconForItem, RARITY_LABELS } from './itemIcons';
 
 const BONUS_LABEL = {
-  ATK_FLAT: 'Ataque', DEF_FLAT: 'Defensa', MAG_FLAT: 'Inteligencia', MAGIC_DEF_FLAT: 'Defensa mágica', SPD_FLAT: 'Velocidad',
+  ATK_FLAT: 'Ataque', DEF_FLAT: 'Defensa', MAG_FLAT: 'Magia', MAGIC_DEF_FLAT: 'Defensa mágica', SPD_FLAT: 'Velocidad',
   CRIT_CHANCE_FLAT: 'Crítico', CRIT_DMG_FLAT: 'Daño crítico', EVASION_FLAT: 'Evasión',
   HP_FLAT: 'Vida', MANA_FLAT: 'Maná', LUCK_FLAT: 'Suerte',
   HEAL_BONUS_PERCENT: 'Curación', HOT_HP_PERCENT: 'Regeneración por turno',

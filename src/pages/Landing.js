@@ -136,7 +136,7 @@ export default function Landing() {
           <GameIcon name="fleur-de-lys" artist="delapouite" /> Reino de Etheria{' '}
           <GameIcon name="fleur-de-lys" artist="delapouite" />
         </span>
-        <h1 className="landing-hero-title">Bienvenido a Etheria</h1>
+        <h1 className="landing-hero-title">Te damos la bienvenida a Etheria</h1>
         <p className="landing-hero-lede">
           Un reino donde la magia y el acero conviven desde hace siglos. Más allá de sus murallas
           se extiende un mundo salvaje de monstruos, ruinas olvidadas y secretos que nadie ha

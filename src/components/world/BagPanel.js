@@ -5,7 +5,7 @@ import GameIcon from '../GameIcon';
 import ItemIcon from './ItemIcon';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
-import { iconForItem } from './itemIcons';
+import { avisoArmas, iconForItem } from './itemIcons';
 import bus from '../../game/bus';
 import audio from '../../game/audio';
 import { CardIcon, RARITY_LABEL } from './coleccionArt';
@@ -110,8 +110,8 @@ export default function BagPanel({ gold, refreshKey, onChanged, onClose, zIndex,
         if (names.length) audio.sfx('descubrir');
         setMessage({ ok: true, text: names.length ? `📜 ¡Aprendiste ${names.length > 1 ? `${names.length} crafteos nuevos` : 'un crafteo nuevo'}! ${names.join(', ')}. Búscalos en el Taller (U).` : (r?.message ?? 'Leíste el pergamino') });
       } else if (it.item_type === 'EQUIPMENT') {
-        await api.equipItem(player.id, it.item_id, it.enchant_level, it.quality_tier, token);
-        setMessage({ ok: true, text: `Equipaste ${it.name}` });
+        const r = await api.equipItem(player.id, it.item_id, it.enchant_level, it.quality_tier, token);
+        setMessage({ ok: !r?.avisoArmas?.length, text: `Equipaste ${it.name}.${avisoArmas(r?.avisoArmas)}` });
       } else if (it.item_type === 'CONSUMABLE' && !NO_GENERIC_USE.has(it.code)) {
         const r = await api.useItem(player.id, it.item_id, token);
         setMessage({ ok: true, text: r?.message || `Usaste ${it.name}` });

@@ -102,7 +102,7 @@ export const DIALOGUES_RUINAS = {
         'Los Heraldos tocan su nota en la cripta, abajo del templo. Si la escuchas de noche, no es un sueño.',
       ]);
       if (hecho(ctx, 'RUINAS_HISTORIA_01_VELO')) return pick([
-        'Bienvenido al Santuario de las Lágrimas. Antes era un pueblo. Ahora es un pueblo de una.',
+        'Te doy la bienvenida al Santuario de las Lágrimas. Antes era un pueblo. Ahora es un pueblo de una.',
         'La niebla te dejó pasar. A mí nunca me dejó salir. Será que la niebla sabe lo que hace.',
       ]);
       return pick(['*una mujer de pelo plateado te mira desde junto al altar, sin moverse*', '¿Eres real? Perdona. Hace mucho que no veo a nadie.']);
@@ -165,7 +165,7 @@ export const DIALOGUES_RUINAS = {
       if (hecho(ctx, 'RUINAS_SEC_PEREGRINOS_2')) return pick(['Ya son tres los que se despertaron. Comen como si no hubieran comido en mil años. Será por eso.', 'La peregrina de la Escalinata me ayuda en la cocina. Cocina mejor que yo. No se lo digas.']);
       return pick([
         'Soy Tilda. Los chicos me dicen Madre. Caminé desde la Pradera siguiendo una canción, como todos.',
-        'Bienvenido a la posada. No tiene techo, pero tiene sopa. Una cosa por vez.',
+        'Te doy la bienvenida a la posada. No tiene techo, pero tiene sopa. Una cosa por vez.',
         'Los peregrinos de piedra eran de los nuestros. Gente que vino a pedir y se quedó esperando.',
       ]);
     },

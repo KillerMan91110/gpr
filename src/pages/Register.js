@@ -56,7 +56,7 @@ export default function Register() {
     setLoading(true);
     try {
       await register({ email, password, nickname, classId: Number(classId) });
-      navigate('/');
+      navigate('/mundo');
     } catch (err) {
       setError(err.message);
     } finally {

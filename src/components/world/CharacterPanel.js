@@ -5,7 +5,7 @@ import GameIcon from '../GameIcon';
 import ItemIcon from './ItemIcon';
 import FloatingPanel from './FloatingPanel';
 import ItemTooltip from './ItemTooltip';
-import { iconForItem, SLOT_LABELS, SLOT_PLACEHOLDER } from './itemIcons';
+import { avisoArmas, iconForItem, SLOT_LABELS, SLOT_PLACEHOLDER } from './itemIcons';
 import { ELEMENTS } from '../../game/elements';
 
 const ASSETS = `${process.env.PUBLIC_URL}/assets/sprites/combate`;
@@ -19,7 +19,7 @@ const TABS = [['personaje', 'Personaje'], ['bonos', 'Bonos'], ['elementos', 'Ele
 const UTIL = [['xp', 'Experiencia', '+'], ['gold', 'Oro', '+'], ['drop', 'Botín', '+'], ['card', 'Prob. de carta', '+'],
   ['regen', 'Vida al ganar', '+'], ['mana', 'Maná al ganar', '+'], ['guard', 'Daño recibido', '-'], ['hp', 'Vida máxima', '+']];
 const PET_STAT = {
-  ATK_FLAT: 'Ataque', DEF_FLAT: 'Defensa', MAG_FLAT: 'Inteligencia', MAGIC_DEF_FLAT: 'Defensa mágica', SPD_FLAT: 'Velocidad',
+  ATK_FLAT: 'Ataque', DEF_FLAT: 'Defensa', MAG_FLAT: 'Magia', MAGIC_DEF_FLAT: 'Defensa mágica', SPD_FLAT: 'Velocidad',
   CRIT_CHANCE_FLAT: 'Crítico', CRIT_DMG_FLAT: 'Daño crítico', EVASION_FLAT: 'Evasión', HP_FLAT: 'Vida', MANA_FLAT: 'Maná', LUCK_FLAT: 'Suerte',
   GOLD_PERCENT: 'Oro', XP_PERCENT: 'Experiencia', DROP_RATE_PERCENT: 'Botín',
 };
@@ -100,8 +100,8 @@ export default function CharacterPanel({ stats, refreshKey, onChanged, onClose, 
     if (!item) return;
     setHover(null);
     try {
-      await api.unequipItem(player.id, slot, token);
-      setMessage(`Desequipaste ${item.name}`);
+      const r = await api.unequipItem(player.id, slot, token);
+      setMessage(`Desequipaste ${item.name}.${avisoArmas(r?.avisoArmas)}`);
       load();
       onChanged?.();
     } catch (err) {
@@ -180,7 +180,7 @@ export default function CharacterPanel({ stats, refreshKey, onChanged, onClose, 
               <Section title="Atributos">
                 <Row label="Ataque" value={stats.atk} accent="up" />
                 <Row label="Defensa" value={stats.def} accent="up" />
-                <Row label="Inteligencia" value={stats.int} />
+                <Row label="Magia" value={stats.int} />
                 <Row label="Defensa mágica" value={stats.magicDef} />
                 <Row label="Velocidad" value={stats.spd} />
               </Section>

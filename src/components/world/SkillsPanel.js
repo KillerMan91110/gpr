@@ -91,8 +91,10 @@ export default function SkillsPanel(props) {
               >
                 <span className="wp-skill-icon"><GameIcon name={icon.name} artist={icon.artist} /></span>
                 <span className="wp-skill-name">{s.name}</span>
-                <span className="wp-skill-meta">
-                  {s.learned ? (s.manaCost ? `${s.manaCost} maná` : TYPE_LABEL[s.skillType]) : (s.learnLevel ? `Nv. ${s.learnLevel}` : '—')}
+                <span className={`wp-skill-meta${s.learned && s.armaOk === false ? ' wp-stat--locked' : ''}`}>
+                  {s.learned
+                    ? (s.armaOk === false ? `Falta ${s.armaNombre.toLowerCase()}` : s.manaCost ? `${s.manaCost} maná` : TYPE_LABEL[s.skillType])
+                    : (s.learnLevel ? `Nv. ${s.learnLevel}` : '—')}
                 </span>
               </button>
             );
@@ -113,6 +115,14 @@ export default function SkillsPanel(props) {
               <div><span>Objetivo</span><strong>{TARGET_LABEL[current.targetType] ?? current.targetType}</strong></div>
               {current.hits > 1 && <div><span>Golpes</span><strong>{current.hits}</strong></div>}
               {current.cooldownRounds > 0 && <div><span>Recarga</span><strong>cada {current.cooldownRounds} rondas</strong></div>}
+              {current.armaNombre && (
+                <div>
+                  <span>Requiere</span>
+                  <strong className={current.armaOk === false ? 'wp-stat--locked' : ''}>
+                    {current.armaNombre}{current.armaOk === false ? ' (no la llevas)' : ''}
+                  </strong>
+                </div>
+              )}
               <div>
                 <span>Estado</span>
                 <strong className={current.learned ? 'wp-stat--up' : 'wp-stat--locked'}>

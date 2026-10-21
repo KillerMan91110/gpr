@@ -6,7 +6,12 @@ import FloatingPanel from './FloatingPanel';
 import { questsOfGiver, needsTurnInPerson, NPC_LUGAR, npcFor, objectiveCount, readyToDeliver } from '../../game/questGivers';
 import { DIALOGUES } from '../../game/dialogues';
 import audio from '../../game/audio';
+
 import bus from '../../game/bus';
+
+// la zona que se muestra: las misiones de los NPCs de Aurelia (maestros, Catedral…) son de la capital, aunque en la
+// tabla estén en la Pradera (no hay zona «Aurelia»)
+const zonaDe = (q) => (/Aurelia/.test(NPC_LUGAR[q.turn_in_npc ?? q.giver_npc] ?? '') ? 'Aurelia' : q.zone_name);
 
 const objectivesDone = (q) => (q.objectives ?? []).every((o) => (o.current_count ?? 0) >= o.target_count);
 
@@ -56,7 +61,7 @@ function QuestDetail({ q, actions }) {
         <Stars n={q.difficulty_stars} />
       </div>
       <span className="wp-detail-sub">
-        {q.zone_name ?? 'Etheria'} · {q.npc_name ?? 'Gremio'} · Nv. {q.min_level}{q.max_level ? `-${q.max_level}` : '+'}
+        {zonaDe(q) ?? 'Etheria'} · {q.npc_name ?? 'Gremio'} · Nv. {q.min_level}{q.max_level ? `-${q.max_level}` : '+'}
         {q.is_repeatable ? ' · Repetible' : ' · Única'}
         {q.is_personal ? ' · Personal' : ''}
       </span>
@@ -147,7 +152,7 @@ export function QuestLogPanel({ onChanged, tracked = [], onToggleTrack, ...props
           {list.map((q) => (
             <button key={`${q.id}-${q.completed_at ?? ''}`} type="button" className={`wp-quest${current?.id === q.id ? ' wp-skill--active' : ''}`} onClick={() => setSelected(q.id)}>
               <span className="wp-quest-name">{tab === 'curso' && objectivesDone(q) ? '❗ ' : ''}{q.name}</span>
-              <small>{q.zone_name ?? ''} · Nv. {q.min_level}</small>
+              <small>{zonaDe(q) ?? ''} · Nv. {q.min_level}</small>
             </button>
           ))}
         </div>

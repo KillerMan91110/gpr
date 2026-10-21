@@ -12,7 +12,7 @@ export const DIALOGUES_CIUDAD = {
   tomas: {
     name: 'Tomás', role: 'Guía de Aurelia', portrait: PORTRAIT('tomas'),
     greet: () => pick([
-      '¡Bienvenido a Aurelia, la Ciudad del Pilar! Todo aventurero de Etheria empieza aquí. ¿Te enseño la ciudad?',
+      '¡Te doy la bienvenida a Aurelia, la Ciudad del Pilar! Todo aventurero de Etheria empieza aquí. ¿Te enseño la ciudad?',
       '¡Hola, viajero! Si es tu primera vez en Aurelia, te acompaño a los sitios importantes.',
     ]),
     options: () => [
@@ -33,7 +33,7 @@ export const DIALOGUES_CIUDAD = {
     greet: (ctx) => {
       // el final (R13 y R14 de las Ruinas Ancestrales): el epílogo
       if (hecho(ctx, 'RUINAS_HISTORIA_14_VIGIA')) return pick([
-        'Vigía. Todavía me cuesta decirlo sin que me tiemble la voz. Bienvenido a casa.',
+        'Vigía. Todavía me cuesta decirlo sin que me tiemble la voz. Te doy la bienvenida a casa.',
         'Seraphine me escribe cada semana desde el Santuario. Dice que los peregrinos le enseñaron a jugar a las cartas. Y que gana siempre.',
         'Los siete fragmentos duermen bajo el Pilar. A veces, de noche, el agua del Pilar brilla con siete colores. Nadie más se da cuenta. Nosotros sí.',
         'El Devorador sueña, y a veces su sombra sale por alguna grieta del mundo. Cuando pase, vas a sentirlo. Todos los Vigías lo sentían.',
@@ -42,7 +42,7 @@ export const DIALOGUES_CIUDAD = {
       if (hecho(ctx, 'PRADERA_HISTORIA_14_MONTANAS') && Math.random() < 0.5) return pick(['El fragmento del Primer Sello descansa bajo el Pilar. El agua lo cuida mejor que cualquier guardia.', 'Rezo por ti cada mañana. Bueno, por ti y por las Montañas. Pero sobre todo por ti.']);
       return ctx.night
         ? 'La catedral nunca cierra. A esta hora el rosetón brilla con la luz de las velas. ¿Vienes herido?'
-        : pick(['Que el agua de Aethra lave tus heridas, viajero.', 'Bienvenido a la Catedral de Aethra. Aquí curamos a quien lo necesite.']);
+        : pick(['Que el agua de Aethra lave tus heridas, viajero.', 'Te doy la bienvenida a la Catedral de Aethra. Aquí curamos a quien lo necesite.']);
     },
     options: () => [
       { label: 'Curar a mi grupo', window: 'enfermeria' },
@@ -62,7 +62,7 @@ export const DIALOGUES_CIUDAD = {
       if (hecho(ctx, 'PRADERA_SEC_MARTA_1')) return '¿Ren te pidió que me trajeras la carta? Qué tímido. Qué… lindo. No le digas que dije lindo.';
       return ctx.night
         ? pick(['¡Pasa, pasa, que fuera refresca! La sopa todavía está caliente.', 'A estas horas la posada se llena de historias… y de mentiras.'])
-        : pick(['¡Bienvenido a El Grifo Dorado! La mejor cerveza de Aurelia, y lo digo yo.', 'Si quieres dejar unas palabras para la posteridad, ahí está el libro de visitas.']);
+        : pick(['¡Te doy la bienvenida a El Grifo Dorado! La mejor cerveza de Aurelia, y lo digo yo.', 'Si quieres dejar unas palabras para la posteridad, ahí está el libro de visitas.']);
     },
     options: () => [
       { label: 'Leer el libro de visitas', window: 'libro' },

@@ -51,7 +51,7 @@ export const DIALOGUES_COSTAS = {
       if (hecho(ctx, 'COSTAS_Q1_CAZADOR_PIRATAS')) return pick(['Rhaegar está en la celda. Canta. Toda la noche. Canciones de marineros con letras que el reglamento no permite.', 'Dice que caza sombras. Yo digo que roba barcos. Los dos tenemos razón, y eso me molesta.']);
       return night
         ? pick(['El faro está apagado otra vez. Bueno, encendido en negro. Que es peor.', 'De noche vienen los piratas. Yo estoy despierto. Con el reglamento.'])
-        : pick(['Bienvenido al Puerto Antiguo. Tiene trescientos años, cuarenta y dos artículos de reglamento y un capitán. Ese soy yo.', 'Si busca a alguien, pregúnteme. Tengo a todos anotados. Con buena letra.']);
+        : pick(['Te doy la bienvenida al Puerto Antiguo. Tiene trescientos años, cuarenta y dos artículos de reglamento y un capitán. Ese soy yo.', 'Si busca a alguien, pregúnteme. Tengo a todos anotados. Con buena letra.']);
     },
     options: (ctx) => [
       { label: '¿Qué pasa en el puerto?', next: hecho(ctx, 'COSTAS_HISTORIA_12_BARCO') ? 'puerto_despues' : 'puerto' },
@@ -122,7 +122,7 @@ export const DIALOGUES_COSTAS = {
       if (mark === '!') return '¡Tú! ¡Sí, tú! ¡Con esa cara de hambre! Tengo un trabajito.';
       if (hecho(ctx, 'COSTAS_SEC_LORO_2')) return pick(['Ese loro me sigue llamando «sopa aguada». Desde el muelle. Lo escucho.', '¿Sabes qué le doy al loro ahora? Sopa. Aguada. A ver si aprende.']);
       if (hecho(ctx, 'COSTAS_SEC_FRESCO')) return pick(['¡Gracias a ti hay sopa todos los días! Bueno, casi todos.', 'Cieno dice que el guiso de cocodrilo es receta suya. MENTIRA. Bueno, un poco.']);
-      return pick(['¡Bienvenido al mercado de pescado! ¡Todo fresco! Bueno, lo de la izquierda no. Lo de la izquierda es de ayer.', 'Tráeme ostras, algas, cangrejo o lo que nade, y te preparo algo que te deje como nuevo.']);
+      return pick(['¡Te doy la bienvenida al mercado de pescado! ¡Todo fresco! Bueno, lo de la izquierda no. Lo de la izquierda es de ayer.', 'Tráeme ostras, algas, cangrejo o lo que nade, y te preparo algo que te deje como nuevo.']);
     },
     options: () => [
       { label: 'Cocinar', window: 'taller' },
@@ -142,7 +142,7 @@ export const DIALOGUES_COSTAS = {
       if (hecho(ctx, 'COSTAS_HISTORIA_12_BARCO')) return pick(['¡Vuelven los barcos! ¡Vuelve el negocio! Pasa, pasa, que hoy estoy de buen humor.', 'Ayer llegó un barco de sal. Le compré toda la sal. No sé qué voy a hacer con tanta sal.']);
       return night
         ? pick(['¿A esta hora? Para un buen cliente el puesto no cierra.', 'De noche se vende poco y se ve mucho. Velas negras, por ejemplo. Yo no vi nada.'])
-        : pick(['Bienvenido a mi puesto. Si lo escupe el mar, te lo compro. Si lo necesitas para el camino, te lo vendo.', 'Lo de la costa, en Aurelia vale una fortuna. Aquí, lo justo. Pero sin caminar.']);
+        : pick(['Te doy la bienvenida a mi puesto. Si lo escupe el mar, te lo compro. Si lo necesitas para el camino, te lo vendo.', 'Lo de la costa, en Aurelia vale una fortuna. Aquí, lo justo. Pero sin caminar.']);
     },
     options: () => [
       { label: 'Comerciar', window: 'artesanos' },
@@ -182,7 +182,7 @@ export const DIALOGUES_COSTAS = {
     ambient: ['¡Galleta! ¡Baja de ahí!', 'Esta cueva es mía. El mar también. Bueno, casi.', '*afila el sable*', 'Barco sin bandera, barco hundido.'],
     greet: ({ mark }) => {
       if (mark === '?') return 'Así que hiciste el trabajo de tu capitán. Bien. Ahora hablemos de verdad.';
-      return pick(['¿El perro de Bastida? Llegas tarde: ya robé lo que había que robar esta semana.', 'Bienvenido a mi Cala. Si vienes a pelear, pelea. Si vienes a hablar, siéntate. Si vienes a robar, ponte a la fila.']);
+      return pick(['¿El perro de Bastida? Llegas tarde: ya robé lo que había que robar esta semana.', 'Te doy la bienvenida a mi Cala. Si vienes a pelear, pelea. Si vienes a hablar, siéntate. Si vienes a robar, ponte a la fila.']);
     },
     options: () => [{ label: '¿Quién es Galleta?', next: 'galleta' }, bye],
     lines: rhaegarLines,
@@ -265,7 +265,7 @@ export const DIALOGUES_COSTAS = {
       if (hecho(ctx, 'COSTAS_Q2_TRIDENTE_PERDIDO')) return pick(['Mi padre volvió en sí al final. Me alcanza con eso. Casi.', 'Ahora la Bestia. Mi padre la cuidó toda la vida. Nos toca a nosotros.']);
       return night
         ? pick(['De noche cantamos para que los niños duerman. Y para que el mar no se olvide de nosotros.', 'Mira el agua. Brilla. Son las algas. Antes brillaba todo el Arrecife así.'])
-        : pick(['Bienvenido a Coralia. No es nuestra casa. Es donde vivimos mientras no podemos volver a casa.', 'Los tritones vivíamos en el Arrecife Hundido. Ahora vivimos sobre el agua, mirándola.']);
+        : pick(['Te doy la bienvenida a Coralia. No es nuestra casa. Es donde vivimos mientras no podemos volver a casa.', 'Los tritones vivíamos en el Arrecife Hundido. Ahora vivimos sobre el agua, mirándola.']);
     },
     options: (ctx) => [
       { label: '¿Quiénes son los tritones?', next: 'tritones' },
@@ -300,7 +300,7 @@ export const DIALOGUES_COSTAS = {
     ambient: ['Brillo. Más brillo.', '*pule una perla*', 'El nácar guarda la luz del fondo.', 'No toques eso. Está encantado. Y es mío.'],
     greet: ({ night }) => (night
       ? pick(['De noche el nácar brilla solo. Mira.', 'Trabajo mejor de noche. El mar está callado.'])
-      : pick(['Bienvenido a mi taller. Aquí el equipo sale más fuerte y más bonito. Las dos cosas importan.', 'Las perlas del Arrecife guardan magia. Te la pongo en la espada, si quieres.'])),
+      : pick(['Te doy la bienvenida a mi taller. Aquí el equipo sale más fuerte y más bonito. Las dos cosas importan.', 'Las perlas del Arrecife guardan magia. Te la pongo en la espada, si quieres.'])),
     options: () => [
       { label: 'Encantar mi equipo', window: 'encantador' },
       { label: '¿Cómo se encanta con nácar?', next: 'nacar' },
