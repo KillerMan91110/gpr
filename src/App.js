@@ -47,6 +47,7 @@ import MapEditor from './pages/MapEditor';
 import CoopBar from './components/CoopBar';
 import ChatBox from './components/ChatBox';
 import IncubatorAlert from './components/IncubatorAlert';
+import LogroBanner from './components/LogroBanner';
 import BackgroundMusic from './components/BackgroundMusic';
 import TutorialTour from './components/TutorialTour';
 import NavBar from './components/NavBar';
@@ -106,6 +107,7 @@ function App() {
             <CoopBar />
             <ChatBox />
             <IncubatorAlert />
+            <LogroBanner />
             <BackgroundMusic />
             <TutorialTour />
           </BrowserRouter>

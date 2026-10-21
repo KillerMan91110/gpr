@@ -430,6 +430,89 @@ icon("sandalias", function(G)
   G.ellipse(13, 17, 1.8, 1.8, "t1"); G.px(12, 16, "W")
 end)
 
+-- accesorios (cualquier clase): amuleto, collar, anillo, brazalete, colgante, medallón y relicario.
+-- Van al final del atlas (filas nuevas): las formas de antes no se mueven.
+-- aro: los píxeles entre dos elipses (el hueco queda vacío y el contorno lo marca solo)
+local function ring(G, cx, cy, rx, ry, w, c)
+  for y = math.floor(cy - ry), math.ceil(cy + ry) do for x = math.floor(cx - rx), math.ceil(cx + rx) do
+    local dx, dy = (x - cx) / rx, (y - cy) / ry
+    local ix, iy = (x - cx) / (rx - w), (y - cy) / (ry - w)
+    if dx * dx + dy * dy <= 1 and ix * ix + iy * iy > 1 then G.px(x, y, c) end
+  end end
+end
+-- cadena de eslabones de (x0, y0) a (x1, y1)
+local function chain(G, x0, y0, x1, y1)
+  local n = math.max(math.abs(x1 - x0), math.abs(y1 - y0))
+  for i = 0, n, 2 do
+    local x, y = x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n
+    G.px(x, y, (i // 2) % 2 == 0 and "t1" or "t2")
+  end
+end
+icon("amuleto", function(G)
+  chain(G, 5, 2, 14, 14); chain(G, 27, 2, 18, 14)
+  G.rect(14, 13, 18, 15, "t2")
+  G.poly({{16, 14}, {25, 21}, {16, 30}, {7, 21}}, "m2")
+  G.poly({{16, 14}, {25, 21}, {16, 21}}, "m1"); G.poly({{16, 30}, {25, 21}, {16, 21}}, "m3")
+  G.ellipse(16, 21.5, 4, 4, "g2"); G.ellipse(15.5, 21, 2.6, 2.6, "g1"); G.px(15, 20, "W")
+end)
+icon("collar", function(G)
+  -- cuentas en arco y una gema al medio
+  for i = 0, 12 do
+    local a = math.pi * (0.08 + 0.84 * i / 12)
+    local x, y = 16 - math.cos(a) * 12, 6 + math.sin(a) * 14
+    G.ellipse(x, y, 1.6, 1.6, i % 2 == 0 and "t1" or "g1")
+  end
+  G.poly({{16, 19}, {20, 23}, {16, 29}, {12, 23}}, "t2"); G.poly({{16, 20}, {19, 23}, {16, 27}, {13, 23}}, "g2")
+  G.px(15, 22, "g1"); G.px(15, 21, "W")
+end)
+icon("anillo", function(G)
+  ring(G, 16, 20, 10, 9, 3, "t2"); ring(G, 16, 19, 10, 9, 2, "t1")
+  G.poly({{11, 10}, {21, 10}, {19, 6}, {13, 6}}, "m2")
+  G.poly({{12, 9}, {16, 2}, {20, 9}}, "g2"); G.poly({{13, 8}, {16, 3}, {16, 8}}, "g1"); G.px(15, 5, "W")
+  G.px(8, 17, "W")
+end)
+icon("brazalete", function(G)
+  -- aro ancho visto desde arriba y de costado: la boca (hueca) arriba, la banda adelante
+  G.ellipse(16, 21, 13, 7, "m3")
+  G.rect(3, 12, 29, 21, "m2")
+  G.ellipse(16, 12, 13, 7, "m1")
+  for y = 0, 31 do for x = 0, 31 do
+    local dx, dy = (x - 16) / 10, (y - 12.5) / 4.5
+    if dx * dx + dy * dy <= 1 then G.g[y * 32 + x] = nil end
+  end end
+  for x = 3, 29 do
+    local dy = 7 * math.sqrt(math.max(0, 1 - ((x - 16) / 13) ^ 2))
+    G.px(x, 17 + dy * 0.55, "t1"); G.px(x, 18 + dy * 0.55, "t2")
+  end
+  for _, x in ipairs({8, 16, 24}) do
+    local dy = 7 * math.sqrt(math.max(0, 1 - ((x - 16) / 13) ^ 2))
+    G.ellipse(x, 15 + dy * 1.3, 1.6, 1.6, "g1")
+  end
+  G.px(6, 15, "W"); G.px(7, 16, "W")
+end)
+icon("colgante", function(G)
+  G.line(9, 2, 16, 11, "c2"); G.line(23, 2, 16, 11, "c2"); G.line(10, 2, 16, 10, "c1")
+  G.rect(14, 10, 18, 13, "t1"); G.line(14, 13, 18, 13, "t2")
+  -- la gota
+  G.poly({{16, 13}, {22, 22}, {22, 25}, {19, 29}, {13, 29}, {10, 25}, {10, 22}}, "g2")
+  G.poly({{16, 14}, {20, 22}, {16, 25}, {12, 22}}, "g1"); G.px(13, 21, "W"); G.px(14, 19, "W")
+end)
+icon("medallon", function(G)
+  -- cinta y moneda grande con un emblema de estrella
+  G.poly({{9, 2}, {14, 2}, {16, 9}, {13, 11}}, "c1"); G.poly({{23, 2}, {18, 2}, {16, 9}, {19, 11}}, "c2")
+  G.ellipse(16, 20, 10, 10, "t2"); G.ellipse(16, 20, 9, 9, "t1"); G.ellipse(16, 20, 7, 7, "m2")
+  G.poly({{16, 14}, {17.5, 18.5}, {22, 19}, {18.5, 21.5}, {20, 26}, {16, 23}, {12, 26}, {13.5, 21.5}, {10, 19}, {14.5, 18.5}}, "m1")
+  G.px(16, 20, "g1"); G.px(11, 15, "W")
+end)
+icon("relicario", function(G)
+  chain(G, 6, 2, 13, 9); chain(G, 26, 2, 19, 9)
+  G.rect(14, 8, 18, 10, "t2")
+  -- la caja ovalada con bisagra y su ventanita
+  G.ellipse(16, 20, 9, 10, "t2"); G.ellipse(16, 20, 8, 9, "t1")
+  G.ellipse(16, 20, 5, 6, "m2"); G.ellipse(16, 20, 3.5, 4.5, "g2"); G.ellipse(15.5, 19, 2, 2.5, "g1")
+  G.line(7, 20, 25, 20, "t2"); G.px(24, 20, "m3"); G.px(15, 18, "W"); G.px(11, 13, "W")
+end)
+
 do
   local cols, rows = #SETS, #ICONS
   local img = Image(cols * 32, rows * 32, ColorMode.RGB)

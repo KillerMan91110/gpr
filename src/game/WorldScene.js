@@ -309,6 +309,13 @@ export default class WorldScene extends Phaser.Scene {
     this.guildTag = this.add.text(start.x, start.y - 14, '', {
       fontFamily: "'EB Garamond', Georgia, serif", fontSize: '7px', fontStyle: 'italic', color: '#a8e0a0', stroke: '#141420', strokeThickness: 3,
     }).setOrigin(0.5, 1).setDepth(21).setResolution(TAG_RES);
+    // el título de logro equipado, arriba del nombre, y el aura dorada de los 600 puntos de Gesta
+    // (gprback/lib/logros.js; lo manda WorldSocial al entrar o al cambiarlo)
+    this.titleTag = this.add.text(start.x, start.y - 30, '', {
+      fontFamily: "'EB Garamond', Georgia, serif", fontSize: '7px', fontStyle: 'italic', color: '#f0d878', stroke: '#141420', strokeThickness: 3,
+    }).setOrigin(0.5, 1).setDepth(21).setResolution(TAG_RES);
+    this.auraFx = this.add.ellipse(start.x, start.y + 12, 26, 9, 0xf0d878, 0.35).setDepth(9.3).setVisible(false);
+    this.tweens.add({ targets: this.auraFx, alpha: { from: 0.15, to: 0.45 }, scale: { from: 0.9, to: 1.1 }, duration: 1100, yoyo: true, repeat: -1 });
     this.makeWalkAnims('heroe');
     this.dust = this.add.particles(0, 0, 'mota_mundo', {
       x: { min: -5, max: 5 }, y: { min: -1, max: 2 }, lifespan: 420, frequency: 70, speedY: { min: -14, max: -4 },
@@ -472,6 +479,7 @@ export default class WorldScene extends Phaser.Scene {
       // modo espectador: mirar el combate de otro jugador (menú del jugador → "Ver combate")
       'spectate-start': (t, cb) => { const ok = this.startSpectate(t); cb?.(ok); },
       'my-guild': (g) => this.guildTag?.setText(g ? `‹${g.name}›` : '').setColor(g?.color || '#a8e0a0'),
+      'my-title': (t) => { this.titleTag?.setText(t?.titulo ? `«${t.titulo}»` : ''); this.auraFx?.setVisible(!!t?.aura); },
       // jefe mítico de zona (components/world/MythicHunt.js): aparece, se va o muere
       'mythic-state': (s) => this.setMythic(s?.hunt ?? null),
       // guía del aventurero: flecha hacia el objetivo del paso actual
@@ -1061,6 +1069,8 @@ export default class WorldScene extends Phaser.Scene {
     this.minimap.startFollow(this.player);
     this.minimap.ignore(this.nameTag);
     this.minimap.ignore(this.guildTag);
+    this.minimap.ignore(this.titleTag);
+    this.minimap.ignore(this.auraFx);
     // punto del jugador: grande para que se vea al zoom del minimapa, invisible en la cámara principal
     this.playerDot = this.add.circle(this.player.x, this.player.y, 14, 0xffe066).setStrokeStyle(5, 0x141420).setDepth(30);
     this.cameras.main.ignore(this.playerDot);
@@ -1525,6 +1535,8 @@ export default class WorldScene extends Phaser.Scene {
     }
     this.nameTag.setPosition(this.player.x, this.player.y - (this.guildTag.text ? 22 : 14));
     this.guildTag.setPosition(this.player.x, this.player.y - 14);
+    this.titleTag.setPosition(this.player.x, this.nameTag.y - 8);
+    this.auraFx.setPosition(this.player.x, this.player.y + 12);
     this.playerDot?.setPosition(this.player.x, this.player.y);
     this.updateFollowers(!!(vx || vy));
     this.updateEscort(delta);

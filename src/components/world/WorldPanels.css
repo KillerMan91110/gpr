@@ -930,3 +930,58 @@
   font: italic 0.9rem 'EB Garamond', serif;
   color: var(--text-soft);
 }
+
+/* ---- logros (gprback/lib/logros.js): Puntos de Gesta, título, pestañas por grupo ---- */
+.wp-btn.wp-btn--sm { padding: 2px 8px; font-size: 0.68rem; margin-top: 4px; }
+.wp-gesta {
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.14), rgba(0, 0, 0, 0.3));
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 6px;
+}
+.wp-gesta-top { display: flex; align-items: center; gap: 10px; }
+.wp-gesta-pts { font: 700 1.05rem 'Cinzel', serif; color: var(--gold-bright); white-space: nowrap; }
+.wp-gesta-pts small { font-size: 0.7rem; color: var(--text-soft); }
+.wp-gesta-bar { flex: 1; height: 8px; background: #0b0910; border: 1px solid #000; border-radius: 4px; overflow: hidden; }
+.wp-gesta-bar span { display: block; height: 100%; background: linear-gradient(90deg, #c49a2c, #f6e08c); transition: width 0.4s; }
+.wp-gesta-next { font: italic 0.74rem 'EB Garamond', serif; color: var(--text-soft); white-space: nowrap; }
+.wp-gesta-hitos { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 0; padding: 0; list-style: none; }
+.wp-gesta-hitos li {
+  padding: 1px 7px;
+  border: 1px solid #3a3346;
+  border-radius: 9px;
+  font: 0.7rem 'EB Garamond', serif;
+  color: #6e6878;
+}
+.wp-gesta-hitos li b { color: inherit; }
+.wp-gesta-hitos li.is-on { border-color: var(--gold-dim); color: var(--gold-bright); background: rgba(212, 175, 55, 0.12); }
+.wp-gesta-titulo { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 6px; font: 0.8rem 'EB Garamond', serif; color: var(--text-soft); }
+.wp-gesta-titulo b { font: 700 0.85rem 'Cinzel', serif; color: var(--gold-bright); }
+.wp-gesta-titulo small { color: #7dff9a; }
+.wp-gesta-titulo .wp-btn { margin-top: 0; }
+
+.wp-ach-tabs { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; }
+.wp-ach-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 5px;
+  font: 600 0.7rem 'Cinzel', serif;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+.wp-ach-tab b { font: 700 0.66rem 'EB Garamond', serif; color: #fff; padding: 0 4px; background: rgba(255, 255, 255, 0.08); border-radius: 7px; }
+.wp-ach-tab:hover { color: #fff; }
+.wp-ach-tab.is-on { background: linear-gradient(180deg, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.05)); border-color: rgba(212, 175, 55, 0.55); color: var(--gold-bright); }
+
+.wp-ach-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.wp-ach-pts { flex: none; padding: 0 6px; border-radius: 8px; background: rgba(212, 175, 55, 0.15); font: 700 0.68rem 'EB Garamond', serif; color: var(--gold-bright); }
+.wp-ach-body .wp-ach-lore { font-style: italic; color: #d8cdb4; }
+.wp-ach-body .wp-ach-como { font-size: 0.72rem; color: var(--text-soft); }
+.wp-ach--secret { opacity: 0.7; border-style: dashed; }
+.wp-ach--equipped { box-shadow: 0 0 0 1px var(--gold), 0 0 12px rgba(240, 216, 120, 0.35); }
+.wp-ach-equipped { display: inline-block; margin-top: 4px; font: 700 0.7rem 'Cinzel', serif; color: var(--gold-bright); }

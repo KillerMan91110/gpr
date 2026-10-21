@@ -70,6 +70,7 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
         if (!r?.ok) return;
         bus.emit('others-roster', { me: player.id, list: r.roster });
         bus.emit('my-guild', r.me?.guild ?? null);
+        bus.emit('my-title', { titulo: r.me?.titulo ?? null, aura: !!r.me?.aura });
         if (socialStore.get().lfg) socket.emit('world:lfg', true);
       });
     });
@@ -88,8 +89,13 @@ export default function WorldSocial({ worldReady, zoneDir, baseClass, inBattle, 
       bus.emit('others-roster', { me: player.id, list: [] });
       toast('Entraste al mundo desde otra pestaña: aquí los demás ya no te ven', 'error');
     };
-    // se unió, salió o fundó un gremio: el servidor recarga sus datos y todos ven la etiqueta nueva
-    const onGuildChanged = () => socket.emit('world:refresh', null, (r) => { if (r?.ok) bus.emit('my-guild', r.me?.guild ?? null); });
+    // se unió, salió o fundó un gremio (o equipó un título de logro): el servidor recarga sus datos y
+    // todos ven la etiqueta nueva
+    const onGuildChanged = () => socket.emit('world:refresh', null, (r) => {
+      if (!r?.ok) return;
+      bus.emit('my-guild', r.me?.guild ?? null);
+      bus.emit('my-title', { titulo: r.me?.titulo ?? null, aura: !!r.me?.aura });
+    });
     socket.on('world:replaced', onReplaced);
     bus.on('guild-changed', onGuildChanged);
     bus.on('hero-moved', onMove);

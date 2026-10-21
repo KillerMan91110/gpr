@@ -154,6 +154,8 @@ export default class SocialLayer {
       // volvió a entrar (cambió de nivel o de gremio): solo se actualizan los letreros
       cur.name.setText(`${p.name}  ${p.level}`);
       cur.guild.setText(p.guild ? `‹${p.guild.name}›` : '').setColor(p.guild?.color || '#a8e0a0');
+      cur.title.setText(p.titulo ? `«${p.titulo}»` : '');
+      cur.aura.setVisible(!!p.aura);
       cur.info = p;
       cur.lfg = !!p.lfg;
       this.setPet(p.id, p.pet);
@@ -178,12 +180,18 @@ export default class SocialLayer {
       const guild = s.add.text(p.x, p.y - 14, p.guild ? `‹${p.guild.name}›` : '', {
         fontFamily: TEXT_FONT, fontSize: '7px', fontStyle: 'italic', color: p.guild?.color || '#a8e0a0', stroke: '#141420', strokeThickness: 3,
       }).setOrigin(0.5, 1).setDepth(21).setResolution(RES);
+      // su título de logro y el aura dorada de Gesta (gprback/lib/logros.js)
+      const title = s.add.text(p.x, p.y - 30, p.titulo ? `«${p.titulo}»` : '', {
+        fontFamily: TEXT_FONT, fontSize: '7px', fontStyle: 'italic', color: '#f0d878', stroke: '#141420', strokeThickness: 3,
+      }).setOrigin(0.5, 1).setDepth(21).setResolution(RES);
+      const aura = s.add.ellipse(p.x, p.y + 12, 26, 9, 0xf0d878, 0.35).setDepth(9.3).setVisible(!!p.aura);
+      s.tweens.add({ targets: aura, alpha: { from: 0.15, to: 0.45 }, scale: { from: 0.9, to: 1.1 }, duration: 1100, yoyo: true, repeat: -1 });
       const stateIcon = s.add.text(p.x, p.y, '', { fontSize: '9px' }).setOrigin(0, 1).setDepth(21).setResolution(RES);
       // punto azul en el minimapa
       const dot = s.add.circle(p.x, p.y, 12, 0x6fc3ff).setStrokeStyle(4, 0x141420).setDepth(29);
       s.cameras.main.ignore(dot);
-      [name, guild, stateIcon].forEach((t) => s.minimap?.ignore(t));
-      const o = { id: p.id, cls: p.cls, info: p, lfg: !!p.lfg, sprite, name, guild, stateIcon, dot, tx: p.x, ty: p.y, f: p.f, flip: p.flip, m: p.m, state: null };
+      [name, guild, title, aura, stateIcon].forEach((t) => s.minimap?.ignore(t));
+      const o = { id: p.id, cls: p.cls, info: p, lfg: !!p.lfg, sprite, name, guild, title, aura, stateIcon, dot, tx: p.x, ty: p.y, f: p.f, flip: p.flip, m: p.m, state: null };
       this.others.set(p.id, o);
       this.paintParty(o);
       this.setPet(p.id, p.pet);
@@ -210,7 +218,7 @@ export default class SocialLayer {
     const o = this.others.get(id);
     if (!o) return;
     this.clearBubble(`p:${id}`);
-    [o.sprite, o.name, o.guild, o.stateIcon, o.dot, o.fightBubble, o.pet?.sprite].filter(Boolean).forEach((x) => { this.scene.tweens.killTweensOf(x); x.destroy(); });
+    [o.sprite, o.name, o.guild, o.title, o.aura, o.stateIcon, o.dot, o.fightBubble, o.pet?.sprite].filter(Boolean).forEach((x) => { this.scene.tweens.killTweensOf(x); x.destroy(); });
     this.others.delete(id);
   }
 
@@ -495,8 +503,10 @@ export default class SocialLayer {
       sp.setDepth(9.6 + sp.y / 100000);
       o.name.setPosition(sp.x, sp.y - (o.guild.text ? 22 : 14));
       o.guild.setPosition(sp.x, sp.y - 14);
+      o.title.setPosition(sp.x, o.name.y - 8);
+      o.aura.setPosition(sp.x, sp.y + 12);
       o.stateIcon.setPosition(sp.x + o.name.width / 2 + 1, o.name.y + 1);
-      o.fightBubble?.setPosition(sp.x, o.name.y - 9);
+      o.fightBubble?.setPosition(sp.x, o.title.text ? o.title.y - 8 : o.name.y - 9);
       o.dot.setPosition(sp.x, sp.y);
       if (o.pet) this.updatePet(o, walking);
     }

@@ -49,6 +49,16 @@ export default function useGuide({ player, token, worldReady, open, dialogue, zo
   }, [player, token]);
 
   useEffect(() => { if (dialogue === 'tomas') advance('tomas'); }, [dialogue, advance]);
+  // los pasos que el servidor comprueba por lo que ya hiciste (la piedra ya vinculada, un combate ya
+  // ganado, un recurso ya recogido): apenas llegan, se dan por hechos si ya se cumplen. Antes, quien ya
+  // tenía la piedra vinculada no podía avanzar: la Estatua no lo deja vincularla otra vez.
+  const currentId = guide?.current?.id;
+  const autoTried = useRef(null);
+  useEffect(() => {
+    if (!['piedra', 'combate', 'recurso'].includes(currentId) || autoTried.current === currentId) return;
+    autoTried.current = currentId;
+    advance(currentId);
+  }, [currentId, advance]);
   // al acercarte (o hablar) con tu maestro, Elenya o Brokk
   useEffect(() => {
     const who = poi?.dialogue ?? dialogue;

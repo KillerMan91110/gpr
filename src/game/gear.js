@@ -12,7 +12,9 @@ export const SHAPES = ['espada', 'gran_espada', 'hacha', 'espada_runica', 'daga'
   'yelmo', 'capucha', 'capirote', 'mascara', 'diadema',
   'placas', 'gaban', 'tunica', 'cuero', 'vestidura',
   'guanteletes', 'guantes', 'guantes_tela', 'guantes_bendecidos',
-  'botas_pesadas', 'botas', 'sandalias'];
+  'botas_pesadas', 'botas', 'sandalias',
+  // accesorios (de cualquier clase): una forma por tipo, pintada con el set
+  'amuleto', 'collar', 'anillo', 'brazalete', 'colgante', 'medallon', 'relicario'];
 export const SETS = ['hierro', 'acero', 'pradera', 'montana', 'capitan', 'titan', 'acantilado', 'volcan', 'rey_montana', 'caldera', 'titan_fuego',
   'costas', 'oceano', 'profundidades', 'tundra', 'rey_hielo', 'catacumbas', 'lich', 'ancestral', 'arcano', 'sagrado', 'vigia', 'escarcha', 'hierro_negro',
   'obsidiana', 'forja_negra', 'coral', 'abismo', 'glaciar', 'reina', 'guardian', 'sepulcral', 'trono', 'centinela',
@@ -57,6 +59,7 @@ const SET_BY_CODE = [
   [/CATACUMBAS/, 'catacumbas'], [/LICH/, 'lich'], [/RUINAS/, 'ancestral'], [/MAGICA|ESPADA_MAGICA/, 'arcano'],
 ];
 const SET_BY_NAME = [
+  [/antiguos/, 'ancestral'], [/nyssara/, 'arcano'], // accesorios sueltos
   [/obsidiana/, 'obsidiana'], [/forja negra/, 'forja_negra'], [/coral/, 'coral'], [/abismo/, 'abismo'], [/glaciar/, 'glaciar'], [/de la reina/, 'reina'], [/guardian/, 'guardian'], [/marea/, 'costas'], [/almirante/, 'oceano'],
   [/titan de fuego/, 'titan_fuego'], [/rey de las montanas/, 'rey_montana'], [/rey del hielo/, 'rey_hielo'], [/titan/, 'titan'],
   [/pradera|lobo|lenador/, 'pradera'], [/montana|troll/, 'montana'], [/capitan/, 'capitan'], [/acantilado/, 'acantilado'],
@@ -130,6 +133,17 @@ function shapeOf(n, slot, cls) {
   return null;
 }
 
+// la forma de un accesorio por su nombre (los que no dicen qué son, como el Ojo del Mañana, son medallones)
+function accessoryShape(n) {
+  if (/amuleto/.test(n)) return 'amuleto';
+  if (/collar/.test(n)) return 'collar';
+  if (/anillo|sortija/.test(n)) return 'anillo';
+  if (/brazalete|pulsera/.test(n)) return 'brazalete';
+  if (/colgante/.test(n)) return 'colgante';
+  if (/relicario/.test(n)) return 'relicario';
+  return 'medallon';
+}
+
 function setOf(item, n) {
   const code = String(item.code ?? item.item_code ?? item.itemCode ?? '');
   for (const [re, set] of SET_BY_CODE) if (re.test(code)) return set;
@@ -147,7 +161,13 @@ export function gearArt(item) {
   if (type && type !== 'EQUIPMENT') return null;
   // sin hueco no se sabe si es equipo (un material como «Corona del Rey» no lleva ícono de casco)
   const slot = item.slot ?? item.resultSlot ?? null;
-  if (!slot || slot === 'ACCESSORY') return null;
+  if (!slot) return null;
+  if (slot === 'ACCESSORY') {
+    // los que tienen dibujo propio en el atlas de objetos (los de la Pradera, la Herradura de Goreth…) lo conservan
+    if (objetoArt(item) != null) return null;
+    const n = normalize(item.name ?? item.item_name ?? item.itemName);
+    return { shape: accessoryShape(n), set: setOf(item, n) };
+  }
   const cls = classOf(item);
   if (cls === 'otra') return null;
   const n = normalize(item.name ?? item.item_name ?? item.itemName);

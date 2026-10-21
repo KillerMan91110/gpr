@@ -14,6 +14,10 @@ async function request(path, { method = 'GET', body, token } = {}) {
   if (!res.ok) {
     throw new Error(data.error || `Error ${res.status}`);
   }
+  // logros nuevos que vienen en cualquier respuesta (combate, misión, forja, huevo, sobre, secreto…):
+  // los muestra components/LogroBanner.js
+  const nuevos = [...(Array.isArray(data?.logros) ? data.logros : []), ...(Array.isArray(data?.rewards?.logros) ? data.rewards.logros : [])];
+  if (nuevos.length && typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('etheria-logros', { detail: nuevos }));
   return data;
 }
 
@@ -37,6 +41,9 @@ export const api = {
   getPlayerEquipment: (playerId, token) => request(`/api/player/${playerId}/equipment`, { token }),
   getPlayerSkills: (playerId, token) => request(`/api/player/${playerId}/skills`, { token }),
   getAchievements: (playerId, token) => request(`/api/player/${playerId}/achievements`, { token }),
+  // la ventana de Logros (gprback/lib/logros.js) y el título equipado
+  getLogros: (playerId, token) => request(`/api/player/${playerId}/logros`, { token }),
+  equiparTitulo: (playerId, code, token) => request(`/api/player/${playerId}/logros/titulo`, { method: 'POST', body: { code }, token }),
   getClassSkills: (playerId, token, npcId) =>
     request(`/api/player/${playerId}/class-skills${npcId ? `?npcId=${npcId}` : ''}`, { token }),
   getAvailableQuests: (playerId, token) => request(`/api/player/${playerId}/quests/available`, { token }),
@@ -94,6 +101,8 @@ export const api = {
   feedPet: (playerId, playerPetId, itemId, quantity, token) =>
     request(`/api/player/${playerId}/pets/${playerPetId}/feed`, { method: 'POST', body: { itemId, quantity }, token }),
   getIncubator: (playerId, token) => request(`/api/player/${playerId}/pets/incubator`, { token }),
+  // todas las mascotas con su zona y cuánto tarda cada huevo (qué puede nacer de cada huevo)
+  getPetCatalog: (playerId, token) => request(`/api/player/${playerId}/pets/catalogo`, { token }),
   startIncubation: (playerId, itemId, token) =>
     request(`/api/player/${playerId}/pets/incubator`, { method: 'POST', body: { itemId }, token }),
   claimIncubator: (playerId, token) =>

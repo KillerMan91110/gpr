@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import GameIcon from '../GameIcon';
 import FloatingPanel from './FloatingPanel';
+import ItemIcon from './ItemIcon';
 import { iconForItem, RARITY_LABELS } from './itemIcons';
 
 const BONUS_LABEL = {
@@ -36,6 +37,24 @@ const PET_ICONS = [
 const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 const petIcon = (name) => PET_ICONS.find(([re]) => re.test(norm(name)))?.[1] ?? ['paw-print', 'lorc'];
 
+// Huevos por zona (gprback/lib/huevos.js): HUEVO_<ZONA>_<RAREZA>; los de siempre son HUEVO_<RAREZA>
+const ZONAS = [
+  ['PRADERA', 1, 'Pradera Dorada'], ['MONTANA', 2, 'Montañas Grises'], ['VOLCAN', 3, 'Volcán Rojo'], ['COSTAS', 4, 'Costas Muertas'],
+  ['TUNDRA', 5, 'Tundra Eterna'], ['CATACUMBAS', 6, 'Catacumbas del Abismo'], ['RUINAS', 7, 'Ruinas Ancestrales'],
+];
+const ZONA_NOMBRE = Object.fromEntries(ZONAS.map(([, id, name]) => [id, name]));
+const RAREZAS = ['COMUN', 'POCO_COMUN', 'RARO', 'EPICO', 'LEGENDARIO'];
+function eggInfo(code) {
+  const rest = String(code ?? '').replace(/^HUEVO_/, '');
+  if (RAREZAS.includes(rest)) return { zoneId: null, rarity: rest };
+  const z = ZONAS.find(([c]) => rest.startsWith(`${c}_`));
+  const rarity = z && rest.slice(z[0].length + 1);
+  return z && RAREZAS.includes(rarity) ? { zoneId: z[1], rarity } : null;
+}
+// los de siempre primero, después por zona (en el orden del viaje) y por rareza
+const eggOrder = (e) => { const i = eggInfo(e.code); return i ? (i.zoneId ?? 0) * 10 + RAREZAS.indexOf(i.rarity) : 999; };
+const rarityClass = (r) => (r || 'COMUN').toLowerCase();
+
 function countdown(ms) {
   if (ms <= 0) return 'listo';
   const t = Math.floor(ms / 1000);
@@ -43,15 +62,20 @@ function countdown(ms) {
   const m = Math.floor((t % 3600) / 60);
   return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${t % 60}s` : `${t % 60}s`;
 }
+const hoursText = (h) => (h >= 1 ? `${Math.floor(h)} h${h % 1 ? ` ${Math.round((h % 1) * 60)} min` : ''}` : `${Math.round(h * 60)} min`);
 
-// Establo de mascotas al estilo del diario de mascotas de un MMO: colección a la izquierda,
-// la mascota elegida "en escena" a la derecha con sus bonos, y la incubadora arriba.
+// Establo de mascotas al estilo del diario de mascotas de un MMO: la incubadora siempre arriba; abajo, las
+// pestañas Mascotas y Huevos. Lo que elijas (una mascota o un huevo) se ve "en escena" a la derecha.
 export default function PetsPanel({ onChanged, onClose, zIndex, onActivate, defaultPos }) {
   const { player, token } = useAuth();
   const [pets, setPets] = useState(null);
+  const [catalog, setCatalog] = useState(null);
   const [incubator, setIncubator] = useState(undefined);
+  const [readyAt, setReadyAt] = useState(null);
   const [inventory, setInventory] = useState([]);
+  const [tab, setTab] = useState('mascotas');
   const [selId, setSelId] = useState(null);
+  const [eggId, setEggId] = useState(null);
   const [feeding, setFeeding] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
@@ -61,10 +85,14 @@ export default function PetsPanel({ onChanged, onClose, zIndex, onActivate, defa
     const [p, inc, inv] = await Promise.all([api.getPets(player.id, token), api.getIncubator(player.id, token), api.getPlayerInventory(player.id, token)]);
     setPets(p);
     setIncubator(inc);
+    // la cuenta regresiva con el reloj de este navegador (el servidor dice cuántos segundos faltan)
+    setReadyAt(inc ? Date.now() + Number(inc.seconds_left ?? 0) * 1000 : null);
+    setNow(Date.now());
     setInventory(inv);
   }, [player, token]);
 
   useEffect(() => { load().catch((e) => setMessage({ ok: false, text: e.message })); }, [load]);
+  useEffect(() => { api.getPetCatalog(player.id, token).then(setCatalog).catch(() => setCatalog(null)); }, [player, token]);
   useEffect(() => {
     if (!incubator || incubator.ready) return undefined;
     const iv = setInterval(() => setNow(Date.now()), 1000);
@@ -76,12 +104,17 @@ export default function PetsPanel({ onChanged, onClose, zIndex, onActivate, defa
     return () => clearTimeout(t);
   }, [message]);
 
-  const eggs = inventory.filter((i) => i.code?.startsWith('HUEVO_') && i.quantity > 0);
+  const eggs = useMemo(() => inventory
+    .filter((i) => i.code?.startsWith('HUEVO_') && eggInfo(i.code) && i.quantity > 0)
+    .sort((a, b) => eggOrder(a) - eggOrder(b)), [inventory]);
   const food = inventory.filter((i) => i.item_type === 'MATERIAL' && !i.code?.startsWith('HUEVO_') && !i.code?.startsWith('SOBRE_') && i.quantity > 0);
   const stone = inventory.find((i) => i.code === 'PIEDRA_TRASCENDENCIA' && i.quantity > 0);
   const sorted = useMemo(() => [...(pets ?? [])].sort((a, b) => Number(b.is_active) - Number(a.is_active) || b.level - a.level), [pets]);
   const pet = sorted.find((p) => p.id === selId) ?? sorted[0] ?? null;
-  const ready = incubator && (incubator.ready || new Date(incubator.hatch_ready_at).getTime() <= now);
+  const egg = eggs.find((e) => e.item_id === eggId) ?? eggs[0] ?? null;
+  const left = incubator ? Math.max(0, (readyAt ?? now) - now) : 0;
+  const ready = !!incubator && (incubator.ready || left <= 0);
+  const progress = incubator ? Math.min(100, 100 - (left / 1000 / Math.max(1, incubator.total_seconds)) * 100) : 0;
 
   const run = async (fn, okText) => {
     if (busy) return;
@@ -92,146 +125,244 @@ export default function PetsPanel({ onChanged, onClose, zIndex, onActivate, defa
       if (text) setMessage({ ok: true, text });
       await load();
       onChanged?.();
+      return r;
     } catch (e) {
       setMessage({ ok: false, text: e.message });
+      return null;
     } finally {
       setBusy(false);
     }
   };
 
+  const claim = async () => {
+    const p = await run(() => api.claimIncubator(player.id, token), (r) => `¡Eclosionó ${r?.name ?? 'una mascota'}!`);
+    if (p?.id) { setTab('mascotas'); setSelId(p.id); }
+  };
+
+  // qué puede nacer del huevo elegido (las de su zona y rareza; si la zona no tiene, cualquiera de esa rareza)
+  const eggPets = useMemo(() => {
+    const info = egg && eggInfo(egg.code);
+    if (!info || !catalog?.pets) return [];
+    const byRarity = catalog.pets.filter((p) => p.rarity === info.rarity);
+    const inZone = info.zoneId ? byRarity.filter((p) => p.zone_id === info.zoneId) : [];
+    return inZone.length ? inZone : byRarity;
+  }, [egg, catalog]);
+  const ownedCodes = useMemo(() => new Set((pets ?? []).map((p) => p.code)), [pets]);
+
   const [pi, pa] = pet ? petIcon(pet.name) : ['paw-print', 'lorc'];
+  const incubatingIcon = incubator ? iconForItem({ name: incubator.egg_name, code: incubator.egg_code }) : null;
+
+  const renderPet = () => (pet ? (
+    <>
+      <div className={`wp-pet-show wp-glow-${rarityClass(pet.rarity)}`}>
+        <GameIcon name={pi} artist={pa} />
+        <span className="wp-pet-pedestal" />
+      </div>
+      <h3 className={`wp-text-${rarityClass(pet.rarity)}`}>{pet.name}</h3>
+      <p className="wp-pet-sub">
+        {RARITY_LABELS[pet.rarity] ?? pet.rarity} · Nivel {pet.level}
+        {pet.zone_id ? ` · ${ZONA_NOMBRE[pet.zone_id]}` : ''}{pet.is_active ? ' · Te acompaña' : ''}
+      </p>
+      <div className="wp-pet-bond">
+        <span>Vínculo</span>
+        <div className="wp-bar"><div style={{ width: `${Math.min(100, pet.bond_points)}%` }} /></div>
+        <b>{pet.bond_points}/100</b>
+      </div>
+      {pet.description && <p className="wp-pet-desc">“{pet.description}”</p>}
+      <ul className="wp-pet-bonuses">
+        {(pet.bonuses ?? []).map((b) => {
+          const t = bonusText(b);
+          return t ? <li key={b.stat_code}>{t}</li> : null;
+        })}
+      </ul>
+      <div className="wp-pet-actions">
+        {pet.is_active
+          ? <button type="button" className="wp-btn" disabled={busy} onClick={() => run(() => api.deactivatePet(player.id, pet.id, token), `${pet.name} vuelve al establo`)}>Guardar</button>
+          : <button type="button" className="wp-btn wp-btn--gold" disabled={busy} onClick={() => run(() => api.activatePet(player.id, pet.id, token), `${pet.name} ahora te acompaña`)}>Invocar</button>}
+        <button type="button" className={`wp-btn${feeding ? ' wp-btn--on' : ''}`} disabled={busy} onClick={() => setFeeding(!feeding)}>Alimentar</button>
+        {stone && (
+          <button type="button" className="wp-btn" disabled={busy} title="Sube el nivel y el tope en +3"
+            onClick={() => run(() => api.feedPet(player.id, pet.id, stone.item_id, 1, token), (r) => `¡${pet.name} trascendió! Nivel ${r.level}`)}>
+            ✨ Trascender ({stone.quantity})
+          </button>
+        )}
+      </div>
+      {feeding && (
+        <div className="wp-feed">
+          <small>Clic en un material para darle 1 (sube el vínculo):</small>
+          <div className="wp-egg-row">
+            {food.length === 0 && <span className="wp-empty">No tienes materiales.</span>}
+            {food.map((m) => (
+              <button key={m.item_id} type="button" className={`wp-slot wp-rarity-${rarityClass(m.rarity)}`} title={m.name} disabled={busy}
+                onClick={() => run(() => api.feedPet(player.id, pet.id, m.item_id, 1, token), `${pet.name} comió ${m.name}`)}>
+                <ItemIcon icon={iconForItem(m)} />
+                {m.quantity > 1 && <span className="wp-slot-qty">{m.quantity}</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  ) : (
+    <>
+      <div className="wp-pet-show wp-pet-show--empty">
+        <GameIcon name="paw-print" artist="lorc" />
+        <span className="wp-pet-pedestal" />
+      </div>
+      <h3>Establo vacío</h3>
+      <p className="wp-pet-sub">Algunos monstruos sueltan huevos. Incúbalos para conseguir compañeros que te dan bonos en combate.</p>
+    </>
+  ));
+
+  const renderEgg = () => {
+    if (!egg) {
+      return (
+        <>
+          <div className="wp-pet-show wp-pet-show--empty">
+            <GameIcon name="egg-clutch" artist="lorc" />
+            <span className="wp-pet-pedestal" />
+          </div>
+          <h3>Sin huevos</h3>
+          <p className="wp-pet-sub">Los monstruos de cada zona sueltan sus huevos. De cada uno nace una mascota de esa zona.</p>
+        </>
+      );
+    }
+    const info = eggInfo(egg.code);
+    const hours = catalog?.hatchHours?.[info.rarity];
+    return (
+      <>
+        <div className={`wp-pet-show wp-egg-show wp-glow-${rarityClass(info.rarity)}`}>
+          <ItemIcon icon={iconForItem(egg)} />
+          <span className="wp-pet-pedestal" />
+        </div>
+        <h3 className={`wp-text-${rarityClass(info.rarity)}`}>{egg.name}</h3>
+        <p className="wp-pet-sub">
+          {RARITY_LABELS[info.rarity] ?? info.rarity} · {info.zoneId ? ZONA_NOMBRE[info.zoneId] : 'De cualquier zona'}
+          {hours ? ` · Tarda ${hoursText(hours)}` : ''} · Tienes {egg.quantity}
+        </p>
+        {egg.description && <p className="wp-pet-desc">“{egg.description}”</p>}
+        {eggPets.length > 0 && (
+          <div className="wp-egg-hatch">
+            <small>Puede nacer:</small>
+            <ul>
+              {eggPets.map((p) => {
+                const [n, a] = petIcon(p.name);
+                const have = ownedCodes.has(p.code);
+                return (
+                  <li key={p.id} className={have ? 'is-owned' : ''} title={have ? 'Ya la tienes' : 'Todavía no la tienes'}>
+                    <span className={`wp-slot wp-slot--sm wp-rarity-${rarityClass(p.rarity)}`}><GameIcon name={n} artist={a} /></span>
+                    <span>{p.name}{have ? ' ✓' : ''}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+        <div className="wp-pet-actions">
+          {incubator
+            ? (
+              <button type="button" className="wp-btn" disabled title="La incubadora tiene un solo lugar">
+                {ready ? 'Primero eclosiona el que está listo' : `Incubadora ocupada (${countdown(left)})`}
+              </button>
+            )
+            : (
+              <button type="button" className="wp-btn wp-btn--gold" disabled={busy}
+                onClick={() => run(() => api.startIncubation(player.id, egg.item_id, token), `Incubando ${egg.name}`)}>
+                Incubar
+              </button>
+            )}
+        </div>
+      </>
+    );
+  };
 
   return (
     <FloatingPanel
       id="mascotas"
       title="Mascotas"
       icon={<GameIcon name="paw" artist="lorc" />}
-      width={660}
+      width={700}
       defaultPos={defaultPos}
       onClose={onClose}
       zIndex={zIndex}
       onActivate={onActivate}
-      footer={<span className={`wp-foot-note${message ? (message.ok ? ' ok' : ' err') : ''}`}>{message?.text ?? `${pets?.length ?? 0} mascota${pets?.length === 1 ? '' : 's'} en la colección`}</span>}
+      footer={<span className={`wp-foot-note${message ? (message.ok ? ' ok' : ' err') : ''}`}>{message?.text ?? `${pets?.length ?? 0} mascota${pets?.length === 1 ? '' : 's'} en la colección · ${eggs.reduce((s, e) => s + e.quantity, 0)} huevos`}</span>}
     >
       {!pets && <p className="wp-empty">Cargando…</p>}
       {pets && (
         <div className="wp-pets">
           <aside className="wp-pets-side">
-            {/* incubadora */}
+            {/* la incubadora, siempre a la vista */}
             <div className={`wp-incubator${ready ? ' wp-incubator--ready' : ''}`}>
-              <span className="wp-slot wp-slot--lg wp-egg"><GameIcon name="egg-clutch" artist="lorc" /></span>
+              <span className={`wp-slot wp-slot--lg wp-egg${incubator ? ` wp-rarity-${rarityClass(incubator.egg_rarity)}` : ''}`}>
+                {incubatingIcon ? <ItemIcon icon={incubatingIcon} /> : <GameIcon name="egg-clutch" artist="lorc" />}
+              </span>
               <div className="wp-incubator-info">
                 <strong>Incubadora</strong>
-                {incubator === null && eggs.length === 0 && <small>Sin huevos. Los sueltan algunos monstruos.</small>}
-                {incubator === null && eggs.length > 0 && <small>Elige un huevo para incubar:</small>}
-                {incubator && !ready && (
+                {!incubator && <small>{eggs.length ? 'Vacía: elige un huevo en la pestaña Huevos.' : 'Vacía. Los monstruos sueltan huevos.'}</small>}
+                {incubator && (
                   <>
                     <small>{incubator.egg_name}</small>
-                    <span className="wp-incubator-time">{countdown(new Date(incubator.hatch_ready_at).getTime() - now)}</span>
+                    {ready
+                      ? (
+                        <button type="button" className="wp-btn wp-btn--gold" disabled={busy} onClick={claim}>¡Eclosionar!</button>
+                      )
+                      : (
+                        <>
+                          <div className="wp-bar wp-incubator-bar"><div style={{ width: `${progress}%` }} /></div>
+                          <span className="wp-incubator-time">{countdown(left)}</span>
+                        </>
+                      )}
                   </>
-                )}
-                {incubator && ready && (
-                  <button type="button" className="wp-btn wp-btn--gold" disabled={busy}
-                    onClick={() => run(() => api.claimIncubator(player.id, token), (p) => `¡Eclosionó ${p?.name ?? 'una mascota'}!`)}>
-                    ¡Eclosionar!
-                  </button>
                 )}
               </div>
             </div>
-            {incubator === null && eggs.length > 0 && (
-              <div className="wp-egg-row">
-                {eggs.map((egg) => (
-                  <button key={egg.item_id} type="button" className={`wp-slot wp-rarity-${(egg.rarity || 'COMUN').toLowerCase()}`}
-                    title={`${egg.name} · clic para incubar`} disabled={busy}
-                    onClick={() => run(() => api.startIncubation(player.id, egg.item_id, token), `Incubando ${egg.name}`)}>
-                    <GameIcon name="egg-clutch" artist="lorc" />
-                    {egg.quantity > 1 && <span className="wp-slot-qty">{egg.quantity}</span>}
+
+            <div className="wp-pets-tabs">
+              <button type="button" className={`wp-pets-tab${tab === 'mascotas' ? ' is-on' : ''}`} onClick={() => setTab('mascotas')}>
+                <GameIcon name="paw" artist="lorc" /> Mascotas <b>{sorted.length}</b>
+              </button>
+              <button type="button" className={`wp-pets-tab${tab === 'huevos' ? ' is-on' : ''}`} onClick={() => setTab('huevos')}>
+                <GameIcon name="egg-clutch" artist="lorc" /> Huevos <b>{eggs.reduce((s, e) => s + e.quantity, 0)}</b>
+              </button>
+            </div>
+
+            {tab === 'mascotas' && (
+              <ul className="wp-pet-list">
+                {sorted.length === 0 && <li className="wp-empty">Todavía no tienes mascotas. ¡Incuba un huevo!</li>}
+                {sorted.map((p) => {
+                  const [n, a] = petIcon(p.name);
+                  return (
+                    <li key={p.id}>
+                      <button type="button" className={`wp-pet-row${pet?.id === p.id ? ' wp-pet-row--sel' : ''}`} onClick={() => { setSelId(p.id); setFeeding(false); }}>
+                        <span className={`wp-slot wp-slot--sm wp-rarity-${rarityClass(p.rarity)}`}><GameIcon name={n} artist={a} /></span>
+                        <span className={`wp-pet-name wp-text-${rarityClass(p.rarity)}`}>{p.name}<small>Nv. {p.level}{p.zone_id ? ` · ${ZONA_NOMBRE[p.zone_id]}` : ''}</small></span>
+                        {p.is_active && <span className="wp-pet-active" title="Te acompaña">★</span>}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            {tab === 'huevos' && (
+              <div className="wp-egg-grid">
+                {eggs.length === 0 && <span className="wp-empty">No tienes huevos. Los sueltan los monstruos de cada zona.</span>}
+                {eggs.map((e) => (
+                  <button key={e.item_id} type="button"
+                    className={`wp-slot wp-rarity-${rarityClass(e.rarity)}${egg?.item_id === e.item_id ? ' wp-slot--sel' : ''}`}
+                    title={e.name} onClick={() => setEggId(e.item_id)}>
+                    <ItemIcon icon={iconForItem(e)} />
+                    {e.quantity > 1 && <span className="wp-slot-qty">{e.quantity}</span>}
                   </button>
                 ))}
               </div>
             )}
-
-            {/* colección */}
-            <ul className="wp-pet-list">
-              {sorted.length === 0 && <li className="wp-empty">Todavía no tienes mascotas. ¡Incuba un huevo!</li>}
-              {sorted.map((p) => {
-                const [n, a] = petIcon(p.name);
-                return (
-                  <li key={p.id}>
-                    <button type="button" className={`wp-pet-row${pet?.id === p.id ? ' wp-pet-row--sel' : ''}`} onClick={() => { setSelId(p.id); setFeeding(false); }}>
-                      <span className={`wp-slot wp-slot--sm wp-rarity-${(p.rarity || 'COMUN').toLowerCase()}`}><GameIcon name={n} artist={a} /></span>
-                      <span className={`wp-pet-name wp-text-${(p.rarity || 'COMUN').toLowerCase()}`}>{p.name}<small>Nv. {p.level}</small></span>
-                      {p.is_active && <span className="wp-pet-active" title="Te acompaña">★</span>}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
           </aside>
 
-          {/* la mascota elegida en escena */}
+          {/* lo elegido, en escena */}
           <section className="wp-pet-stage">
-            {pet ? (
-              <>
-                <div className={`wp-pet-show wp-glow-${(pet.rarity || 'COMUN').toLowerCase()}`}>
-                  <GameIcon name={pi} artist={pa} />
-                  <span className="wp-pet-pedestal" />
-                </div>
-                <h3 className={`wp-text-${(pet.rarity || 'COMUN').toLowerCase()}`}>{pet.name}</h3>
-                <p className="wp-pet-sub">{RARITY_LABELS[pet.rarity] ?? pet.rarity} · Nivel {pet.level}{pet.is_active ? ' · Te acompaña' : ''}</p>
-                <div className="wp-pet-bond">
-                  <span>Vínculo</span>
-                  <div className="wp-bar"><div style={{ width: `${Math.min(100, pet.bond_points)}%` }} /></div>
-                  <b>{pet.bond_points}/100</b>
-                </div>
-                {pet.description && <p className="wp-pet-desc">“{pet.description}”</p>}
-                <ul className="wp-pet-bonuses">
-                  {(pet.bonuses ?? []).map((b) => {
-                    const t = bonusText(b);
-                    return t ? <li key={b.stat_code}>{t}</li> : null;
-                  })}
-                </ul>
-                <div className="wp-pet-actions">
-                  {pet.is_active
-                    ? <button type="button" className="wp-btn" disabled={busy} onClick={() => run(() => api.deactivatePet(player.id, pet.id, token), `${pet.name} vuelve al establo`)}>Guardar</button>
-                    : <button type="button" className="wp-btn wp-btn--gold" disabled={busy} onClick={() => run(() => api.activatePet(player.id, pet.id, token), `${pet.name} ahora te acompaña`)}>Invocar</button>}
-                  <button type="button" className={`wp-btn${feeding ? ' wp-btn--on' : ''}`} disabled={busy} onClick={() => setFeeding(!feeding)}>Alimentar</button>
-                  {stone && (
-                    <button type="button" className="wp-btn" disabled={busy} title="Sube el nivel y el tope en +3"
-                      onClick={() => run(() => api.feedPet(player.id, pet.id, stone.item_id, 1, token), (r) => `¡${pet.name} trascendió! Nivel ${r.level}`)}>
-                      ✨ Trascender ({stone.quantity})
-                    </button>
-                  )}
-                </div>
-                {feeding && (
-                  <div className="wp-feed">
-                    <small>Clic en un material para darle 1 (sube el vínculo):</small>
-                    <div className="wp-egg-row">
-                      {food.length === 0 && <span className="wp-empty">No tienes materiales.</span>}
-                      {food.map((m) => {
-                        const ic = iconForItem(m);
-                        return (
-                          <button key={m.item_id} type="button" className={`wp-slot wp-rarity-${(m.rarity || 'COMUN').toLowerCase()}`} title={m.name} disabled={busy}
-                            onClick={() => run(() => api.feedPet(player.id, pet.id, m.item_id, 1, token), `${pet.name} comió ${m.name}`)}>
-                            <GameIcon name={ic.name} artist={ic.artist} />
-                            {m.quantity > 1 && <span className="wp-slot-qty">{m.quantity}</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="wp-pet-show wp-pet-show--empty">
-                  <GameIcon name="paw-print" artist="lorc" />
-                  <span className="wp-pet-pedestal" />
-                </div>
-                <h3>Establo vacío</h3>
-                <p className="wp-pet-sub">Algunos monstruos sueltan huevos. Incúbalos para conseguir compañeros que te dan bonos en combate.</p>
-              </>
-            )}
+            {tab === 'huevos' ? renderEgg() : renderPet()}
           </section>
         </div>
       )}

@@ -609,6 +609,56 @@
 .wp-feed { width: 100%; margin-top: 8px; text-align: left; }
 .wp-feed small { display: block; margin-bottom: 4px; font: italic 0.78rem 'EB Garamond', serif; color: var(--text-soft); }
 
+/* la incubadora: barra de lo que falta (el huevo que se incuba lleva su dibujo y el borde de su rareza) */
+.wp-pets-side { width: 260px; }
+.wp-incubator-info { flex: 1; }
+.wp-incubator-bar { flex: none; width: 100%; height: 6px; }
+.wp-incubator-bar > div { background: linear-gradient(180deg, #ffe08a, #c09030); }
+
+/* pestañas Mascotas / Huevos */
+.wp-pets-tabs { display: flex; gap: 4px; border-bottom: 1px solid rgba(212, 175, 55, 0.3); }
+.wp-pets-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-bottom: none;
+  border-radius: 5px 5px 0 0;
+  font: 600 0.74rem 'Cinzel', serif;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+.wp-pets-tab b { font: 700 0.7rem 'EB Garamond', serif; color: #fff; padding: 0 5px; background: rgba(255, 255, 255, 0.08); border-radius: 8px; }
+.wp-pets-tab:hover { color: #fff; }
+.wp-pets-tab.is-on { background: linear-gradient(180deg, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.05)); border-color: rgba(212, 175, 55, 0.55); color: var(--gold-bright); }
+
+/* los huevos: casillas en fila, por zona y rareza */
+.wp-egg-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 44px);
+  gap: 6px;
+  align-content: start;
+  max-height: 260px;
+  padding: 2px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dim) transparent;
+}
+.wp-egg-grid .wp-empty { grid-column: 1 / -1; }
+.wp-slot.wp-slot--sel { outline: 2px solid var(--gold-bright); outline-offset: 1px; }
+
+/* el huevo en escena y lo que puede nacer */
+.wp-egg-show .item-art { width: 96px; height: 96px; filter: drop-shadow(0 0 10px var(--glow, rgba(240, 216, 120, 0.4))); }
+.wp-egg-hatch { width: 100%; margin-top: 10px; text-align: left; }
+.wp-egg-hatch small { display: block; margin-bottom: 4px; font: 0.7rem 'Cinzel', serif; color: var(--text-soft); text-transform: uppercase; }
+.wp-egg-hatch ul { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 0; padding: 0; list-style: none; }
+.wp-egg-hatch li { display: flex; align-items: center; gap: 5px; font: 600 0.8rem 'EB Garamond', serif; color: var(--text-soft); opacity: 0.75; }
+.wp-egg-hatch li.is-owned { color: #9dffb2; opacity: 1; }
+
 /* ---- formación ---- */
 .wp-face {
   display: grid;
