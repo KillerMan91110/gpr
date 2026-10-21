@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { clearActiveCombat, getActiveCombat, isCombatInProgress } from '../utils/activeCombat';
 import { setAbyssCheckpoint } from '../utils/abyssCheckpoint';
+import { olvidarPestana } from '../game/posicionGuardada';
 
 const AuthContext = createContext(null);
 
@@ -24,6 +25,7 @@ export function AuthProvider({ children }) {
 
   async function login(email, password) {
     const data = await api.login({ email, password });
+    olvidarPestana();
     setToken(data.token);
     setPlayer(data.player);
     return data.player;
@@ -31,6 +33,7 @@ export function AuthProvider({ children }) {
 
   async function register(payload) {
     const data = await api.register(payload);
+    olvidarPestana();
     setToken(data.token);
     setPlayer(data.player);
     return data.player;
@@ -44,6 +47,7 @@ export function AuthProvider({ children }) {
     }
     clearActiveCombat();
     setAbyssCheckpoint(null);
+    olvidarPestana();
     setToken(null);
     setPlayer(null);
   }

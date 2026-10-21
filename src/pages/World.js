@@ -61,6 +61,7 @@ import { bindings as keyBindings } from '../game/keybinds';
 import MarketPanel from '../components/world/MarketPanel';
 import HirePanel from '../components/world/HirePanel';
 import MythicHunt from '../components/world/MythicHunt';
+import { leerPosicion, guardarPosicion, borrarPosicion } from '../game/posicionGuardada';
 import './World.css';
 
 // Ventanas del mundo. Todas son paneles flotantes que NO bloquean el mapa: se puede caminar con
@@ -133,7 +134,6 @@ const HEARTH_MS = 5000;
 
 const BASE_CLASSES = ['guerrero', 'mago', 'arquero', 'picaro', 'sacerdote'];
 // v2: la Pradera grande por trozos (las posiciones del mapa viejo ya no sirven)
-const POS_KEY = 'mundo_posicion_v2';
 // zona de arranque si no hay posición guardada (la posición guarda en qué zona estabas): todos
 // los aventureros empiezan en Aurelia, la capital
 const DEFAULT_ZONE_ID = 0;
@@ -405,7 +405,7 @@ export default function World() {
   useEffect(() => {
     if (!baseClass || !hostRef.current) return undefined;
     let startPos = null;
-    try { startPos = JSON.parse(sessionStorage.getItem(POS_KEY)); } catch { /* sin posición guardada */ }
+    startPos = leerPosicion();
     let game = null;
     let disposed = false;
     const boot = () => {
@@ -540,7 +540,7 @@ export default function World() {
       // en grupo, el servidor suma a los compañeros que estén cerca (ver combat.js worldGroup)
       if (e.kind === 'zone') e = { ...e, group: !!coopRef.current?.members?.length };
       setEncounter(e);
-      sessionStorage.setItem(POS_KEY, JSON.stringify(e.position));
+      guardarPosicion(e.position);
       // tras el aviso "¡Combate!" entra la escena de batalla (sin cambiar de página)
       setTimeout(() => { setEncounter(null); setBattle(e); }, 1300);
     };
@@ -601,7 +601,7 @@ export default function World() {
   useEffect(() => {
     const onZone = ({ zoneDir: dir, x, y }) => {
       const pos = { x, y, zona: dir };
-      sessionStorage.setItem(POS_KEY, JSON.stringify(pos));
+      guardarPosicion(pos);
       let moved = false;
       bus.emit('teleport', { zoneDir: dir, x, y }, (ok) => { moved = ok; });
       if (moved) return;
@@ -1020,7 +1020,7 @@ export default function World() {
       setTimeout(() => bus.emit('float-loot', lines), 500);
     }
     if (status === 'ENEMY_WON') {
-      sessionStorage.removeItem(POS_KEY);
+      borrarPosicion();
       // despiertas en tu refugio con la mitad de la vida (y pierdes un poco de oro)
       api.revive(player.id, token)
         .then((r) => {

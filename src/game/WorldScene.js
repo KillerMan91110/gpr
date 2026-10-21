@@ -27,6 +27,7 @@ import { trackingMethods } from './world/tracking';
 import { escenaMethods } from './world/escena';
 import { enFase } from './story';
 import { escoltaMethods } from './world/escolta';
+import { guardarPosicion } from './posicionGuardada';
 
 // Mundo abierto continuo (estilo MMO): public/assets/mundo/etheria.json coloca cada zona
 // (public/assets/mundo/<zona>/mundo.json) en su lugar del continente. Todas las zonas viven en
@@ -1205,11 +1206,11 @@ export default class WorldScene extends Phaser.Scene {
     if (sig === this.lastReportSig) return;
     this.lastReportSig = sig;
     bus.emit('hero-moved', msg);
-    // y queda guardada para que al recargar (F5) aparezcas donde estabas, no en el último combate o viaje
+    // y queda guardada para que al recargar (F5) o al volver a entrar aparezcas donde estabas, no en el último combate o viaje
     // (src/pages/World.js la lee al arrancar). Dentro de una mazmorra no: ahí se vuelve a la entrada.
     if (!this.crypt && (!moving || time - (this.lastPosSave ?? 0) > 1000)) {
       this.lastPosSave = time;
-      try { sessionStorage.setItem('mundo_posicion_v2', JSON.stringify(pos)); } catch { /* sin guardar */ }
+      guardarPosicion(pos);
     }
   }
 
