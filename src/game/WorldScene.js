@@ -1569,10 +1569,14 @@ export default class WorldScene extends Phaser.Scene {
   }
 
   updatePoi() {
+    // el más cercano de los que están al alcance (antes ganaba el último de la lista: con un NPC o una planta
+    // al lado, la E no llegaba a Trueno)
     let nearest = null;
+    let best = Infinity;
     for (const poi of this.pois) {
       if (poi.hidden || poi.boss?.hidden || (poi.resource && !poi.resource.ready)) continue;
-      if (Phaser.Math.Distance.Between(this.player.x, this.player.y, poi.x, poi.y) < (poi.radius ?? POI_RADIUS)) nearest = poi;
+      const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, poi.x, poi.y);
+      if (d < (poi.radius ?? POI_RADIUS) && d < best) { nearest = poi; best = d; }
     }
     if (nearest !== this.nearPoi) {
       this.nearPoi = nearest;

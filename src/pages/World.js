@@ -1342,16 +1342,9 @@ export default function World() {
         <button
           type="button"
           className={`hud-context${poi.boss || poi.mythic ? ' hud-context--boss' : ''}${poi.resource ? ' hud-context--gather' : ''}`}
-          onClick={() => {
-            const scene = gameRef.current?.scene.getScene('mundo');
-            if (poi.boss) scene?.challengeBoss(poi.boss);
-            else if (poi.mythic) scene?.challengeMythic();
-            else if (poi.secret) bus.emit('secret-open', poi.secret);
-            else if (poi.action) scene?.cryptAction(poi);
-            else if (poi.resource) { const r = scene?.resources.get(poi.resource.id); if (r) scene.gather(r); }
-            else if (poi.dialogue) talkTo(poi.dialogue);
-            else if (poi.window) openWin(poi.window);
-          }}
+          // tocarlo es lo mismo que apretar la E (WorldScene lo resuelve igual: jefes, recursos, NPCs, ventanas y
+          // los puntos de misión de examinar y emboscada, que antes el botón no conocía)
+          onClick={() => bus.emit('touch-interact')}
         >
           <span className="hud-context-key">E</span>
           <span className="hud-context-label">{poi.label}</span>
