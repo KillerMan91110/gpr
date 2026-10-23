@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import GameIcon from '../components/GameIcon';
+import SelectorIdioma from '../components/SelectorIdioma';
 
 export default function Login() {
   const { login } = useAuth();
@@ -27,6 +28,7 @@ export default function Login() {
 
   return (
     <div className="auth-page">
+      <SelectorIdioma className="idioma-sel--esquina" />
       <form className="auth-card rpg-panel" onSubmit={handleSubmit}>
         <span className="auth-kicker">
           <GameIcon name="fleur-de-lys" artist="delapouite" /> Reino de Etheria{' '}

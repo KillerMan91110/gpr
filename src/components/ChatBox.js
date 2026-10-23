@@ -421,7 +421,8 @@ export default function ChatBox() {
                 {m.kind === 'gritar' ? '📢 ' : ''}{m.nickname}{m.level ? ` [${m.level}]` : ''}:
               </span>
             )}{' '}
-            <span className="chat-body">{m.body}</span>
+            {/* lo que escriben los jugadores no se traduce (src/i18n); los avisos del juego sí */}
+            <span className="chat-body" data-no-traducir={m.nickname ? '' : undefined}>{m.body}</span>
           </div>
         ))}
       </div>

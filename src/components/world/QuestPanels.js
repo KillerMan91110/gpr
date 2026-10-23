@@ -172,8 +172,9 @@ export function QuestLogPanel({ onChanged, tracked = [], onToggleTrack, ...props
                 {needsTurnInPerson(current) ? (
                   // se entrega en persona: hablando con quien la recibe (marca ? en el mapa)
                   <span className={`wp-quest-turnin${objectivesDone(current) ? ' wp-quest-turnin--ready' : ''}`}>
-                    {objectivesDone(current) ? '❔ Entrégasela' : 'Se entrega'} a {DIALOGUES[npcFor(current.turn_in_npc)]?.name ?? 'quien te la dio'}
-                    {NPC_LUGAR[npcFor(current.turn_in_npc)] ? `, en ${NPC_LUGAR[npcFor(current.turn_in_npc)]}` : ''}
+                    {/* una sola frase, para que el traductor (src/i18n) la encuentre entera */}
+                    {`${objectivesDone(current) ? '❔ Entrégasela' : 'Se entrega'} a ${DIALOGUES[npcFor(current.turn_in_npc)]?.name ?? 'quien te la dio'}${
+                      NPC_LUGAR[npcFor(current.turn_in_npc)] ? `, en ${NPC_LUGAR[npcFor(current.turn_in_npc)]}` : ''}`}
                   </span>
                 ) : (
                   <button

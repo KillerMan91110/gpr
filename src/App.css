@@ -5800,3 +5800,16 @@ h1, h2, h3 {
 
 /* anuncios del juego en el chat (jefe mítico) */
 .chat-msg--anuncio .chat-body { color: #ffe08a; font-weight: 700; text-shadow: 0 0 6px rgba(255, 200, 80, 0.35); }
+
+/* ---- selector de idioma (components/SelectorIdioma.js) ---- */
+.idioma-sel { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--gold-dim); border-radius: 6px; background: rgba(0, 0, 0, 0.35); }
+.idioma-btn {
+  min-width: 34px; padding: 4px 8px; border: 0; border-radius: 4px; background: none; cursor: pointer;
+  font: 700 0.72rem 'Cinzel', serif; letter-spacing: 0.06em; color: var(--cream); opacity: 0.7;
+}
+.idioma-btn:hover { opacity: 1; }
+.idioma-btn.is-on { background: var(--gold); color: #1a1208; opacity: 1; }
+.idioma-sel--esquina { position: fixed; top: 12px; right: 12px; z-index: 10; }
+.landing-topbar-actions { display: inline-flex; align-items: center; gap: 10px; }
+.hud-sound-lang { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 4px; border-top: 1px solid rgba(212, 175, 55, 0.25); }
+.hud-sound-lang > span { font: 700 0.7rem 'Cinzel', serif; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em; }

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import GameIcon from '../components/GameIcon';
+import SelectorIdioma from '../components/SelectorIdioma';
 
 const CLASSES = [
   {
@@ -128,7 +129,10 @@ export default function Landing() {
         <span className="landing-topbar-brand">
           <GameIcon name="fleur-de-lys" artist="delapouite" /> Etheria
         </span>
-        <Link to="/login" className="rpg-button rpg-button--small">Iniciar sesión</Link>
+        <span className="landing-topbar-actions">
+          <SelectorIdioma />
+          <Link to="/login" className="rpg-button rpg-button--small">Iniciar sesión</Link>
+        </span>
       </header>
 
       <section className="landing-hero">

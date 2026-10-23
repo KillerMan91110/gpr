@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import GameIcon from '../GameIcon';
 import audio from '../../game/audio';
+import SelectorIdioma from '../SelectorIdioma';
 
-// Botón de sonido del HUD (debajo del minimapa): silenciar y volúmenes de música y efectos
+// Botón de sonido del HUD (debajo del minimapa): silenciar, volúmenes de música y efectos, y el idioma
 export default function SoundControl() {
   const [prefs, setPrefs] = useState({ ...audio.prefs });
   const [open, setOpen] = useState(false);
@@ -14,7 +15,7 @@ export default function SoundControl() {
       <button
         type="button"
         className="hud-sound-btn"
-        title={silent ? 'Sonido apagado' : 'Sonido'}
+        title={silent ? 'Sonido apagado' : 'Sonido e idioma'}
         onClick={() => { audio.unlock(); setOpen(!open); }}
         onContextMenu={(e) => { e.preventDefault(); audio.setPrefs({ muted: !prefs.muted }); }}
       >
@@ -33,6 +34,10 @@ export default function SoundControl() {
           <button type="button" className="wp-btn" onClick={() => audio.setPrefs({ muted: !prefs.muted })}>
             {prefs.muted ? 'Activar sonido' : 'Silenciar todo'}
           </button>
+          <div className="hud-sound-lang">
+            <span>Idioma</span>
+            <SelectorIdioma />
+          </div>
         </div>
       )}
     </div>

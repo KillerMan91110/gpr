@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import audio from '../../game/audio';
 import { DIALOGUES } from '../../game/dialogues';
+import { idiomaActual, traducir } from '../../i18n';
 
 // Caja de diálogo estilo JRPG: retrato del NPC, el texto aparece letra por letra y abajo las
 // opciones (1-9 para elegir, Espacio/Enter para completar el texto, Esc para irse).
@@ -14,7 +15,9 @@ export default function DialogueBox({ id, ctx, questLines, readyQuests, hasWork,
   // lo que dice por una misión (lib/questSteps.js) va antes de su saludo; se pasa con "Continuar"
   const [lineIdx, setLineIdx] = useState(0);
   const questLine = questLines?.[lineIdx] ?? null;
-  const [text, setText] = useState(() => questLines?.[0]?.text ?? def?.greet(ctx) ?? '');
+  const [texto, setText] = useState(() => questLines?.[0]?.text ?? def?.greet(ctx) ?? '');
+  // en inglés se traduce la frase entera antes de escribirla letra por letra (.dlg-text no lo toca el traductor)
+  const text = useMemo(() => (idiomaActual() === 'en' ? traducir(texto) : texto), [texto]);
   const [shown, setShown] = useState(0);
   const timer = useRef(null);
 

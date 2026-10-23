@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import audio from '../../game/audio';
@@ -172,7 +172,9 @@ export default function GuildPanel({ onClose, zIndex, onActivate, defaultPos, op
           <button key={s.id} type="button" className="wp-tile" title={s.desc} onClick={() => goTo(s.lugares, s.desc)}>
             <span className="wp-tile-icon"><GameIcon name={s.icon[0]} artist={s.icon[1]} /></span>
             <strong>{s.title}</strong>
-            <small>{s.lugares.map((l) => LUGARES[l].name.split(' · ')[0]).filter((n, i, a) => a.indexOf(n) === i).join(' o ')}</small>
+            {/* cada lugar en su propio texto, para que el traductor (src/i18n) encuentre los nombres */}
+            <small>{s.lugares.map((l) => LUGARES[l].name.split(' · ')[0]).filter((n, i, a) => a.indexOf(n) === i)
+              .map((n, i) => <Fragment key={n}>{i ? ' o ' : ''}{n}</Fragment>)}</small>
           </button>
         ))}
         <button type="button" className="wp-tile" title="Comercia con otros jugadores" onClick={() => openWindow?.('mercado')}>
